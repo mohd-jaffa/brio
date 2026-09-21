@@ -166,3 +166,21 @@ All notable changes to this project will be documented in this file.
 
 ### Blockers
 - None.
+
+## 2026-09-21 — Orders & Inventory Backend Modules
+
+### Added
+- Created `Orders` and `Inventory` modules following `AGENTS.md` architectural guidelines.
+- Implemented strict server-side order calculation logic (paise only) handling subtotals, charges, and discounts. The client's math is no longer trusted.
+- Implemented manual compensation logic (rollbacks) for complex order transactions across `orders`, `order_items`, `order_adjustments`, and `inventory_transactions` tables.
+- Implemented automated `ORDER_RESERVATION` and `ORDER_CONSUMPTION` inventory ledger transactions during order lifecycle events.
+- Created `InventoryService.getBalances()` method to safely aggregate ledger transactions into current stock levels.
+- Implemented RESTful APIs for fetching and manipulating orders and inventory via strict Zod input schemas.
+
+### Validation
+- Typecheck passed.
+- Unit tests for order math and inventory sign boundaries passed via Vitest.
+- Committed under mandated author settings.
+
+### Blockers
+- None.
