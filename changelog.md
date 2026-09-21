@@ -202,3 +202,22 @@ All notable changes to this project will be documented in this file.
 
 ### Blockers
 - Next.js Turbopack currently fails in the standard sandbox during `npm run build` due to port binding restrictions (`os error 1`), but `npm run typecheck` acts as the primary validation gate for component correctness.
+
+## 2026-09-21 — Expenses Backend Module
+
+### Added
+- Created `Expenses` module following `AGENTS.md` architectural guidelines, completing the Phase 1 `0002_business_core.sql` backend schema.
+- Added `ExpenseRow`, `ExpenseCategory`, and `PaymentMethod` domain types mapped directly to the database enums.
+- Added strict `Zod` runtime validation enforcing positive integer paise for `amount`.
+- Added isolated `ExpensesRepository` implementing tenant scoping (`bakery_id`).
+- Implemented robust `ExpensesService` validating payloads before dispatching to the repository.
+- Created fully compliant REST APIs (`GET`, `POST`, `PATCH`, `DELETE`) for managing expenses at `/api/expenses` and `/api/expenses/[id]`.
+
+### Validation
+- Added `tests/backend/expenses.service.test.ts` to verify enum constraints and negative-value rejections.
+- Typecheck passed (`npm run typecheck`).
+- Tests passed (`npm run test`) using Vitest.
+- Committed under mandated author settings.
+
+### Blockers
+- `receipt_url` is supported as a standard string string per database schema, but as per `AGENTS.md` rules regarding user uploads, no file-upload endpoints have been introduced for expenses.
