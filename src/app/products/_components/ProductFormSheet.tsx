@@ -145,7 +145,6 @@ export function ProductFormSheet({ isOpen, onClose, onSuccess, initialData }: Pr
             </div>
           )}
 
-          {/* @ts-expect-error hook form type mismatch with strict zod boolean */}
           <form id="product-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5">
