@@ -19,14 +19,11 @@ export const metadata: Metadata = {
   title: "Ovenly — Home Bakery Management",
   description:
     "Mobile-first management platform for home bakers. Manage orders, customers, inventory, expenses, and bills effortlessly.",
-  manifest: "/manifest.json",
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   themeColor: "#6B4226",
 };
 
@@ -39,6 +36,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-theme="clean"
+      suppressHydrationWarning
       className={`${fredoka.variable} ${plusJakartaSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">

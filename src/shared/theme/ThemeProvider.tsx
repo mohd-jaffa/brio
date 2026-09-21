@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 
 export type Theme = "clean" | "peach";
 
@@ -14,33 +14,33 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("clean");
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("ovenly_theme") as Theme | null;
     if (savedTheme === "clean" || savedTheme === "peach") {
       setThemeState(savedTheme);
       document.documentElement.setAttribute("data-theme", savedTheme);
-    } else {
-      document.documentElement.setAttribute("data-theme", "clean");
     }
-    setMounted(true);
   }, []);
 
-  const setTheme = (newTheme: Theme) => {
+  const setTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
     localStorage.setItem("ovenly_theme", newTheme);
     document.documentElement.setAttribute("data-theme", newTheme);
-  };
+  }, []);
 
-  const toggleTheme = () => {
-    const nextTheme = theme === "clean" ? "peach" : "clean";
-    setTheme(nextTheme);
-  };
+  const toggleTheme = useCallback(() => {
+    setThemeState((prev) => {
+      const nextTheme = prev === "clean" ? "peach" : "clean";
+      localStorage.setItem("ovenly_theme", nextTheme);
+      document.documentElement.setAttribute("data-theme", nextTheme);
+      return nextTheme;
+    });
+  }, []);
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
-      <div style={{ visibility: mounted ? "visible" : "hidden" }}>{children}</div>
+      {children}
     </ThemeContext.Provider>
   );
 }

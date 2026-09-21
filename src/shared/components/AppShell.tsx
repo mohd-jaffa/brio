@@ -1,93 +1,145 @@
 "use client";
 
-import React, { useState } from "react";
-import { useTheme, Theme } from "@/shared/theme/ThemeProvider";
+import React, { useState, useCallback } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useTheme } from "@/shared/theme/ThemeProvider";
+import { MoreSheet } from "@/shared/components/MoreSheet";
+
+/* ============================================================
+   Navigation Configuration — Plan Section 9 (Lines 324–367)
+   ============================================================ */
+
+/** Mobile bottom nav: 4 items per plan Lines 324–331 */
+const mobileNavItems = [
+  { id: "home", label: "Home", icon: "🧁", href: "/" },
+  { id: "orders", label: "Orders", icon: "🛍️", href: "/orders" },
+  { id: "customers", label: "Customers", icon: "👥", href: "/customers" },
+  { id: "more", label: "More", icon: "☰", href: "#more" },
+] as const;
+
+/** Desktop sidebar: 9 items per plan Lines 357–367 */
+const desktopNavItems = [
+  { id: "dashboard", label: "Dashboard", icon: "🧁", href: "/" },
+  { id: "orders", label: "Orders", icon: "🛍️", href: "/orders" },
+  { id: "customers", label: "Customers", icon: "👥", href: "/customers" },
+  { id: "products", label: "Products", icon: "🎂", href: "/products" },
+  { id: "inventory", label: "Inventory", icon: "📦", href: "/inventory" },
+  { id: "expenses", label: "Expenses", icon: "💰", href: "/expenses" },
+  { id: "analytics", label: "Analytics", icon: "📊", href: "/analytics" },
+  { id: "receipts", label: "Receipts", icon: "🧾", href: "/receipts" },
+  { id: "settings", label: "Settings", icon: "⚙️", href: "/settings" },
+] as const;
+
+/* ============================================================
+   AppShell Component
+   Plan Section 41 — Mobile & Desktop Layout Wireframes
+   ============================================================ */
 
 interface AppShellProps {
   children: React.ReactNode;
-  activeTab?: "home" | "orders" | "products" | "inventory" | "more";
 }
 
-export function AppShell({ children, activeTab = "home" }: AppShellProps) {
+export function AppShell({ children }: AppShellProps) {
   const { theme, setTheme } = useTheme();
-  const [currentTab, setCurrentTab] = useState(activeTab);
+  const pathname = usePathname();
+  const [moreOpen, setMoreOpen] = useState(false);
 
-  const navItems = [
-    { id: "home", label: "Home", icon: "🧁" },
-    { id: "orders", label: "Orders", icon: "🛍️" },
-    { id: "products", label: "Products", icon: "🎂" },
-    { id: "inventory", label: "Stock", icon: "📦" },
-    { id: "more", label: "More", icon: "⚙️" },
-  ];
+  const toggleMore = useCallback(() => {
+    setMoreOpen((prev) => !prev);
+  }, []);
+
+  const closeMore = useCallback(() => {
+    setMoreOpen(false);
+  }, []);
+
+  const isActive = (href: string) => {
+    if (href === "/") return pathname === "/";
+    return pathname.startsWith(href);
+  };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-[var(--color-bg)] text-[var(--color-text)] transition-colors duration-200">
-      {/* Desktop Sidebar (>= 768px) */}
-      <aside className="hidden md:flex md:w-64 flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)] p-4 flex-shrink-0">
-        {/* Bakery Header */}
-        <div className="flex items-center gap-3 px-2 py-3 mb-6">
-          <div className="w-10 h-10 rounded-full bg-[var(--color-accent)] border border-[var(--color-accent-border)] flex items-center justify-center text-xl shadow-xs">
-            🧁
+    <div className="min-h-screen flex flex-col md:flex-row bg-background text-text">
+      {/* ============================================================
+          Desktop Sidebar (>= 768px) — Plan Section 41 Desktop Wireframe
+          ============================================================ */}
+      <aside className="hidden md:flex md:w-64 flex-col border-r border-border bg-surface flex-shrink-0">
+        {/* Bakery Brand */}
+        <div className="flex items-center gap-3 px-4 py-4 border-b border-border">
+          <div className="w-10 h-10 rounded-full bg-accent border border-accent-border flex items-center justify-center text-xl shadow-card">
+            <span aria-hidden="true">🧁</span>
           </div>
           <div>
-            <h1 className="font-semibold text-lg leading-tight font-[var(--font-heading)]">
+            <span className="font-semibold text-lg leading-tight font-heading block">
               Ovenly
-            </h1>
-            <span className="text-xs text-[var(--color-text-muted)] font-medium">
+            </span>
+            <span className="text-xs text-text-muted font-medium">
               Home Bakery Manager
             </span>
           </div>
         </div>
 
-        {/* Desktop Navigation Links */}
-        <nav className="flex-1 space-y-1">
-          {navItems.map((item) => {
-            const isActive = currentTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setCurrentTab(item.id as typeof currentTab)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-[var(--color-primary)] text-[var(--color-primary-text)] shadow-xs"
-                    : "text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
-                }`}
-              >
-                <span className="text-lg">{item.icon}</span>
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
+        {/* Desktop Navigation — Plan Section 9 Lines 357–367 */}
+        <nav aria-label="Main navigation" className="flex-1 px-3 py-4">
+          <ul className="space-y-1" role="list">
+            {desktopNavItems.map((item) => {
+              const active = isActive(item.href);
+              return (
+                <li key={item.id}>
+                  <Link
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    className={`touch-target w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      active
+                        ? "bg-primary text-primary-text shadow-card"
+                        : "text-text-muted hover:bg-surface-hover hover:text-text"
+                    }`}
+                  >
+                    <span aria-hidden="true" className="text-lg">{item.icon}</span>
+                    <span>{item.label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         </nav>
 
-        {/* Theme Selector & Role Badge */}
-        <div className="pt-4 border-t border-[var(--color-border)] space-y-3">
-          <div className="flex items-center justify-between px-2">
-            <span className="text-xs font-medium text-[var(--color-text-muted)]">
+        {/* Theme Selector — Sidebar Footer */}
+        <div className="px-4 py-4 border-t border-border space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-text-muted">
               Visual Theme
             </span>
-            <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded bg-[var(--color-accent)] text-[var(--color-secondary)] border border-[var(--color-accent-border)]">
+            <span className="text-[11px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded bg-accent text-secondary border border-accent-border">
               BAKER
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-1.5 p-1 rounded-lg bg-[var(--color-surface-hover)] border border-[var(--color-border)]">
+          <div
+            className="grid grid-cols-2 gap-1.5 p-1 rounded-lg bg-surface-hover border border-border"
+            role="radiogroup"
+            aria-label="Select visual theme"
+          >
             <button
               onClick={() => setTheme("clean")}
-              className={`py-1.5 text-xs font-medium rounded-md transition-all ${
+              role="radio"
+              aria-checked={theme === "clean"}
+              className={`touch-target py-1.5 text-xs font-medium rounded-md transition-all ${
                 theme === "clean"
-                  ? "bg-[var(--color-surface)] text-[var(--color-primary)] shadow-xs font-semibold"
-                  : "text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+                  ? "bg-surface text-primary shadow-card font-semibold"
+                  : "text-text-muted hover:text-text"
               }`}
             >
               Clean
             </button>
             <button
               onClick={() => setTheme("peach")}
-              className={`py-1.5 text-xs font-medium rounded-md transition-all ${
+              role="radio"
+              aria-checked={theme === "peach"}
+              className={`touch-target py-1.5 text-xs font-medium rounded-md transition-all ${
                 theme === "peach"
-                  ? "bg-[var(--color-surface)] text-[var(--color-primary)] shadow-xs font-semibold"
-                  : "text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+                  ? "bg-surface text-primary shadow-card font-semibold"
+                  : "text-text-muted hover:text-text"
               }`}
             >
               Peach
@@ -98,55 +150,112 @@ export function AppShell({ children, activeTab = "home" }: AppShellProps) {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile Header (< 768px) */}
-        <header className="md:hidden sticky top-0 z-20 flex items-center justify-between px-4 py-3 bg-[var(--color-surface)] border-b border-[var(--color-border)] shadow-xs">
+        {/* ============================================================
+            Mobile Header (< 768px) — Plan Section 41 Mobile Wireframe
+            ============================================================ */}
+        <header className="md:hidden sticky top-0 z-20 flex items-center justify-between px-4 py-3 bg-surface border-b border-border shadow-card safe-top">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-[var(--color-accent)] border border-[var(--color-accent-border)] flex items-center justify-center text-base">
-              🧁
+            <div className="w-8 h-8 rounded-full bg-accent border border-accent-border flex items-center justify-center text-base">
+              <span aria-hidden="true">🧁</span>
             </div>
-            <span className="font-bold text-base font-[var(--font-heading)]">
+            <h1 className="font-bold text-base font-heading">
               Ovenly
-            </span>
+            </h1>
           </div>
 
-          {/* Theme Switcher Toggle (Mobile) */}
-          <div className="flex items-center gap-1 bg-[var(--color-surface-hover)] p-1 rounded-lg border border-[var(--color-border)]">
+          {/* Theme Toggle (Mobile) */}
+          <button
+            onClick={() => setTheme(theme === "clean" ? "peach" : "clean")}
+            className="touch-target px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-surface-hover text-primary border border-border"
+            aria-label={`Switch to ${theme === "clean" ? "Peach" : "Clean"} Bakery theme`}
+            aria-pressed={theme === "peach"}
+          >
+            {theme === "clean" ? "🥐 Clean" : "🍑 Peach"}
+          </button>
+        </header>
+
+        {/* ============================================================
+            Desktop Header (>= 768px) — Plan Section 41 Desktop Wireframe
+            The plan shows Header above Content, adjacent to sidebar.
+            ============================================================ */}
+        <header className="hidden md:flex items-center justify-between px-6 py-3 bg-surface border-b border-border">
+          <div>
+            <h1 className="text-lg font-semibold font-heading">
+              {desktopNavItems.find((item) => isActive(item.href))?.label ?? "Dashboard"}
+            </h1>
+          </div>
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setTheme(theme === "clean" ? "peach" : "clean")}
-              className="px-2.5 py-1 text-xs font-semibold rounded-md bg-[var(--color-accent)] text-[var(--color-primary)] border border-[var(--color-accent-border)]"
-              aria-label="Toggle visual theme"
+              className="touch-target px-3 py-1.5 text-xs font-semibold rounded-lg bg-surface-hover text-primary border border-border hover:bg-primary-light transition-colors"
+              aria-label={`Switch to ${theme === "clean" ? "Peach" : "Clean"} Bakery theme`}
             >
-              Theme: {theme === "clean" ? "Clean 🥐" : "Peach 🍑"}
+              {theme === "clean" ? "🍑 Peach Theme" : "🥐 Clean Theme"}
             </button>
           </div>
         </header>
 
-        {/* Content Container (Responsive Viewports 360px / 390px / 414px) */}
-        <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-5xl w-full mx-auto pb-20 md:pb-8">
+        {/* Content Container */}
+        <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-5xl w-full mx-auto pb-24 md:pb-8">
           {children}
         </main>
       </div>
 
-      {/* Mobile Fixed Bottom Navigation Bar (< 768px) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[var(--color-surface)] border-t border-[var(--color-border)] px-2 py-1.5 flex items-center justify-around shadow-lg">
-        {navItems.map((item) => {
-          const isActive = currentTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setCurrentTab(item.id as typeof currentTab)}
-              className={`flex flex-col items-center justify-center py-1 px-3 rounded-lg min-w-[56px] transition-colors ${
-                isActive
-                  ? "text-[var(--color-primary)] font-semibold"
-                  : "text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
-              }`}
-            >
-              <span className="text-xl leading-none mb-0.5">{item.icon}</span>
-              <span className="text-[10px] tracking-tight">{item.label}</span>
-            </button>
-          );
-        })}
+      {/* ============================================================
+          Mobile Bottom Navigation (< 768px)
+          Plan Section 9 Lines 324–331: Home, Orders, Customers, More
+          ============================================================ */}
+      <nav
+        aria-label="Main navigation"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-surface border-t border-border px-2 pt-1.5 pb-1.5 safe-bottom shadow-elevated"
+      >
+        <ul className="flex items-center justify-around" role="list">
+          {mobileNavItems.map((item) => {
+            const isMoreButton = item.id === "more";
+            const active = isMoreButton ? moreOpen : isActive(item.href);
+
+            if (isMoreButton) {
+              return (
+                <li key={item.id}>
+                  <button
+                    onClick={toggleMore}
+                    aria-expanded={moreOpen}
+                    aria-haspopup="dialog"
+                    className={`touch-target flex flex-col items-center justify-center py-1 px-3 rounded-lg min-w-[56px] transition-colors ${
+                      active
+                        ? "text-primary font-semibold"
+                        : "text-text-muted hover:text-text"
+                    }`}
+                  >
+                    <span aria-hidden="true" className="text-xl leading-none mb-0.5">{item.icon}</span>
+                    <span className="text-xs tracking-tight">{item.label}</span>
+                  </button>
+                </li>
+              );
+            }
+
+            return (
+              <li key={item.id}>
+                <Link
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={`touch-target flex flex-col items-center justify-center py-1 px-3 rounded-lg min-w-[56px] transition-colors ${
+                    active
+                      ? "text-primary font-semibold"
+                      : "text-text-muted hover:text-text"
+                  }`}
+                >
+                  <span aria-hidden="true" className="text-xl leading-none mb-0.5">{item.icon}</span>
+                  <span className="text-xs tracking-tight">{item.label}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
       </nav>
+
+      {/* More Sheet — Plan Section 9 Lines 333–342 */}
+      <MoreSheet isOpen={moreOpen} onClose={closeMore} />
     </div>
   );
 }

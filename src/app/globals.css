@@ -1,12 +1,20 @@
 @import "tailwindcss";
 
+/* ============================================================
+   OVENLY DESIGN SYSTEM — Semantic Design Tokens
+   Plan Section 42: UI Themes
+   Token names match plan Lines 1669–1678 exactly.
+   ============================================================ */
+
 :root,
 [data-theme="clean"] {
-  --color-bg: #ffffff;
+  /* Clean Bakery — Plan Lines 1650–1655 */
+  --color-background: #ffffff;
   --color-surface: #f8f9fa;
   --color-surface-hover: #f1f3f5;
   --color-primary: #6b4226;
   --color-primary-hover: #54331c;
+  --color-primary-light: rgba(107, 66, 38, 0.08);
   --color-primary-text: #ffffff;
   --color-secondary: #8b5a2b;
   --color-accent: #fff8e7;
@@ -20,14 +28,26 @@
   --color-warning-bg: #fffbeb;
   --color-danger: #b91c1c;
   --color-danger-bg: #fef2f2;
+
+  /* Centralized Radii */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  /* Centralized Shadows */
+  --shadow-card: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-elevated: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
 }
 
 [data-theme="peach"] {
-  --color-bg: #fff5ee;
-  --color-surface: #ffffff;
+  /* Peach Bakery — Plan Lines 1660–1664 */
+  --color-background: #fff5ee;
+  --color-surface: #fefaf6;
   --color-surface-hover: #faf0e6;
   --color-primary: #c85a32;
   --color-primary-hover: #af4720;
+  --color-primary-light: rgba(200, 90, 50, 0.08);
   --color-primary-text: #ffffff;
   --color-secondary: #b24c27;
   --color-accent: #fff0e5;
@@ -41,36 +61,107 @@
   --color-warning-bg: #fffbeb;
   --color-danger: #b91c1c;
   --color-danger-bg: #fef2f2;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  --shadow-card: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --shadow-elevated: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
 }
 
+/* ============================================================
+   Tailwind v4 @theme Bridge
+   Maps CSS custom properties into native Tailwind utilities:
+   bg-background, text-primary, border-border, font-heading, etc.
+   ============================================================ */
+@theme inline {
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-surface-hover: var(--color-surface-hover);
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-light: var(--color-primary-light);
+  --color-primary-text: var(--color-primary-text);
+  --color-secondary: var(--color-secondary);
+  --color-accent: var(--color-accent);
+  --color-accent-border: var(--color-accent-border);
+  --color-text: var(--color-text);
+  --color-text-muted: var(--color-text-muted);
+  --color-border: var(--color-border);
+  --color-success: var(--color-success);
+  --color-success-bg: var(--color-success-bg);
+  --color-warning: var(--color-warning);
+  --color-warning-bg: var(--color-warning-bg);
+  --color-danger: var(--color-danger);
+  --color-danger-bg: var(--color-danger-bg);
+
+  --font-heading: var(--font-heading);
+  --font-body: var(--font-body);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-elevated: var(--shadow-elevated);
+}
+
+/* ============================================================
+   Base Styles
+   ============================================================ */
 body {
-  background-color: var(--color-bg);
+  background-color: var(--color-background);
   color: var(--color-text);
   font-family: var(--font-body), system-ui, -apple-system, sans-serif;
   min-height: 100vh;
   -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading), system-ui, -apple-system, sans-serif;
 }
 
-/* Touch Target Accessibility Requirement (Min 44px x 44px) */
-button,
-a,
-input,
-select,
-textarea {
+/* ============================================================
+   Accessibility: Touch Target Utility
+   WCAG 2.5.5 / 2.5.8 — Applied per-component, not globally.
+   The blanket rule on all <a>/<button> breaks inline text links.
+   ============================================================ */
+.touch-target {
   min-height: 44px;
+  min-width: 44px;
 }
 
-/* Focus Visible outline for accessibility */
+/* ============================================================
+   Accessibility: Focus Visible
+   Two-tone outline visible on both light and primary backgrounds.
+   ============================================================ */
 *:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--color-background);
 }
 
-/* Scrollbar styling */
+/* ============================================================
+   Safe Area Insets for PWA / Capacitor standalone mode
+   ============================================================ */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ============================================================
+   Smooth transitions for theme switching
+   ============================================================ */
+[data-theme] {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* ============================================================
+   Scrollbar Styling
+   ============================================================ */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
