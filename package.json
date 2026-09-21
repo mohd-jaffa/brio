@@ -6,22 +6,32 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run test:backend && npm run test:db && npm run test:e2e",
+    "test:backend": "node --import tsx --test tests/backend/**/*.test.ts",
+    "test:db": "node --import tsx --test tests/db/**/*.test.ts",
+    "test:e2e": "node --import tsx --test tests/e2e/**/*.test.ts"
   },
   "dependencies": {
-    "next": "16.2.10",
+    "@supabase/supabase-js": "^2.110.7",
+    "next": "^16.3.5",
+    "nodemailer": "^10.0.10",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/nodemailer": "^8.0.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
-    "eslint-config-next": "16.2.10",
+    "eslint-config-next": "^16.3.5",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }

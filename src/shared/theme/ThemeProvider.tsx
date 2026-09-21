@@ -12,30 +12,30 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+function getInitialTheme(): Theme {
+  if (typeof window === "undefined") {
+    return "clean";
+  }
+
+  const savedTheme = window.localStorage.getItem("ovenly_theme");
+
+  return savedTheme === "clean" || savedTheme === "peach" ? savedTheme : "clean";
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("clean");
+  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("ovenly_theme") as Theme | null;
-    if (savedTheme === "clean" || savedTheme === "peach") {
-      setThemeState(savedTheme);
-      document.documentElement.setAttribute("data-theme", savedTheme);
-    }
-  }, []);
+    window.localStorage.setItem("ovenly_theme", theme);
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
 
   const setTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem("ovenly_theme", newTheme);
-    document.documentElement.setAttribute("data-theme", newTheme);
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setThemeState((prev) => {
-      const nextTheme = prev === "clean" ? "peach" : "clean";
-      localStorage.setItem("ovenly_theme", nextTheme);
-      document.documentElement.setAttribute("data-theme", nextTheme);
-      return nextTheme;
-    });
+    setThemeState((prev) => (prev === "clean" ? "peach" : "clean"));
   }, []);
 
   return (

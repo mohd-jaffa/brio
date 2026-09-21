@@ -599,6 +599,15 @@ Use:
 
 Important tenant/query indexes must follow the plan.
 
+Migration files must follow sequential naming:
+
+```text
+0001_create_bakeries
+0002_create_users
+0003_create_customers
+...
+```
+
 ---
 
 # 24. API

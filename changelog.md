@@ -23,6 +23,49 @@ All notable changes to this project will be documented in this file.
 ### Blockers
 - None.
 
+## 2026-09-21 — Auth Foundation, API Error Rail, and Security Update
+
+### Added
+- Added centralized API error handling, request IDs, standard success/error response helpers, structured logging, and sensitive-key redaction.
+- Added server environment validation for Supabase, app URL, and SMTP configuration.
+- Added Supabase server/client factories for anonymous, bearer-token, and service-role access.
+- Added centralized mail service interfaces, Nodemailer provider wiring, and account confirmation/password-reset templates.
+- Added Auth module validation, phone normalization, secure temporary-password generation, role helpers, and bearer authorization guard.
+- Added API routes for registration, phone/password login, logout, session lookup, password reset, and forced password change.
+- Added Supabase migration `20260921170000_auth_foundation.sql` for `bakeries`, `profiles`, uniqueness constraints, RLS, and own-bakery read policies.
+- Added backend, database, and auth-flow contract tests using Node's built-in test runner with `tsx`.
+
+### Changed
+- Updated the production readiness checklist in `home-bakery-management-platform-plan.md` for completed auth, validation, authorization, RLS, secret-management, and logging items.
+- Updated `ThemeProvider` hydration to satisfy the React Compiler lint rule while preserving persisted theme selection.
+- Updated Next.js and `eslint-config-next` from `16.2.10` to `16.3.5` to resolve npm audit advisories.
+- Added `typecheck`, `test`, `test:backend`, `test:db`, and `test:e2e` package scripts.
+- Documented local SMTP placeholder variables in `.env.example` and `.env.local`.
+
+### Affected Modules
+- Auth
+- Shared API/error handling
+- Infrastructure: Supabase, mail, env
+- Database migrations
+- Test tooling
+
+### Reason
+- Implements the plan's Phase 1 authentication requirements and P0 hardening items for error classification, request IDs, log sanitization, auth/session hardening, environment separation, and migrations.
+
+### Validation
+- `npm run typecheck` passed.
+- `npm run lint` passed.
+- `npm run test` passed: backend, DB migration contract, and auth-flow contract tests.
+- `npm audit --audit-level=moderate` passed with 0 vulnerabilities.
+- `npm run build` passed on Next.js 16.3.5.
+
+### Migration Notes
+- Apply `supabase/migrations/20260921170000_auth_foundation.sql` to the local Supabase database before exercising the auth API against Docker Supabase.
+- Configure SMTP variables before using account confirmation or password-reset emails outside local placeholder mail tooling.
+
+### Blockers
+- None.
+
 ## 2026-09-21 — Impeccable Shape: Design System & App Shell
 
 ### Changed (Design Token Compliance — Plan Section 42)
@@ -79,4 +122,3 @@ All notable changes to this project will be documented in this file.
 
 ### Blockers
 - None.
-

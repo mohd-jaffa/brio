@@ -2398,22 +2398,22 @@ Dashboard
 
 ## Authentication
 
-- [ ] Phone/password authentication
-- [ ] Session handling
-- [ ] Logout
-- [ ] Password reset
+- [x] Phone/password authentication
+- [x] Session handling
+- [x] Logout
+- [x] Password reset
 - [ ] Account deactivation
-- [ ] Role enforcement
+- [x] Role enforcement
 
 ## Security
 
-- [ ] RLS enabled
+- [x] RLS enabled
 - [ ] Tenant isolation tested
-- [ ] API authorization
-- [ ] Input validation
+- [x] API authorization
+- [x] Input validation
 - [ ] File validation
 - [ ] Rate limiting
-- [ ] Secret management
+- [x] Secret management
 
 ## Orders
 
@@ -2471,8 +2471,8 @@ Dashboard
 
 ## Observability
 
-- [ ] Structured logs
-- [ ] Error logs
+- [x] Structured logs
+- [x] Error logs
 - [ ] Audit logs
 - [ ] Worker monitoring
 - [ ] Developer-only dashboards
@@ -6517,4 +6517,3 @@ Delete previous logo
 ```
 
 If the candidate upload or database update fails, the existing logo should remain usable.
-
