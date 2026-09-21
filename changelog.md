@@ -145,3 +145,24 @@ All notable changes to this project will be documented in this file.
 
 ### Blockers
 - None.
+
+## 2026-09-21 — Customers & Products Backend Modules
+
+### Added
+- Created `Customers` and `Products` modules with isolated domain types, robust Zod validation schemas, and clean Service/Repository layers.
+- Added `extract-session` shared helper to securely enforce tenant scoping (using `bakery_id`) consistently across API boundaries.
+- Implemented API route handlers for creating, fetching, listing, and updating customers (`/api/customers`, `/api/customers/[id]`).
+- Implemented API route handlers for creating, fetching, listing, and updating products (`/api/products`, `/api/products/[id]`).
+- Added robust unit tests verifying strict business rules, like phone normalization for Customers and integer paise requirement for Products.
+
+### Changed
+- Enforced `AGENTS.md` Controller -> Service -> Repository layer architecture for both new modules.
+- Replaced `ERROR_CODES.BUSINESS_RULE_VIOLATION` with explicit `CONFLICT` errors where appropriate (unique constraints).
+
+### Validation
+- Typecheck passed.
+- Unit and integration tests passed via Vitest.
+- Committed under mandated author settings.
+
+### Blockers
+- None.
