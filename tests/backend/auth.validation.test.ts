@@ -1,5 +1,4 @@
-import { describe, it } from "node:test";
-import assert from "node:assert/strict";
+import { describe, it, expect } from "vitest";
 import { generateTemporaryPassword, normalizePhone } from "../../src/modules/auth/auth.security";
 import {
   changePasswordSchema,
@@ -9,14 +8,14 @@ import {
 
 describe("auth validation", () => {
   it("normalizes phone numbers before validation", () => {
-    assert.equal(normalizePhone("+91 98765-43210"), "+919876543210");
+    expect(normalizePhone("+91 98765-43210")).toBe("+919876543210");
 
     const parsed = loginSchema.parse({
       phone: "+91 98765-43210",
       password: "correct-password",
     });
 
-    assert.equal(parsed.phone, "+919876543210");
+    expect(parsed.phone).toBe("+919876543210");
   });
 
   it("requires registration email, phone, password, and confirmation", () => {
@@ -29,8 +28,8 @@ describe("auth validation", () => {
       confirmPassword: "super-secret",
     });
 
-    assert.equal(parsed.email, "asha@example.com");
-    assert.equal(parsed.phone, "+919876543210");
+    expect(parsed.email).toBe("asha@example.com");
+    expect(parsed.phone).toBe("+919876543210");
   });
 
   it("rejects mismatched registration passwords", () => {
@@ -43,7 +42,7 @@ describe("auth validation", () => {
       confirmPassword: "different-secret",
     });
 
-    assert.equal(result.success, false);
+    expect(result.success).toBe(false);
   });
 
   it("rejects mismatched forced password changes", () => {
@@ -52,16 +51,16 @@ describe("auth validation", () => {
       confirmPassword: "another-secret",
     });
 
-    assert.equal(result.success, false);
+    expect(result.success).toBe(false);
   });
 
   it("generates temporary passwords without logging or returning static values", () => {
     const first = generateTemporaryPassword();
     const second = generateTemporaryPassword();
 
-    assert.equal(first.length, 12);
-    assert.equal(second.length, 12);
-    assert.notEqual(first, second);
-    assert.match(first, /^[A-Za-z0-9]+$/);
+    expect(first.length).toBe(12);
+    expect(second.length).toBe(12);
+    expect(first).not.toBe(second);
+    expect(first).toMatch(/^[A-Za-z0-9]+$/);
   });
 });

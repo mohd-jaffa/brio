@@ -16,6 +16,7 @@ import {
 } from "@/shared/errors/app-error";
 import { logger } from "@/shared/logging/logger";
 import { generateTemporaryPassword } from "@/modules/auth/auth.security";
+import { AuthRepository, type ProfileRow } from "@/modules/auth/auth.repository";
 import {
   changePasswordSchema,
   loginSchema,
@@ -26,7 +27,7 @@ import {
   type PasswordResetRequestInput,
   type RegisterInput,
 } from "@/modules/auth/auth.validation";
-import { type AuthenticatedSession, type AuthProfile, type UserRole } from "@/modules/auth/auth.types";
+import { type AuthenticatedSession, type AuthProfile } from "@/modules/auth/auth.types";
 
 type SupabaseFactory = (accessToken?: string) => SupabaseClient;
 type MailServiceFactory = () => MailService;
@@ -36,18 +37,6 @@ interface AuthServiceDependencies {
   createAdminClient?: () => SupabaseClient;
   createMailService?: MailServiceFactory;
   getEnv?: () => ServerEnv;
-}
-
-interface ProfileRow {
-  id: string;
-  phone: string;
-  email: string;
-  name: string;
-  role: UserRole;
-  bakery_id: string;
-  is_active: boolean;
-  must_change_password: boolean;
-  email_confirmed_at: string | null;
 }
 
 export class AuthService {
@@ -67,6 +56,7 @@ export class AuthService {
     const registration = registerSchema.parse(input);
     const admin = this.createAdminClient();
     const env = this.getEnv();
+    const repository = new AuthRepository(admin);
 
     const { data: userData, error: userError } = await admin.auth.admin.createUser({
       email: registration.email,
@@ -85,64 +75,35 @@ export class AuthService {
     }
 
     const user = userData.user;
-
     if (!user) {
       throw new InternalServerError();
     }
 
-    const { data: bakeryData, error: bakeryError } = await admin
-      .from("bakeries")
-      .insert({
-        owner_id: user.id,
-        business_name: registration.businessName,
-        phone: registration.phone,
-        currency: "INR",
-        timezone: "Asia/Kolkata",
-      })
-      .select("id")
-      .single();
-
-    if (bakeryError || !bakeryData) {
-      await this.rollbackCreatedUser(admin, user.id);
-      throw this.mapAuthMutationError(bakeryError);
-    }
-
-    const bakeryId = String((bakeryData as { id: string }).id);
-
-    const { data: profileData, error: profileError } = await admin
-      .from("profiles")
-      .insert({
-        id: user.id,
+    try {
+      const { bakeryId, profile } = await repository.createBakeryAndProfile({
+        userId: user.id,
+        businessName: registration.businessName,
         phone: registration.phone,
         email: registration.email,
         name: registration.name,
-        role: "BAKER",
-        bakery_id: bakeryId,
-        is_active: true,
-        must_change_password: false,
-      })
-      .select(
-        "id, phone, email, name, role, bakery_id, is_active, must_change_password, email_confirmed_at",
-      )
-      .single();
+      });
 
-    if (profileError || !profileData) {
+      const confirmationUrl = await this.createConfirmationUrl(admin, registration.email, env);
+      await this.createMailService().sendAccountConfirmation({
+        to: registration.email,
+        name: registration.name,
+        confirmationUrl,
+      });
+
+      return {
+        userId: user.id,
+        bakeryId,
+        profile: this.mapProfile(profile),
+      };
+    } catch (error) {
       await this.rollbackCreatedUser(admin, user.id);
-      throw this.mapAuthMutationError(profileError);
+      throw error;
     }
-
-    const confirmationUrl = await this.createConfirmationUrl(admin, registration.email, env);
-    await this.createMailService().sendAccountConfirmation({
-      to: registration.email,
-      name: registration.name,
-      confirmationUrl,
-    });
-
-    return {
-      userId: user.id,
-      bakeryId,
-      profile: this.mapProfile(profileData as ProfileRow),
-    };
   }
 
   async login(input: LoginInput): Promise<AuthenticatedSession> {
@@ -204,24 +165,11 @@ export class AuthService {
   async requestPasswordReset(input: PasswordResetRequestInput) {
     const resetRequest = passwordResetRequestSchema.parse(input);
     const admin = this.createAdminClient();
+    const repository = new AuthRepository(admin);
 
-    const { data: profileData, error: profileError } = await admin
-      .from("profiles")
-      .select("id, email, name, is_active")
-      .eq("email", resetRequest.email)
-      .maybeSingle();
+    const profile = await repository.getProfileByEmail(resetRequest.email);
 
-    if (profileError) {
-      throw this.mapAuthMutationError(profileError);
-    }
-
-    if (!profileData) {
-      return { accepted: true };
-    }
-
-    const profile = profileData as { id: string; email: string; name: string; is_active: boolean };
-
-    if (!profile.is_active) {
+    if (!profile || !profile.is_active) {
       return { accepted: true };
     }
 
@@ -234,14 +182,7 @@ export class AuthService {
       throw new ExternalServiceError(ERROR_CODES.EXTERNAL_SERVICE_ERROR, undefined, updateUserError);
     }
 
-    const { error: profileUpdateError } = await admin
-      .from("profiles")
-      .update({ must_change_password: true })
-      .eq("id", profile.id);
-
-    if (profileUpdateError) {
-      throw this.mapAuthMutationError(profileUpdateError);
-    }
+    await repository.requirePasswordChange(profile.id);
 
     await this.createMailService().sendPasswordResetTemporaryPassword({
       to: profile.email,
@@ -270,14 +211,9 @@ export class AuthService {
     }
 
     const admin = this.createAdminClient();
-    const { error: profileUpdateError } = await admin
-      .from("profiles")
-      .update({ must_change_password: false })
-      .eq("id", userData.user.id);
-
-    if (profileUpdateError) {
-      throw this.mapAuthMutationError(profileUpdateError);
-    }
+    const repository = new AuthRepository(admin);
+    
+    await repository.clearPasswordChangeRequirement(userData.user.id);
 
     const profile = await this.fetchProfile(userData.user.id);
 
@@ -289,19 +225,14 @@ export class AuthService {
 
   private async fetchProfile(userId: string): Promise<AuthProfile> {
     const admin = this.createAdminClient();
-    const { data, error } = await admin
-      .from("profiles")
-      .select(
-        "id, phone, email, name, role, bakery_id, is_active, must_change_password, email_confirmed_at",
-      )
-      .eq("id", userId)
-      .single();
+    const repository = new AuthRepository(admin);
+    const profile = await repository.getProfileById(userId);
 
-    if (error || !data) {
+    if (!profile) {
       throw new AuthenticationError(ERROR_CODES.AUTH_SESSION_INVALID);
     }
 
-    return this.mapProfile(data as ProfileRow);
+    return this.mapProfile(profile);
   }
 
   private mapProfile(row: ProfileRow): AuthProfile {

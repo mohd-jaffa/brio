@@ -122,3 +122,26 @@ All notable changes to this project will be documented in this file.
 
 ### Blockers
 - None.
+
+## 2026-09-21 — Auth Architecture Fixes, Vitest Integration, and Phase 2 Core Schema
+
+### Added
+- Added `vitest` and `@vitest/coverage-v8` to fulfill testing framework mandate.
+- Created `vitest.config.ts` for project configuration.
+- Added `tests/backend/auth.service.test.ts` to cover compensation logic and rollback scenarios.
+- Created `0002_business_core.sql` schema defining Phase 1 Business Core entities (`customers`, `categories`, `products`, `orders`, `order_items`, `order_adjustments`, `inventory_transactions`, `expenses`) with precise plan specifications, indices, constraints, and Row Level Security policies.
+
+### Changed
+- Renamed `20260921170000_auth_foundation.sql` to `0001_auth_foundation.sql` following AGENTS.md requirements.
+- Refactored `AuthService` into clean architecture: extracted all DB mutation logic to a new `AuthRepository`.
+- Fixed auth registration transaction flow to securely rollback/cleanup user identities if profile row creation fails.
+- Decoupled `api/auth/session/route.ts` from direct guard injection, using standard service layers.
+- Migrated all test files from `node:test` regex scanning to robust `vitest` matchers and structure.
+
+### Validation
+- Typecheck passed (`npm run typecheck`).
+- Tests passed (`npm run test`) on all suites.
+- Next build passed.
+
+### Blockers
+- None.

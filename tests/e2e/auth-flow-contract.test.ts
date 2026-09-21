@@ -1,5 +1,4 @@
-import { describe, it } from "node:test";
-import assert from "node:assert/strict";
+import { describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -17,8 +16,8 @@ describe("auth API flow contract", () => {
     it(`exposes ${name} through ${method}`, () => {
       const absolutePath = join(process.cwd(), routePath);
 
-      assert.equal(existsSync(absolutePath), true);
-      assert.match(readFileSync(absolutePath, "utf8"), new RegExp(`export async function ${method}`));
+      expect(existsSync(absolutePath)).toBe(true);
+      expect(readFileSync(absolutePath, "utf8")).toMatch(new RegExp(`export async function ${method}`));
     });
   }
 
@@ -26,7 +25,7 @@ describe("auth API flow contract", () => {
     const logoutRoute = readFileSync(join(process.cwd(), "src/app/api/auth/logout/route.ts"), "utf8");
     const passwordRoute = readFileSync(join(process.cwd(), "src/app/api/auth/password/route.ts"), "utf8");
 
-    assert.match(logoutRoute, /extractBearerToken/);
-    assert.match(passwordRoute, /extractBearerToken/);
+    expect(logoutRoute).toMatch(/extractBearerToken/);
+    expect(passwordRoute).toMatch(/extractBearerToken/);
   });
 });

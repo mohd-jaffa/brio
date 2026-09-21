@@ -1,5 +1,4 @@
-import { describe, it } from "node:test";
-import assert from "node:assert/strict";
+import { describe, it, expect } from "vitest";
 import { ERROR_CODES } from "../../src/shared/constants/errors";
 import { buildErrorPayload } from "../../src/shared/api/responses";
 import { AuthenticationError } from "../../src/shared/errors/app-error";
@@ -14,10 +13,12 @@ describe("API error contract", () => {
       "req_test",
     );
 
-    assert.equal(payload.success, false);
-    assert.equal(payload.error.code, ERROR_CODES.AUTH_INVALID_CREDENTIALS);
-    assert.equal(payload.error.message, "The phone number or password is incorrect.");
-    assert.equal(payload.error.requestId, "req_test");
+    expect(payload.success).toBe(false);
+    if (!payload.success) {
+      expect(payload.error.code).toBe(ERROR_CODES.AUTH_INVALID_CREDENTIALS);
+      expect(payload.error.message).toBe("The phone number or password is incorrect.");
+      expect(payload.error.requestId).toBe("req_test");
+    }
   });
 
   it("redacts sensitive structured log keys recursively", () => {
@@ -30,7 +31,7 @@ describe("API error contract", () => {
       },
     });
 
-    assert.deepEqual(redacted, {
+    expect(redacted).toEqual({
       phone: "+919876543210",
       password: "[Redacted]",
       nested: {
