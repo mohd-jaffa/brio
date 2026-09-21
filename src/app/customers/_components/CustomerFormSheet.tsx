@@ -53,9 +53,7 @@ export function CustomerFormSheet({ isOpen, onClose, onSuccess, initialData }: C
           name: "",
           phone: "",
           email: "",
-          address: "",
-          googleMapsLink: "",
-          notes: "",
+        });
       }
     }
   }, [isOpen, initialData, reset]);

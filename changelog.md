@@ -221,3 +221,20 @@ All notable changes to this project will be documented in this file.
 
 ### Blockers
 - `receipt_url` is supported as a standard string string per database schema, but as per `AGENTS.md` rules regarding user uploads, no file-upload endpoints have been introduced for expenses.
+
+## 2026-09-21 — Customers Frontend UI
+
+### Added
+- Installed `swr`, `react-hook-form`, and `@hookform/resolvers` for data fetching and robust form validation.
+- Created a standard `ApiError` fetch wrapper (`fetcher`) for client-side API consumption via SWR.
+- **Customers Page (`/customers`)**: Implemented a responsive list view with dynamic search filtering and premium "Impeccable" mobile-first cards.
+- **Customer Form Sheet**: Built a sliding bottom-sheet (mobile) / modal (desktop) form for adding and editing customers. Leverages the exact same Zod schema (`createCustomerSchema`) used on the backend for shared validation.
+- **Customer Profile Page (`/customers/[id]`)**: Implemented a detailed hero view providing quick-actions (Call, Directions) and aggregating the customer's lifetime value dynamically by analyzing their order history directly on the client. Displays top-level metrics: Total Orders, Total Spent, Avg Order, and Pending Payments.
+
+### Validation
+- Typecheck passed (`npm run typecheck`).
+- React hook lint rules verified and passing (`npm run lint`).
+- Committed under mandated author settings.
+
+### Blockers
+- None.

@@ -1,5 +1,8 @@
 "use client";
 
+import React, { useMemo } from "react";
+import useSWR from "swr";
+import Link from "next/link";
 import { AppShell } from "@/shared/components/AppShell";
 import { 
   ClipboardList, 
@@ -12,6 +15,8 @@ import {
   Clock,
   ArrowRight
 } from "lucide-react";
+import { fetcher } from "@/shared/api/client";
+import { type Order } from "@/modules/orders/orders.types";
 
 /* ============================================================
    Dashboard — Plan Section 84: Recommended Dashboard Priority
@@ -25,6 +30,42 @@ import {
    ============================================================ */
 
 export default function Home() {
+  const { data: orders } = useSWR<Order[]>("/api/orders", fetcher);
+
+  const metrics = useMemo(() => {
+    if (!orders) return { todaysOrders: 0, todaysRevenue: 0, pendingOrders: 0, pendingPayments: 0 };
+    
+    const today = new Date().toISOString().split('T')[0];
+    
+    let todaysOrders = 0;
+    let todaysRevenue = 0;
+    let pendingOrders = 0;
+    let pendingPayments = 0;
+
+    orders.forEach(order => {
+      // Pending orders (not delivered/cancelled)
+      if (['PENDING', 'IN_PROGRESS', 'IN_TRANSIT'].includes(order.status)) {
+        pendingOrders++;
+      }
+      
+      // Pending Payments (Unpaid)
+      if (order.payment.status !== 'PAID' && order.status !== 'CANCELLED') {
+        pendingPayments += order.pricing.total;
+      }
+
+      // Today's stats based on delivery date or creation date? The plan implies today's business. 
+      // We'll use created_at for "Today's Orders" and "Revenue"
+      if (order.createdAt.startsWith(today) && order.status !== 'CANCELLED') {
+        todaysOrders++;
+        todaysRevenue += order.pricing.total;
+      }
+    });
+
+    return { todaysOrders, todaysRevenue, pendingOrders, pendingPayments };
+  }, [orders]);
+
+  const formatCurrency = (paise: number) => `₹${(paise / 100).toLocaleString('en-IN')}`;
+
   return (
     <AppShell>
       <div className="space-y-6 lg:space-y-8 animate-fade-in-up">
@@ -57,22 +98,22 @@ export default function Home() {
           <dl className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="p-3.5 rounded-xl bg-background border border-border flex flex-col justify-between">
               <dt className="text-xs text-text-muted font-semibold uppercase tracking-wider mb-2">Today&apos;s Orders</dt>
-              <dd className="text-2xl font-bold font-heading text-text">8</dd>
+              <dd className="text-2xl font-bold font-heading text-text">{orders ? metrics.todaysOrders : '-'}</dd>
             </div>
             {/* Special Gradient for Revenue to make it pop */}
             <div className="p-3.5 rounded-xl bg-gradient-to-br from-success/10 to-success/5 border border-success/20 flex flex-col justify-between relative overflow-hidden">
               <dt className="text-xs text-success font-bold uppercase tracking-wider mb-2">Today&apos;s Revenue</dt>
-              <dd className="text-2xl font-bold font-heading text-success">₹4,850</dd>
+              <dd className="text-2xl font-bold font-heading text-success">{orders ? formatCurrency(metrics.todaysRevenue) : '-'}</dd>
               {/* Decorative faint icon */}
               <TrendingUp size={48} className="absolute -right-2 -bottom-2 text-success/10" />
             </div>
             <div className="p-3.5 rounded-xl bg-background border border-border flex flex-col justify-between">
               <dt className="text-xs text-text-muted font-semibold uppercase tracking-wider mb-2">Pending Orders</dt>
-              <dd className="text-2xl font-bold font-heading text-warning">3</dd>
+              <dd className="text-2xl font-bold font-heading text-warning">{orders ? metrics.pendingOrders : '-'}</dd>
             </div>
             <div className="p-3.5 rounded-xl bg-danger-bg/50 border border-danger/20 flex flex-col justify-between">
               <dt className="text-xs text-danger font-bold uppercase tracking-wider mb-2">Pending Payments</dt>
-              <dd className="text-2xl font-bold font-heading text-danger">₹1,250</dd>
+              <dd className="text-2xl font-bold font-heading text-danger">{orders ? formatCurrency(metrics.pendingPayments) : '-'}</dd>
             </div>
           </dl>
         </section>
@@ -182,20 +223,21 @@ export default function Home() {
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: "Add Order", icon: ShoppingBag, color: "text-primary" },
-              { label: "Add Customer", icon: Users, color: "text-secondary" },
-              { label: "Add Stock", icon: Package, color: "text-warning" },
-              { label: "Add Expense", icon: CircleDollarSign, color: "text-danger" },
+              { label: "Add Order", icon: ShoppingBag, color: "text-primary", href: "/orders/new" },
+              { label: "Add Customer", icon: Users, color: "text-secondary", href: "/customers" },
+              { label: "Add Stock", icon: Package, color: "text-warning", href: "/inventory" },
+              { label: "Add Expense", icon: CircleDollarSign, color: "text-danger", href: "/expenses" },
             ].map((action) => {
               const Icon = action.icon;
               return (
-                <button
+                <Link
+                  href={action.href}
                   key={action.label}
                   className="touch-target flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-surface border border-border hover:bg-surface-hover hover:border-primary/30 hover:shadow-md active:scale-95 transition-all shadow-sm group"
                 >
                   <Icon size={24} strokeWidth={2} className={`${action.color} group-hover:scale-110 transition-transform`} />
                   <span className="text-xs font-bold">{action.label}</span>
-                </button>
+                </Link>
               );
             })}
           </div>
