@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Fredoka, Plus_Jakarta_Sans } from "next/font/google";
-import { ThemeProvider } from "@/shared/theme/ThemeProvider";
+import { ThemeProvider } from "@/lib/theme/ThemeProvider";
 import "./globals.css";
 
 const fredoka = Fredoka({

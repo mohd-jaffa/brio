@@ -173,3 +173,51 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--color-border);
   border-radius: 3px;
 }
+
+/* ============================================================
+   Motion
+   The two animations the app uses, declared once. They were
+   living in a <style> tag inside the More sheet, so a sheet
+   that opened without it simply appeared.
+   ============================================================ */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.25s ease-out;
+}
+
+/* Someone who asks for less motion gets none of it. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-up,
+  .animate-fade-in-up,
+  .animate-pulse,
+  .animate-spin {
+    animation: none;
+  }
+
+  [data-theme] {
+    transition: none;
+  }
+}
