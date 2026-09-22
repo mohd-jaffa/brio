@@ -1,12 +1,8 @@
 import { type SupabaseClient } from "@supabase/supabase-js";
 import { type InventoryBalance, type InventoryTransaction, type InventoryTransactionRow } from "./types";
 import { logInventoryTransactionSchema, type LogInventoryTransactionInput } from "@/lib/validation";
-import { ExternalServiceError } from "@/shared/errors/app-error";
 import { logActionSafe } from "@/features/audit/api";
-
-function mapDatabaseError(error: unknown) {
-  return new ExternalServiceError("EXTERNAL_SERVICE_ERROR", undefined, error);
-}
+import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
 
 function mapRowToModel(row: InventoryTransactionRow): InventoryTransaction {
   return {
@@ -20,6 +16,9 @@ function mapRowToModel(row: InventoryTransactionRow): InventoryTransaction {
   };
 }
 
+/**
+ * Logs an inventory ledger transaction.
+ */
 export async function logInventoryTransaction(
   client: SupabaseClient, 
   bakeryId: string, 
@@ -42,10 +41,7 @@ export async function logInventoryTransaction(
     .select()
     .single();
 
-  if (error) {
-    throw mapDatabaseError(error);
-  }
-
+  if (error) throw fromPostgrestError(error);
   const row = data as InventoryTransactionRow;
 
   await logActionSafe(client, {
@@ -60,6 +56,9 @@ export async function logInventoryTransaction(
   return mapRowToModel(row);
 }
 
+/**
+ * Calculates current inventory balances across products.
+ */
 export async function getInventoryBalances(
   client: SupabaseClient, 
   bakeryId: string, 
@@ -75,10 +74,7 @@ export async function getInventoryBalances(
   }
 
   const { data, error } = await query;
-
-  if (error) {
-    throw mapDatabaseError(error);
-  }
+  if (error) throw fromPostgrestError(error);
 
   const balances: Record<string, number> = {};
 

@@ -1,10 +1,11 @@
 import { type SupabaseClient } from "@supabase/supabase-js";
 import { type Payment, type CreatePaymentDTO } from "./types";
-import { InternalServerError, NotFoundError, ConflictError } from "@/shared/errors/app-error";
 import { type CreatePaymentInput, createPaymentSchema } from "@/lib/validation";
 import { logActionSafe } from "@/features/audit/api";
 import { createJob } from "@/features/workers/api";
 import { findOrderById, updateOrder } from "@/features/orders/api";
+import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
+import { AppError } from "@/lib/errors/AppError";
 
 export async function createPaymentRecord(client: SupabaseClient, bakeryId: string, data: CreatePaymentDTO): Promise<Payment> {
   const { data: payment, error } = await client
@@ -19,10 +20,7 @@ export async function createPaymentRecord(client: SupabaseClient, bakeryId: stri
     .select()
     .single();
 
-  if (error) {
-    throw new InternalServerError("INTERNAL_ERROR", error);
-  }
-
+  if (error) throw fromPostgrestError(error);
   return payment;
 }
 
@@ -34,10 +32,7 @@ export async function findPaymentsByOrderId(client: SupabaseClient, bakeryId: st
     .eq("order_id", orderId)
     .order("created_at", { ascending: false });
 
-  if (error) {
-    throw new InternalServerError("INTERNAL_ERROR", error);
-  }
-
+  if (error) throw fromPostgrestError(error);
   return data;
 }
 
@@ -45,10 +40,6 @@ export async function processPayment(client: SupabaseClient, bakeryId: string, p
   const validated = createPaymentSchema.parse(payload);
 
   const orderData = await findOrderById(client, bakeryId, validated.order_id);
-  if (!orderData) {
-    throw new NotFoundError("RECORD_NOT_FOUND");
-  }
-
   const order = orderData.order;
   const amountPaise = Math.round(validated.amount * 100);
 
@@ -56,7 +47,7 @@ export async function processPayment(client: SupabaseClient, bakeryId: string, p
   const totalPaid = existingPayments.reduce((sum, p) => sum + p.amount, 0);
 
   if (totalPaid + amountPaise > order.total) {
-    throw new ConflictError("CONFLICT", "Payment amount exceeds order total");
+    throw new AppError({ code: "CONFLICT", message: "Payment amount exceeds order total", httpStatus: 409 });
   }
 
   const payment = await createPaymentRecord(client, bakeryId, {
@@ -88,7 +79,7 @@ export async function processPayment(client: SupabaseClient, bakeryId: string, p
       token: "mock-token", 
       payload: {
         title: "Payment Received",
-        body: `Payment of \${validated.amount} received for order \${order.order_number}`
+        body: `Payment of ${validated.amount} received for order ${order.order_number}`
       }
     }
   });

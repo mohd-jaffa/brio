@@ -1,6 +1,5 @@
 import { type SupabaseClient } from "@supabase/supabase-js";
 import { type Product, type ProductRow } from "./types";
-import { ExternalServiceError, NotFoundError } from "@/shared/errors/app-error";
 import {
   createProductSchema,
   updateProductSchema,
@@ -8,10 +7,10 @@ import {
   type UpdateProductInput,
 } from "@/lib/validation";
 import { logActionSafe } from "@/features/audit/api";
-
-function mapDatabaseError(error: unknown) {
-  return new ExternalServiceError("EXTERNAL_SERVICE_ERROR", undefined, error);
-}
+import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
+import { requireRow } from "@/lib/supabase/writes";
+import { pickColumns } from "@/lib/supabase/columns";
+import { EDITABLE_COLUMNS } from "@/constants/editableColumns";
 
 function mapRowToModel(row: ProductRow): Product {
   return {
@@ -28,6 +27,9 @@ function mapRowToModel(row: ProductRow): Product {
   };
 }
 
+/**
+ * Reads all products for a tenant, sorted by name.
+ */
 export async function getAllProducts(client: SupabaseClient, bakeryId: string): Promise<Product[]> {
   const { data, error } = await client
     .from("products")
@@ -35,14 +37,13 @@ export async function getAllProducts(client: SupabaseClient, bakeryId: string): 
     .eq("bakery_id", bakeryId)
     .order("name");
 
-  if (error) {
-    throw mapDatabaseError(error);
-  }
-
-  const rows = data as ProductRow[];
-  return rows.map(mapRowToModel);
+  if (error) throw fromPostgrestError(error);
+  return (data as ProductRow[]).map(mapRowToModel);
 }
 
+/**
+ * Reads a single product by id.
+ */
 export async function getProductById(client: SupabaseClient, bakeryId: string, id: string): Promise<Product> {
   const { data, error } = await client
     .from("products")
@@ -51,17 +52,17 @@ export async function getProductById(client: SupabaseClient, bakeryId: string, i
     .eq("id", id)
     .maybeSingle();
 
-  if (error) {
-    throw mapDatabaseError(error);
-  }
-
-  if (!data) {
-    throw new NotFoundError("NOT_FOUND", "Product not found");
-  }
-
-  return mapRowToModel(data as ProductRow);
+  if (error) throw fromPostgrestError(error);
+  const row = await requireRow<ProductRow>(
+    Promise.resolve({ data, error: null } as any),
+    "RECORD_NOT_FOUND"
+  );
+  return mapRowToModel(row);
 }
 
+/**
+ * Creates a new product row.
+ */
 export async function createProduct(
   client: SupabaseClient, 
   bakeryId: string, 
@@ -83,10 +84,7 @@ export async function createProduct(
     .select()
     .single();
 
-  if (error) {
-    throw mapDatabaseError(error);
-  }
-
+  if (error) throw fromPostgrestError(error);
   const row = data as ProductRow;
 
   await logActionSafe(client, {
@@ -101,6 +99,9 @@ export async function createProduct(
   return mapRowToModel(row);
 }
 
+/**
+ * Updates an existing product using pickColumns and requireRow.
+ */
 export async function updateProduct(
   client: SupabaseClient,
   bakeryId: string,
@@ -108,35 +109,28 @@ export async function updateProduct(
   input: UpdateProductInput,
 ): Promise<Product> {
   const validated = updateProductSchema.parse(input);
-
   const previousRow = await getProductById(client, bakeryId, id);
 
-  const payload: Partial<ProductRow> = {};
-  
-  if (validated.categoryId !== undefined) payload.category_id = validated.categoryId || null;
-  if (validated.name !== undefined) payload.name = validated.name;
-  if (validated.description !== undefined) payload.description = validated.description || null;
-  if (validated.defaultPrice !== undefined) payload.default_price = validated.defaultPrice;
-  if (validated.unit !== undefined) payload.unit = validated.unit;
-  if (validated.isActive !== undefined) payload.is_active = validated.isActive;
+  const rawPatch: Partial<Record<string, any>> = {};
+  if (validated.categoryId !== undefined) rawPatch.category_id = validated.categoryId || null;
+  if (validated.name !== undefined) rawPatch.name = validated.name;
+  if (validated.description !== undefined) rawPatch.description = validated.description || null;
+  if (validated.defaultPrice !== undefined) rawPatch.default_price = validated.defaultPrice;
+  if (validated.unit !== undefined) rawPatch.unit = validated.unit;
+  if (validated.isActive !== undefined) rawPatch.is_active = validated.isActive;
 
-  const { data, error } = await client
-    .from("products")
-    .update(payload)
-    .eq("bakery_id", bakeryId)
-    .eq("id", id)
-    .select()
-    .maybeSingle();
+  const patch = pickColumns(rawPatch, EDITABLE_COLUMNS.products);
 
-  if (error) {
-    throw mapDatabaseError(error);
-  }
-
-  if (!data) {
-    throw new NotFoundError("NOT_FOUND", "Product not found");
-  }
-
-  const row = data as ProductRow;
+  const row = await requireRow<ProductRow>(
+    client
+      .from("products")
+      .update(patch)
+      .eq("bakery_id", bakeryId)
+      .eq("id", id)
+      .select()
+      .maybeSingle(),
+    "RECORD_NOT_FOUND"
+  );
 
   await logActionSafe(client, {
     bakery_id: bakeryId,

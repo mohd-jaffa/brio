@@ -7,26 +7,10 @@ import {
   type CreateCustomerInput,
   type UpdateCustomerInput,
 } from "@/lib/validation";
-import { ConflictError, ExternalServiceError, NotFoundError } from "@/shared/errors/app-error";
-
-// ------------------------------------------------------------------
-// Error & Data Mapping
-// ------------------------------------------------------------------
-function mapDatabaseError(error: unknown) {
-  const message =
-    error && typeof error === "object" && "message" in error
-      ? String((error as { message: unknown }).message).toLowerCase()
-      : "";
-
-  if (message.includes("unique") && message.includes("phone")) {
-    return new ConflictError(
-      "CONFLICT",
-      "A customer with this phone number already exists for this bakery."
-    );
-  }
-
-  return new ExternalServiceError("EXTERNAL_SERVICE_ERROR", undefined, error);
-}
+import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
+import { requireRow } from "@/lib/supabase/writes";
+import { pickColumns } from "@/lib/supabase/columns";
+import { EDITABLE_COLUMNS } from "@/constants/editableColumns";
 
 function mapRowToModel(row: CustomerRow): Customer {
   return {
@@ -42,29 +26,9 @@ function mapRowToModel(row: CustomerRow): Customer {
   };
 }
 
-async function getCustomerRowById(client: SupabaseClient, bakeryId: string, id: string): Promise<CustomerRow> {
-  const { data, error } = await client
-    .from("customers")
-    .select("*")
-    .eq("bakery_id", bakeryId)
-    .eq("id", id)
-    .maybeSingle();
-
-  if (error) {
-    throw mapDatabaseError(error);
-  }
-
-  if (!data) {
-    throw new NotFoundError("NOT_FOUND", "Customer not found");
-  }
-
-  return data as CustomerRow;
-}
-
-// ------------------------------------------------------------------
-// API Functions
-// ------------------------------------------------------------------
-
+/**
+ * Reads all customers for a tenant, sorted alphabetically by name.
+ */
 export async function getAllCustomers(client: SupabaseClient, bakeryId: string): Promise<Customer[]> {
   const { data, error } = await client
     .from("customers")
@@ -72,18 +36,32 @@ export async function getAllCustomers(client: SupabaseClient, bakeryId: string):
     .eq("bakery_id", bakeryId)
     .order("name");
 
-  if (error) {
-    throw mapDatabaseError(error);
-  }
-
+  if (error) throw fromPostgrestError(error);
   return (data as CustomerRow[]).map(mapRowToModel);
 }
 
+/**
+ * Reads a single customer by id.
+ */
 export async function getCustomerById(client: SupabaseClient, bakeryId: string, id: string): Promise<Customer> {
-  const row = await getCustomerRowById(client, bakeryId, id);
+  const { data, error } = await client
+    .from("customers")
+    .select("*")
+    .eq("bakery_id", bakeryId)
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw fromPostgrestError(error);
+  const row = await requireRow<CustomerRow>(
+    Promise.resolve({ data, error: null } as any),
+    "RECORD_NOT_FOUND"
+  );
   return mapRowToModel(row);
 }
 
+/**
+ * Creates a new customer row and records an audit log.
+ */
 export async function createCustomer(
   client: SupabaseClient, 
   bakeryId: string, 
@@ -105,9 +83,7 @@ export async function createCustomer(
     .select()
     .single();
 
-  if (error) {
-    throw mapDatabaseError(error);
-  }
+  if (error) throw fromPostgrestError(error);
 
   await createAuditLog(client, {
     bakery_id: bakeryId,
@@ -121,6 +97,9 @@ export async function createCustomer(
   return mapRowToModel(row as CustomerRow);
 }
 
+/**
+ * Updates an existing customer row safely using pickColumns against EDITABLE_COLUMNS.
+ */
 export async function updateCustomer(
   client: SupabaseClient,
   bakeryId: string,
@@ -128,34 +107,28 @@ export async function updateCustomer(
   input: UpdateCustomerInput,
 ): Promise<Customer> {
   const validated = updateCustomerSchema.parse(input);
+  const previousRow = await getCustomerById(client, bakeryId, id);
 
-  // We need the previous row for the audit log
-  const previousRow = await getCustomerRowById(client, bakeryId, id);
+  const rawPatch: Partial<Record<string, any>> = {};
+  if (validated.name !== undefined) rawPatch.name = validated.name;
+  if (validated.phone !== undefined) rawPatch.phone = validated.phone;
+  if (validated.email !== undefined) rawPatch.email = validated.email || null;
+  if (validated.address !== undefined) rawPatch.address = validated.address || null;
+  if (validated.googleMapsLink !== undefined) rawPatch.google_maps_link = validated.googleMapsLink || null;
+  if (validated.notes !== undefined) rawPatch.notes = validated.notes || null;
 
-  const payload: Partial<CustomerRow> = {};
-  
-  if (validated.name !== undefined) payload.name = validated.name;
-  if (validated.phone !== undefined) payload.phone = validated.phone;
-  if (validated.email !== undefined) payload.email = validated.email || null;
-  if (validated.address !== undefined) payload.address = validated.address || null;
-  if (validated.googleMapsLink !== undefined) payload.google_maps_link = validated.googleMapsLink || null;
-  if (validated.notes !== undefined) payload.notes = validated.notes || null;
+  const patch = pickColumns(rawPatch, EDITABLE_COLUMNS.customers);
 
-  const { data: row, error } = await client
-    .from("customers")
-    .update(payload)
-    .eq("bakery_id", bakeryId)
-    .eq("id", id)
-    .select()
-    .maybeSingle();
-
-  if (error) {
-    throw mapDatabaseError(error);
-  }
-
-  if (!row) {
-    throw new NotFoundError("NOT_FOUND", "Customer not found");
-  }
+  const row = await requireRow<CustomerRow>(
+    client
+      .from("customers")
+      .update(patch)
+      .eq("bakery_id", bakeryId)
+      .eq("id", id)
+      .select()
+      .maybeSingle(),
+    "RECORD_NOT_FOUND"
+  );
 
   await createAuditLog(client, {
     bakery_id: bakeryId,
@@ -167,5 +140,5 @@ export async function updateCustomer(
     new_data: row as unknown as Record<string, any>,
   });
 
-  return mapRowToModel(row as CustomerRow);
+  return mapRowToModel(row);
 }
