@@ -276,3 +276,19 @@ All notable changes to this project will be documented in this file.
 
 ### Blockers
 - The frontend for Phase 1 is now effectively feature-complete. Future stages will involve end-to-end integration testing, E2E play-throughs, and mobile container (Capacitor) wrapping per the plan.
+
+## 2026-09-22 — Stage 1: Payments Feature Implementation
+
+### Added
+- Created `0003_payments_and_jobs.sql` migration for `payments`, `jobs`, and `audit_logs` tables.
+- Added `PaymentCollectionForm` component to collect payments with Zod validation.
+- Created `PaymentsService` and API route to handle payment creation.
+- Centralized domain validation schemas in `src/lib/validation/schemas/`.
+- Updated Order Details page to fetch and calculate total paid amount.
+
+### Validation
+- Typecheck passed.
+- Unit and E2E Tests passed.
+
+### Blockers
+- None.
