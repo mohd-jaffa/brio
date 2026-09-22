@@ -2215,6 +2215,9 @@ Use consistent response handling throughout the application.
 
 # 60. Development Phases
 
+> What is built, what is stubbed, and what is missing against these phases is
+> tracked in **§133. Implementation Gap Register** at the end of this document.
+
 ## Phase 1 — Foundation
 
 ```text
@@ -6517,3 +6520,158 @@ Delete previous logo
 ```
 
 If the candidate upload or database update fails, the existing logo should remain usable.
+
+---
+
+# 133. Implementation Gap Register
+
+This section records what the plan asks for that the codebase does **not** yet do, as of 2026-09-22. It exists so the remaining work is visible in the plan itself rather than rediscovered later. Every item below was verified against the code, not inferred.
+
+Nothing here is a change of scope. These are parts of the approved plan that are unbuilt, stubbed, or built in a way the plan does not accept. When one is implemented, delete its entry.
+
+Legend for **Blocks**: what cannot be trusted or used until the item is done.
+
+---
+
+## 133.1 Authentication — the app cannot be used signed in (Phase 1)
+
+This is the first thing to build. Every other screen is unreachable in a real browser until it is.
+
+| # | Gap | Where | Blocks |
+|---|-----|-------|--------|
+| A1 | No sign-in, register or forgot-password screens exist. | `src/app` has no auth routes | Everything |
+| A2 | Nothing stores the session. `login` returns an `accessToken`, and no client code keeps it. | no auth context, no storage | A3, A4 |
+| A3 | The browser client never sends `Authorization: Bearer`, but every tenant route requires it. **Every screen would answer 401 today.** | `src/lib/api/client.ts` | Every screen |
+| A4 | No route protection: there is no `middleware.ts` and no redirect for a signed-out visitor. | — | §55 |
+| A5 | The forced password-change gate is not enforced. `getSession` returns `requiresPasswordChange` and nothing reads it. | `src/features/auth/api.ts` | §7 |
+| A6 | Role enforcement is nominal: `assertRole` defaults to allowing every role and no route passes `roles`. | `src/features/auth/guard.ts` | §5 |
+
+**Done looks like:** a signed-out visitor lands on sign-in; a signed-in baker's token rides on every request; an expired session sends them back; a baker holding a temporary password reaches nothing but the change-password screen.
+
+---
+
+## 133.2 Bakery profile and logo (Phase 1 — §56, §118)
+
+| # | Gap | Where |
+|---|-----|-------|
+| B1 | No bakery profile endpoint. The Settings name and phone fields were hard-coded and have been removed; the section says so. | no `/api/bakery` route |
+| B2 | No logo upload: no storage bucket, no server-side size and content-type validation, no atomic replace-then-delete. | §56, §118 |
+| B3 | `bakeries` has a SELECT policy only. An UPDATE policy is needed before profile editing can work at all. | `supabase/migrations/0001_auth_foundation.sql` |
+| B4 | The receipt header prints a hard-coded `"Ovenly Bakery"` instead of the bakery's own name. | `src/features/receipts/api.ts` |
+
+---
+
+## 133.3 Orders — correctness gaps (Phase 2 — §53, §109–§114, §21)
+
+| # | Gap | Why it matters |
+|---|-----|----------------|
+| C1 | Order creation is **not transactional**. It inserts the order, then items, then adjustments, then ledger lines, and on failure compensates with a hard delete. A crash between steps leaves a partial order. §114 asks for one transaction — a Postgres function called over RPC. | Data integrity |
+| C2 | **No idempotency** anywhere. A double-tapped Place Order creates two orders; a retried payment records twice. §24 of AGENTS.md requires critical mutations to be safe against duplicate submission. | Money |
+| C3 | No cart/draft state and **no bill-preview step** before Confirm. The plan's flow is Cart → Bill → Confirm (§110–§112); the screen is one long form with a running total. | Approved UX |
+| C4 | **Stock can be oversold.** Nothing reads the balance before an `ORDER_RESERVATION` is posted, so an order can reserve stock that is not there (§21). | Inventory truth |
+
+---
+
+## 133.4 Product categories (Phase 2 — §14)
+
+| # | Gap |
+|---|-----|
+| D1 | The `categories` table exists with RLS, and `products.category_id` is written by the API — but there is no categories endpoint, no categories UI, and no way for a baker to create one. The field can never be set from the app. |
+
+---
+
+## 133.5 Notifications (Phase 4 — §25)
+
+| # | Gap |
+|---|-----|
+| E1 | The `notifications` table exists with RLS and is never read or written. There is no notifications screen and no bell. |
+| E2 | Push delivery is a mock that logs (`CapacitorPushProvider`). There is no device-token registry, so every `SEND_PUSH_NOTIFICATION` job finds no device and completes without sending. |
+| E3 | `processPayment` still enqueues a literal `token: "mock-token"`. Remove it when the token registry lands. |
+
+---
+
+## 133.6 The worker system (Phase 5 — §26, §27)
+
+The queue table and the claim/complete/fail helpers exist. Nothing runs them.
+
+| # | Gap |
+|---|-----|
+| F1 | **Nothing drains the queue.** `processNextJob` is never called — there is no cron route, scheduled function or worker process. Every job enqueued so far is still `pending`. |
+| F2 | `registerNotificationWorker` and `registerAnalyticsWorker` are never called, so no handler is registered even if the queue did run. |
+| F3 | `claimNextJob` is **not atomic**: it updates `status = 'pending'` with a limit and no `FOR UPDATE SKIP LOCKED`, so two workers can claim the same job. AGENTS.md §17 requires atomic claiming. |
+| F4 | `claimNextJob` **sets** `attempts: 1` instead of incrementing it, so `processNextJob`'s `attempts < maxAttempts` check never trips and a failing job retries forever. Nothing reaches the dead-letter state. |
+| F5 | No stale-job recovery: `locked_at` is written and cleared but never reclaimed, so a job whose worker died stays `processing` for good. |
+| F6 | Backoff is a fixed five minutes, not exponential. |
+| F7 | `MenuBuildWorker` and `CleanupWorker` (§27) do not exist. |
+
+---
+
+## 133.7 Audit (Phase 5 — §36)
+
+| # | Gap |
+|---|-----|
+| G1 | `audit_logs.user_id` is written as `null` for every mutation — the trail records what changed but not who changed it. The audit call is centralised in `tenantRecords`, and `withBakeryRoute` already holds the session, so the fix is to thread the acting user through the data layer. Preferred shape: feature functions take the `BakeryContext` object rather than `(client, bakeryId, …)`, so the argument list stops growing. |
+
+---
+
+## 133.8 Receipts (Phase 4 — §24)
+
+| # | Gap |
+|---|-----|
+| H1 | The receipt is an on-screen HTML view with browser print. There is no PDF generation, no native share, no WhatsApp share and no download (§24). Generation stays on demand and nothing is stored — that part of §24 is respected and must stay that way. |
+| H2 | `/receipts` is in the navigation (§9) but no page exists, so the link 404s. Either build the screen or take the entry out of `src/constants/navigation.ts`. |
+
+---
+
+## 133.9 Analytics and dashboard (Phase 3 — §39, §40, §116–§117)
+
+| # | Gap |
+|---|-----|
+| I1 | Top Customers (§40) is not built. |
+| I2 | Dashboard filters (§116–§117) are not built. |
+| I3 | `/api/analytics/overview` exists and nothing calls it. The Analytics screen fetches every order and expense and adds them up in the browser, which will not survive a real dataset. Move the aggregation to the endpoint and page the rest. |
+| I4 | No pagination anywhere. Every list fetches every row. |
+
+---
+
+## 133.10 PWA, Capacitor and offline (Phase 7 — §50, §51)
+
+| # | Gap |
+|---|-----|
+| J1 | No PWA at all: there is no `public/` directory, so no manifest, no service worker and no icons. |
+| J2 | No Capacitor: no config, no dependency, and no native-capability abstraction beyond the mock push provider. |
+| J3 | No offline strategy (§51). |
+
+---
+
+## 133.11 Quality gates and production hardening (Phase 5 — §119–§125)
+
+| # | Gap |
+|---|-----|
+| K1 | No OpenAPI/Swagger document and no Swagger UI (§119–§120). |
+| K2 | No BugSnag (§123). |
+| K3 | No SonarQube and no CI pipeline — there is no `.github/` directory, so none of §125 runs anywhere (§124–§125). |
+| K4 | The "E2E" suite is a Vitest test that reads route files and checks their shape. There is no browser journey and no Playwright (§121). |
+| K5 | There are no integration tests against a real database. `tests/db` reads the migration SQL as text; it proves the file says the right thing, not that the database does. |
+| K6 | No rate limiting on authentication or on any mutation. |
+
+---
+
+## 133.12 Suggested order of work
+
+```text
+1. Authentication end to end        (133.1)  — nothing else is usable without it
+2. Order transaction + idempotency  (133.3)  — money and stock correctness
+3. Oversell guard                   (133.3)
+4. Audit actor                      (133.7)  — one threading change, do it with 2
+5. Bakery profile + logo            (133.2)
+6. Categories                       (133.4)
+7. Worker runner + atomic claim     (133.6)  — before anything relies on a job
+8. Notifications                    (133.5)
+9. Receipt PDF and sharing          (133.8)
+10. Analytics aggregation + paging  (133.9)
+11. OpenAPI, CI, Sonar, BugSnag     (133.11)
+12. PWA, then Capacitor             (133.10)
+```
+
+Items 1–4 are correctness. Everything below them is feature completion, and none of it should start before an order can be created safely by a signed-in baker.

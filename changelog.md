@@ -40,6 +40,12 @@ All notable changes to this project will be documented in this file.
 
 ### Blockers
 
+All open gaps between the plan and the code are now recorded in the plan itself,
+as **§133. Implementation Gap Register** — including the three below. The most
+serious is §133.1: there is no sign-in screen, nothing stores a session, and the
+browser client never sends an `Authorization` header, so every screen would
+answer 401 against a live API.
+
 - Status: OPEN
 - Area: Settings — bakery logo upload
 - Description: The logo picker validates size (500 KB) and type in the browser, but there is no endpoint to store the file.
