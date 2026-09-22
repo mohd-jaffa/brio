@@ -435,3 +435,15 @@ answer 401 against a live API.
 
 ### Blockers
 - None.
+
+## 2026-09-22 — Plan Document Update: Impeccable Layout & Quieter Design Backlog (L8, L9 in §133.13)
+
+### Changed
+- **Plan Document (`home-bakery-management-platform-plan.md`)**: Appended backlog items `L8` (*Impeccable Layout & Mobile-First Container System*) and `L9` (*Impeccable Quieter Design & Noise Reduction*) to Section 133.13 for tracking future UI/UX layout optimization and visual noise reduction execution phases.
+
+### Validation
+- Plan file updated and verified.
+
+### Blockers
+- None.
+

@@ -6691,4 +6691,6 @@ The following UI/UX, native platform integration, and production hardening items
 | **L5** | **GitHub Actions CI/CD & SonarQube** | DevOps | Create `.github/workflows/ci.yml` pipeline enforcing typecheck, vitest unit/component tests, Playwright E2E, Next build, and SonarQube quality gate. |
 | **L6** | **PDF Export & WhatsApp Receipt Share** | Receipts | Add on-demand client-side PDF generation (`jspdf`/`html2canvas`) and WhatsApp direct share URL (`wa.me`) while preserving the zero-storage policy (§132). |
 | **L7** | **BugSnag Production Monitoring** | Observability | Integrate BugSnag runtime exception monitoring on client and server boundaries. |
+| **L8** | **Impeccable Layout & Mobile-First Container System** | UI / Responsive Layout | Optimize screen container constraints (360px, 390px, 414px mobile, fluid desktop sidebar), bottom navigation bar, dynamic viewport height, sheet modal placement, and responsive data grid views. |
+| **L9** | **Impeccable Quieter Design & Noise Reduction** | Visual Design / UI Polish | Perform visual noise reduction across all screens: implement subtle micro-animations, softened status badges, restrained color palettes, muted borders/shadows, and high-density typography optimized for home bakery operations. |
 
