@@ -38,24 +38,26 @@ export function ReceiptPrintView({ receipt, customerName, customerPhone, onClose
         <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50 print:hidden shrink-0">
           <button 
             onClick={onClose}
-            className="p-2 text-gray-500 hover:text-black hover:bg-gray-200 rounded-full transition-colors"
+            aria-label="Close receipt preview"
+            className="p-2 text-gray-500 hover:text-black hover:bg-gray-200 rounded-full transition-all duration-200 active:scale-95"
           >
             <X size={20} strokeWidth={2.5} />
           </button>
           
           <button 
             onClick={handlePrint}
-            className="flex items-center gap-2 px-4 py-2 bg-black text-white text-sm font-bold rounded-lg hover:bg-gray-800 active:scale-95 transition-all"
+            aria-label="Print receipt"
+            className="flex items-center gap-2 px-4 py-2 bg-black text-white text-sm font-bold rounded-lg hover:bg-gray-800 active:scale-95 transition-all duration-200 shadow-sm"
           >
             <Printer size={16} strokeWidth={2.5} /> Print Receipt
           </button>
         </div>
 
         {/* Printable Area */}
-        <div id="receipt-print-area" className="p-8 overflow-y-auto print:overflow-visible bg-white text-black font-mono">
+        <div id="receipt-print-area" className="p-8 overflow-y-auto print:overflow-visible bg-white text-black font-mono border-t border-gray-100 print:border-none">
           
           {/* Header */}
-          <div className="text-center mb-8 border-b-2 border-dashed border-gray-300 pb-6">
+          <div className="text-center mb-8 border-b-2 border-dashed border-gray-200 print:border-black pb-6">
             <h1 className="text-3xl font-bold font-heading mb-1">{bakeryName}</h1>
             <p className="text-sm text-gray-500 uppercase tracking-widest">Receipt</p>
           </div>
@@ -81,7 +83,7 @@ export function ReceiptPrintView({ receipt, customerName, customerPhone, onClose
           {/* Line Items */}
           <table className="w-full text-sm mb-6">
             <thead>
-              <tr className="border-b-2 border-black">
+              <tr className="border-b-2 border-gray-200 print:border-black">
                 <th className="py-2 text-left font-bold w-3/5">Item</th>
                 <th className="py-2 text-right font-bold w-1/5">Qty</th>
                 <th className="py-2 text-right font-bold w-1/5">Total</th>
@@ -99,7 +101,7 @@ export function ReceiptPrintView({ receipt, customerName, customerPhone, onClose
           </table>
 
           {/* Totals Box */}
-          <div className="bg-gray-50 p-4 border border-black mb-8">
+          <div className="bg-gray-50/50 print:bg-gray-50 p-4 border border-gray-200 print:border-black mb-8 rounded-xl print:rounded-none">
             <div className="space-y-2 text-sm">
               <div className="flex justify-between items-center text-gray-600">
                 <span>Subtotal</span>
@@ -120,7 +122,7 @@ export function ReceiptPrintView({ receipt, customerName, customerPhone, onClose
                 <span>{formatCurrency(order.pricing.tax)}</span>
               </div>
               
-              <div className="pt-2 mt-2 border-t border-black flex justify-between items-center text-lg font-bold">
+              <div className="pt-2 mt-2 border-t border-gray-200 print:border-black flex justify-between items-center text-lg font-bold">
                 <span>TOTAL</span>
                 <span>{formatCurrency(order.pricing.total)}</span>
               </div>

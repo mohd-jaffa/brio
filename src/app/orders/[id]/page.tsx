@@ -86,9 +86,9 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
   if (!order) {
     return (
       <AppShell>
-        <div className="animate-pulse space-y-6">
-          <div className="h-32 bg-surface rounded-2xl" />
-          <div className="h-48 bg-surface rounded-2xl" />
+        <div className="animate-pulse space-y-6" role="status" aria-busy="true" aria-label="Loading order details">
+          <div className="h-32 bg-surface rounded-3xl border border-border" />
+          <div className="h-48 bg-surface rounded-3xl border border-border" />
         </div>
       </AppShell>
     );
@@ -105,32 +105,37 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
           <div className="flex items-center justify-between">
             <button 
               onClick={() => router.back()}
-              className="touch-target flex items-center gap-2 text-text-muted hover:text-text transition-colors font-bold text-sm bg-surface p-2 pr-4 rounded-full border border-border shadow-sm active:scale-95"
+              aria-label="Go back"
+              className="touch-target flex items-center gap-2 text-text-muted hover:text-text transition-all duration-200 font-bold text-sm bg-surface p-2 pr-4 rounded-full border border-border shadow-sm active:scale-95 hover:shadow-md"
             >
               <ArrowLeft size={18} strokeWidth={2.5} /> Back
             </button>
             
             <button 
               onClick={() => setShowReceipt(true)}
-              className="touch-target flex items-center gap-2 text-primary hover:bg-primary/10 transition-colors font-bold text-sm bg-surface p-2 pr-4 rounded-full border border-primary/20 shadow-sm active:scale-95"
+              aria-label="Generate Receipt"
+              className="touch-target flex items-center gap-2 text-primary hover:bg-primary/10 transition-all duration-200 font-bold text-sm bg-surface p-2 pr-4 rounded-full border border-primary/20 shadow-sm active:scale-95 hover:shadow-md"
             >
               <Printer size={16} strokeWidth={2.5} /> Generate Receipt
             </button>
           </div>
 
           {/* Hero Card */}
-          <section className="p-5 sm:p-6 rounded-3xl bg-surface border border-border shadow-card relative overflow-hidden">
-            <div className={`absolute top-0 inset-x-0 h-2 ${
-              order.status === 'DELIVERED' ? 'bg-success' : 
-              order.status === 'CANCELLED' ? 'bg-danger' : 
-              isOverdue ? 'bg-danger' : 'bg-primary'
-            }`} />
+          <section className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-surface to-surface-hover border border-border shadow-elevated relative overflow-hidden flex flex-col sm:flex-row sm:items-start justify-between gap-6">
             
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mt-2">
-              <div>
-                <span className="text-xs font-bold text-text-muted uppercase tracking-wider mb-1 block">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-xs font-bold text-text-muted uppercase tracking-wider">
                   Order {order.orderNumber}
                 </span>
+                <span className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full ${
+                  order.status === 'DELIVERED' ? 'bg-success/10 text-success' : 
+                  order.status === 'CANCELLED' ? 'bg-danger/10 text-danger' : 
+                  isOverdue ? 'bg-danger/10 text-danger' : 'bg-primary/10 text-primary'
+                }`}>
+                  {isOverdue && !['DELIVERED', 'CANCELLED'].includes(order.status) ? 'OVERDUE' : order.status.replace('_', ' ')}
+                </span>
+              </div>
                 <h1 className="text-2xl font-bold font-heading text-text mb-2">
                   {customer ? customer.name : "Loading Customer..."}
                 </h1>
@@ -151,7 +156,6 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                   {order.payment.status.replace('_', ' ')}
                 </span>
               </div>
-            </div>
           </section>
 
           {/* Quick Status Update */}
@@ -161,10 +165,11 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                 <ShoppingBag size={14} className="text-primary" /> Order Status
               </h3>
               <select
+                aria-label="Order Status"
                 value={order.status}
                 onChange={(e) => handleUpdateStatus(e.target.value)}
                 disabled={isUpdatingStatus}
-                className="w-full px-4 py-2.5 rounded-lg bg-background border border-border focus:border-primary outline-none text-sm font-bold"
+                className="w-full px-4 py-2.5 rounded-xl bg-background border border-border focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none text-sm font-bold transition-all duration-200 cursor-pointer disabled:opacity-50"
               >
                 <option value="PENDING">Pending</option>
                 <option value="IN_PROGRESS">In Progress</option>
@@ -182,10 +187,11 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
               </div>
               <div className="space-y-3">
                 <select
+                  aria-label="Payment Status"
                   value={order.payment.status}
                   onChange={(e) => handleUpdatePayment(e.target.value)}
                   disabled={isUpdatingPayment}
-                  className="w-full px-4 py-2.5 rounded-lg bg-background border border-border focus:border-primary outline-none text-sm font-bold"
+                  className="w-full px-4 py-2.5 rounded-xl bg-background border border-border focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none text-sm font-bold transition-all duration-200 cursor-pointer disabled:opacity-50"
                 >
                   <option value="UNPAID">Unpaid</option>
                   <option value="PARTIALLY_PAID">Partially Paid</option>
@@ -195,7 +201,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                 {order.payment.status !== 'PAID' && (
                   <button 
                     onClick={() => setShowPaymentModal(true)}
-                    className="w-full py-2 bg-primary/10 text-primary font-bold rounded-lg text-sm hover:bg-primary/20 transition-colors"
+                    className="w-full py-2.5 bg-primary/10 text-primary font-bold rounded-xl text-sm hover:bg-primary/20 active:scale-95 transition-all duration-200"
                   >
                     Collect Payment
                   </button>
@@ -231,71 +237,74 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
               </div>
             </div>
 
-            {order.notes && (
-              <div className="p-5 rounded-2xl bg-surface border border-border shadow-card">
+            {order.notes ? (
+              <div className="p-5 rounded-2xl bg-surface border border-border shadow-card h-full flex flex-col">
                 <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider flex items-center gap-2 mb-3">
                   Notes
                 </h3>
-                <p className="text-sm font-medium text-text leading-relaxed">
+                <p className="text-sm font-medium text-text leading-relaxed p-3 bg-background rounded-xl border border-border/50 flex-grow">
                   {order.notes}
+                </p>
+              </div>
+            ) : (
+              <div className="p-5 rounded-2xl bg-surface border border-border border-dashed shadow-sm h-full flex flex-col items-center justify-center opacity-60">
+                <p className="text-sm font-medium text-text-muted">
+                  No special instructions provided.
                 </p>
               </div>
             )}
           </section>
 
           {/* Line Items */}
-          <section className="p-5 rounded-2xl bg-surface border border-border shadow-card">
-             <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider flex items-center gap-2 mb-4">
-              <ShoppingBag size={14} className="text-primary" /> Order Items
-            </h3>
+          <section className="p-1 rounded-3xl bg-surface border border-border shadow-card overflow-hidden">
+             <div className="p-5 pb-2">
+               <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider flex items-center gap-2">
+                 <ShoppingBag size={14} className="text-primary" /> Order Items
+               </h3>
+             </div>
             
-            <ul className="space-y-3">
+            <div className="px-5 py-2">
               {order.items.map(item => (
-                <li key={item.id} className="flex justify-between items-start pb-3 border-b border-border/50 last:border-0 last:pb-0">
-                  <div>
-                    <span className="text-sm font-bold text-text block mb-0.5">
-                      {item.quantity}x {item.productName}
-                    </span>
-                    {item.notes && (
-                      <span className="text-xs text-text-muted italic block">
-                        {item.notes}
-                      </span>
-                    )}
+                <div key={item.id} className="grid grid-cols-[3fr_1fr_2fr] gap-4 items-center py-3 border-b border-border/50 border-dashed last:border-0 last:pb-4">
+                  <div className="text-sm font-bold text-text truncate">
+                    {item.productName}
                   </div>
-                  <span className="text-sm font-bold font-heading">
+                  <div className="text-sm font-medium text-text-muted tabular-nums">
+                    x{item.quantity}
+                  </div>
+                  <div className="text-sm font-bold font-heading text-text text-right tabular-nums">
                     {formatCurrency(item.subtotal)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-
-            {/* Adjustments */}
-            {order.adjustments.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-border/50 space-y-2">
-                {order.adjustments.map(adj => (
-                  <div key={adj.id} className="flex justify-between items-center text-sm">
-                    <span className="text-text-muted font-medium">{adj.name}</span>
-                    <span className={`font-bold font-heading ${adj.type === 'DISCOUNT' ? 'text-danger' : 'text-text'}`}>
-                      {adj.type === 'DISCOUNT' ? '-' : '+'}{formatCurrency(adj.amount)}
-                    </span>
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              ))}
+            </div>
 
-            {/* Totals Summary */}
-            <div className="mt-4 pt-4 border-t border-border space-y-2">
-              <div className="flex justify-between items-center text-sm">
+            {/* Pricing Summary (Elevated Footer within the Card) */}
+            <div className="bg-background p-5 border-t border-border mt-2">
+              <div className="flex justify-between items-center text-sm mb-3">
                 <span className="text-text-muted font-medium">Subtotal</span>
-                <span className="font-bold font-heading text-text">{formatCurrency(order.pricing.subtotal)}</span>
+                <span className="font-bold font-heading text-text tabular-nums">{formatCurrency(order.pricing.subtotal)}</span>
               </div>
-              <div className="flex justify-between items-center text-sm">
+              
+              {order.adjustments.map(adj => (
+                <div key={adj.id} className="flex justify-between items-center text-sm mb-3">
+                  <span className="text-text-muted font-medium flex items-center gap-1">
+                    {adj.name}
+                  </span>
+                  <span className={`font-bold tabular-nums ${adj.type === 'DISCOUNT' ? 'text-success' : 'text-text'}`}>
+                    {adj.type === 'DISCOUNT' ? '-' : '+'}{formatCurrency(adj.amount)}
+                  </span>
+                </div>
+              ))}
+
+              <div className="flex justify-between items-center text-sm mb-4">
                 <span className="text-text-muted font-medium">Tax</span>
-                <span className="font-bold font-heading text-text">{formatCurrency(order.pricing.tax)}</span>
+                <span className="font-bold font-heading text-text tabular-nums">{formatCurrency(order.pricing.tax)}</span>
               </div>
-              <div className="flex justify-between items-center text-lg mt-2">
-                <span className="font-bold text-text">Total</span>
-                <span className="font-bold font-heading text-text">{formatCurrency(order.pricing.total)}</span>
+              
+              <div className="flex justify-between items-center text-xl mt-4 pt-4 border-t border-border/50">
+                <span className="font-bold text-text uppercase text-sm tracking-wider">Total</span>
+                <span className="font-bold font-heading text-text tabular-nums bg-primary/5 px-3 py-1 rounded-lg border border-primary/10">{formatCurrency(order.pricing.total)}</span>
               </div>
             </div>
           </section>
