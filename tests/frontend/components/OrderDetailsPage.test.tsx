@@ -34,6 +34,11 @@ describe('OrderDetailsPage', () => {
       </ThemeProvider>
     );
     expect(document.body).toBeTruthy();
+    
+    // Check impeccable a11y
+    const loadingSkeleton = screen.getByRole('status');
+    expect(loadingSkeleton).toHaveAttribute('aria-busy', 'true');
+    expect(loadingSkeleton).toHaveAttribute('aria-label', 'Loading order details');
   });
 
   it('renders order details when data is loaded', () => {
@@ -113,5 +118,37 @@ describe('OrderDetailsPage', () => {
     await waitFor(() => {
       expect(OrdersClient.updateStatus).toHaveBeenCalledWith('123', { status: 'DELIVERED' });
     });
+  });
+
+  it('renders empty notes state gracefully', () => {
+    vi.mocked(useSWR).mockImplementation((key) => {
+      if (key === '/api/orders/123') {
+        return {
+          data: {
+            id: '123',
+            orderNumber: 'ORD-001',
+            status: 'PENDING',
+            customerId: 'c1',
+            delivery: { type: 'PICKUP', date: new Date().toISOString() },
+            payment: { status: 'UNPAID' },
+            items: [],
+            adjustments: [],
+            notes: '', // No notes
+            pricing: { total: 1000, subtotal: 1000, tax: 0 }
+          },
+          mutate: vi.fn(),
+          isLoading: false,
+        } as any;
+      }
+      return { data: undefined } as any;
+    });
+
+    render(
+      <ThemeProvider>
+        <OrderDetailsPage params={{ id: '123' }} />
+      </ThemeProvider>
+    );
+
+    expect(document.body.textContent).toContain('No special instructions provided.');
   });
 });
