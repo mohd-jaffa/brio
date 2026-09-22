@@ -1,332 +1,259 @@
 "use client";
 
-import React, { useMemo } from "react";
-import useSWR from "swr";
 import Link from "next/link";
-import { AppShell } from "@/shared/components/AppShell";
-import { 
-  ClipboardList, 
-  ShoppingBag, 
-  Users, 
-  Package, 
-  CircleDollarSign, 
-  TrendingUp, 
+import { useMemo } from "react";
+import {
   AlertTriangle,
-  Clock,
-  ArrowRight
+  ArrowRight,
+  ClipboardList,
+  CircleDollarSign,
+  Package,
+  ShoppingBag,
+  TrendingUp,
+  Users,
 } from "lucide-react";
-import { fetcher } from "@/shared/api/client";
-import { type Order } from "@/features/orders/types";
 
-/* ============================================================
-   Dashboard — Plan Section 84: Recommended Dashboard Priority
-   1. Greeting / business context
-   2. Business summary card (Section 77)
-   3. Pending orders grouped by due date (Section 78–80)
-   4. Quick actions (Section 82)
-   5. Low stock alerts
-   6. Monthly business snapshot (Section 83)
-   7. View full analytics link
-   ============================================================ */
+import { AppShell } from "@/components/nav/AppShell";
+import { cn } from "@/components/ui/cn";
+import { ScreenNotice } from "@/components/ui/screen-notice";
+import { SkeletonRows } from "@/components/ui/skeleton";
+import { StatTile } from "@/components/ui/stat-tile";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { LOW_STOCK_THRESHOLD } from "@/constants/inventory";
+import { lowStock, ordersByDue, summarise } from "@/features/dashboard/summary";
+import type { InventoryBalance } from "@/features/inventory/types";
+import type { Order } from "@/features/orders/types";
+import { statusBadge } from "@/features/orders/view";
+import type { Product } from "@/features/products/types";
+import { DUE_BUCKET_LABELS } from "@/lib/dates/calendar";
+import { formatPaise } from "@/lib/format/currency";
+import { formatDateTime } from "@/lib/format/date";
+import { errorMessage } from "@/lib/errors/errorMessage";
+import { apiRoutes } from "@/lib/query/keys";
+import { useApiQuery } from "@/lib/query/useApiQuery";
 
-export default function Home() {
-  const { data: orders } = useSWR<Order[]>("/api/orders", fetcher);
+const QUICK_ACTIONS = [
+  { label: "Add Order", icon: ShoppingBag, tone: "text-primary", href: "/orders/new" },
+  { label: "Add Customer", icon: Users, tone: "text-secondary", href: "/customers" },
+  { label: "Add Stock", icon: Package, tone: "text-warning", href: "/inventory" },
+  { label: "Add Expense", icon: CircleDollarSign, tone: "text-danger", href: "/expenses" },
+] as const;
 
-  const metrics = useMemo(() => {
-    if (!orders) return { todaysOrders: 0, todaysRevenue: 0, pendingOrders: 0, pendingPayments: 0 };
-    
-    const today = new Date().toISOString().split('T')[0];
-    
-    let todaysOrders = 0;
-    let todaysRevenue = 0;
-    let pendingOrders = 0;
-    let pendingPayments = 0;
+/**
+ * The operational view (plan §20): what needs attention now, then what is due,
+ * then today's trading. Everything on it is read from the bakery's own data —
+ * analytics belong on the Analytics page, not here.
+ */
+export default function DashboardPage() {
+  const orders = useApiQuery<Order[]>(apiRoutes.orders.list);
+  const products = useApiQuery<Product[]>(apiRoutes.products.list);
+  const balances = useApiQuery<InventoryBalance[]>(apiRoutes.inventory.balances());
 
-    orders.forEach(order => {
-      // Pending orders (not delivered/cancelled)
-      if (['PENDING', 'IN_PROGRESS', 'IN_TRANSIT'].includes(order.status)) {
-        pendingOrders++;
-      }
-      
-      // Pending Payments (Unpaid)
-      if (order.payment.status !== 'PAID' && order.status !== 'CANCELLED') {
-        pendingPayments += order.pricing.total;
-      }
+  const summary = useMemo(() => summarise(orders.data ?? []), [orders.data]);
+  const due = useMemo(() => ordersByDue(orders.data ?? []), [orders.data]);
+  const low = useMemo(
+    () => lowStock(products.data ?? [], balances.data ?? []),
+    [products.data, balances.data],
+  );
 
-      // Today's stats based on delivery date or creation date? The plan implies today's business. 
-      // We'll use created_at for "Today's Orders" and "Revenue"
-      if (order.createdAt.startsWith(today) && order.status !== 'CANCELLED') {
-        todaysOrders++;
-        todaysRevenue += order.pricing.total;
-      }
-    });
-
-    return { todaysOrders, todaysRevenue, pendingOrders, pendingPayments };
-  }, [orders]);
-
-  const formatCurrency = (paise: number) => `₹${(paise / 100).toLocaleString('en-IN')}`;
+  const loading = orders.isLoading && orders.data === undefined;
+  const failed = orders.error != null && orders.data === undefined;
 
   return (
     <AppShell>
-      <div className="space-y-6 lg:space-y-8 animate-fade-in-up">
-        {/* ============================================================
-            Priority 1: Greeting / Business Context
-            ============================================================ */}
-        <section>
-          <p className="text-xs font-bold tracking-[0.15em] text-secondary uppercase mb-1">
-            Dashboard
-          </p>
-          <h2 className="text-2xl sm:text-3xl font-bold font-heading text-text tracking-tight flex items-center gap-2">
-            Good morning, Baker! <span aria-hidden="true" className="origin-bottom-right animate-wave text-2xl">👋</span>
+      <section>
+        <p className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-secondary">Dashboard</p>
+        <h1 className="font-heading text-2xl font-bold tracking-tight text-text sm:text-3xl">
+          Good morning, Baker!
+        </h1>
+        <p className="mt-1 text-sm font-medium text-text-muted">Here&rsquo;s your bakery today.</p>
+      </section>
+
+      {failed && <ScreenNotice>{errorMessage(orders.error, "DASHBOARD_LOAD_FAILED")}</ScreenNotice>}
+
+      <section className="rounded-2xl border border-border bg-surface p-5 shadow-card">
+        <h2 className="mb-4 flex items-center gap-2 font-heading text-sm font-bold text-text">
+          <ClipboardList size={18} strokeWidth={2.5} className="text-secondary" aria-hidden="true" />
+          Business Today
+        </h2>
+        <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatTile label="Today's Orders" value={loading ? "—" : String(summary.todaysOrders)} />
+          <StatTile
+            label="Today's Revenue"
+            value={loading ? "—" : formatPaise(summary.todaysRevenue)}
+            tone="success"
+            icon={TrendingUp}
+          />
+          <StatTile
+            label="Pending Orders"
+            value={loading ? "—" : String(summary.pendingOrders)}
+            tone="warning"
+          />
+          <StatTile
+            label="Pending Payments"
+            value={loading ? "—" : formatPaise(summary.pendingPayments)}
+            tone="danger"
+          />
+        </dl>
+      </section>
+
+      <section aria-labelledby="pending-orders">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 id="pending-orders" className="flex items-center gap-2 font-heading text-sm font-bold text-text">
+            <ShoppingBag size={18} strokeWidth={2.5} className="text-primary" aria-hidden="true" />
+            Pending Orders
           </h2>
-          <p className="text-sm text-text-muted mt-1 font-medium">
-            Here&apos;s your bakery today.
+          <span className="rounded-md bg-surface-hover px-2 py-1 text-xs font-medium text-text-muted">
+            Sorted by due date
+          </span>
+        </div>
+
+        {loading ? (
+          <SkeletonRows rows={2} height="h-20" />
+        ) : due.length === 0 ? (
+          <p className="rounded-2xl border border-border bg-surface p-6 text-center text-sm font-medium text-text-muted">
+            Nothing is waiting on you. Every order is delivered or cancelled.
           </p>
-        </section>
-
-        {/* ============================================================
-            Priority 2: Business Summary Card
-            ============================================================ */}
-        <section
-          className="p-5 rounded-2xl bg-surface border border-border shadow-card"
-          aria-label="Today's business summary"
-        >
-          <h3 className="text-sm font-bold font-heading mb-4 flex items-center gap-2 text-text">
-            <ClipboardList size={18} className="text-secondary" strokeWidth={2.5} /> 
-            Business Today
-          </h3>
-          <dl className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-3.5 rounded-xl bg-background border border-border flex flex-col justify-between">
-              <dt className="text-xs text-text-muted font-semibold uppercase tracking-wider mb-2">Today&apos;s Orders</dt>
-              <dd className="text-2xl font-bold font-heading text-text">{orders ? metrics.todaysOrders : '-'}</dd>
-            </div>
-            {/* Special Gradient for Revenue to make it pop */}
-            <div className="p-3.5 rounded-xl bg-gradient-to-br from-success/10 to-success/5 border border-success/20 flex flex-col justify-between relative overflow-hidden">
-              <dt className="text-xs text-success font-bold uppercase tracking-wider mb-2">Today&apos;s Revenue</dt>
-              <dd className="text-2xl font-bold font-heading text-success">{orders ? formatCurrency(metrics.todaysRevenue) : '-'}</dd>
-              {/* Decorative faint icon */}
-              <TrendingUp size={48} className="absolute -right-2 -bottom-2 text-success/10" />
-            </div>
-            <div className="p-3.5 rounded-xl bg-background border border-border flex flex-col justify-between">
-              <dt className="text-xs text-text-muted font-semibold uppercase tracking-wider mb-2">Pending Orders</dt>
-              <dd className="text-2xl font-bold font-heading text-warning">{orders ? metrics.pendingOrders : '-'}</dd>
-            </div>
-            <div className="p-3.5 rounded-xl bg-danger-bg/50 border border-danger/20 flex flex-col justify-between">
-              <dt className="text-xs text-danger font-bold uppercase tracking-wider mb-2">Pending Payments</dt>
-              <dd className="text-2xl font-bold font-heading text-danger">{orders ? formatCurrency(metrics.pendingPayments) : '-'}</dd>
-            </div>
-          </dl>
-        </section>
-
-        {/* ============================================================
-            Priority 3: Pending Orders grouped by due date
-            ============================================================ */}
-        <section aria-label="Pending orders">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold font-heading flex items-center gap-2 text-text">
-              <ShoppingBag size={18} className="text-primary" strokeWidth={2.5} /> 
-              Pending Orders
-            </h3>
-            <span className="text-xs text-text-muted font-medium bg-surface-hover px-2 py-1 rounded-md">Sorted by due date</span>
-          </div>
-
-          {/* Overdue Group */}
-          <div className="mb-5">
-            <h4 className="text-[11px] font-bold text-danger uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <AlertTriangle size={14} strokeWidth={2.5} /> Overdue
-            </h4>
-            <ul className="space-y-2.5" role="list">
-              <li>
-                <article className="flex items-center justify-between p-4 rounded-2xl bg-danger-bg border border-danger/20 border-l-4 border-l-danger shadow-sm cursor-pointer hover:bg-danger-bg/80 active:scale-[0.99] transition-all">
-                  <div>
-                    <span className="font-bold text-sm block text-danger">#1023 • Meena Gupta</span>
-                    <span className="text-xs text-danger/80 font-medium mt-0.5 block">Brownie × 6 • Yesterday, 4:00 PM</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-bold text-sm block text-danger mb-1">₹480</span>
-                    <span className="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded flex items-center gap-1 bg-danger text-white">
-                      <Clock size={10} strokeWidth={3} /> PENDING
-                    </span>
-                  </div>
-                </article>
-              </li>
-            </ul>
-          </div>
-
-          {/* Due Today Group */}
-          <div className="mb-5">
-            <h4 className="text-[11px] font-bold text-warning uppercase tracking-wider mb-2">
-              Due Today
-            </h4>
-            <ul className="space-y-2.5" role="list">
-              <li>
-                <article className="flex items-center justify-between p-4 rounded-2xl bg-surface border border-border border-l-4 border-l-warning shadow-card cursor-pointer hover:bg-surface-hover hover:shadow-md active:scale-[0.99] transition-all group">
-                  <div>
-                    <span className="font-bold text-sm block group-hover:text-primary transition-colors">#1024 • Anu Sharma</span>
-                    <span className="text-xs text-text-muted font-medium mt-0.5 block">Chocolate Truffle Cake (2 kg) • Today, 4:00 PM</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-bold text-sm block mb-1">₹1,800</span>
-                    <span className="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded flex items-center gap-1 bg-warning/15 text-warning border border-warning/20">
-                      <Clock size={10} strokeWidth={3} /> IN PROGRESS
-                    </span>
-                  </div>
-                </article>
-              </li>
-              <li>
-                <article className="flex items-center justify-between p-4 rounded-2xl bg-surface border border-border border-l-4 border-l-success shadow-card cursor-pointer hover:bg-surface-hover hover:shadow-md active:scale-[0.99] transition-all group">
-                  <div>
-                    <span className="font-bold text-sm block group-hover:text-primary transition-colors">#1025 • Rahul Verma</span>
-                    <span className="text-xs text-text-muted font-medium mt-0.5 block">Red Velvet Cupcakes (12 pcs) • Today, 5:30 PM</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-bold text-sm block mb-1">₹950</span>
-                    <span className="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded flex items-center gap-1 bg-success/10 text-success border border-success/20">
-                      CONFIRMED
-                    </span>
-                  </div>
-                </article>
-              </li>
-            </ul>
-          </div>
-
-          {/* Tomorrow Group */}
-          <div className="mb-2">
-            <h4 className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2">
-              Tomorrow
-            </h4>
-            <ul className="space-y-2.5" role="list">
-              <li>
-                <article className="flex items-center justify-between p-4 rounded-2xl bg-surface border border-border shadow-card cursor-pointer hover:bg-surface-hover hover:shadow-md active:scale-[0.99] transition-all group">
-                  <div>
-                    <span className="font-bold text-sm block group-hover:text-primary transition-colors">#1026 • Ananya Roy</span>
-                    <span className="text-xs text-text-muted font-medium mt-0.5 block">Sourdough Bread (2 loaves) • Tomorrow, 10:00 AM</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-bold text-sm block mb-1">₹500</span>
-                    <span className="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded flex items-center gap-1 bg-success/10 text-success border border-success/20">
-                      CONFIRMED
-                    </span>
-                  </div>
-                </article>
-              </li>
-            </ul>
-          </div>
-        </section>
-
-        {/* ============================================================
-            Priority 4: Quick Actions
-            ============================================================ */}
-        <section aria-label="Quick actions">
-          <h3 className="text-sm font-bold font-heading mb-4 text-text">
-            Quick Actions
-          </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { label: "Add Order", icon: ShoppingBag, color: "text-primary", href: "/orders/new" },
-              { label: "Add Customer", icon: Users, color: "text-secondary", href: "/customers" },
-              { label: "Add Stock", icon: Package, color: "text-warning", href: "/inventory" },
-              { label: "Add Expense", icon: CircleDollarSign, color: "text-danger", href: "/expenses" },
-            ].map((action) => {
-              const Icon = action.icon;
-              return (
-                <Link
-                  href={action.href}
-                  key={action.label}
-                  className="touch-target flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-surface border border-border hover:bg-surface-hover hover:border-primary/30 hover:shadow-md active:scale-95 transition-all shadow-sm group"
+        ) : (
+          <div className="space-y-5">
+            {due.map((group) => (
+              <div key={group.bucket}>
+                <h3
+                  className={cn(
+                    "mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider",
+                    group.bucket === "overdue"
+                      ? "text-danger"
+                      : group.bucket === "today"
+                        ? "text-warning"
+                        : "text-text-muted",
+                  )}
                 >
-                  <Icon size={24} strokeWidth={2} className={`${action.color} group-hover:scale-110 transition-transform`} />
-                  <span className="text-xs font-bold">{action.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* ============================================================
-            Priority 5: Low Stock Alerts
-            ============================================================ */}
-        <section aria-label="Low stock alerts">
-          <h3 className="text-sm font-bold font-heading mb-4 flex items-center gap-2 text-text">
-            <Package size={18} className="text-warning" strokeWidth={2.5} />
-            Low Stock Alerts
-          </h3>
-          <ul className="space-y-3" role="list">
-            <li className="p-4 rounded-2xl bg-surface border border-border border-l-4 border-l-danger shadow-card group">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] font-bold tracking-wider text-danger uppercase mb-1 block flex items-center gap-1">
-                    <AlertTriangle size={12} strokeWidth={3} /> Reorder Soon
-                  </span>
-                  <h4 className="font-bold text-sm">Unsalted Butter</h4>
-                  <p className="text-xs text-text-muted font-medium mt-0.5">Current: 800g • Threshold: 2,000g</p>
-                </div>
-                <button className="touch-target px-4 py-2 text-xs font-bold rounded-xl bg-danger/10 text-danger hover:bg-danger hover:text-white active:scale-95 transition-all border border-danger/20 hover:border-danger">
-                  + Stock
-                </button>
+                  {group.bucket === "overdue" && (
+                    <AlertTriangle size={14} strokeWidth={2.5} aria-hidden="true" />
+                  )}
+                  {DUE_BUCKET_LABELS[group.bucket]}
+                </h3>
+                <ul role="list" className="space-y-2.5">
+                  {group.orders.map((order) => {
+                    const badge = statusBadge(order);
+                    return (
+                      <li key={order.id}>
+                        <Link href={`/orders/${order.id}`} className="group block">
+                          <article
+                            className={cn(
+                              "flex items-center justify-between rounded-2xl border border-l-4 p-4 shadow-card transition-all hover:shadow-md active:scale-[0.99]",
+                              group.bucket === "overdue"
+                                ? "border-danger/20 border-l-danger bg-danger-bg"
+                                : "border-border border-l-warning bg-surface hover:bg-surface-hover",
+                            )}
+                          >
+                            <div className="min-w-0 pr-3">
+                              <span className="block truncate text-sm font-bold text-text transition-colors group-hover:text-primary">
+                                {order.orderNumber}
+                              </span>
+                              <span className="mt-0.5 block text-xs font-medium text-text-muted">
+                                {order.items.length} item{order.items.length === 1 ? "" : "s"} •{" "}
+                                {formatDateTime(order.delivery.date)}
+                              </span>
+                            </div>
+                            <div className="shrink-0 text-right">
+                              <span className="mb-1 block text-sm font-bold text-text">
+                                {formatPaise(order.pricing.total)}
+                              </span>
+                              <StatusBadge label={badge.label} tone={badge.tone} />
+                            </div>
+                          </article>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
-            </li>
-          </ul>
-        </section>
-
-        {/* ============================================================
-            Priority 6: Monthly Business Snapshot
-            ============================================================ */}
-        <section
-          className="p-5 rounded-2xl bg-surface border border-border shadow-card"
-          aria-label="Monthly business snapshot"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold font-heading flex items-center gap-2 text-text">
-              <TrendingUp size={18} className="text-primary" strokeWidth={2.5} />
-              This Month
-            </h3>
-            {/* Priority 7: View full analytics */}
-            <button className="touch-target flex items-center gap-1 text-xs font-bold text-primary hover:text-primary-hover hover:underline transition-all">
-              Analytics <ArrowRight size={14} strokeWidth={2.5} />
-            </button>
+            ))}
           </div>
-          
-          <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-            <div className="flex justify-between py-2 border-b border-border">
-              <dt className="text-text-muted font-medium">Revenue</dt>
-              <dd className="font-bold text-success">₹52,400</dd>
-            </div>
-            <div className="flex justify-between py-2 border-b border-border">
-              <dt className="text-text-muted font-medium">Expenses</dt>
-              <dd className="font-bold text-danger">₹18,200</dd>
-            </div>
-            <div className="flex justify-between py-2 border-b border-border">
-              <dt className="text-text-muted font-medium">Orders</dt>
-              <dd className="font-bold">74</dd>
-            </div>
-            <div className="flex justify-between py-2 border-b border-border">
-              <dt className="text-text-muted font-medium">Avg Order</dt>
-              <dd className="font-bold">₹708</dd>
-            </div>
-          </dl>
-        </section>
-      </div>
+        )}
+      </section>
 
-      <style>{`
-        @keyframes wave {
-          0%, 100% { transform: rotate(0deg); }
-          25% { transform: rotate(15deg); }
-          75% { transform: rotate(-10deg); }
-        }
-        .animate-wave {
-          animation: wave 1.5s ease-in-out infinite;
-          display: inline-block;
-        }
-        
-        @keyframes fade-in-up {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in-up {
-          animation: fade-in-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-      `}</style>
+      <section aria-labelledby="quick-actions">
+        <h2 id="quick-actions" className="mb-4 font-heading text-sm font-bold text-text">
+          Quick Actions
+        </h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {QUICK_ACTIONS.map(({ label, icon: Icon, tone, href }) => (
+            <Link
+              key={label}
+              href={href}
+              className="touch-target group flex flex-col items-center justify-center gap-2 rounded-2xl border border-border bg-surface p-4 shadow-sm transition-all hover:border-primary/30 hover:bg-surface-hover hover:shadow-md active:scale-95"
+            >
+              <Icon
+                size={24}
+                strokeWidth={2}
+                aria-hidden="true"
+                className={cn(tone, "transition-transform group-hover:scale-110")}
+              />
+              <span className="text-xs font-bold">{label}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section aria-labelledby="low-stock">
+        <h2 id="low-stock" className="mb-4 flex items-center gap-2 font-heading text-sm font-bold text-text">
+          <Package size={18} strokeWidth={2.5} className="text-warning" aria-hidden="true" />
+          Low Stock Alerts
+        </h2>
+
+        {low.length === 0 ? (
+          <p className="rounded-2xl border border-border bg-surface p-6 text-center text-sm font-medium text-text-muted">
+            Nothing is running low.
+          </p>
+        ) : (
+          <ul role="list" className="space-y-3">
+            {low.map(({ product, balance }) => (
+              <li
+                key={product.id}
+                className="rounded-2xl border border-border border-l-4 border-l-danger bg-surface p-4 shadow-card"
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <span className="mb-1 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-danger">
+                      <AlertTriangle size={12} strokeWidth={3} aria-hidden="true" /> Reorder soon
+                    </span>
+                    <h3 className="truncate text-sm font-bold">{product.name}</h3>
+                    <p className="mt-0.5 text-xs font-medium text-text-muted">
+                      {balance} {product.unit} left • alerts below {LOW_STOCK_THRESHOLD}
+                    </p>
+                  </div>
+                  <Link
+                    href="/inventory"
+                    className="touch-target inline-flex shrink-0 items-center rounded-xl border border-danger/20 bg-danger/10 px-4 py-2 text-xs font-bold text-danger transition-all hover:bg-danger/20 active:scale-95"
+                  >
+                    + Stock
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="rounded-2xl border border-border bg-surface p-5 shadow-card">
+        <div className="flex items-center justify-between">
+          <h2 className="flex items-center gap-2 font-heading text-sm font-bold text-text">
+            <TrendingUp size={18} strokeWidth={2.5} className="text-primary" aria-hidden="true" />
+            Business snapshot
+          </h2>
+          <Link
+            href="/analytics"
+            className="touch-target flex items-center gap-1 text-xs font-bold text-primary transition-all hover:underline"
+          >
+            Analytics <ArrowRight size={14} strokeWidth={2.5} aria-hidden="true" />
+          </Link>
+        </div>
+        <p className="mt-3 text-sm font-medium text-text-muted">
+          Revenue, expenses and top sellers live on the Analytics page.
+        </p>
+      </section>
     </AppShell>
   );
 }

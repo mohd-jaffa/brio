@@ -1,285 +1,258 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import useSWR from "swr";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AppShell } from "@/shared/components/AppShell";
-import { fetcher } from "@/shared/api/client";
-import { type Customer } from "@/features/customers/types";
-import { type Order } from "@/features/orders/types";
-import { CustomerFormSheet } from "@/features/customers/components/CustomerFormSheet";
-import { 
-  ArrowLeft, 
-  Phone, 
-  MapPin, 
-  Mail, 
-  ShoppingBag, 
-  CreditCard, 
-  TrendingUp, 
-  Clock, 
-  Edit2, 
-  FileText 
+import { useMemo } from "react";
+import {
+  ArrowLeft,
+  Clock,
+  CreditCard,
+  Edit2,
+  FileText,
+  Mail,
+  MapPin,
+  Phone,
+  ShoppingBag,
+  TrendingUp,
 } from "lucide-react";
 
-interface CustomerProfileClientProps {
-  id: string;
+import { AppShell } from "@/components/nav/AppShell";
+import { Button } from "@/components/ui/button";
+import { ScreenNotice } from "@/components/ui/screen-notice";
+import { SkeletonRows } from "@/components/ui/skeleton";
+import { StatTile } from "@/components/ui/stat-tile";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { CustomerFormSheet } from "@/features/customers/components/CustomerFormSheet";
+import type { Customer } from "@/features/customers/types";
+import type { Order } from "@/features/orders/types";
+import { statusBadge } from "@/features/orders/view";
+import { useDisclosure } from "@/hooks/useDisclosure";
+import { formatPaise } from "@/lib/format/currency";
+import { formatDate } from "@/lib/format/date";
+import { sumPaise } from "@/lib/money";
+import { apiRoutes } from "@/lib/query/keys";
+import { useApiQuery } from "@/lib/query/useApiQuery";
+
+const RECENT_ORDER_COUNT = 5;
+
+interface CustomerTrade {
+  totalOrders: number;
+  /** All in whole paise. */
+  totalSpent: number;
+  pendingPayments: number;
+  avgOrder: number;
 }
 
-export function CustomerProfileClient({ id }: CustomerProfileClientProps) {
+/** What this customer is worth to the bakery. Cancelled orders count for nothing. */
+function trade(orders: readonly Order[]): CustomerTrade {
+  const counted = orders.filter((order) => order.status !== "CANCELLED");
+  const totalSpent = sumPaise(counted.map((order) => order.pricing.total));
+  const owing = counted.filter((order) => order.payment.status !== "PAID");
+
+  return {
+    totalOrders: counted.length,
+    totalSpent,
+    pendingPayments: sumPaise(owing.map((order) => order.pricing.total)),
+    avgOrder: counted.length === 0 ? 0 : Math.round(totalSpent / counted.length),
+  };
+}
+
+/** One line of the details list — an email, an address, a note. */
+function Detail({
+  icon: Icon,
+  label,
+  children,
+}: {
+  icon: typeof Mail;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <li className="flex items-start gap-3">
+      <Icon size={16} className="mt-0.5 shrink-0 text-text-muted" aria-hidden="true" />
+      <div className="min-w-0">
+        <span className="mb-0.5 block text-[10px] font-bold uppercase tracking-wider text-text-muted">
+          {label}
+        </span>
+        <span className="text-sm font-medium leading-relaxed">{children}</span>
+      </div>
+    </li>
+  );
+}
+
+export function CustomerProfileClient({ id }: { id: string }) {
   const router = useRouter();
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const form = useDisclosure<Customer>();
 
-  // Fetch Customer
-  const { data: customer, error: customerError, mutate: mutateCustomer } = useSWR<Customer>(`/api/customers/${id}`, fetcher);
-  
-  // Fetch Orders to calculate metrics
-  const { data: orders, error: ordersError } = useSWR<Order[]>("/api/orders", fetcher);
-  
-  const customerOrders = useMemo(() => {
-    if (!orders) return [];
-    return orders.filter(o => o.customerId === id).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [orders, id]);
+  const customer = useApiQuery<Customer>(apiRoutes.customers.detail(id));
+  const orders = useApiQuery<Order[]>(apiRoutes.orders.list);
 
-  const metrics = useMemo(() => {
-    if (!customerOrders.length) return { totalOrders: 0, totalSpent: 0, pendingPayments: 0, avgOrder: 0 };
-    
-    let totalSpent = 0;
-    let pendingPayments = 0;
-    
-    customerOrders.forEach(order => {
-      // Only count non-cancelled for total spent
-      if (order.status !== 'CANCELLED') {
-        totalSpent += order.pricing.total;
-        if (order.payment.status !== 'PAID') {
-          // Simplified pending calc (total - what's paid), but assuming UNPAID means full total for now
-          pendingPayments += order.pricing.total; // To be accurate, we need partial payments, but UNPAID is enough for MVP
-        }
-      }
-    });
+  const theirs = useMemo(
+    () =>
+      (orders.data ?? [])
+        .filter((order) => order.customerId === id)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+    [orders.data, id],
+  );
+  const metrics = useMemo(() => trade(theirs), [theirs]);
 
-    return {
-      totalOrders: customerOrders.filter(o => o.status !== 'CANCELLED').length,
-      totalSpent,
-      pendingPayments,
-      avgOrder: totalSpent / (customerOrders.filter(o => o.status !== 'CANCELLED').length || 1),
-    };
-  }, [customerOrders]);
-
-  if (customerError) {
+  if (customer.error) {
     return (
       <AppShell>
-        <div className="p-6 text-center">
-          <p className="text-danger font-medium mb-4">Customer not found.</p>
-          <button onClick={() => router.back()} className="text-primary font-bold">Go Back</button>
+        <ScreenNotice>That customer could not be loaded.</ScreenNotice>
+        <Button label="Go back" icon={ArrowLeft} variant="secondary" onClick={() => router.back()} />
+      </AppShell>
+    );
+  }
+
+  if (!customer.data) {
+    return (
+      <AppShell>
+        <div role="status" aria-busy="true" aria-label="Loading customer">
+          <SkeletonRows rows={2} height="h-40" />
         </div>
       </AppShell>
     );
   }
 
-  if (!customer) {
-    return (
-      <AppShell>
-        <div className="animate-pulse space-y-6">
-          <div className="h-32 bg-surface rounded-2xl" />
-          <div className="h-48 bg-surface rounded-2xl" />
-        </div>
-      </AppShell>
-    );
-  }
-
-  const formatCurrency = (paise: number) => `₹${(paise / 100).toLocaleString('en-IN')}`;
+  const person = customer.data;
 
   return (
     <AppShell>
-      <div className="space-y-6 lg:space-y-8 animate-fade-in-up pb-24 md:pb-8">
-        
-        {/* Navigation & Header */}
-        <div className="flex items-center justify-between">
-          <button 
-            onClick={() => router.back()}
-            className="touch-target flex items-center gap-2 text-text-muted hover:text-text transition-colors font-bold text-sm bg-surface p-2 pr-4 rounded-full border border-border shadow-sm active:scale-95"
-          >
-            <ArrowLeft size={18} strokeWidth={2.5} /> Back
-          </button>
-          
-          <button 
-            onClick={() => setIsFormOpen(true)}
-            className="touch-target flex items-center gap-2 text-primary hover:bg-primary/10 transition-colors font-bold text-sm bg-surface p-2 pr-4 rounded-full border border-primary/20 shadow-sm active:scale-95"
-          >
-            <Edit2 size={16} strokeWidth={2.5} /> Edit
-          </button>
+      <div className="flex items-center justify-between">
+        <Button label="Back" icon={ArrowLeft} variant="ghost" onClick={() => router.back()} />
+        <Button label="Edit" icon={Edit2} variant="secondary" onClick={() => form.open(person)} />
+      </div>
+
+      <section className="relative flex flex-col items-center overflow-hidden rounded-3xl border border-border bg-surface p-6 text-center shadow-card">
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-primary/10 to-transparent"
+        />
+        <div
+          aria-hidden="true"
+          className="z-10 mb-4 flex h-20 w-20 items-center justify-center rounded-full border-4 border-background bg-primary/15 font-heading text-3xl font-bold text-primary shadow-sm"
+        >
+          {person.name.charAt(0).toUpperCase()}
         </div>
 
-        {/* Hero Card */}
-        <section className="p-6 rounded-3xl bg-surface border border-border shadow-card flex flex-col items-center text-center relative overflow-hidden">
-          <div className="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-primary/10 to-transparent" />
-          
-          <div className="w-20 h-20 rounded-full bg-primary/15 text-primary font-bold font-heading text-3xl flex items-center justify-center border-4 border-background mb-4 z-10 shadow-sm">
-            {customer.name.charAt(0).toUpperCase()}
-          </div>
-          
-          <h1 className="text-2xl font-bold font-heading text-text mb-1 z-10">{customer.name}</h1>
-          
-          <div className="flex items-center gap-2 text-text-muted font-medium text-sm mb-6 z-10">
-            <Phone size={14} /> {customer.phone}
-          </div>
+        <h1 className="z-10 mb-1 font-heading text-2xl font-bold text-text">{person.name}</h1>
+        <p className="z-10 mb-6 flex items-center gap-2 text-sm font-medium text-text-muted">
+          <Phone size={14} aria-hidden="true" /> {person.phone}
+        </p>
 
-          <div className="flex gap-3 w-full">
-            <a 
-              href={`tel:${customer.phone}`}
-              className="touch-target flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-text font-bold text-sm shadow-md active:scale-[0.98] transition-all"
+        <div className="flex w-full gap-3">
+          <a
+            href={`tel:${person.phone}`}
+            className="touch-target flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-bold text-primary-text shadow-md transition-all active:scale-[0.98]"
+          >
+            <Phone size={16} strokeWidth={2.5} aria-hidden="true" /> Call
+          </a>
+          {person.googleMapsLink && (
+            <a
+              href={person.googleMapsLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="touch-target flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-background py-3 text-sm font-bold text-text shadow-sm transition-all hover:bg-surface-hover active:scale-[0.98]"
             >
-              <Phone size={16} strokeWidth={2.5} /> Call
+              <MapPin size={16} strokeWidth={2.5} aria-hidden="true" /> Directions
             </a>
-            {customer.googleMapsLink && (
-              <a 
-                href={customer.googleMapsLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="touch-target flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-background border border-border text-text font-bold text-sm shadow-sm hover:bg-surface-hover active:scale-[0.98] transition-all"
-              >
-                <MapPin size={16} strokeWidth={2.5} /> Directions
-              </a>
+          )}
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-border bg-surface p-5 shadow-card">
+        <h2 className="mb-4 flex items-center gap-2 font-heading text-sm font-bold text-text">
+          <TrendingUp size={18} strokeWidth={2.5} className="text-secondary" aria-hidden="true" />
+          Customer Analytics
+        </h2>
+        <dl className="grid grid-cols-2 gap-3">
+          <StatTile label="Total Orders" value={String(metrics.totalOrders)} icon={ShoppingBag} />
+          <StatTile
+            label="Total Spent"
+            value={formatPaise(metrics.totalSpent)}
+            tone="success"
+            icon={CreditCard}
+          />
+          <StatTile label="Avg Order" value={formatPaise(metrics.avgOrder)} />
+          <StatTile label="Pending" value={formatPaise(metrics.pendingPayments)} tone="danger" />
+        </dl>
+      </section>
+
+      {(person.email || person.address || person.notes) && (
+        <section className="rounded-2xl border border-border bg-surface p-5 shadow-card">
+          <h2 className="mb-4 flex items-center gap-2 font-heading text-sm font-bold text-text">
+            <FileText size={18} strokeWidth={2.5} className="text-primary" aria-hidden="true" />
+            Details
+          </h2>
+          <ul role="list" className="space-y-4">
+            {person.email && (
+              <Detail icon={Mail} label="Email">
+                {person.email}
+              </Detail>
             )}
-          </div>
+            {person.address && (
+              <Detail icon={MapPin} label="Address">
+                {person.address}
+              </Detail>
+            )}
+            {person.notes && (
+              <Detail icon={FileText} label="Baker Notes">
+                {person.notes}
+              </Detail>
+            )}
+          </ul>
         </section>
+      )}
 
-        {/* Business Analytics Card */}
-        <section className="p-5 rounded-2xl bg-surface border border-border shadow-card">
-          <h3 className="text-sm font-bold font-heading mb-4 text-text flex items-center gap-2">
-            <TrendingUp size={18} className="text-secondary" strokeWidth={2.5} />
-            Customer Analytics
-          </h3>
-          <dl className="grid grid-cols-2 gap-3">
-            <div className="p-4 rounded-xl bg-background border border-border flex flex-col justify-between">
-              <dt className="text-[10px] text-text-muted font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <ShoppingBag size={12} strokeWidth={2.5} /> Total Orders
-              </dt>
-              <dd className="text-2xl font-bold font-heading text-text">{metrics.totalOrders}</dd>
-            </div>
-            <div className="p-4 rounded-xl bg-gradient-to-br from-success/10 to-success/5 border border-success/20 flex flex-col justify-between">
-              <dt className="text-[10px] text-success font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <CreditCard size={12} strokeWidth={2.5} /> Total Spent
-              </dt>
-              <dd className="text-2xl font-bold font-heading text-success">{formatCurrency(metrics.totalSpent)}</dd>
-            </div>
-            <div className="p-4 rounded-xl bg-background border border-border flex flex-col justify-between">
-              <dt className="text-[10px] text-text-muted font-bold uppercase tracking-wider mb-2">Avg Order</dt>
-              <dd className="text-xl font-bold font-heading text-text">{formatCurrency(metrics.avgOrder)}</dd>
-            </div>
-            <div className="p-4 rounded-xl bg-danger-bg/50 border border-danger/20 flex flex-col justify-between">
-              <dt className="text-[10px] text-danger font-bold uppercase tracking-wider mb-2">Pending</dt>
-              <dd className="text-xl font-bold font-heading text-danger">{formatCurrency(metrics.pendingPayments)}</dd>
-            </div>
-          </dl>
-        </section>
+      <section>
+        <h2 className="mb-4 flex items-center gap-2 font-heading text-sm font-bold text-text">
+          <Clock size={18} strokeWidth={2.5} className="text-primary" aria-hidden="true" />
+          Recent Orders
+        </h2>
 
-        {/* Details & Notes */}
-        {(customer.email || customer.address || customer.notes) && (
-          <section className="p-5 rounded-2xl bg-surface border border-border shadow-card">
-             <h3 className="text-sm font-bold font-heading mb-4 text-text flex items-center gap-2">
-              <FileText size={18} className="text-primary" strokeWidth={2.5} />
-              Details
-            </h3>
-            <ul className="space-y-4">
-              {customer.email && (
-                <li className="flex items-start gap-3">
-                  <Mail size={16} className="text-text-muted shrink-0 mt-0.5" />
-                  <div>
-                    <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider block mb-0.5">Email</span>
-                    <span className="text-sm font-medium">{customer.email}</span>
-                  </div>
-                </li>
-              )}
-              {customer.address && (
-                <li className="flex items-start gap-3">
-                  <MapPin size={16} className="text-text-muted shrink-0 mt-0.5" />
-                  <div>
-                    <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider block mb-0.5">Address</span>
-                    <span className="text-sm font-medium leading-relaxed">{customer.address}</span>
-                  </div>
-                </li>
-              )}
-              {customer.notes && (
-                <li className="flex items-start gap-3">
-                  <FileText size={16} className="text-warning shrink-0 mt-0.5" />
-                  <div className="w-full">
-                    <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider block mb-0.5">Baker Notes</span>
-                    <div className="bg-warning/10 border border-warning/20 p-3 rounded-xl mt-1">
-                      <span className="text-sm font-medium text-warning-text leading-relaxed">{customer.notes}</span>
-                    </div>
-                  </div>
-                </li>
-              )}
-            </ul>
-          </section>
-        )}
-
-        {/* Recent Orders */}
-        <section>
-           <h3 className="text-sm font-bold font-heading mb-4 text-text flex items-center gap-2">
-            <Clock size={18} className="text-primary" strokeWidth={2.5} />
-            Recent Orders
-          </h3>
-          
-          {ordersError && (
-             <div className="p-4 rounded-xl bg-danger-bg text-danger text-sm font-medium border border-danger/20">
-               Could not load orders.
-             </div>
-          )}
-
-          {!orders && !ordersError && (
-            <div className="space-y-3">
-              {[1, 2].map(i => <div key={i} className="h-16 bg-surface border border-border rounded-2xl animate-pulse" />)}
-            </div>
-          )}
-
-          {customerOrders.length === 0 && (
-            <div className="p-6 text-center bg-surface border border-border rounded-2xl border-dashed">
-              <p className="text-sm text-text-muted font-medium">No orders found for this customer.</p>
-            </div>
-          )}
-
-          {customerOrders.length > 0 && (
-            <ul className="space-y-3">
-              {customerOrders.slice(0, 5).map(order => (
+        {orders.error && orders.data === undefined ? (
+          <ScreenNotice>Could not load this customer&rsquo;s orders.</ScreenNotice>
+        ) : orders.data === undefined ? (
+          <SkeletonRows rows={2} height="h-16" />
+        ) : theirs.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-border bg-surface p-6 text-center text-sm font-medium text-text-muted">
+            No orders yet for this customer.
+          </p>
+        ) : (
+          <ul role="list" className="space-y-3">
+            {theirs.slice(0, RECENT_ORDER_COUNT).map((order) => {
+              const badge = statusBadge(order);
+              return (
                 <li key={order.id}>
-                  <Link href={`/orders/${order.id}`}>
-                    <article className="flex items-center justify-between p-4 rounded-2xl bg-surface border border-border shadow-sm hover:bg-surface-hover hover:shadow-md active:scale-[0.99] transition-all group">
+                  <Link href={`/orders/${order.id}`} className="group block">
+                    <article className="flex items-center justify-between rounded-2xl border border-border bg-surface p-4 shadow-sm transition-all hover:bg-surface-hover hover:shadow-md active:scale-[0.99]">
                       <div>
-                        <span className="font-bold text-sm block group-hover:text-primary transition-colors">
+                        <span className="block text-sm font-bold transition-colors group-hover:text-primary">
                           {order.orderNumber}
                         </span>
-                        <span className="text-xs text-text-muted font-medium mt-0.5 block">
-                          {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                        <span className="mt-0.5 block text-xs font-medium text-text-muted">
+                          {formatDate(order.createdAt.slice(0, 10))}
                         </span>
                       </div>
-                      <div className="text-right">
-                        <span className="font-bold text-sm block mb-1">{formatCurrency(order.pricing.total)}</span>
-                        <span className={`text-[10px] font-bold tracking-wider px-2 py-0.5 rounded ${
-                          order.status === 'DELIVERED' ? 'bg-success/10 text-success' : 
-                          order.status === 'CANCELLED' ? 'bg-danger/10 text-danger' : 
-                          'bg-warning/15 text-warning'
-                        }`}>
-                          {order.status}
-                        </span>
+                      <div className="space-y-1 text-right">
+                        <span className="block text-sm font-bold">{formatPaise(order.pricing.total)}</span>
+                        <StatusBadge label={badge.label} tone={badge.tone} />
                       </div>
                     </article>
                   </Link>
                 </li>
-              ))}
-            </ul>
-          )}
-        </section>
+              );
+            })}
+          </ul>
+        )}
+      </section>
 
-      </div>
-      
-      <CustomerFormSheet 
-        isOpen={isFormOpen} 
-        onClose={() => setIsFormOpen(false)} 
-        onSuccess={() => mutateCustomer()} 
-        initialData={customer}
+      <CustomerFormSheet
+        isOpen={form.isOpen}
+        onClose={form.close}
+        onSuccess={() => customer.mutate()}
+        initialData={form.subject}
       />
     </AppShell>
   );

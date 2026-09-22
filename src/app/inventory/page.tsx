@@ -1,151 +1,141 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import useSWR from "swr";
-import { AppShell } from "@/shared/components/AppShell";
-import { Search, Package, AlertTriangle, ArrowRightLeft } from "lucide-react";
-import { fetcher } from "@/shared/api/client";
-import { type Product } from "@/features/products/types";
+import { useMemo, useState } from "react";
+import { AlertTriangle, ArrowRightLeft, Package } from "lucide-react";
+
+import { AppShell } from "@/components/nav/AppShell";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/components/ui/cn";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ListScreen } from "@/components/ui/list-screen";
+import { PageHeader } from "@/components/ui/page-header";
+import { SearchInput } from "@/components/ui/search-input";
+import { LOW_STOCK_THRESHOLD } from "@/constants/inventory";
+import { UI_TEXT } from "@/constants/messages";
 import { InventoryAdjustmentSheet } from "@/features/inventory/components/InventoryAdjustmentSheet";
+import type { InventoryBalance } from "@/features/inventory/types";
+import type { Product } from "@/features/products/types";
+import { useDisclosure } from "@/hooks/useDisclosure";
+import { apiRoutes } from "@/lib/query/keys";
+import { useApiQuery } from "@/lib/query/useApiQuery";
+
+interface StockLine extends Product {
+  currentStock: number;
+}
+
+/**
+ * What is in stock, per active product, lowest first — so whatever needs
+ * ordering is at the top (plan §20). The balances endpoint answers with one
+ * row per product that has ever moved; a product with no movements is at zero.
+ */
+function stockLines(
+  products: readonly Product[],
+  balances: readonly InventoryBalance[],
+  search: string,
+): StockLine[] {
+  const byProduct = new Map(balances.map((balance) => [balance.productId, balance.balance]));
+  const needle = search.trim().toLowerCase();
+
+  return products
+    .filter((product) => product.isActive && product.name.toLowerCase().includes(needle))
+    .map((product) => ({ ...product, currentStock: byProduct.get(product.id) ?? 0 }))
+    .sort((a, b) => a.currentStock - b.currentStock);
+}
 
 export default function InventoryPage() {
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | undefined>(undefined);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [search, setSearch] = useState("");
+  const adjust = useDisclosure<Product>();
 
-  const { data: products, error: productsError, isLoading: isLoadingProducts } = useSWR<Product[]>("/api/products", fetcher);
-  const { data: balances, error: balancesError, isLoading: isLoadingBalances, mutate: mutateBalances } = useSWR<Record<string, number>>("/api/inventory/balance", fetcher);
+  const products = useApiQuery<Product[]>(apiRoutes.products.list);
+  const balances = useApiQuery<InventoryBalance[]>(apiRoutes.inventory.balances());
 
-  const isLoading = isLoadingProducts || isLoadingBalances;
-  const error = productsError || balancesError;
+  const lines = useMemo(
+    () => stockLines(products.data ?? [], balances.data ?? [], search),
+    [products.data, balances.data, search],
+  );
 
-  const inventoryList = useMemo(() => {
-    if (!products || !balances) return [];
-    
-    return products
-      .filter(p => p.isActive) // Only manage inventory for active products normally
-      .map(p => ({
-        ...p,
-        currentStock: balances[p.id] || 0
-      }))
-      .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
-      .sort((a, b) => a.currentStock - b.currentStock); // Lowest stock first
-  }, [products, balances, searchQuery]);
-
-  const handleAdjust = (product: Product) => {
-    setSelectedProduct(product);
-    setIsFormOpen(true);
+  // One list, two reads: it is loading until both have answered, and failed if either did.
+  const query = {
+    isLoading: products.isLoading || balances.isLoading,
+    error: products.error ?? balances.error,
+    isValidating: products.isValidating || balances.isValidating,
+    mutate: () => {
+      void products.mutate();
+      void balances.mutate();
+    },
   };
+
+  const settled = products.data !== undefined && balances.data !== undefined;
+  const searchedInVain = settled && lines.length === 0 && search.trim() !== "";
 
   return (
     <AppShell>
-      <div className="space-y-6 lg:space-y-8 animate-fade-in-up pb-24 md:pb-8">
-        
-        {/* Header */}
-        <section>
-          <h2 className="text-2xl sm:text-3xl font-bold font-heading text-text tracking-tight flex items-center gap-2">
-            <Package size={28} className="text-primary" strokeWidth={2.5} />
-            Inventory
-          </h2>
-          <p className="text-sm text-text-muted mt-1 font-medium">
-            Manage your stock and ingredients
-          </p>
-        </section>
+      <PageHeader icon={Package} title="Inventory" subtitle="Manage your stock and ingredients" />
 
-        {/* Search */}
-        <section>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search size={18} className="text-text-muted/60" strokeWidth={2.5} />
-            </div>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-surface border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-sm font-medium placeholder:text-text-muted/60 shadow-sm"
-              placeholder="Search active products..."
-            />
-          </div>
-        </section>
+      <SearchInput value={search} onChange={setSearch} placeholder="Search active products" />
 
-        {/* State Handling & List */}
-        <section>
-          {error && (
-            <div className="p-4 rounded-xl bg-danger-bg text-danger border border-danger/20 text-sm font-medium">
-              Failed to load inventory data. Please try again.
-            </div>
-          )}
+      <ListScreen
+        query={query}
+        loadFailed="INVENTORY_LOAD_FAILED"
+        data={settled ? lines : undefined}
+        keyOf={(line) => line.id}
+        noMatches={searchedInVain ? UI_TEXT.states.noResults(search) : undefined}
+        empty={
+          <EmptyState
+            icon={Package}
+            title="No active products"
+            hint="Add active products in the Menu to manage their stock."
+          />
+        }
+        renderItem={(line) => {
+          const low = line.currentStock <= LOW_STOCK_THRESHOLD;
+          return (
+            <article
+              className={cn(
+                "flex items-center justify-between rounded-2xl border bg-surface p-4 shadow-sm transition-all hover:shadow-md",
+                low ? "border-danger/30" : "border-border",
+              )}
+            >
+              <div className="flex min-w-0 flex-1 items-center gap-4">
+                <div
+                  className={cn(
+                    "flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl border",
+                    low
+                      ? "border-danger/20 bg-danger/10 text-danger"
+                      : "border-primary/20 bg-primary/10 text-primary",
+                  )}
+                >
+                  <span className="font-heading text-lg font-bold leading-none">{line.currentStock}</span>
+                  <span className="mt-0.5 text-[9px] font-bold uppercase tracking-wider">{line.unit}</span>
+                </div>
 
-          {isLoading && (
-            <div className="space-y-3">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="h-20 bg-surface border border-border rounded-2xl animate-pulse" />
-              ))}
-            </div>
-          )}
-
-          {!isLoading && inventoryList.length === 0 && !searchQuery && (
-            <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-              <div className="w-16 h-16 bg-surface border border-border rounded-full flex items-center justify-center mb-4">
-                <Package size={32} className="text-text-muted/40" strokeWidth={2} />
+                <div className="min-w-0 pr-2">
+                  <h2 className="mb-1 truncate text-base font-bold leading-tight text-text">{line.name}</h2>
+                  {low && (
+                    <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-danger">
+                      <AlertTriangle size={10} strokeWidth={3} aria-hidden="true" /> Low stock
+                    </span>
+                  )}
+                </div>
               </div>
-              <h3 className="text-lg font-bold font-heading text-text mb-1">No active products</h3>
-              <p className="text-sm text-text-muted max-w-sm">
-                Add active products in the Menu to manage their stock.
-              </p>
-            </div>
-          )}
 
-          {!isLoading && inventoryList.length > 0 && (
-            <ul className="space-y-3" role="list">
-              {inventoryList.map(item => {
-                const isLowStock = item.currentStock <= 5; // Simple hardcoded threshold for MVP
+              <Button
+                icon={ArrowRightLeft}
+                label="Adjust"
+                variant="ghost"
+                size="sm"
+                onClick={() => adjust.open(line)}
+              />
+            </article>
+          );
+        }}
+      />
 
-                return (
-                  <li key={item.id}>
-                    <article className={`flex items-center justify-between p-4 rounded-2xl bg-surface border ${isLowStock ? 'border-danger/30 shadow-sm' : 'border-border shadow-sm'} hover:shadow-md transition-all`}>
-                      <div className="flex items-center gap-4 flex-1 min-w-0">
-                        {/* Stock indicator badge */}
-                        <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center shrink-0 border ${
-                          isLowStock ? 'bg-danger/10 border-danger/20 text-danger' : 'bg-primary/10 border-primary/20 text-primary'
-                        }`}>
-                          <span className="font-bold font-heading text-lg leading-none">{item.currentStock}</span>
-                          <span className="text-[9px] font-bold uppercase tracking-wider mt-0.5">{item.unit}</span>
-                        </div>
-                        
-                        <div className="min-w-0 pr-2">
-                          <h3 className="font-bold text-base text-text leading-tight mb-1 truncate">
-                            {item.name}
-                          </h3>
-                          {isLowStock && (
-                            <span className="text-[10px] font-bold text-danger uppercase tracking-wider flex items-center gap-1">
-                              <AlertTriangle size={10} strokeWidth={3} /> Low Stock
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <button 
-                        onClick={() => handleAdjust(item)}
-                        className="touch-target flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-background border border-border text-text font-bold text-xs hover:bg-surface-hover active:scale-95 transition-all shrink-0"
-                      >
-                        <ArrowRightLeft size={14} strokeWidth={2.5} className="text-text-muted" />
-                        Adjust
-                      </button>
-                    </article>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </section>
-      </div>
-
-      <InventoryAdjustmentSheet 
-        isOpen={isFormOpen} 
-        onClose={() => setIsFormOpen(false)} 
-        onSuccess={() => mutateBalances()} 
-        product={selectedProduct}
+      <InventoryAdjustmentSheet
+        isOpen={adjust.isOpen}
+        onClose={adjust.close}
+        onSuccess={() => balances.mutate()}
+        product={adjust.subject}
       />
     </AppShell>
   );

@@ -1,139 +1,99 @@
 "use client";
 
-import React, { useState } from "react";
-import useSWR from "swr";
 import Link from "next/link";
-import { AppShell } from "@/shared/components/AppShell";
-import { Search, Plus, Users, ChevronRight } from "lucide-react";
-import { fetcher } from "@/shared/api/client";
-import { type Customer } from "@/features/customers/types";
+import { useState } from "react";
+import { ChevronRight, Plus, Users } from "lucide-react";
+
+import { AppShell } from "@/components/nav/AppShell";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ListScreen } from "@/components/ui/list-screen";
+import { PageHeader } from "@/components/ui/page-header";
+import { SearchInput } from "@/components/ui/search-input";
+import { UI_TEXT } from "@/constants/messages";
 import { CustomerFormSheet } from "@/features/customers/components/CustomerFormSheet";
+import type { Customer } from "@/features/customers/types";
+import { useDisclosure } from "@/hooks/useDisclosure";
+import { apiRoutes } from "@/lib/query/keys";
+import { useApiQuery } from "@/lib/query/useApiQuery";
+
+/** A customer matches a search on either the name or the number a baker dials. */
+function matches(customer: Customer, term: string): boolean {
+  const needle = term.trim().toLowerCase();
+  return needle === "" || customer.name.toLowerCase().includes(needle) || customer.phone.includes(needle);
+}
 
 export default function CustomersPage() {
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [search, setSearch] = useState("");
+  const form = useDisclosure<Customer>();
+  const query = useApiQuery<Customer[]>(apiRoutes.customers.list);
 
-  const { data: customers, error, isLoading, mutate } = useSWR<Customer[]>("/api/customers", fetcher);
-
-  const filteredCustomers = customers?.filter(c => 
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    c.phone.includes(searchQuery)
-  );
+  const shown = query.data?.filter((customer) => matches(customer, search));
+  const searchedInVain = Boolean(query.data?.length) && shown?.length === 0;
 
   return (
     <AppShell>
-      <div className="space-y-6 lg:space-y-8 animate-fade-in-up pb-24 md:pb-8">
-        
-        {/* Header & Actions */}
-        <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-bold font-heading text-text tracking-tight flex items-center gap-2">
-              <Users size={28} className="text-primary" strokeWidth={2.5} />
-              Customers
-            </h2>
-            <p className="text-sm text-text-muted mt-1 font-medium">
-              Manage your bakery&apos;s clients
-            </p>
-          </div>
-          <button
-            onClick={() => setIsFormOpen(true)}
-            className="touch-target flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-text font-bold text-sm hover:bg-primary-hover active:scale-[0.98] transition-all shadow-md shrink-0"
-          >
-            <Plus size={18} strokeWidth={3} /> Add Customer
-          </button>
-        </section>
+      <PageHeader icon={Users} title="Customers" subtitle="Manage your bakery&rsquo;s clients">
+        <Button icon={Plus} label="Add Customer" onClick={() => form.open()} />
+      </PageHeader>
 
-        {/* Search */}
-        <section>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search size={18} className="text-text-muted/60" strokeWidth={2.5} />
-            </div>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-surface border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-sm font-medium placeholder:text-text-muted/60 shadow-sm"
-              placeholder="Search by name or phone..."
-            />
-          </div>
-        </section>
+      <SearchInput value={search} onChange={setSearch} placeholder="Search by name or phone" />
 
-        {/* State Handling & List */}
-        <section>
-          {error && (
-            <div className="p-4 rounded-xl bg-danger-bg text-danger border border-danger/20 text-sm font-medium">
-              Failed to load customers. Please try again.
-            </div>
-          )}
-
-          {isLoading && !customers && (
-            <div className="space-y-3">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="h-20 bg-surface border border-border rounded-2xl animate-pulse" />
-              ))}
-            </div>
-          )}
-
-          {!isLoading && customers?.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-              <div className="w-16 h-16 bg-surface border border-border rounded-full flex items-center justify-center mb-4">
-                <Users size={32} className="text-text-muted/40" strokeWidth={2} />
+      <ListScreen
+        query={query}
+        loadFailed="CUSTOMERS_LOAD_FAILED"
+        data={shown}
+        keyOf={(customer) => customer.id}
+        noMatches={searchedInVain ? UI_TEXT.states.noResults(search) : undefined}
+        empty={
+          <EmptyState
+            icon={Users}
+            title="No customers yet"
+            hint="Start adding your customers to track their orders and preferences."
+            action={
+              <Button
+                icon={Plus}
+                label="Add Your First Customer"
+                variant="secondary"
+                onClick={() => form.open()}
+              />
+            }
+          />
+        }
+        renderItem={(customer) => (
+          <Link href={`/customers/${customer.id}`} className="group block">
+            <article className="flex items-center justify-between rounded-2xl border border-border bg-surface p-4 shadow-sm transition-all hover:bg-surface-hover hover:shadow-md active:scale-[0.99]">
+              <div className="flex items-center gap-4">
+                <div
+                  aria-hidden="true"
+                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 font-heading text-lg font-bold text-primary"
+                >
+                  {customer.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <span className="block text-base font-bold text-text transition-colors group-hover:text-primary">
+                    {customer.name}
+                  </span>
+                  <span className="mt-0.5 block text-xs font-medium text-text-muted">
+                    {customer.phone}
+                  </span>
+                </div>
               </div>
-              <h3 className="text-lg font-bold font-heading text-text mb-1">No customers yet</h3>
-              <p className="text-sm text-text-muted max-w-sm mb-6">
-                Start adding your customers to track their orders and preferences.
-              </p>
-              <button
-                onClick={() => setIsFormOpen(true)}
-                className="touch-target flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary/10 text-primary font-bold text-sm hover:bg-primary/20 active:scale-[0.98] transition-all"
-              >
-                <Plus size={18} strokeWidth={3} /> Add Your First Customer
-              </button>
-            </div>
-          )}
+              <ChevronRight
+                size={20}
+                aria-hidden="true"
+                className="text-text-muted/40 transition-colors group-hover:text-primary"
+              />
+            </article>
+          </Link>
+        )}
+      />
 
-          {filteredCustomers && filteredCustomers.length > 0 && (
-            <ul className="space-y-3" role="list">
-              {filteredCustomers.map(customer => (
-                <li key={customer.id}>
-                  <Link href={`/customers/${customer.id}`}>
-                    <article className="flex items-center justify-between p-4 rounded-2xl bg-surface border border-border shadow-sm hover:bg-surface-hover hover:shadow-md active:scale-[0.99] transition-all group">
-                      <div className="flex items-center gap-4">
-                        {/* Avatar */}
-                        <div className="w-12 h-12 rounded-full bg-primary/10 text-primary font-bold font-heading text-lg flex items-center justify-center border border-primary/20 shrink-0">
-                          {customer.name.charAt(0).toUpperCase()}
-                        </div>
-                        {/* Info */}
-                        <div>
-                          <span className="font-bold text-base block group-hover:text-primary transition-colors text-text">
-                            {customer.name}
-                          </span>
-                          <span className="text-xs text-text-muted font-medium mt-0.5 block flex items-center gap-1.5">
-                            {customer.phone}
-                          </span>
-                        </div>
-                      </div>
-                      <ChevronRight size={20} className="text-text-muted/40 group-hover:text-primary transition-colors" />
-                    </article>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {!isLoading && customers && customers.length > 0 && filteredCustomers?.length === 0 && (
-            <div className="text-center py-10">
-              <p className="text-sm text-text-muted font-medium">No customers found matching &quot;{searchQuery}&quot;</p>
-            </div>
-          )}
-        </section>
-      </div>
-
-      <CustomerFormSheet 
-        isOpen={isFormOpen} 
-        onClose={() => setIsFormOpen(false)} 
-        onSuccess={() => mutate()} 
+      <CustomerFormSheet
+        isOpen={form.isOpen}
+        onClose={form.close}
+        onSuccess={() => query.mutate()}
+        initialData={form.subject}
       />
     </AppShell>
   );
