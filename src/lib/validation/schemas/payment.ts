@@ -9,4 +9,5 @@ export const createPaymentSchema = z.object({
   reference: z.string().optional().nullable(),
 });
 
-export type CreatePaymentPayload = z.infer<typeof createPaymentSchema>;
+export type CreatePaymentPayload = z.output<typeof createPaymentSchema>;
+export type CreatePaymentInput = z.input<typeof createPaymentSchema>;

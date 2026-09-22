@@ -1,6 +1,7 @@
 import { type SupabaseClient } from "@supabase/supabase-js";
 import { ProductsRepository } from "./repository";
 import { type Product, type ProductRow } from "./types";
+import { AuditService } from "@/features/audit/service";
 import {
   createProductSchema,
   updateProductSchema,
@@ -10,9 +11,11 @@ import {
 
 export class ProductsService {
   private readonly repository: ProductsRepository;
+  private readonly auditService: AuditService;
 
   constructor(client: SupabaseClient) {
     this.repository = new ProductsRepository(client);
+    this.auditService = new AuditService(client);
   }
 
   async getAllProducts(bakeryId: string): Promise<Product[]> {
@@ -37,6 +40,15 @@ export class ProductsService {
       is_active: validated.isActive,
     });
 
+    await this.auditService.logAction({
+      bakery_id: bakeryId,
+      user_id: null,
+      action: "CREATE",
+      entity_type: "products",
+      entity_id: row.id,
+      new_data: row as unknown as Record<string, any>,
+    });
+
     return this.mapRowToModel(row);
   }
 
@@ -46,6 +58,8 @@ export class ProductsService {
     input: UpdateProductInput,
   ): Promise<Product> {
     const validated = updateProductSchema.parse(input);
+
+    const previousRow = await this.repository.findById(bakeryId, id);
 
     const payload: Partial<ProductRow> = {};
     
@@ -57,6 +71,17 @@ export class ProductsService {
     if (validated.isActive !== undefined) payload.is_active = validated.isActive;
 
     const row = await this.repository.update(bakeryId, id, payload);
+
+    await this.auditService.logAction({
+      bakery_id: bakeryId,
+      user_id: null,
+      action: "UPDATE",
+      entity_type: "products",
+      entity_id: row.id,
+      previous_data: previousRow as unknown as Record<string, any>,
+      new_data: row as unknown as Record<string, any>,
+    });
+
     return this.mapRowToModel(row);
   }
 

@@ -292,3 +292,19 @@ All notable changes to this project will be documented in this file.
 
 ### Blockers
 - None.
+
+## 2026-09-22 — Stage 2: Audit Logs & Background Jobs Implementation
+
+### Added
+- Created `src/features/audit` domain (service, types, repository).
+- Injected `AuditService` into core domain services (`CustomersService`, `ProductsService`, `OrdersService`, `InventoryService`, `ExpensesService`, `PaymentsService`) to intercept mutations and persist them to `audit_logs`.
+- Created `src/features/workers` domain for background job processing.
+- Implemented `WorkerService` providing atomic job claiming, exponential backoff, and dead-letter queuing logic over Postgres.
+- Added comprehensive unit tests for `WorkerService` covering all states.
+
+### Validation
+- Typecheck passed.
+- Unit and E2E Tests passed.
+
+### Blockers
+- None.

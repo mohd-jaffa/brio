@@ -1,6 +1,7 @@
 import { type SupabaseClient } from "@supabase/supabase-js";
 import { CustomersRepository } from "./repository";
 import { type Customer, type CustomerRow } from "./types";
+import { AuditService } from "@/features/audit/service";
 import {
   createCustomerSchema,
   updateCustomerSchema,
@@ -10,9 +11,11 @@ import {
 
 export class CustomersService {
   private readonly repository: CustomersRepository;
+  private readonly auditService: AuditService;
 
   constructor(client: SupabaseClient) {
     this.repository = new CustomersRepository(client);
+    this.auditService = new AuditService(client);
   }
 
   async getAllCustomers(bakeryId: string): Promise<Customer[]> {
@@ -37,6 +40,15 @@ export class CustomersService {
       notes: validated.notes || null,
     });
 
+    await this.auditService.logAction({
+      bakery_id: bakeryId,
+      user_id: null,
+      action: "CREATE",
+      entity_type: "customers",
+      entity_id: row.id,
+      new_data: row as unknown as Record<string, any>,
+    });
+
     return this.mapRowToModel(row);
   }
 
@@ -46,6 +58,8 @@ export class CustomersService {
     input: UpdateCustomerInput,
   ): Promise<Customer> {
     const validated = updateCustomerSchema.parse(input);
+
+    const previousRow = await this.repository.findById(bakeryId, id);
 
     const payload: Partial<CustomerRow> = {};
     
@@ -57,6 +71,17 @@ export class CustomersService {
     if (validated.notes !== undefined) payload.notes = validated.notes || null;
 
     const row = await this.repository.update(bakeryId, id, payload);
+
+    await this.auditService.logAction({
+      bakery_id: bakeryId,
+      user_id: null,
+      action: "UPDATE",
+      entity_type: "customers",
+      entity_id: row.id,
+      previous_data: previousRow as unknown as Record<string, any>,
+      new_data: row as unknown as Record<string, any>,
+    });
+
     return this.mapRowToModel(row);
   }
 

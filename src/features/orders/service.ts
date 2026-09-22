@@ -4,6 +4,7 @@ import { type Order, type OrderAdjustmentRow, type OrderItemRow, type OrderRow }
 import { createOrderSchema, updateOrderStatusSchema, type CreateOrderInput, type UpdateOrderStatusInput } from "@/lib/validation";
 import { ProductsService } from "../products/service";
 import { InventoryService } from "../inventory/service";
+import { AuditService } from "@/features/audit/service";
 import { ConflictError } from "@/shared/errors/app-error";
 import { ERROR_MESSAGES } from "@/constants/messages";
 
@@ -11,11 +12,13 @@ export class OrdersService {
   private readonly repository: OrdersRepository;
   private readonly productsService: ProductsService;
   private readonly inventoryService: InventoryService;
+  private readonly auditService: AuditService;
 
   constructor(client: SupabaseClient) {
     this.repository = new OrdersRepository(client);
     this.productsService = new ProductsService(client);
     this.inventoryService = new InventoryService(client);
+    this.auditService = new AuditService(client);
   }
 
   async getAllOrders(bakeryId: string): Promise<OrderRow[]> {

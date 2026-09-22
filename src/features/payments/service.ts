@@ -2,20 +2,23 @@ import { type SupabaseClient } from "@supabase/supabase-js";
 import { PaymentsRepository } from "./repository";
 import { OrdersRepository } from "../orders/repository";
 import { type Payment } from "./types";
-import { type CreatePaymentPayload, createPaymentSchema } from "@/lib/validation";
+import { type CreatePaymentInput, createPaymentSchema } from "@/lib/validation";
 import { ConflictError, NotFoundError } from "@/shared/errors/app-error";
 import { ERROR_MESSAGES } from "@/constants/messages";
+import { AuditService } from "@/features/audit/service";
 
 export class PaymentsService {
   private readonly repository: PaymentsRepository;
   private readonly ordersRepository: OrdersRepository;
+  private readonly auditService: AuditService;
 
   constructor(client: SupabaseClient) {
     this.repository = new PaymentsRepository(client);
     this.ordersRepository = new OrdersRepository(client);
+    this.auditService = new AuditService(client);
   }
 
-  async createPayment(bakeryId: string, payload: CreatePaymentPayload): Promise<Payment> {
+  async createPayment(bakeryId: string, payload: CreatePaymentInput): Promise<Payment> {
     const validated = createPaymentSchema.parse(payload);
 
     // 1. Verify the order exists and belongs to the bakery
@@ -54,7 +57,14 @@ export class PaymentsService {
 
     await this.ordersRepository.updateOrderStatus(bakeryId, validated.order_id, { payment_status: newStatus as any });
 
-    // TODO: Create an audit log for this mutation
+    await this.auditService.logAction({
+      bakery_id: bakeryId,
+      user_id: null,
+      action: "CREATE",
+      entity_type: "payments",
+      entity_id: payment.id,
+      new_data: payment as unknown as Record<string, any>,
+    });
 
     return payment;
   }

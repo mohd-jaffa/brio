@@ -2,12 +2,15 @@ import { type SupabaseClient } from "@supabase/supabase-js";
 import { InventoryRepository } from "./repository";
 import { type InventoryBalance, type InventoryTransaction, type InventoryTransactionRow } from "./types";
 import { logInventoryTransactionSchema, type LogInventoryTransactionInput } from "@/lib/validation";
+import { AuditService } from "@/features/audit/service";
 
 export class InventoryService {
   private readonly repository: InventoryRepository;
+  private readonly auditService: AuditService;
 
   constructor(client: SupabaseClient) {
     this.repository = new InventoryRepository(client);
+    this.auditService = new AuditService(client);
   }
 
   async logTransaction(bakeryId: string, input: LogInventoryTransactionInput): Promise<InventoryTransaction> {
@@ -19,6 +22,15 @@ export class InventoryService {
       quantity: validated.quantity,
       reference_type: validated.referenceType || null,
       reference_id: validated.referenceId || null,
+    });
+
+    await this.auditService.logAction({
+      bakery_id: bakeryId,
+      user_id: null,
+      action: "CREATE",
+      entity_type: "inventory_transactions",
+      entity_id: row.id,
+      new_data: row as unknown as Record<string, any>,
     });
 
     return this.mapRowToModel(row);

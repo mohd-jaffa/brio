@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mocked } from "vitest";
 import { PaymentsService } from "@/features/payments/service";
 import { OrdersRepository } from "@/features/orders/repository";
 import { PaymentsRepository } from "@/features/payments/repository";
@@ -9,8 +9,8 @@ vi.mock("@/features/payments/repository");
 
 describe("PaymentsService", () => {
   let service: PaymentsService;
-  let mockOrdersRepo: vi.Mocked<OrdersRepository>;
-  let mockPaymentsRepo: vi.Mocked<PaymentsRepository>;
+  let mockOrdersRepo: Mocked<OrdersRepository>;
+  let mockPaymentsRepo: Mocked<PaymentsRepository>;
 
   const mockClient = {} as any;
 
