@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { toE164India, maskPhone, formatPhoneDigits } from '@/lib/phone';
+import { toE164India, maskPhone, formatPhoneDigits } from './phone';
 
 describe('toE164India', () => {
   it('normalizes 10-digit Indian mobile numbers starting with 6-9', () => {
