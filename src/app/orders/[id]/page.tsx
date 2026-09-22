@@ -16,7 +16,8 @@ import {
 import { fetcher } from "@/shared/api/client";
 import { type Order } from "@/features/orders/types";
 import { type Customer } from "@/features/customers/types";
-import { ReceiptPrintView } from "@/features/orders/components/ReceiptPrintView";
+import { type ReceiptData } from "@/features/receipts/types";
+import { ReceiptPrintView } from "@/features/receipts/components/ReceiptPrintView";
 import { PaymentCollectionForm } from "@/features/payments/components/PaymentCollectionForm";
 import { OrdersClient } from "@/features/orders/api.client";
 import { getErrorMessage, ERROR_MESSAGES } from "@/constants/messages";
@@ -36,6 +37,12 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
   const [isUpdatingPayment, setIsUpdatingPayment] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  // Conditionally fetch receipt data only when the modal is opened
+  const { data: receiptData } = useSWR<ReceiptData>(
+    showReceipt ? `/api/orders/${id}/receipt` : null, 
+    fetcher
+  );
 
   const formatCurrency = (paise: number) => `₹${(paise / 100).toLocaleString('en-IN')}`;
 
@@ -296,10 +303,12 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
         </div>
       </AppShell>
       
-      {showReceipt && (
+      {/* Receipt Modal */}
+      {showReceipt && receiptData && (
         <ReceiptPrintView 
-          order={order} 
-          customer={customer} 
+          receipt={receiptData} 
+          customerName={customer?.name}
+          customerPhone={customer?.phone}
           onClose={() => setShowReceipt(false)} 
         />
       )}

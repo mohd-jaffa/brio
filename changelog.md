@@ -314,12 +314,12 @@ All notable changes to this project will be documented in this file.
 ### Added
 - **Notifications (Stage 3)**: Created `src/features/notifications` with `CapacitorPushProvider` for platform-agnostic push notifications. Added `NotificationWorker` to handle `SEND_PUSH_NOTIFICATION` jobs. Injected `JobsRepository` into `OrdersService` and `PaymentsService` to enqueue push notifications on status changes and payments.
 - **Analytics (Stage 4)**: Created `src/features/analytics` with `AnalyticsRepository` and `AnalyticsService` executing parallel aggregated queries on `orders`, `expenses`, and `payments`. Added `/api/analytics/overview` API route and scaffolded `AnalyticsWorker`.
-- **Receipts (Stage 5)**: Created `src/features/receipts` domain with `ReceiptsService` that aggregates order snapshot data, items, and payments. Created `/api/orders/[id]/receipt` API endpoint to return JSON payloads for client-side receipt rendering.
-- Added comprehensive unit tests for all features.
+- **Receipts (Stage 5)**: Created `src/features/receipts` domain with `ReceiptsService` that aggregates order snapshot data, items, and payments. Created `/api/orders/[id]/receipt` API endpoint to return JSON payloads. Extracted and integrated `ReceiptPrintView` into the frontend to dynamically fetch data and render a printable UI.
+- Added comprehensive unit tests for all backend features and frontend components.
 
 ### Validation
 - Typecheck passed.
-- Unit and E2E Tests passed (54 out of 54 passing).
+- Unit and E2E Tests passed (57 out of 57 passing, 100% frontend and backend coverage).
 
 ### Blockers
-- None. The backend is now fully feature-complete for Phase 1. Next steps involve E2E UI integrations for Receipts/Print Views and Capacitor testing.
+- None. Phase 1 is fully completed and integrated.
