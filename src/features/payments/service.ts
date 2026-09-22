@@ -6,16 +6,19 @@ import { type CreatePaymentInput, createPaymentSchema } from "@/lib/validation";
 import { ConflictError, NotFoundError } from "@/shared/errors/app-error";
 import { ERROR_MESSAGES } from "@/constants/messages";
 import { AuditService } from "@/features/audit/service";
+import { JobsRepository } from "@/features/workers/repository";
 
 export class PaymentsService {
   private readonly repository: PaymentsRepository;
   private readonly ordersRepository: OrdersRepository;
   private readonly auditService: AuditService;
+  private readonly jobsRepository: JobsRepository;
 
   constructor(client: SupabaseClient) {
     this.repository = new PaymentsRepository(client);
     this.ordersRepository = new OrdersRepository(client);
     this.auditService = new AuditService(client);
+    this.jobsRepository = new JobsRepository(client);
   }
 
   async createPayment(bakeryId: string, payload: CreatePaymentInput): Promise<Payment> {
@@ -64,6 +67,17 @@ export class PaymentsService {
       entity_type: "payments",
       entity_id: payment.id,
       new_data: payment as unknown as Record<string, any>,
+    });
+
+    await this.jobsRepository.create({
+      type: "SEND_PUSH_NOTIFICATION",
+      payload: {
+        token: "mock-token", 
+        payload: {
+          title: "Payment Received",
+          body: `Received ₹${validated.amount} for Order ${order.order_number}`
+        }
+      }
     });
 
     return payment;

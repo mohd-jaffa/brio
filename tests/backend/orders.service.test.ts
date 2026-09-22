@@ -27,6 +27,10 @@ describe("OrdersService", () => {
       logTransaction: vi.fn().mockResolvedValue({}),
     };
 
+    const mockJobsRepo = {
+      createJob: vi.fn().mockResolvedValue({ id: "job-1" }),
+    };
+
     const mockClient = {};
     const service = new OrdersService(mockClient as any);
     
@@ -34,6 +38,7 @@ describe("OrdersService", () => {
     (service as any).repository = mockOrderRepo;
     (service as any).productsService = mockProductService;
     (service as any).inventoryService = mockInventoryService;
+    (service as any).jobsRepository = mockJobsRepo;
 
     const order = await service.createOrder("bakery-1", {
       customerId: validCustomerId,

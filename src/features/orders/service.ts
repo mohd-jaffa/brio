@@ -5,6 +5,7 @@ import { createOrderSchema, updateOrderStatusSchema, type CreateOrderInput, type
 import { ProductsService } from "../products/service";
 import { InventoryService } from "../inventory/service";
 import { AuditService } from "@/features/audit/service";
+import { JobsRepository } from "@/features/workers/repository";
 import { ConflictError } from "@/shared/errors/app-error";
 import { ERROR_MESSAGES } from "@/constants/messages";
 
@@ -13,12 +14,14 @@ export class OrdersService {
   private readonly productsService: ProductsService;
   private readonly inventoryService: InventoryService;
   private readonly auditService: AuditService;
+  private readonly jobsRepository: JobsRepository;
 
   constructor(client: SupabaseClient) {
     this.repository = new OrdersRepository(client);
     this.productsService = new ProductsService(client);
     this.inventoryService = new InventoryService(client);
     this.auditService = new AuditService(client);
+    this.jobsRepository = new JobsRepository(client);
   }
 
   async getAllOrders(bakeryId: string): Promise<OrderRow[]> {
@@ -175,7 +178,29 @@ export class OrdersService {
       await Promise.all(inventoryPromises);
     }
 
-    // Returning just the updated order implies we'd need items/adjustments again. We can refetch or just return basic.
+    await this.auditService.logAction({
+      bakery_id: bakeryId,
+      user_id: null,
+      action: "STATUS_CHANGE",
+      entity_type: "orders",
+      entity_id: id,
+      previous_data: existingOrder as unknown as Record<string, any>,
+      new_data: updatedOrder as unknown as Record<string, any>,
+    });
+
+    if (validated.status && validated.status !== existingOrder.status) {
+      await this.jobsRepository.create({
+        type: "SEND_PUSH_NOTIFICATION",
+        payload: {
+          token: "mock-token", // In a real app we'd fetch this from the user's profile/device
+          payload: {
+            title: "Order Status Updated",
+            body: `Order ${updatedOrder.order_number} is now ${validated.status}`
+          }
+        }
+      });
+    }
+
     return this.getOrderById(bakeryId, id);
   }
 

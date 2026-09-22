@@ -2,23 +2,31 @@ import { describe, it, expect, vi, beforeEach, type Mocked } from "vitest";
 import { PaymentsService } from "@/features/payments/service";
 import { OrdersRepository } from "@/features/orders/repository";
 import { PaymentsRepository } from "@/features/payments/repository";
+import { AuditRepository } from "@/features/audit/repository";
+import { JobsRepository } from "@/features/workers/repository";
 import { ConflictError, NotFoundError } from "@/shared/errors/app-error";
 
 vi.mock("@/features/orders/repository");
 vi.mock("@/features/payments/repository");
+vi.mock("@/features/audit/repository");
+vi.mock("@/features/workers/repository");
 
 describe("PaymentsService", () => {
   let service: PaymentsService;
   let mockOrdersRepo: Mocked<OrdersRepository>;
   let mockPaymentsRepo: Mocked<PaymentsRepository>;
+  let mockAuditRepo: Mocked<AuditRepository>;
+  let mockJobsRepo: Mocked<JobsRepository>;
 
   const mockClient = {} as any;
 
   beforeEach(() => {
     vi.clearAllMocks();
     service = new PaymentsService(mockClient);
-    mockOrdersRepo = vi.mocked(OrdersRepository.prototype, true);
-    mockPaymentsRepo = vi.mocked(PaymentsRepository.prototype, true);
+    mockOrdersRepo = vi.mocked(OrdersRepository).prototype as Mocked<OrdersRepository>;
+    mockPaymentsRepo = vi.mocked(PaymentsRepository).prototype as Mocked<PaymentsRepository>;
+    mockAuditRepo = vi.mocked(AuditRepository).prototype as Mocked<AuditRepository>;
+    mockJobsRepo = vi.mocked(JobsRepository).prototype as Mocked<JobsRepository>;
   });
 
   describe("createPayment", () => {
