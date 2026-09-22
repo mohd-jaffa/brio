@@ -1,18 +1,13 @@
-import { fetcher } from "@/shared/api/client";
-import { type CreateExpenseInput, type UpdateExpenseInput } from "@/lib/validation";
+import { apiRoutes } from "@/lib/query/keys";
+import { deleteJson, getJson, patchJson, postJson } from "@/lib/api/client";
+import type { CreateExpenseInput, UpdateExpenseInput } from "@/lib/validation";
+
+import type { Expense } from "./types";
 
 export const ExpensesClient = {
-  async createExpense(payload: CreateExpenseInput): Promise<{ id: string }> {
-    return fetcher<{ id: string }>("/api/expenses", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-  },
-
-  async updateExpense(id: string, payload: UpdateExpenseInput): Promise<void> {
-    return fetcher(`/api/expenses/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(payload),
-    });
-  },
+  list: () => getJson<Expense[]>(apiRoutes.expenses.list),
+  createExpense: (payload: CreateExpenseInput) => postJson<Expense>(apiRoutes.expenses.list, payload),
+  updateExpense: (id: string, payload: UpdateExpenseInput) =>
+    patchJson<Expense>(apiRoutes.expenses.detail(id), payload),
+  deleteExpense: (id: string) => deleteJson<{ deleted: true }>(apiRoutes.expenses.detail(id)),
 };

@@ -1,5 +1,5 @@
 import { type NotificationPayload, type PushNotificationProvider } from "./types";
-import { logger } from "@/shared/logging/logger";
+import { logger } from "@/lib/logger";
 
 // A platform abstraction for Capacitor push notifications.
 // Actual capacitor integration will be added when the mobile container is wrapped.

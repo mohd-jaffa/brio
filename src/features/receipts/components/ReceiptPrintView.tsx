@@ -1,8 +1,12 @@
 "use client";
 
-import React, { useEffect } from "react";
+import { useEffect } from "react";
+import { Printer, X } from "lucide-react";
+
+import { UI_TEXT } from "@/constants/messages";
+import { formatPaise } from "@/lib/format/currency";
+import { formatDate, formatDateTime } from "@/lib/format/date";
 import { type ReceiptData } from "@/features/receipts/types";
-import { X, Printer } from "lucide-react";
 
 interface ReceiptPrintViewProps {
   receipt: ReceiptData;
@@ -13,13 +17,8 @@ interface ReceiptPrintViewProps {
 
 export function ReceiptPrintView({ receipt, customerName, customerPhone, onClose }: ReceiptPrintViewProps) {
   const { order, items, payments, bakeryName, generatedAt } = receipt;
-  
-  const formatCurrency = (paise: number) => `₹${(paise / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
 
-  // Handle browser print
-  const handlePrint = () => {
-    window.print();
-  };
+  const handlePrint = () => window.print();
 
   // Prevent background scrolling while receipt is open
   useEffect(() => {
@@ -38,7 +37,7 @@ export function ReceiptPrintView({ receipt, customerName, customerPhone, onClose
         <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50 print:hidden shrink-0">
           <button 
             onClick={onClose}
-            aria-label="Close receipt preview"
+            aria-label={UI_TEXT.actions.close}
             className="p-2 text-gray-500 hover:text-black hover:bg-gray-200 rounded-full transition-all duration-200 active:scale-95"
           >
             <X size={20} strokeWidth={2.5} />
@@ -70,7 +69,7 @@ export function ReceiptPrintView({ receipt, customerName, customerPhone, onClose
             </div>
             <div className="text-right">
               <p className="text-gray-500 uppercase tracking-wider mb-1 text-[10px]">Date</p>
-              <p className="font-bold">{new Date(order.createdAt).toLocaleDateString('en-IN')}</p>
+              <p className="font-bold">{formatDate(order.createdAt.slice(0, 10))}</p>
             </div>
           </div>
 
@@ -94,7 +93,7 @@ export function ReceiptPrintView({ receipt, customerName, customerPhone, onClose
                 <tr key={item.id} className={index !== items.length - 1 ? 'border-b border-dashed border-gray-200' : ''}>
                   <td className="py-3 font-medium text-gray-800">{item.productName}</td>
                   <td className="py-3 text-right">{item.quantity}</td>
-                  <td className="py-3 text-right font-bold">{formatCurrency(item.subtotal)}</td>
+                  <td className="py-3 text-right font-bold">{formatPaise(item.subtotal)}</td>
                 </tr>
               ))}
             </tbody>
@@ -105,26 +104,26 @@ export function ReceiptPrintView({ receipt, customerName, customerPhone, onClose
             <div className="space-y-2 text-sm">
               <div className="flex justify-between items-center text-gray-600">
                 <span>Subtotal</span>
-                <span>{formatCurrency(order.pricing.subtotal)}</span>
+                <span>{formatPaise(order.pricing.subtotal)}</span>
               </div>
 
               {order.adjustments.map(adj => (
                 <div key={adj.id} className="flex justify-between items-center">
                   <span>{adj.name}</span>
                   <span className={adj.type === 'DISCOUNT' ? 'text-gray-500' : ''}>
-                    {adj.type === 'DISCOUNT' ? '-' : '+'}{formatCurrency(adj.amount)}
+                    {adj.type === 'DISCOUNT' ? '-' : '+'}{formatPaise(adj.amount)}
                   </span>
                 </div>
               ))}
 
               <div className="flex justify-between items-center text-gray-600">
                 <span>Tax</span>
-                <span>{formatCurrency(order.pricing.tax)}</span>
+                <span>{formatPaise(order.pricing.tax)}</span>
               </div>
               
               <div className="pt-2 mt-2 border-t border-gray-200 print:border-black flex justify-between items-center text-lg font-bold">
                 <span>TOTAL</span>
-                <span>{formatCurrency(order.pricing.total)}</span>
+                <span>{formatPaise(order.pricing.total)}</span>
               </div>
             </div>
           </div>
@@ -133,10 +132,10 @@ export function ReceiptPrintView({ receipt, customerName, customerPhone, onClose
           <div className="text-center text-xs text-gray-500 space-y-1">
             <p className="uppercase tracking-widest font-bold text-black mb-2">Thank you!</p>
             {payments.length > 0 && payments.map(p => (
-              <p key={p.id}>Payment: {p.payment_method} ({formatCurrency(p.amount)})</p>
+              <p key={p.id}>Payment: {p.payment_method} ({formatPaise(p.amount)})</p>
             ))}
             {order.payment.reference && <p>Ref: {order.payment.reference}</p>}
-            <p className="mt-4 pt-4 border-t border-dashed border-gray-300 text-[10px]">Generated at {new Date(generatedAt).toLocaleString()}</p>
+            <p className="mt-4 pt-4 border-t border-dashed border-gray-300 text-[10px]">Generated at {formatDateTime(generatedAt)}</p>
           </div>
 
         </div>

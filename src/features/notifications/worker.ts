@@ -1,7 +1,8 @@
-import { registerJobHandler } from "../workers/api";
+import { registerJobHandler } from "@/lib/jobs/queue";
 import { CapacitorPushProvider } from "./capacitor-push.service";
-import { type Job } from "../workers/types";
-import { logger } from "@/shared/logging/logger";
+import { type Job } from "@/lib/jobs/types";
+import { type NotificationPayload } from "./types";
+import { logger } from "@/lib/logger";
 
 const pushProvider = new CapacitorPushProvider();
 
@@ -11,14 +12,24 @@ export function registerNotificationWorker() {
 }
 
 async function handlePushNotification(job: Job): Promise<void> {
-  const { token, payload } = job.payload as { token?: string; payload?: any };
-  
-  if (!token || !payload) {
-    throw new Error("Invalid push notification job payload: missing token or payload");
+  const { token, payload } = job.payload as {
+    token?: string;
+    payload?: NotificationPayload;
+  };
+
+  if (!payload) {
+    throw new Error("Push notification job has no message");
   }
 
-  const success = await pushProvider.sendPush(token, payload);
-  if (!success) {
+  // No device is registered for this bakery yet (the token registry is not
+  // built). Nothing to deliver is not a failure, so the job completes rather
+  // than retrying its way into the dead-letter list.
+  if (!token) {
+    logger.info("Push notification skipped: no device registered", { jobId: job.id });
+    return;
+  }
+
+  if (!(await pushProvider.sendPush(token, payload))) {
     throw new Error("Failed to send push notification");
   }
 }

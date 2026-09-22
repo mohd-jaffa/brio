@@ -1,11 +1,12 @@
-import { fetcher } from "@/shared/api/client";
-import { type LogInventoryTransactionInput } from "@/lib/validation";
+import { apiRoutes } from "@/lib/query/keys";
+import { getJson, postJson } from "@/lib/api/client";
+import type { LogInventoryTransactionInput } from "@/lib/validation";
+
+import type { InventoryBalance, InventoryTransaction } from "./types";
 
 export const InventoryClient = {
-  async adjustStock(payload: LogInventoryTransactionInput): Promise<{ id: string }> {
-    return fetcher<{ id: string }>("/api/inventory", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-  },
+  balances: (productIds?: readonly string[]) =>
+    getJson<InventoryBalance[]>(apiRoutes.inventory.balances(productIds)),
+  adjustStock: (payload: LogInventoryTransactionInput) =>
+    postJson<InventoryTransaction>(apiRoutes.inventory.transactions, payload),
 };

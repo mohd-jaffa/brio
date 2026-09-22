@@ -1,19 +1,6 @@
-export type ExpenseCategory = 
-  | 'Ingredients' 
-  | 'Packaging' 
-  | 'Delivery' 
-  | 'Equipment' 
-  | 'Utilities' 
-  | 'Marketing' 
-  | 'Rent' 
-  | 'Other';
+import type { ExpenseCategory, PaymentMethod } from "@/constants/statuses";
 
-export type PaymentMethod = 
-  | 'CASH' 
-  | 'UPI' 
-  | 'BANK_TRANSFER' 
-  | 'CARD' 
-  | 'OTHER';
+export type { ExpenseCategory, PaymentMethod };
 
 export interface ExpenseRow {
   id: string;
@@ -32,6 +19,7 @@ export interface Expense {
   id: string;
   category: ExpenseCategory;
   description: string;
+  /** Whole paise — never a float (AGENTS.md §13). */
   amount: number;
   expenseDate: string;
   paymentMethod: PaymentMethod;

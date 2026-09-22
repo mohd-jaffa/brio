@@ -1,19 +1,15 @@
-import { fetcher } from "@/shared/api/client";
-import { type Customer } from "@/features/customers/types";
-import { type CreateCustomerInput, type UpdateCustomerInput } from "@/lib/validation";
+import { apiRoutes } from "@/lib/query/keys";
+import { getJson, patchJson, postJson } from "@/lib/api/client";
+import type { CreateCustomerInput, UpdateCustomerInput } from "@/lib/validation";
 
+import type { Customer } from "./types";
+
+/** What the browser may ask the API about customers. */
 export const CustomersClient = {
-  async createCustomer(payload: CreateCustomerInput): Promise<{ id: string }> {
-    return fetcher<{ id: string }>("/api/customers", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-  },
-
-  async updateCustomer(id: string, payload: UpdateCustomerInput): Promise<void> {
-    return fetcher(`/api/customers/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(payload),
-    });
-  },
+  list: () => getJson<Customer[]>(apiRoutes.customers.list),
+  get: (id: string) => getJson<Customer>(apiRoutes.customers.detail(id)),
+  createCustomer: (payload: CreateCustomerInput) =>
+    postJson<Customer>(apiRoutes.customers.list, payload),
+  updateCustomer: (id: string, payload: UpdateCustomerInput) =>
+    patchJson<Customer>(apiRoutes.customers.detail(id), payload),
 };

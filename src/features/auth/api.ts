@@ -1,15 +1,14 @@
 import { type Session, type SupabaseClient } from "@supabase/supabase-js";
-import { getServerEnv, type ServerEnv } from "@/infrastructure/env/server";
-import { createConfiguredMailService } from "@/infrastructure/mail/nodemailer.provider";
-import { type MailService } from "@/infrastructure/mail/mail.service";
+import { getServerEnv, type ServerEnv } from "@/lib/env/server";
+import { createConfiguredMailService } from "@/lib/mail/nodemailer.provider";
 import {
-  AuthenticationError,
-  AuthorizationError,
-  ConflictError,
-  ExternalServiceError,
-  InternalServerError,
-} from "@/shared/errors/app-error";
-import { logger } from "@/shared/logging/logger";
+  authenticationError,
+  authorizationError,
+  conflictError,
+  externalServiceError,
+  internalError,
+} from "@/lib/errors";
+import { logger } from "@/lib/logger";
 import { generateTemporaryPassword } from "@/features/auth/security";
 import {
   changePasswordSchema,
@@ -45,18 +44,18 @@ function mapDatabaseError(error: unknown) {
       : "";
 
   if (message.includes("phone")) {
-    return new ConflictError("AUTH_PHONE_ALREADY_EXISTS");
+    return conflictError("AUTH_PHONE_ALREADY_EXISTS");
   }
 
   if (message.includes("email")) {
-    return new ConflictError("AUTH_EMAIL_ALREADY_EXISTS");
+    return conflictError("AUTH_EMAIL_ALREADY_EXISTS");
   }
 
   if (message.includes("duplicate") || message.includes("unique")) {
-    return new ConflictError();
+    return conflictError();
   }
 
-  return new ExternalServiceError("EXTERNAL_SERVICE_ERROR", undefined, error);
+  return externalServiceError("EXTERNAL_SERVICE_ERROR", undefined, error);
 }
 
 function mapAuthMutationError(error: unknown) {
@@ -218,7 +217,7 @@ async function createConfirmationUrl(client: SupabaseClient, email: string, env:
   });
 
   if (error || !data.properties?.action_link) {
-    throw new ExternalServiceError("EXTERNAL_SERVICE_ERROR", undefined, error);
+    throw externalServiceError("EXTERNAL_SERVICE_ERROR", undefined, error);
   }
 
   return data.properties.action_link;
@@ -238,7 +237,7 @@ async function rollbackCreatedUser(client: SupabaseClient, userId: string) {
 async function fetchProfile(client: SupabaseClient, userId: string): Promise<AuthProfile> {
   const profile = await getProfileById(client, userId);
   if (!profile) {
-    throw new AuthenticationError("AUTH_SESSION_INVALID");
+    throw authenticationError("AUTH_SESSION_INVALID");
   }
   return mapProfile(profile);
 }
@@ -266,7 +265,7 @@ export async function register(client: SupabaseClient, input: RegisterInput) {
 
   const user = userData.user;
   if (!user) {
-    throw new InternalServerError();
+    throw internalError();
   }
 
   try {
@@ -305,13 +304,13 @@ export async function login(client: SupabaseClient, input: LoginInput): Promise<
   });
 
   if (error || !data.session || !data.user) {
-    throw new AuthenticationError("AUTH_INVALID_CREDENTIALS");
+    throw authenticationError("AUTH_INVALID_CREDENTIALS");
   }
 
   const profile = await fetchProfile(client, data.user.id);
 
   if (!profile.isActive) {
-    throw new AuthorizationError("AUTH_ACCOUNT_INACTIVE");
+    throw authorizationError("AUTH_ACCOUNT_INACTIVE");
   }
 
   return buildAuthenticatedSession(data.session, profile);
@@ -321,7 +320,7 @@ export async function logout(client: SupabaseClient) {
   const { error } = await client.auth.signOut();
 
   if (error) {
-    throw new AuthenticationError("AUTH_SESSION_INVALID");
+    throw authenticationError("AUTH_SESSION_INVALID");
   }
 
   return { signedOut: true };
@@ -333,13 +332,13 @@ export async function getSession(client: SupabaseClient, accessToken?: string): 
     : await client.auth.getUser();
 
   if (error || !data.user) {
-    throw new AuthenticationError("AUTH_SESSION_INVALID");
+    throw authenticationError("AUTH_SESSION_INVALID");
   }
 
   const profile = await fetchProfile(client, data.user.id);
 
   if (!profile.isActive) {
-    throw new AuthorizationError("AUTH_ACCOUNT_INACTIVE");
+    throw authorizationError("AUTH_ACCOUNT_INACTIVE");
   }
 
   const { data: sessionData } = await client.auth.getSession();
@@ -370,7 +369,7 @@ export async function requestPasswordReset(client: SupabaseClient, input: Passwo
   });
 
   if (updateUserError) {
-    throw new ExternalServiceError("EXTERNAL_SERVICE_ERROR", undefined, updateUserError);
+    throw externalServiceError("EXTERNAL_SERVICE_ERROR", undefined, updateUserError);
   }
 
   await requirePasswordChange(client, profile.id);
@@ -393,7 +392,7 @@ export async function changePassword(
   const { data: userData, error: userError } = await client.auth.getUser();
 
   if (userError || !userData.user) {
-    throw new AuthenticationError("AUTH_SESSION_INVALID");
+    throw authenticationError("AUTH_SESSION_INVALID");
   }
 
   const { error: updateError } = await client.auth.updateUser({
@@ -401,7 +400,7 @@ export async function changePassword(
   });
 
   if (updateError) {
-    throw new ExternalServiceError("EXTERNAL_SERVICE_ERROR", undefined, updateError);
+    throw externalServiceError("EXTERNAL_SERVICE_ERROR", undefined, updateError);
   }
 
   await clearPasswordChangeRequirement(adminClient, userData.user.id);

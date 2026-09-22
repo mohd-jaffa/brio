@@ -1,10 +1,21 @@
-import { type SupabaseClient } from "@supabase/supabase-js";
-import { type InventoryBalance, type InventoryTransaction, type InventoryTransactionRow } from "./types";
-import { logInventoryTransactionSchema, type LogInventoryTransactionInput } from "@/lib/validation";
-import { logActionSafe } from "@/features/audit/api";
-import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
-function mapRowToModel(row: InventoryTransactionRow): InventoryTransaction {
+import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
+import { definedOnly } from "@/lib/supabase/columns";
+import { tenantRecords } from "@/lib/supabase/records";
+import type { LogInventoryTransactionPayload } from "@/lib/validation";
+
+import type { InventoryBalance, InventoryTransaction, InventoryTransactionRow } from "./types";
+
+/**
+ * The inventory ledger (AGENTS.md §14). Nothing updates a stock level: a
+ * movement is appended, and a balance is the sum of a product's movements, so
+ * two things happening at once cannot lose one of them.
+ */
+const ledger = (client: SupabaseClient, bakeryId: string) =>
+  tenantRecords<InventoryTransactionRow>(client, "inventory_transactions", bakeryId);
+
+export function toTransaction(row: InventoryTransactionRow): InventoryTransaction {
   return {
     id: row.id,
     productId: row.product_id,
@@ -16,77 +27,43 @@ function mapRowToModel(row: InventoryTransactionRow): InventoryTransaction {
   };
 }
 
-/**
- * Logs an inventory ledger transaction.
- */
 export async function logInventoryTransaction(
-  client: SupabaseClient, 
-  bakeryId: string, 
-  input: LogInventoryTransactionInput
+  client: SupabaseClient,
+  bakeryId: string,
+  input: LogInventoryTransactionPayload,
 ): Promise<InventoryTransaction> {
-  const validated = logInventoryTransactionSchema.parse(input);
-
-  const payload = {
-    product_id: validated.productId,
-    type: validated.type,
-    quantity: validated.quantity,
-    reference_type: validated.referenceType || null,
-    reference_id: validated.referenceId || null,
-    bakery_id: bakeryId,
-  };
-
-  const { data, error } = await client
-    .from("inventory_transactions")
-    .insert(payload)
-    .select()
-    .single();
-
-  if (error) throw fromPostgrestError(error);
-  const row = data as InventoryTransactionRow;
-
-  await logActionSafe(client, {
-    bakery_id: bakeryId,
-    user_id: null,
-    action: "CREATE",
-    entity_type: "inventory_transactions",
-    entity_id: row.id,
-    new_data: row as unknown as Record<string, any>,
-  });
-
-  return mapRowToModel(row);
+  const row = await ledger(client, bakeryId).insert(
+    definedOnly({
+      product_id: input.productId,
+      type: input.type,
+      quantity: input.quantity,
+      reference_type: input.referenceType,
+      reference_id: input.referenceId,
+    }),
+  );
+  return toTransaction(row);
 }
 
-/**
- * Calculates current inventory balances across products.
- */
+/** What is in stock now, per product: the sum of its ledger lines. */
 export async function getInventoryBalances(
-  client: SupabaseClient, 
-  bakeryId: string, 
-  productIds?: string[]
+  client: SupabaseClient,
+  bakeryId: string,
+  productIds?: string[],
 ): Promise<InventoryBalance[]> {
   let query = client
     .from("inventory_transactions")
     .select("product_id, quantity")
     .eq("bakery_id", bakeryId);
 
-  if (productIds && productIds.length > 0) {
-    query = query.in("product_id", productIds);
-  }
+  if (productIds && productIds.length > 0) query = query.in("product_id", productIds);
 
   const { data, error } = await query;
   if (error) throw fromPostgrestError(error);
 
-  const balances: Record<string, number> = {};
-
-  for (const tx of data as { product_id: string; quantity: number }[]) {
-    if (!balances[tx.product_id]) {
-      balances[tx.product_id] = 0;
-    }
-    balances[tx.product_id] += tx.quantity;
+  const balances = new Map<string, number>();
+  for (const line of (data ?? []) as { product_id: string; quantity: number }[]) {
+    balances.set(line.product_id, (balances.get(line.product_id) ?? 0) + line.quantity);
   }
-  
-  return Object.entries(balances).map(([productId, balance]) => ({
-    productId,
-    balance,
-  }));
+
+  return [...balances].map(([productId, balance]) => ({ productId, balance }));
 }

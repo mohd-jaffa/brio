@@ -1,11 +1,12 @@
 import { type SupabaseClient } from "@supabase/supabase-js";
 import { type Payment, type CreatePaymentDTO } from "./types";
-import { type CreatePaymentInput, createPaymentSchema } from "@/lib/validation";
-import { logActionSafe } from "@/features/audit/api";
-import { createJob } from "@/features/workers/api";
+import { type CreatePaymentPayload } from "@/lib/validation";
+import { logActionSafe } from "@/lib/audit/auditLog";
+import { createJob } from "@/lib/jobs/queue";
 import { findOrderById, updateOrder } from "@/features/orders/api";
 import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
-import { AppError } from "@/lib/errors/AppError";
+import { conflictError } from "@/lib/errors";
+import { rupeesToPaise, sumPaise } from "@/lib/money";
 
 export async function createPaymentRecord(client: SupabaseClient, bakeryId: string, data: CreatePaymentDTO): Promise<Payment> {
   const { data: payment, error } = await client
@@ -36,25 +37,23 @@ export async function findPaymentsByOrderId(client: SupabaseClient, bakeryId: st
   return data;
 }
 
-export async function processPayment(client: SupabaseClient, bakeryId: string, payload: CreatePaymentInput): Promise<Payment> {
-  const validated = createPaymentSchema.parse(payload);
-
-  const orderData = await findOrderById(client, bakeryId, validated.order_id);
+export async function processPayment(client: SupabaseClient, bakeryId: string, input: CreatePaymentPayload): Promise<Payment> {
+  const orderData = await findOrderById(client, bakeryId, input.order_id);
   const order = orderData.order;
-  const amountPaise = Math.round(validated.amount * 100);
+  const amountPaise = rupeesToPaise(input.amount);
 
-  const existingPayments = await findPaymentsByOrderId(client, bakeryId, validated.order_id);
-  const totalPaid = existingPayments.reduce((sum, p) => sum + p.amount, 0);
+  const existingPayments = await findPaymentsByOrderId(client, bakeryId, input.order_id);
+  const totalPaid = sumPaise(existingPayments.map((payment) => payment.amount));
 
   if (totalPaid + amountPaise > order.total) {
-    throw new AppError({ code: "CONFLICT", message: "Payment amount exceeds order total", httpStatus: 409 });
+    throw conflictError("CONFLICT", { reason: "payment_exceeds_order_total" });
   }
 
   const payment = await createPaymentRecord(client, bakeryId, {
-    order_id: validated.order_id,
+    order_id: input.order_id,
     amount: amountPaise,
-    payment_method: validated.payment_method,
-    reference: validated.reference,
+    payment_method: input.payment_method,
+    reference: input.reference,
   });
 
   const newTotalPaid = totalPaid + amountPaise;
@@ -70,7 +69,7 @@ export async function processPayment(client: SupabaseClient, bakeryId: string, p
     action: "CREATE",
     entity_type: "payments",
     entity_id: payment.id,
-    new_data: payment as unknown as Record<string, any>,
+    new_data: payment as unknown as Record<string, unknown>,
   });
 
   await createJob(client, {
@@ -79,7 +78,7 @@ export async function processPayment(client: SupabaseClient, bakeryId: string, p
       token: "mock-token", 
       payload: {
         title: "Payment Received",
-        body: `Payment of ${validated.amount} received for order ${order.order_number}`
+        body: `Payment of ${input.amount} received for order ${order.order_number}`
       }
     }
   });

@@ -1,16 +1,12 @@
-import { fetcher } from "@/shared/api/client";
-import { type CreatePaymentPayload } from "@/lib/validation";
-import { type Payment } from "./types";
+import { apiRoutes } from "@/lib/query/keys";
+import { getJson, postJson } from "@/lib/api/client";
+import type { CreatePaymentInput } from "@/lib/validation";
+
+import type { Payment } from "./types";
 
 export const PaymentsClient = {
-  createPayment: async (orderId: string, payload: Omit<CreatePaymentPayload, "order_id">): Promise<Payment> => {
-    return fetcher(`/api/orders/${orderId}/payments`, {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-  },
-
-  getPayments: async (orderId: string): Promise<Payment[]> => {
-    return fetcher(`/api/orders/${orderId}/payments`);
-  },
+  getPayments: (orderId: string) => getJson<Payment[]>(apiRoutes.orders.payments(orderId)),
+  /** The order is named by the path, so it is not part of the body. */
+  createPayment: (orderId: string, payload: Omit<CreatePaymentInput, "order_id">) =>
+    postJson<Payment>(apiRoutes.orders.payments(orderId), payload),
 };

@@ -1,18 +1,17 @@
-import { type SupabaseClient } from "@supabase/supabase-js";
-import { type Product, type ProductRow } from "./types";
-import {
-  createProductSchema,
-  updateProductSchema,
-  type CreateProductInput,
-  type UpdateProductInput,
-} from "@/lib/validation";
-import { logActionSafe } from "@/features/audit/api";
-import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
-import { requireRow } from "@/lib/supabase/writes";
-import { pickColumns } from "@/lib/supabase/columns";
-import { EDITABLE_COLUMNS } from "@/constants/editableColumns";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
-function mapRowToModel(row: ProductRow): Product {
+import { EDITABLE_COLUMNS } from "@/constants/editableColumns";
+import { blankToNull, definedOnly } from "@/lib/supabase/columns";
+import { tenantRecords } from "@/lib/supabase/records";
+import type { CreateProductPayload, UpdateProductPayload } from "@/lib/validation";
+
+import type { Product, ProductRow } from "./types";
+
+/** A bakery's products — the menu orders are built from (AGENTS.md §6). */
+const products = (client: SupabaseClient, bakeryId: string) =>
+  tenantRecords<ProductRow>(client, "products", bakeryId);
+
+export function toProduct(row: ProductRow): Product {
   return {
     id: row.id,
     categoryId: row.category_id ?? undefined,
@@ -27,120 +26,44 @@ function mapRowToModel(row: ProductRow): Product {
   };
 }
 
-/**
- * Reads all products for a tenant, sorted by name.
- */
-export async function getAllProducts(client: SupabaseClient, bakeryId: string): Promise<Product[]> {
-  const { data, error } = await client
-    .from("products")
-    .select("*")
-    .eq("bakery_id", bakeryId)
-    .order("name");
-
-  if (error) throw fromPostgrestError(error);
-  return (data as ProductRow[]).map(mapRowToModel);
-}
-
-/**
- * Reads a single product by id.
- */
-export async function getProductById(client: SupabaseClient, bakeryId: string, id: string): Promise<Product> {
-  const { data, error } = await client
-    .from("products")
-    .select("*")
-    .eq("bakery_id", bakeryId)
-    .eq("id", id)
-    .maybeSingle();
-
-  if (error) throw fromPostgrestError(error);
-  const row = await requireRow<ProductRow>(
-    Promise.resolve({ data, error: null } as any),
-    "RECORD_NOT_FOUND"
-  );
-  return mapRowToModel(row);
-}
-
-/**
- * Creates a new product row.
- */
-export async function createProduct(
-  client: SupabaseClient, 
-  bakeryId: string, 
-  input: CreateProductInput
-): Promise<Product> {
-  const validated = createProductSchema.parse(input);
-
-  const { data, error } = await client
-    .from("products")
-    .insert({ 
-      category_id: validated.categoryId || null,
-      name: validated.name,
-      description: validated.description || null,
-      default_price: validated.defaultPrice,
-      unit: validated.unit,
-      is_active: validated.isActive,
-      bakery_id: bakeryId 
-    })
-    .select()
-    .single();
-
-  if (error) throw fromPostgrestError(error);
-  const row = data as ProductRow;
-
-  await logActionSafe(client, {
-    bakery_id: bakeryId,
-    user_id: null,
-    action: "CREATE",
-    entity_type: "products",
-    entity_id: row.id,
-    new_data: row as unknown as Record<string, any>,
+function toColumns(input: UpdateProductPayload) {
+  return definedOnly({
+    category_id: blankToNull(input.categoryId),
+    name: input.name,
+    description: blankToNull(input.description),
+    default_price: input.defaultPrice,
+    unit: input.unit,
+    is_active: input.isActive,
   });
-
-  return mapRowToModel(row);
 }
 
-/**
- * Updates an existing product using pickColumns and requireRow.
- */
+export async function getAllProducts(client: SupabaseClient, bakeryId: string): Promise<Product[]> {
+  const rows = await products(client, bakeryId).list([{ column: "name" }]);
+  return rows.map(toProduct);
+}
+
+export async function getProductById(
+  client: SupabaseClient,
+  bakeryId: string,
+  id: string,
+): Promise<Product> {
+  return toProduct(await products(client, bakeryId).find(id));
+}
+
+export async function createProduct(
+  client: SupabaseClient,
+  bakeryId: string,
+  input: CreateProductPayload,
+): Promise<Product> {
+  return toProduct(await products(client, bakeryId).insert(toColumns(input)));
+}
+
 export async function updateProduct(
   client: SupabaseClient,
   bakeryId: string,
   id: string,
-  input: UpdateProductInput,
+  input: UpdateProductPayload,
 ): Promise<Product> {
-  const validated = updateProductSchema.parse(input);
-  const previousRow = await getProductById(client, bakeryId, id);
-
-  const rawPatch: Partial<Record<string, any>> = {};
-  if (validated.categoryId !== undefined) rawPatch.category_id = validated.categoryId || null;
-  if (validated.name !== undefined) rawPatch.name = validated.name;
-  if (validated.description !== undefined) rawPatch.description = validated.description || null;
-  if (validated.defaultPrice !== undefined) rawPatch.default_price = validated.defaultPrice;
-  if (validated.unit !== undefined) rawPatch.unit = validated.unit;
-  if (validated.isActive !== undefined) rawPatch.is_active = validated.isActive;
-
-  const patch = pickColumns(rawPatch, EDITABLE_COLUMNS.products);
-
-  const row = await requireRow<ProductRow>(
-    client
-      .from("products")
-      .update(patch)
-      .eq("bakery_id", bakeryId)
-      .eq("id", id)
-      .select()
-      .maybeSingle(),
-    "RECORD_NOT_FOUND"
-  );
-
-  await logActionSafe(client, {
-    bakery_id: bakeryId,
-    user_id: null,
-    action: "UPDATE",
-    entity_type: "products",
-    entity_id: row.id,
-    previous_data: previousRow as unknown as Record<string, any>,
-    new_data: row as unknown as Record<string, any>,
-  });
-
-  return mapRowToModel(row);
+  const row = await products(client, bakeryId).update(id, toColumns(input), EDITABLE_COLUMNS.products);
+  return toProduct(row);
 }

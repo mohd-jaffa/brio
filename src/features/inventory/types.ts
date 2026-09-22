@@ -1,10 +1,6 @@
-export type InventoryTransactionType =
-  | "STOCK_IN"
-  | "ORDER_RESERVATION"
-  | "ORDER_CONSUMPTION"
-  | "ADJUSTMENT"
-  | "WASTAGE"
-  | "RETURN";
+import type { InventoryTransactionType } from "@/constants/statuses";
+
+export type { InventoryTransactionType };
 
 export interface InventoryTransactionRow {
   id: string;
@@ -21,6 +17,7 @@ export interface InventoryTransaction {
   id: string;
   productId: string;
   type: InventoryTransactionType;
+  /** Signed: positive adds to stock, negative takes from it (AGENTS.md §14). */
   quantity: number;
   referenceType?: string;
   referenceId?: string;

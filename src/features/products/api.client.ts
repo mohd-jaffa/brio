@@ -1,18 +1,13 @@
-import { fetcher } from "@/shared/api/client";
-import { type CreateProductInput, type UpdateProductInput } from "@/lib/validation";
+import { apiRoutes } from "@/lib/query/keys";
+import { getJson, patchJson, postJson } from "@/lib/api/client";
+import type { CreateProductInput, UpdateProductInput } from "@/lib/validation";
+
+import type { Product } from "./types";
 
 export const ProductsClient = {
-  async createProduct(payload: CreateProductInput): Promise<{ id: string }> {
-    return fetcher<{ id: string }>("/api/products", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-  },
-
-  async updateProduct(id: string, payload: UpdateProductInput): Promise<void> {
-    return fetcher(`/api/products/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(payload),
-    });
-  },
+  list: () => getJson<Product[]>(apiRoutes.products.list),
+  get: (id: string) => getJson<Product>(apiRoutes.products.detail(id)),
+  createProduct: (payload: CreateProductInput) => postJson<Product>(apiRoutes.products.list, payload),
+  updateProduct: (id: string, payload: UpdateProductInput) =>
+    patchJson<Product>(apiRoutes.products.detail(id), payload),
 };
