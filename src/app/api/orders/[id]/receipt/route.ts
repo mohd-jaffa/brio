@@ -1,17 +1,12 @@
-import { withApiHandler } from "@/shared/api/handler";
-import { createSupabaseServiceRoleClient } from "@/infrastructure/supabase/server";
 import { generateReceiptData } from "@/features/receipts/api";
+import { withBakeryRoute } from "@/features/auth/guard";
+import type { RouteParams } from "@/lib/api/params";
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  return withApiHandler(request, async () => {
-    const bakeryId = "bakery-1"; 
-    const resolvedParams = await params;
-    const client = createSupabaseServiceRoleClient();
-    
-    const data = await generateReceiptData(client, bakeryId, resolvedParams.id);
-    return data;
-  });
+export const runtime = "nodejs";
+
+// Receipts are generated on demand and never stored (AGENTS.md §15).
+export async function GET(request: Request, { params }: RouteParams<"id">) {
+  return withBakeryRoute(request, async ({ supabase, bakeryId }) =>
+    generateReceiptData(supabase, bakeryId, (await params).id),
+  );
 }

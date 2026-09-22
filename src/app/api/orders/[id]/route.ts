@@ -1,32 +1,20 @@
-import { withApiHandler } from "@/shared/api/handler";
-import { extractSession } from "@/shared/api/extract-session";
-import { updateOrderStatus } from "@/features/orders/status";
 import { getOrderById } from "@/features/orders/queries";
-import { createSupabaseAnonClient } from "@/infrastructure/supabase/server";
+import { updateOrderStatus } from "@/features/orders/status";
+import { withBakeryRoute } from "@/features/auth/guard";
+import { readJson } from "@/lib/api/handler";
+import type { RouteParams } from "@/lib/api/params";
+import { updateOrderStatusSchema } from "@/lib/validation";
 
 export const runtime = "nodejs";
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  return withApiHandler(request, async () => {
-    const session = await extractSession(request);
-    const { id } = await params;
-    const supabase = createSupabaseAnonClient(session.accessToken);
-    return getOrderById(supabase, session.profile.bakeryId, id);
-  });
+export async function GET(request: Request, { params }: RouteParams<"id">) {
+  return withBakeryRoute(request, async ({ supabase, bakeryId }) =>
+    getOrderById(supabase, bakeryId, (await params).id),
+  );
 }
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  return withApiHandler(request, async () => {
-    const session = await extractSession(request);
-    const { id } = await params;
-    const body = await request.json();
-    const supabase = createSupabaseAnonClient(session.accessToken);
-    return updateOrderStatus(supabase, session.profile.bakeryId, id, body);
-  });
+export async function PATCH(request: Request, { params }: RouteParams<"id">) {
+  return withBakeryRoute(request, async ({ supabase, bakeryId }) =>
+    updateOrderStatus(supabase, bakeryId, (await params).id, await readJson(request, updateOrderStatusSchema)),
+  );
 }

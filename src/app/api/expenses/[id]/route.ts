@@ -1,44 +1,26 @@
-import { withApiHandler } from "@/shared/api/handler";
-import { extractSession } from "@/shared/api/extract-session";
-import { getExpenseById, updateExpense, deleteExpense } from "@/features/expenses/api";
-import { createSupabaseAnonClient } from "@/infrastructure/supabase/server";
+import { deleteExpense, getExpenseById, updateExpense } from "@/features/expenses/api";
+import { withBakeryRoute } from "@/features/auth/guard";
+import { readJson } from "@/lib/api/handler";
+import type { RouteParams } from "@/lib/api/params";
+import { updateExpenseSchema } from "@/lib/validation";
 
 export const runtime = "nodejs";
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  return withApiHandler(request, async () => {
-    const session = await extractSession(request);
-    const { id } = await params;
-    const supabase = createSupabaseAnonClient(session.accessToken);
-    return getExpenseById(supabase, session.profile.bakeryId, id);
-  });
+export async function GET(request: Request, { params }: RouteParams<"id">) {
+  return withBakeryRoute(request, async ({ supabase, bakeryId }) =>
+    getExpenseById(supabase, bakeryId, (await params).id),
+  );
 }
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  return withApiHandler(request, async () => {
-    const session = await extractSession(request);
-    const { id } = await params;
-    const body = await request.json();
-    const supabase = createSupabaseAnonClient(session.accessToken);
-    return updateExpense(supabase, session.profile.bakeryId, id, body);
-  });
+export async function PATCH(request: Request, { params }: RouteParams<"id">) {
+  return withBakeryRoute(request, async ({ supabase, bakeryId }) =>
+    updateExpense(supabase, bakeryId, (await params).id, await readJson(request, updateExpenseSchema)),
+  );
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  return withApiHandler(request, async () => {
-    const session = await extractSession(request);
-    const { id } = await params;
-    const supabase = createSupabaseAnonClient(session.accessToken);
-    await deleteExpense(supabase, session.profile.bakeryId, id);
-    return { success: true };
+export async function DELETE(request: Request, { params }: RouteParams<"id">) {
+  return withBakeryRoute(request, async ({ supabase, bakeryId }) => {
+    await deleteExpense(supabase, bakeryId, (await params).id);
+    return { deleted: true };
   });
 }
