@@ -1,0 +1,99 @@
+"use client";
+
+import type { ReactElement, ReactNode } from "react";
+
+import { UI_TEXT, type ErrorMessageCode } from "@/constants/messages";
+import { errorMessage } from "@/lib/errors/errorMessage";
+
+import { Button } from "./button";
+import { cn } from "./cn";
+import { ScreenNotice } from "./screen-notice";
+import { SkeletonRows } from "./skeleton";
+
+/**
+ * One list screen, every state of it. Each of the six list screens had written
+ * the same five branches by hand — placeholder rows while it loads, the
+ * failure and a way to try again, the empty state, the rows, and the line for
+ * "nothing matches what you typed" — and they had drifted apart in wording and
+ * in which states they bothered with.
+ *
+ * What a list needs to know about its query is exactly what SWR returns, so a
+ * screen passes its `useSWR` result straight in.
+ */
+export interface ListQuery {
+  isLoading: boolean;
+  error?: unknown;
+  mutate?: () => unknown;
+  isValidating?: boolean;
+}
+
+export function ListScreen<T>({
+  query,
+  loadFailed,
+  data,
+  keyOf,
+  renderItem,
+  empty,
+  noMatches,
+  columns = 1,
+  children,
+}: {
+  query: ListQuery;
+  /** The message shown when loading fails and the failure carries none of its own. */
+  loadFailed: ErrorMessageCode;
+  /** undefined until the first load has an answer; already filtered by the screen. */
+  data: readonly T[] | undefined;
+  keyOf: (item: T) => string;
+  renderItem: (item: T) => ReactElement;
+  /** Shown when the bakery has none of these yet — usually an EmptyState. */
+  empty: ReactNode;
+  /** Shown when there are some, but none match the current search. */
+  noMatches?: string;
+  columns?: 1 | 2;
+  /** Anything below the rows. */
+  children?: ReactNode;
+}) {
+  const failed = query.error != null && data === undefined;
+
+  if (query.isLoading && data === undefined) {
+    return (
+      <section aria-busy="true">
+        <SkeletonRows />
+      </section>
+    );
+  }
+
+  if (failed) {
+    return (
+      <section className="space-y-4">
+        <ScreenNotice>{errorMessage(query.error, loadFailed)}</ScreenNotice>
+        {query.mutate && (
+          <Button
+            label={UI_TEXT.actions.retry}
+            variant="secondary"
+            loading={query.isValidating}
+            onClick={() => query.mutate?.()}
+          />
+        )}
+      </section>
+    );
+  }
+
+  if (!data || data.length === 0) {
+    return <section>{noMatches ? <p className="py-10 text-center text-sm font-medium text-text-muted">{noMatches}</p> : empty}</section>;
+  }
+
+  return (
+    <section>
+      <ul
+        role="list"
+        className={cn("grid gap-3 md:gap-4", columns === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1")}
+      >
+        {data.map((item) => (
+          <li key={keyOf(item)}>{renderItem(item)}</li>
+        ))}
+      </ul>
+      {children}
+    </section>
+  );
+}
