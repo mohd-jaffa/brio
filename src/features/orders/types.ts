@@ -1,8 +1,12 @@
-export type OrderStatus = "PENDING" | "IN_PROGRESS" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
-export type PaymentStatus = "UNPAID" | "PAID" | "PARTIALLY_PAID";
-export type PaymentMethod = "CASH" | "UPI" | "BANK_TRANSFER" | "CARD" | "OTHER";
-export type DeliveryType = "DELIVERY" | "PICKUP";
-export type AdjustmentType = "DISCOUNT" | "CHARGE";
+import type {
+  AdjustmentType,
+  DeliveryType,
+  OrderStatus,
+  PaymentMethod,
+  PaymentStatus,
+} from "@/constants/statuses";
+
+export type { AdjustmentType, DeliveryType, OrderStatus, PaymentMethod, PaymentStatus };
 
 export interface OrderRow {
   id: string;

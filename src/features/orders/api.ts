@@ -27,17 +27,9 @@ export async function findOrderById(client: SupabaseClient, bakeryId: string, id
   items: OrderItemRow[];
   adjustments: OrderAdjustmentRow[];
 }> {
-  const { data: order, error: orderError } = await client
-    .from("orders")
-    .select("*")
-    .eq("bakery_id", bakeryId)
-    .eq("id", id)
-    .maybeSingle();
-
-  if (orderError) throw fromPostgrestError(orderError);
-  const validatedOrder = await requireRow<OrderRow>(
-    Promise.resolve({ data: order, error: null } as any),
-    "RECORD_NOT_FOUND"
+  const order = await requireRow<OrderRow>(
+    client.from("orders").select("*").eq("bakery_id", bakeryId).eq("id", id).maybeSingle(),
+    "RECORD_NOT_FOUND",
   );
 
   const [itemsResponse, adjustmentsResponse] = await Promise.all([
@@ -49,7 +41,7 @@ export async function findOrderById(client: SupabaseClient, bakeryId: string, id
   if (adjustmentsResponse.error) throw fromPostgrestError(adjustmentsResponse.error);
 
   return {
-    order: validatedOrder,
+    order,
     items: itemsResponse.data as OrderItemRow[],
     adjustments: adjustmentsResponse.data as OrderAdjustmentRow[],
   };
@@ -152,4 +144,25 @@ export async function generateOrderNumber(client: SupabaseClient, bakeryId: stri
   const baseNumber = (count ?? 0) + 1;
   const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
   return `#${baseNumber}-${randomSuffix}`;
+}
+
+/** The items and adjustments of several orders at once, for a list view. */
+export async function findOrderLines(
+  client: SupabaseClient,
+  orderIds: readonly string[],
+): Promise<{ items: OrderItemRow[]; adjustments: OrderAdjustmentRow[] }> {
+  if (orderIds.length === 0) return { items: [], adjustments: [] };
+
+  const [itemsResponse, adjustmentsResponse] = await Promise.all([
+    client.from("order_items").select("*").in("order_id", orderIds),
+    client.from("order_adjustments").select("*").in("order_id", orderIds),
+  ]);
+
+  if (itemsResponse.error) throw fromPostgrestError(itemsResponse.error);
+  if (adjustmentsResponse.error) throw fromPostgrestError(adjustmentsResponse.error);
+
+  return {
+    items: (itemsResponse.data ?? []) as OrderItemRow[],
+    adjustments: (adjustmentsResponse.data ?? []) as OrderAdjustmentRow[],
+  };
 }

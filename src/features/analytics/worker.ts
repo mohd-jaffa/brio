@@ -1,6 +1,6 @@
-import { registerJobHandler } from "../workers/api";
-import { type Job } from "../workers/types";
-import { logger } from "@/shared/logging/logger";
+import { registerJobHandler } from "@/lib/jobs/queue";
+import { type Job } from "@/lib/jobs/types";
+import { logger } from "@/lib/logger";
 
 export function registerAnalyticsWorker() {
   registerJobHandler("REFRESH_ANALYTICS", handleRefreshAnalytics);

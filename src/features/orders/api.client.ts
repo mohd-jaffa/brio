@@ -1,23 +1,13 @@
-import { fetcher } from "@/shared/api/client";
-import { type Order } from "@/features/orders/types";
-import { type CreateOrderInput, type UpdateOrderStatusInput } from "@/lib/validation";
+import { apiRoutes } from "@/lib/query/keys";
+import { getJson, patchJson, postJson } from "@/lib/api/client";
+import type { CreateOrderInput, UpdateOrderStatusInput } from "@/lib/validation";
+
+import type { Order } from "./types";
 
 export const OrdersClient = {
-  async getOrder(id: string): Promise<Order> {
-    return fetcher<Order>(`/api/orders/${id}`);
-  },
-
-  async createOrder(payload: CreateOrderInput): Promise<{ id: string }> {
-    return fetcher<{ id: string }>("/api/orders", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-  },
-
-  async updateStatus(id: string, payload: UpdateOrderStatusInput): Promise<void> {
-    return fetcher(`/api/orders/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(payload),
-    });
-  },
+  list: () => getJson<Order[]>(apiRoutes.orders.list),
+  getOrder: (id: string) => getJson<Order>(apiRoutes.orders.detail(id)),
+  createOrder: (payload: CreateOrderInput) => postJson<Order>(apiRoutes.orders.list, payload),
+  updateStatus: (id: string, payload: UpdateOrderStatusInput) =>
+    patchJson<Order>(apiRoutes.orders.detail(id), payload),
 };
