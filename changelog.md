@@ -2,6 +2,68 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2026-09-22
+
+### Changed
+- **Project structure now mirrors the reference architecture.** `src/shared/` and `src/infrastructure/` are gone; everything shared lives in `src/lib`, `src/components`, `src/hooks` or `src/constants`, and `src/lib` no longer imports from `src/features`. Auditing moved to `src/lib/audit` and the job queue to `src/lib/jobs`, since neither is a domain feature.
+- **One error class.** `AppError` carries a catalogue `code`, a `kind` from the plan's taxonomy, and a `traceId`; the eight subclasses became factory functions in `src/lib/errors/kinds.ts`. The kind fixes the HTTP status, so a route can no longer answer with the wrong one.
+- **Tenant-scoped routes.** Every bakery route goes through `withBakeryRoute`, which resolves the session, checks the role and builds a Supabase client carrying the caller's token — so isolation is enforced by RLS rather than by each route remembering to filter.
+- **One record layer.** `tenantRecords` (`src/lib/supabase/records.ts`) does the scoping, the refusal-on-no-row and the audit for every table, collapsing the repeated CRUD plumbing in each feature's `api.ts`.
+- **Validation is parsed once, at the route boundary.** Each schema exports `XxxInput` and `XxxPayload`; feature `api.ts` functions take the parsed payload. The ad-hoc Zod schemas that had grown inside form components moved into `src/lib/validation/schemas/` as `productFormSchema`, `expenseFormSchema`, `stockAdjustmentFormSchema`, `paymentFormSchema` and `orderFormSchema`.
+- **Money is paise everywhere.** `rupeesToPaise` reads the digits typed instead of multiplying by 100, `sumPaise` adds, and `formatPaise` displays. No component divides by 100 any more. An order's totals come from one formula (`src/features/orders/totals.ts`) used by both the checkout preview and the server.
+- **Screens rebuilt on a shared UI kit** (`src/components/ui`): `Button`, `LinkButton`, `IconButton`, `TextField`, `TextAreaField`, `SelectField`, `FieldError`, `FormSheet`, `ListScreen`, `PageHeader`, `SearchInput`, `SegmentedControl`, `StatusBadge`, `StatTile`, `EmptyState`, `ScreenNotice`, `Skeleton`. The four form sheets and six list screens no longer restate overlay chrome, field markup, loading/error/empty branches or button styling.
+- **Data access through shared hooks.** `apiRoutes` names every endpoint once; `useApiQuery` and `useApiMutation` replace the hand-rolled `useSWR` calls and the try/catch/finally around every form submit.
+- Navigation, statuses, payment methods, expense categories and ledger types are now single lists in `src/constants/`, with the labels and badge tones beside them.
+- Unit and component tests now sit beside what they test; `tests/` holds only the database and end-to-end contracts.
+
+### Fixed
+- The orders list and the analytics page read zero items on every order: `getAllOrders` mapped every order with empty item and adjustment arrays. Lines are now loaded for the whole page in two queries.
+- The inventory screen read balances as a `Record<string, number>` while the endpoint answers an array, so every product showed zero stock.
+- `/api/analytics/overview` and `/api/orders/[id]/receipt` served a hard-coded `bakery_id` of `"bakery-1"`, ignoring the caller's tenant. Both now go through `withBakeryRoute`.
+- Order and customer detail pages read `params` as a plain object; under Next 16 it is a promise.
+- The "Collect Payment" button on the order detail page set state that nothing rendered — the payment sheet never opened.
+- Template literals escaped by an earlier codemod (`\${...}`) were printing their own source in order errors and notification bodies.
+- `findOrderById` and the customer/product/expense lookups faked a PostgREST response with `Promise.resolve({...} as any)` to reuse `requireRow`.
+- Customer phone numbers were only stripped of separators, so the same person could be stored twice; they now normalise to E.164 through `src/lib/phone.ts`.
+- `animate-slide-up` was defined inside the More sheet's own `<style>` tag, so any other sheet animated only while that one had been opened. Both animations are design tokens now, and honour `prefers-reduced-motion`.
+- Form sheets focused their close button on open instead of the first field, announced no errors, could not be dismissed with Escape, and let the page behind them scroll.
+
+### Removed
+- One-off codemod scripts left in the repository root: `fix-errors.js`, `fix-imports.js`, `migrate-features.js`, `migrate-validations.js`, `update-constants.js`, `update-constants.ts`.
+- The unused Next.js starter SVGs in `public/`, the empty `src/modules/` tree, and the Supabase CLI's local state (`supabase/.branches`, `supabase/.temp`) from version control.
+- The hard-coded sample orders, low-stock rows and monthly figures on the dashboard, which are now read from the bakery's own data.
+
+### Validation
+- `tsc --noEmit` passes.
+- `eslint` passes with no errors or warnings.
+- `vitest run` passes: 44 files, 341 tests.
+
+### Blockers
+
+- Status: OPEN
+- Area: Settings — bakery logo upload
+- Description: The logo picker validates size (500 KB) and type in the browser, but there is no endpoint to store the file.
+- What was attempted: The control was left in place with client-side validation.
+- Why it is blocked: The storage bucket, the server-side validation and the replace-then-delete flow in AGENTS.md §16 are not built.
+- Required decision/input: Confirm the bucket name and path convention before the upload endpoint is written.
+- Temporary workaround: The control reports that uploads are not available yet rather than reporting a success that did not happen, which is what it did before.
+
+- Status: OPEN
+- Area: Settings — bakery profile
+- Description: The bakery name and business phone fields were pre-filled with hard-coded values and a Save button that did nothing.
+- What was attempted: The fields were removed and the section says the editing is not wired up.
+- Why it is blocked: There is no bakery profile endpoint yet.
+- Required decision/input: Whether the bakery profile belongs in this phase.
+- Temporary workaround: None needed — nothing is claimed that is not true.
+
+- Status: OPEN
+- Area: Audit — who made the change
+- Description: `audit_logs.user_id` is written as `null` for every mutation.
+- What was attempted: The audit call was centralised in `tenantRecords`, so there is now one place to thread the actor through.
+- Why it is blocked: Feature `api.ts` functions take `(client, bakeryId, …)`; passing the caller would change every signature, which is a change worth making deliberately.
+- Required decision/input: Approval to add the acting user to the data-layer signatures.
+- Temporary workaround: `withBakeryRoute` already has the session, so the change is a threading exercise once approved.
+
 ## 2026-09-21
 
 ### Added

@@ -128,25 +128,44 @@ If the answer requires a new feature that is not in the plan, do not implement i
 
 # 5. Architecture Rules
 
-Use a **Feature-Based Architecture**. Code is grouped by domain feature slices rather than technical layers.
+Use a **Feature-Based Architecture**. Code is grouped by domain feature slices rather than technical layers, with everything shared by more than one feature living in `src/lib`, `src/components`, `src/hooks` or `src/constants`.
 
 ```text
 src/
-├── features/
-│   ├── auth/
-│   │   ├── api/
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   ├── types.ts
-│   │   └── index.ts
-│   └── orders/
-├── constants/
-│   └── messages.ts
+├── app/                      # Next.js routes only — thin; no business logic
+│   └── api/                  # REST endpoints (§24)
+├── components/
+│   ├── nav/                  # AppShell, MoreSheet
+│   └── ui/                   # the shared kit: button, text-field, form-sheet,
+│                             # list-screen, page-header, status-badge, …
+├── constants/                # messages, statuses, navigation, editableColumns, …
+├── features/<domain>/
+│   ├── api.ts                # server-side data access (pure functions)
+│   ├── api.client.ts         # the endpoints the browser calls
+│   ├── components/           # PascalCase, this feature's screens and sheets
+│   ├── hooks/                # useXxx.ts
+│   └── types.ts
+├── hooks/                    # shared hooks (useDisclosure, useDebouncedValue)
+└── lib/
+    ├── api/                  # route handler, response envelope, browser client
+    ├── audit/                # the central audit logger (§11)
+    ├── dates/                # the bakery's calendar
+    ├── errors/               # AppError and the kind factories (§10)
+    ├── format/               # currency, date
+    ├── jobs/                 # the PostgreSQL job queue (§17)
+    ├── mail/                 # the mail abstraction
+    ├── query/                # API route keys and the SWR read/write hooks
+    ├── supabase/             # server clients, tenant records, column helpers
+    ├── theme/                # ThemeProvider
+    └── validation/           # Zod schemas (§22)
 ```
 
 - Each feature encapsulates its own UI components, hooks, API fetchers, types, and decomposed domain logic functions.
 - Avoid monolithic `service.ts` or `repository.ts` classes. Use focused, pure functions for domain logic.
-- **Strict Constant Centralization**: No magic strings or inline error messages are allowed anywhere in the app. Use `src/constants/messages.ts` for all UI text, validation feedback, and error codes.
+- **`src/lib` never imports from `src/features`.** Features compose lib, not the other way round.
+- **Strict Constant Centralization**: No magic strings or inline error messages are allowed anywhere in the app. Use `src/constants/messages.ts` for all UI text, validation feedback, and error codes, and `src/constants/statuses.ts` for every status, method and category the database also knows.
+- **Use the shared UI kit.** A screen does not restyle a button, a field, a list state or a sheet. If something is needed twice, it belongs in `src/components/ui`.
+- Component files in `src/components/ui` are kebab-case; a feature's own components are PascalCase.
 
 ---
 
@@ -166,11 +185,13 @@ features/
 ├── receipts/
 ├── notifications/
 ├── analytics/
-├── audit/
+├── dashboard/
 └── menu/
 ```
 
 Do not create additional features unless the plan requires them.
+
+Auditing and the job queue are not domain features — they are infrastructure every feature uses, and live in `src/lib/audit` and `src/lib/jobs`.
 
 ---
 
@@ -238,27 +259,26 @@ Never:
 
 # 10. Error Handling
 
-Use the centralized error architecture.
+There is **one error class**, `AppError` (`src/lib/errors/AppError.ts`). It carries:
+
+- `code` — the catalogue code the API returns, whose wording lives in `src/constants/messages.ts`
+- `kind` — the plan's taxonomy, which fixes the HTTP status
+- `traceId` — the id the logs carry
+
+The taxonomy is expressed as factory functions in `src/lib/errors/kinds.ts`; nothing calls the constructor directly:
 
 ```text
-AppError
-├── ValidationError
-├── AuthenticationError
-├── AuthorizationError
-├── NotFoundError
-├── ConflictError
-├── BusinessRuleError
-├── ExternalServiceError
-└── InternalServerError
+validationError        → 400
+authenticationError    → 401
+authorizationError     → 403
+notFoundError          → 404
+conflictError          → 409
+businessRuleError      → 422
+externalServiceError   → 502
+internalError          → 500
 ```
 
-Use:
-
-```text
-shared/constants/errors.ts
-```
-
-for centralized error codes/messages.
+Use `ERROR_MESSAGES` in `src/constants/messages.ts` for centralized error codes/messages.
 
 Do not invent random error strings inside individual controllers.
 
@@ -273,7 +293,7 @@ Never expose:
 - tokens
 - passwords
 
-to users.
+to users. A driver failure is mapped through `fromSupabaseError`, which never lets the driver's own text reach a screen.
 
 ---
 
@@ -339,7 +359,9 @@ Use idempotency for critical mutations.
 
 Never use floating-point arithmetic for monetary values.
 
-Use integer minor units such as paise.
+Use integer minor units such as paise. `src/lib/money.ts` is the only place that converts: `rupeesToPaise` reads the digits a person typed rather than multiplying by 100, and `sumPaise` adds. Screens show money through `formatPaise` (`src/lib/format/currency.ts`) and never divide by 100 themselves.
+
+An order's totals come from one formula, `src/features/orders/totals.ts`, used by the checkout screen's preview and by the server when it creates the order.
 
 Server-side calculations are authoritative.
 
@@ -570,8 +592,10 @@ Use:
 - React Hook Form
 
 **Strict Architectural Rule**:
-All validation schemas, Zod definitions, and database constraints *MUST* be centralized inside `src/lib/validation/schemas/`. 
-Do not store validation schemas inside `src/features/*`. Use `src/lib/validation/primitives.ts` for reusable schema components (e.g. `amountText`, `optionalEmail`) bound to `src/constants/messages.ts`.
+All validation schemas, Zod definitions, and database constraints *MUST* be centralized inside `src/lib/validation/schemas/`. That includes the **form** schemas a sheet or screen parses with (`productFormSchema`, `expenseFormSchema`, `orderFormSchema`, …) — a component never declares a schema of its own.
+Use `src/lib/validation/primitives.ts` for reusable schema components (e.g. `paiseText`, `optionalEmail`) bound to `src/constants/messages.ts`.
+
+Each schema exports both shapes: `XxxInput` (`z.input`, what a form or client sends) and `XxxPayload` (`z.output`, what the server works with). A payload is parsed **once**, at the route boundary, and the feature's `api.ts` takes the parsed value.
 
 Validate on the client for UX.
 Validate again on the server for correctness and security.
@@ -651,10 +675,13 @@ Keep documentation synchronized with the actual API.
 
 Implement tests according to the plan.
 
+Unit and component tests sit **beside what they test** (`src/lib/money.test.ts`, `src/features/customers/components/CustomerFormSheet.test.tsx`). `tests/` holds only what belongs to no one module: the database contracts (`tests/db`) and the end-to-end journeys (`tests/e2e`).
+
 ## Frontend UI
 - 100% test case coverage is mandatory for all frontend UI components, custom hooks, and client services.
 - Use React Testing Library and Vitest.
 - Mock the API Client Service layer for component tests.
+- Assert through roles and labels, not class names — a test that cannot find a control by its accessible name is telling you the control is not accessible.
 
 ## Unit
 
