@@ -1,47 +1,73 @@
-import type { PostgrestError } from '@supabase/supabase-js';
-import { ERROR_MESSAGES, isErrorMessageCode, type ErrorMessageCode } from '@/constants/messages';
-import { AppError, type ErrorCode } from '@/lib/errors/AppError';
+import type { PostgrestError } from "@supabase/supabase-js";
 
-const POSTGRES_ERRORS: Record<string, { code: ErrorCode; httpStatus: number; message: ErrorMessageCode }> = {
-  '42501': { code: 'FORBIDDEN', httpStatus: 403, message: 'AUTH_ROLE_FORBIDDEN' },
-  '40P01': { code: 'CONFLICT', httpStatus: 409, message: 'CONFLICT' },
-  '40001': { code: 'CONFLICT', httpStatus: 409, message: 'CONFLICT' },
-  '23502': { code: 'VALIDATION_FAILED', httpStatus: 422, message: 'VALIDATION_ERROR' },
-  '22P02': { code: 'VALIDATION_FAILED', httpStatus: 422, message: 'VALIDATION_ERROR' },
-  PGRST116: { code: 'NOT_FOUND', httpStatus: 404, message: 'NOT_FOUND' },
-  PGRST301: { code: 'AUTH_SESSION_EXPIRED', httpStatus: 401, message: 'AUTH_SESSION_INVALID' },
+import { isErrorMessageCode, type ErrorMessageCode } from "@/constants/messages";
+
+import { AppError, type ErrorKind } from "./AppError";
+
+/**
+ * A Postgres/PostgREST failure as one of the app's errors. The driver's own
+ * text names tables, columns and constraints, so it never reaches a user: each
+ * code the app understands maps to a catalogue code, and anything else is
+ * internals (AGENTS.md §10).
+ */
+const POSTGRES_ERRORS: Record<string, { kind: ErrorKind; code: ErrorMessageCode }> = {
+  // A row-level security refusal, or a missing grant.
+  "42501": { kind: "AUTHORIZATION", code: "AUTH_ROLE_FORBIDDEN" },
+  // Two writes to the same rows at once; the loser can simply try again.
+  "40P01": { kind: "CONFLICT", code: "CONFLICT" },
+  "40001": { kind: "CONFLICT", code: "CONFLICT" },
+  // A NOT NULL column left empty, or a value of the wrong shape.
+  "23502": { kind: "VALIDATION", code: "VALIDATION_ERROR" },
+  "22P02": { kind: "VALIDATION", code: "VALIDATION_ERROR" },
+  "22003": { kind: "VALIDATION", code: "VALIDATION_ERROR" },
+  // A duplicate key: the constraint name is in the message, so it is mapped.
+  "23505": { kind: "CONFLICT", code: "CONFLICT" },
+  // Something still referenced, or a reference to something gone.
+  "23503": { kind: "CONFLICT", code: "CONFLICT" },
+  // A CHECK the database enforces.
+  "23514": { kind: "BUSINESS_RULE", code: "VALIDATION_ERROR" },
+  // .single() found no row, or several.
+  PGRST116: { kind: "NOT_FOUND", code: "RECORD_NOT_FOUND" },
+  // The session's token expired between refreshes.
+  PGRST301: { kind: "AUTHENTICATION", code: "AUTH_SESSION_INVALID" },
 };
 
-export function kindOf(code: ErrorMessageCode): { code: ErrorCode; httpStatus: number } {
-  if (code === 'AUTH_SESSION_REQUIRED' || code === 'AUTH_SESSION_INVALID') {
-    return { code: 'UNAUTHENTICATED', httpStatus: 401 };
-  }
-  if (code === 'AUTH_ROLE_FORBIDDEN') return { code: 'FORBIDDEN', httpStatus: 403 };
-  if (code === 'NOT_FOUND' || code === 'RECORD_NOT_FOUND') return { code: 'NOT_FOUND', httpStatus: 404 };
-  if (code === 'CONFLICT' || code === 'AUTH_EMAIL_ALREADY_EXISTS' || code === 'AUTH_PHONE_ALREADY_EXISTS') {
-    return { code: 'CONFLICT', httpStatus: 409 };
-  }
-  return { code: 'VALIDATION_FAILED', httpStatus: 422 };
+/** supabase-js turns a request that never reached the server into a codeless error. */
+function isNetworkFailure(err: PostgrestError): boolean {
+  return (
+    !err.code &&
+    /failed to fetch|network request failed|networkerror|load failed|fetch failed/i.test(err.message ?? "")
+  );
+}
+
+/**
+ * The kind a catalogue code belongs to, by its naming convention. Also used
+ * for a write that changed no row (requireRow).
+ */
+export function kindOf(code: ErrorMessageCode): ErrorKind {
+  if (code === "AUTH_SESSION_REQUIRED" || code === "AUTH_SESSION_INVALID") return "AUTHENTICATION";
+  if (code === "AUTH_ROLE_FORBIDDEN") return "AUTHORIZATION";
+  if (code === "NOT_FOUND" || code === "RECORD_NOT_FOUND") return "NOT_FOUND";
+  if (/^CONFLICT$|_ALREADY_EXISTS$/.test(code)) return "CONFLICT";
+  if (code === "EXTERNAL_SERVICE_ERROR" || code === "MAIL_PROVIDER_NOT_CONFIGURED") return "EXTERNAL_SERVICE";
+  if (code === "INTERNAL_ERROR" || code === "CONFIG_INVALID") return "INTERNAL";
+  return "VALIDATION";
 }
 
 export function fromPostgrestError(err: PostgrestError): AppError {
-  if (err.code === '23505') {
-    return new AppError({
-      code: 'CONFLICT',
-      message: ERROR_MESSAGES.CONFLICT,
-      httpStatus: 409,
-      cause: err,
-    });
-  }
-
-  if (err.code === 'P0001' && isErrorMessageCode(err.hint)) {
-    const code = err.hint;
-    const message = ERROR_MESSAGES[code];
-    return new AppError({ ...kindOf(code), message, cause: err });
+  // A refusal raised through RAISE ... USING HINT carries its catalogue code in
+  // the hint; the app shows its own wording for it.
+  if (err.code === "P0001" && isErrorMessageCode(err.hint)) {
+    return new AppError({ kind: kindOf(err.hint), code: err.hint, cause: err });
   }
 
   const mapped = POSTGRES_ERRORS[err.code];
-  if (mapped) return new AppError({ ...mapped, message: ERROR_MESSAGES[mapped.message], cause: err });
+  if (mapped) return new AppError({ ...mapped, cause: err });
 
-  return new AppError({ code: 'INTERNAL', message: ERROR_MESSAGES.INTERNAL_ERROR, httpStatus: 500, cause: err });
+  if (isNetworkFailure(err)) {
+    return new AppError({ kind: "NETWORK", code: "EXTERNAL_SERVICE_ERROR", cause: err });
+  }
+
+  // Anything else is internals — a missing column, a bad query.
+  return new AppError({ kind: "INTERNAL", code: "INTERNAL_ERROR", cause: err });
 }

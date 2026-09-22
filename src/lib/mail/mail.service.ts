@@ -1,6 +1,6 @@
-import { accountConfirmationTemplate } from "@/infrastructure/mail/templates/account-confirmation";
-import { passwordResetTemplate } from "@/infrastructure/mail/templates/password-reset";
-import { type MailProvider } from "@/infrastructure/mail/mail.provider";
+import { accountConfirmationTemplate } from "@/lib/mail/templates/account-confirmation";
+import { passwordResetTemplate } from "@/lib/mail/templates/password-reset";
+import { type MailProvider } from "@/lib/mail/mail.provider";
 
 interface MailServiceOptions {
   provider: MailProvider;

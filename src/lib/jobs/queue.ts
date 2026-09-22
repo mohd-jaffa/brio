@@ -1,7 +1,7 @@
 import { type SupabaseClient } from "@supabase/supabase-js";
 import { type CreateJobDTO, type Job } from "./types";
-import { InternalServerError } from "@/shared/errors/app-error";
-import { logger } from "@/shared/logging/logger";
+import { internalError } from "@/lib/errors";
+import { logger } from "@/lib/logger";
 
 export async function createJob(client: SupabaseClient, payload: CreateJobDTO): Promise<Job> {
   const { data, error } = await client
@@ -15,7 +15,7 @@ export async function createJob(client: SupabaseClient, payload: CreateJobDTO): 
     .single();
 
   if (error) {
-    throw new InternalServerError("INTERNAL_ERROR", error);
+    throw internalError("INTERNAL_ERROR", error);
   }
 
   return data;
@@ -37,7 +37,7 @@ export async function claimNextJob(client: SupabaseClient, workerId: string): Pr
     .maybeSingle();
 
   if (error) {
-    throw new InternalServerError("INTERNAL_ERROR", error);
+    throw internalError("INTERNAL_ERROR", error);
   }
 
   return data;
@@ -54,7 +54,7 @@ export async function markCompleted(client: SupabaseClient, jobId: string): Prom
     .eq("id", jobId);
 
   if (error) {
-    throw new InternalServerError("INTERNAL_ERROR", error);
+    throw internalError("INTERNAL_ERROR", error);
   }
 }
 
@@ -72,7 +72,7 @@ export async function markFailed(client: SupabaseClient, jobId: string, errorMes
     .eq("id", jobId);
 
   if (error) {
-    throw new InternalServerError("INTERNAL_ERROR", error);
+    throw internalError("INTERNAL_ERROR", error);
   }
 }
 
@@ -94,7 +94,7 @@ export async function processNextJob(client: SupabaseClient, workerId: string = 
   try {
     const handler = handlers.get(job.type);
     if (!handler) {
-      throw new Error(`No handler registered for job type: \${job.type}`);
+      throw new Error(`No handler registered for job type: ${job.type}`);
     }
 
     await handler(job);

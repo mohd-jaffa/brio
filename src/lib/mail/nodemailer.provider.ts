@@ -1,9 +1,8 @@
 import nodemailer, { type Transporter } from "nodemailer";
-import { getServerEnv, type ServerEnv } from "@/infrastructure/env/server";
-import { MailService } from "@/infrastructure/mail/mail.service";
-import { type MailMessage, type MailProvider } from "@/infrastructure/mail/mail.provider";
-import { ERROR_MESSAGES } from "@/constants/messages";
-import { ExternalServiceError } from "@/shared/errors/app-error";
+import { getServerEnv, type ServerEnv } from "@/lib/env/server";
+import { MailService } from "@/lib/mail/mail.service";
+import { type MailMessage, type MailProvider } from "@/lib/mail/mail.provider";
+import { externalServiceError } from "@/lib/errors";
 
 interface NodemailerProviderOptions {
   host: string;
@@ -38,7 +37,7 @@ export class NodemailerProvider implements MailProvider {
 
 export function createConfiguredMailService(env: ServerEnv = getServerEnv()) {
   if (!env.SMTP_HOST || !env.SMTP_FROM) {
-    throw new ExternalServiceError("MAIL_PROVIDER_NOT_CONFIGURED");
+    throw externalServiceError("MAIL_PROVIDER_NOT_CONFIGURED");
   }
 
   return new MailService({

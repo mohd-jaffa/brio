@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { getServerEnv } from "@/infrastructure/env/server";
+import { getServerEnv } from "@/lib/env/server";
 
 const sharedAuthOptions = {
   persistSession: false,

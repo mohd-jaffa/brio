@@ -1,7 +1,7 @@
 import { type SupabaseClient } from "@supabase/supabase-js";
 import { type CreateAuditLogDTO, type AuditLog } from "./types";
-import { InternalServerError } from "@/shared/errors/app-error";
-import { logger } from "@/shared/logging/logger";
+import { internalError } from "@/lib/errors";
+import { logger } from "@/lib/logger";
 
 export async function createAuditLog(
   client: SupabaseClient, 
@@ -14,7 +14,7 @@ export async function createAuditLog(
     .single();
 
   if (error) {
-    throw new InternalServerError("INTERNAL_ERROR", error);
+    throw internalError("INTERNAL_ERROR", error);
   }
 
   return data;
@@ -35,7 +35,7 @@ export async function getAuditLogsByEntity(
     .order("created_at", { ascending: false });
 
   if (error) {
-    throw new InternalServerError("INTERNAL_ERROR", error);
+    throw internalError("INTERNAL_ERROR", error);
   }
 
   return data;
