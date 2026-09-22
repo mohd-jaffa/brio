@@ -424,3 +424,14 @@ answer 401 against a live API.
 
 ### Blockers
 - None.
+
+## 2026-09-22 — Plan Document Update: Deferred Backlog (§133.13)
+
+### Changed
+- **Plan Document (`home-bakery-management-platform-plan.md`)**: Recorded Section 133.13 (*Impeccable UI/UX, Mobile Containers & Production Hardening Backlog*) for tracking PWA Manifest/Service Worker, Capacitor Android packaging, OpenAPI/Swagger docs, Playwright E2E journey tests, GitHub Actions CI/CD pipeline, PDF Export/WhatsApp receipt sharing, and BugSnag integration.
+
+### Validation
+- Plan file updated and verified.
+
+### Blockers
+- None.

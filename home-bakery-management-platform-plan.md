@@ -6675,3 +6675,20 @@ The queue table and the claim/complete/fail helpers exist. Nothing runs them.
 ```
 
 Items 1–4 are correctness. Everything below them is feature completion, and none of it should start before an order can be created safely by a signed-in baker.
+
+---
+
+## 133.13 Impeccable UI/UX, Mobile Containers & Production Hardening Backlog (Deferred Implementation)
+
+The following UI/UX, native platform integration, and production hardening items are logged for subsequent phase execution:
+
+| # | Feature / Enhancement | Target Architecture | Implementation Details |
+|---|-----------------------|----------------------|------------------------|
+| **L1** | **PWA Manifest & Service Worker** | Web / PWA | Create `public/manifest.json`, PWA icons (192x192, 512x512), service worker caching strategy for offline access, and PWA install prompt. |
+| **L2** | **Capacitor Android Native Container** | Android App | Configure `@capacitor/core`, `@capacitor/android`, native capability abstractions (Push, Filesystem, Haptics), and Android build scripts. |
+| **L3** | **OpenAPI / Swagger Documentation** | API Spec | Export OpenAPI 3.0 contract (`src/docs/openapi.json`) and developer-protected Swagger UI endpoint (`/api/docs`). |
+| **L4** | **Playwright E2E Test Suite** | Testing | Implement browser-based E2E journey tests (`Login -> Customer -> Product -> Stock -> Order -> Bill -> Share`) verifying tenant isolation. |
+| **L5** | **GitHub Actions CI/CD & SonarQube** | DevOps | Create `.github/workflows/ci.yml` pipeline enforcing typecheck, vitest unit/component tests, Playwright E2E, Next build, and SonarQube quality gate. |
+| **L6** | **PDF Export & WhatsApp Receipt Share** | Receipts | Add on-demand client-side PDF generation (`jspdf`/`html2canvas`) and WhatsApp direct share URL (`wa.me`) while preserving the zero-storage policy (§132). |
+| **L7** | **BugSnag Production Monitoring** | Observability | Integrate BugSnag runtime exception monitoring on client and server boundaries. |
+
