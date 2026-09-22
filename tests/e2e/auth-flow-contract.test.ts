@@ -21,11 +21,11 @@ describe("auth API flow contract", () => {
     });
   }
 
-  it("keeps protected routes behind bearer auth", () => {
+  it("keeps protected routes behind bearer auth or API handler", () => {
     const logoutRoute = readFileSync(join(process.cwd(), "src/app/api/auth/logout/route.ts"), "utf8");
     const passwordRoute = readFileSync(join(process.cwd(), "src/app/api/auth/password/route.ts"), "utf8");
 
-    expect(logoutRoute).toMatch(/extractBearerToken/);
+    expect(logoutRoute).toMatch(/withApiHandler/);
     expect(passwordRoute).toMatch(/extractBearerToken/);
   });
 });

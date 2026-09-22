@@ -3,7 +3,7 @@ import path from 'node:path';
 
 export default defineConfig({
   test: {
-    environment: 'node',
+    environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     include: ['tests/**/*.test.{ts,tsx}'],
     alias: {
@@ -14,5 +14,11 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
       exclude: ['node_modules/', 'tests/'],
     },
+    environmentMatchGlobs: [
+      // Backend tests use node environment
+      ['tests/backend/**', 'node'],
+      ['tests/db/**', 'node'],
+      ['tests/e2e/**', 'node'],
+    ],
   },
 });
