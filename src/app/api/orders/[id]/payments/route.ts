@@ -1,25 +1,29 @@
 import { withApiHandler, readJson } from "@/shared/api/handler";
-import { PaymentsService } from "@/features/payments/service";
+import { processPayment, findPaymentsByOrderId } from "@/features/payments/api";
 import { requireAuth } from "@/features/auth/guard";
 import { createSupabaseServiceRoleClient } from "@/infrastructure/supabase/server";
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   return withApiHandler(request, async () => {
     const session = await requireAuth(request);
+    const { id } = await params;
     const client = createSupabaseServiceRoleClient();
-    const service = new PaymentsService(client);
     const body = await readJson(request);
-    
-    return service.createPayment(session.profile.bakeryId, { ...body, order_id: params.id });
+    return processPayment(client, session.profile.bakeryId, { ...body, order_id: id });
   }, { successStatus: 201 });
 }
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   return withApiHandler(request, async () => {
     const session = await requireAuth(request);
+    const { id } = await params;
     const client = createSupabaseServiceRoleClient();
-    const service = new PaymentsService(client);
-    
-    return service.getPaymentsForOrder(session.profile.bakeryId, params.id);
+    return findPaymentsByOrderId(client, session.profile.bakeryId, id);
   });
 }

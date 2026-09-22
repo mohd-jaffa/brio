@@ -1,8 +1,9 @@
 import { extractBearerToken } from "@/features/auth/guard";
-import { createAuthService } from "@/features/auth/service";
+import { getSession } from "@/features/auth/api";
+import { createSupabaseServiceRoleClient } from "@/infrastructure/supabase/server";
 
 export async function extractSession(request: Request) {
   const token = extractBearerToken(request.headers);
-  const authService = createAuthService();
-  return await authService.getSession(token);
+  const client = createSupabaseServiceRoleClient();
+  return getSession(client, token);
 }

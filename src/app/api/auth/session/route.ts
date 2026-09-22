@@ -1,12 +1,14 @@
 import { withApiHandler } from "@/shared/api/handler";
-import { createAuthService } from "@/features/auth/service";
+import { getSession } from "@/features/auth/api";
 import { extractBearerToken } from "@/features/auth/guard";
+import { createSupabaseServiceRoleClient } from "@/infrastructure/supabase/server";
 
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
   return withApiHandler(request, async () => {
     const accessToken = extractBearerToken(request.headers);
-    return createAuthService().getSession(accessToken);
+    const client = createSupabaseServiceRoleClient();
+    return getSession(client, accessToken);
   });
 }

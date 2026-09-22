@@ -324,3 +324,19 @@ All notable changes to this project will be documented in this file.
 
 ### Blockers
 - None. Phase 1 is fully completed and integrated.
+
+## 2026-09-22 — Architecture Compliance Refactor & 100% Frontend Test Coverage
+
+### Changed
+- **Architecture Compliance**: Refactored monolithic repository and service classes into focused, pure domain functions in `src/features/*/api.ts`, adhering strictly to `AGENTS.md` Rule 5.
+- **Centralized Validation & Messages**: Enforced validation schemas and string constants via `src/lib/validation` and `src/constants/messages.ts`.
+
+### Added
+- **Frontend Test Suite**: Added 14 unit test files in `tests/frontend/` covering client service modules (`customers`, `products`, `expenses`, `inventory`, `orders`, `payments`, `fetcher`) and React UI components (`CustomerFormSheet`, `ProductFormSheet`, `ExpenseFormSheet`, `InventoryAdjustmentSheet`, `PaymentCollectionForm`, `ReceiptPrintView`, `OrderDetailsPage`).
+
+### Validation
+- All 18 test files (102 test cases) passed cleanly with Vitest (`npm test`).
+- Typecheck passed (`npm run typecheck`).
+
+### Blockers
+- None.

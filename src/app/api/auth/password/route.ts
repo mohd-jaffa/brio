@@ -1,7 +1,8 @@
 import { withApiHandler, readJson } from "@/shared/api/handler";
-import { createAuthService } from "@/features/auth/service";
+import { changePassword } from "@/features/auth/api";
 import { extractBearerToken } from "@/features/auth/guard";
 import { changePasswordSchema } from "@/lib/validation";
+import { createSupabaseAnonClient, createSupabaseServiceRoleClient } from "@/infrastructure/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -10,7 +11,8 @@ export async function PATCH(request: Request) {
     const accessToken = extractBearerToken(request.headers);
     const body = await readJson(request);
     const input = changePasswordSchema.parse(body);
-
-    return createAuthService().changePassword(accessToken, input);
+    const userClient = createSupabaseAnonClient(accessToken);
+    const adminClient = createSupabaseServiceRoleClient();
+    return changePassword(userClient, adminClient, input);
   });
 }

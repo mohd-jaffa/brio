@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
 import { withApiHandler } from "@/shared/api/handler";
 import { extractSession } from "@/shared/api/extract-session";
-import { OrdersService } from "@/features/orders/service";
+import { updateOrderStatus } from "@/features/orders/status";
+import { getOrderById } from "@/features/orders/queries";
 import { createSupabaseAnonClient } from "@/infrastructure/supabase/server";
 
 export const runtime = "nodejs";
@@ -13,12 +13,8 @@ export async function GET(
   return withApiHandler(request, async () => {
     const session = await extractSession(request);
     const { id } = await params;
-    
     const supabase = createSupabaseAnonClient(session.accessToken);
-    const service = new OrdersService(supabase);
-    
-    const order = await service.getOrderById(session.profile.bakeryId, id);
-    return order;
+    return getOrderById(supabase, session.profile.bakeryId, id);
   });
 }
 
@@ -30,11 +26,7 @@ export async function PATCH(
     const session = await extractSession(request);
     const { id } = await params;
     const body = await request.json();
-    
     const supabase = createSupabaseAnonClient(session.accessToken);
-    const service = new OrdersService(supabase);
-    
-    const order = await service.updateOrderStatus(session.profile.bakeryId, id, body);
-    return order;
+    return updateOrderStatus(supabase, session.profile.bakeryId, id, body);
   });
 }

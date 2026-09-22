@@ -1,6 +1,7 @@
 import { withApiHandler, readJson } from "@/shared/api/handler";
-import { createAuthService } from "@/features/auth/service";
+import { login } from "@/features/auth/api";
 import { loginSchema } from "@/lib/validation";
+import { createSupabaseServiceRoleClient } from "@/infrastructure/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -8,7 +9,7 @@ export async function POST(request: Request) {
   return withApiHandler(request, async () => {
     const body = await readJson(request);
     const input = loginSchema.parse(body);
-
-    return createAuthService().login(input);
+    const client = createSupabaseServiceRoleClient();
+    return login(client, input);
   });
 }

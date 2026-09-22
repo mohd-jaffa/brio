@@ -1,6 +1,6 @@
-import { ERROR_MESSAGES } from "@/constants/messages";
 import { AuthenticationError, AuthorizationError } from "@/shared/errors/app-error";
-import { createAuthService } from "@/features/auth/service";
+import { getSession } from "@/features/auth/api";
+import { createSupabaseServiceRoleClient } from "@/infrastructure/supabase/server";
 import { USER_ROLES, type AuthProfile, type UserRole } from "@/features/auth/types";
 
 export function extractBearerToken(headers: Headers) {
@@ -30,7 +30,8 @@ export async function requireAuth(
   allowedRoles: readonly UserRole[] = USER_ROLES,
 ) {
   const token = extractBearerToken(request.headers);
-  const session = await createAuthService().getSession(token);
+  const client = createSupabaseServiceRoleClient();
+  const session = await getSession(client, token);
 
   assertRole(session.profile, allowedRoles);
 

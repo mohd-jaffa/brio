@@ -1,6 +1,6 @@
 import { withApiHandler } from "@/shared/api/handler";
 import { createSupabaseServiceRoleClient } from "@/infrastructure/supabase/server";
-import { ReceiptsService } from "@/features/receipts/service";
+import { generateReceiptData } from "@/features/receipts/api";
 
 export async function GET(
   request: Request,
@@ -10,8 +10,8 @@ export async function GET(
     const bakeryId = "bakery-1"; 
     const resolvedParams = await params;
     const client = createSupabaseServiceRoleClient();
-    const service = new ReceiptsService(client);
-    const data = await service.generateReceiptData(bakeryId, resolvedParams.id);
+    
+    const data = await generateReceiptData(client, bakeryId, resolvedParams.id);
     return data;
   });
 }
