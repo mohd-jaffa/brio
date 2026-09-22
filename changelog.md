@@ -408,3 +408,19 @@ answer 401 against a live API.
 
 ### Blockers
 - None.
+
+## 2026-09-22 — Impeccable Authentication Page Build
+
+### Added
+- **Authentication Pages (`/login`, `/register`)**: Built mobile-first, responsive, dual-mode (Clean Bakery & Peach Bakery) authentication page (`src/app/login/page.tsx`, `src/app/register/page.tsx`).
+- **Form Controls & Validation**: Integrated React Hook Form + Zod (`loginSchema`, `registerSchema`, `passwordResetRequestSchema`) with live error messaging, phone normalization (`+91`), and password visibility toggling.
+- **Client Service**: Added `AuthClient` (`src/features/auth/api.client.ts`) for browser-side authentication calls.
+- **Unit Tests**: Added `tests/frontend/auth.client.test.ts` and `tests/frontend/pages/login.test.tsx` verifying tab switching, modal dialogs, and submission flows.
+
+### Validation
+- All 46 test files (349 test cases) passed 100% cleanly.
+- `npm run typecheck` passed with 0 errors.
+- Code committed and pushed to `https://github.com/mohd-jaffa/ovenly.git`.
+
+### Blockers
+- None.
