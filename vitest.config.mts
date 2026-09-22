@@ -14,11 +14,5 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
       exclude: ['node_modules/', 'tests/'],
     },
-    environmentMatchGlobs: [
-      // Backend tests use node environment
-      ['tests/backend/**', 'node'],
-      ['tests/db/**', 'node'],
-      ['tests/e2e/**', 'node'],
-    ],
   },
 });
