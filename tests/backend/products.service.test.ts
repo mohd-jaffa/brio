@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { ProductsService } from "../../src/modules/products/products.service";
+import { ProductsService } from "../../src/features/products/service";
 
 describe("ProductsService", () => {
   it("validates that defaultPrice is a non-negative integer", async () => {

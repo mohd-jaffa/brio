@@ -6,8 +6,8 @@ import Link from "next/link";
 import { AppShell } from "@/shared/components/AppShell";
 import { Search, Plus, ShoppingBag, Clock } from "lucide-react";
 import { fetcher } from "@/shared/api/client";
-import { type Order } from "@/modules/orders/orders.types";
-import { type Customer } from "@/modules/customers/customers.types";
+import { type Order } from "@/features/orders/types";
+import { type Customer } from "@/features/customers/types";
 
 export default function OrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");

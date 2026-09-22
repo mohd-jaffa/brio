@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { OrdersService } from "../../src/modules/orders/orders.service";
+import { OrdersService } from "../../src/features/orders/service";
 
 describe("OrdersService", () => {
   it("calculates totals server-side based on product prices", async () => {

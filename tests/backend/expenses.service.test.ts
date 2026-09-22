@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi } from "vitest";
-import { ExpensesService } from "../../src/modules/expenses/expenses.service";
+import { ExpensesService } from "../../src/features/expenses/service";
 import { ZodError } from "zod";
 
 describe("ExpensesService", () => {

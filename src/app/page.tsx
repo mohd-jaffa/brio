@@ -16,7 +16,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import { fetcher } from "@/shared/api/client";
-import { type Order } from "@/modules/orders/orders.types";
+import { type Order } from "@/features/orders/types";
 
 /* ============================================================
    Dashboard — Plan Section 84: Recommended Dashboard Priority

@@ -6,8 +6,8 @@ import Link from "next/link";
 import { AppShell } from "@/shared/components/AppShell";
 import { Search, Plus, Users, ChevronRight } from "lucide-react";
 import { fetcher } from "@/shared/api/client";
-import { type Customer } from "@/modules/customers/customers.types";
-import { CustomerFormSheet } from "./_components/CustomerFormSheet";
+import { type Customer } from "@/features/customers/types";
+import { CustomerFormSheet } from "@/features/customers/components/CustomerFormSheet";
 
 export default function CustomersPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);

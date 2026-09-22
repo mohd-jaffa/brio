@@ -5,8 +5,8 @@ import useSWR from "swr";
 import { AppShell } from "@/shared/components/AppShell";
 import { Search, Package, AlertTriangle, ArrowRightLeft } from "lucide-react";
 import { fetcher } from "@/shared/api/client";
-import { type Product } from "@/modules/products/products.types";
-import { InventoryAdjustmentSheet } from "./_components/InventoryAdjustmentSheet";
+import { type Product } from "@/features/products/types";
+import { InventoryAdjustmentSheet } from "@/features/inventory/components/InventoryAdjustmentSheet";
 
 export default function InventoryPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);

@@ -1,5 +1,5 @@
-import { extractBearerToken } from "@/modules/auth/auth.guard";
-import { createAuthService } from "@/modules/auth/auth.service";
+import { extractBearerToken } from "@/features/auth/guard";
+import { createAuthService } from "@/features/auth/service";
 
 export async function extractSession(request: Request) {
   const token = extractBearerToken(request.headers);

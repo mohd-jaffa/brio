@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ERROR_CODES } from "@/shared/constants/errors";
+import { ERROR_MESSAGES } from "@/constants/messages";
 import { InternalServerError } from "@/shared/errors/app-error";
 
 const optionalString = z.preprocess(
@@ -44,7 +44,7 @@ export function getServerEnv(source: NodeJS.ProcessEnv = process.env): ServerEnv
 
   if (!parsed.success) {
     throw new InternalServerError(
-      ERROR_CODES.CONFIG_INVALID,
+      "CONFIG_INVALID",
       parsed.error.issues.map((issue) => ({
         path: issue.path.join("."),
         message: issue.message,

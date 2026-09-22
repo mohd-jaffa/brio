@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { type ErrorCode, getErrorMessage } from "@/shared/constants/errors";
+import { type ErrorMessageCode, getErrorMessage } from "@/constants/messages";
 import { type AppError } from "@/shared/errors/app-error";
 
 export interface ApiErrorPayload {
   success: false;
   error: {
-    code: ErrorCode;
+    code: ErrorMessageCode;
     message: string;
     requestId: string;
     details?: unknown;

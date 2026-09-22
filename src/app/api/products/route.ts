@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { withApiHandler } from "@/shared/api/handler";
 import { extractSession } from "@/shared/api/extract-session";
-import { ProductsService } from "@/modules/products/products.service";
+import { ProductsService } from "@/features/products/service";
 import { createSupabaseAnonClient } from "@/infrastructure/supabase/server";
 
 export const runtime = "nodejs";

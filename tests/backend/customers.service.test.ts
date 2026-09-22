@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { CustomersService } from "../../src/modules/customers/customers.service";
+import { CustomersService } from "../../src/features/customers/service";
 
 describe("CustomersService", () => {
   it("normalizes phone numbers before creating customer", async () => {

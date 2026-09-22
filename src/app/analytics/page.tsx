@@ -5,8 +5,8 @@ import useSWR from "swr";
 import { AppShell } from "@/shared/components/AppShell";
 import { BarChart3, CircleDollarSign, ArrowDownRight, ArrowUpRight, Award } from "lucide-react";
 import { fetcher } from "@/shared/api/client";
-import { type Order } from "@/modules/orders/orders.types";
-import { type Expense } from "@/modules/expenses/expenses.types";
+import { type Order } from "@/features/orders/types";
+import { type Expense } from "@/features/expenses/types";
 
 export default function AnalyticsPage() {
   const { data: orders, isLoading: isLoadingOrders } = useSWR<Order[]>("/api/orders", fetcher);

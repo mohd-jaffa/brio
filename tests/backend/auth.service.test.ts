@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { AuthService } from "../../src/modules/auth/auth.service";
+import { AuthService } from "../../src/features/auth/service";
 import { ConflictError } from "../../src/shared/errors/app-error";
 
 describe("AuthService", () => {

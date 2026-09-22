@@ -1,7 +1,7 @@
-import { ERROR_CODES, type ErrorCode, getErrorMessage } from "@/shared/constants/errors";
+import { ERROR_MESSAGES, type ErrorMessageCode, getErrorMessage } from "@/constants/messages";
 
 interface AppErrorOptions {
-  code: ErrorCode;
+  code: ErrorMessageCode;
   message?: string;
   statusCode: number;
   details?: unknown;
@@ -9,7 +9,7 @@ interface AppErrorOptions {
 }
 
 export class AppError extends Error {
-  readonly code: ErrorCode;
+  readonly code: ErrorMessageCode;
   readonly statusCode: number;
   readonly details?: unknown;
   readonly cause?: unknown;
@@ -26,49 +26,49 @@ export class AppError extends Error {
 }
 
 export class ValidationError extends AppError {
-  constructor(code: ErrorCode = ERROR_CODES.VALIDATION_ERROR, details?: unknown) {
+  constructor(code: ErrorMessageCode = "VALIDATION_ERROR", details?: unknown) {
     super({ code, statusCode: 400, details });
   }
 }
 
 export class AuthenticationError extends AppError {
-  constructor(code: ErrorCode = ERROR_CODES.AUTH_SESSION_INVALID, details?: unknown) {
+  constructor(code: ErrorMessageCode = "AUTH_SESSION_INVALID", details?: unknown) {
     super({ code, statusCode: 401, details });
   }
 }
 
 export class AuthorizationError extends AppError {
-  constructor(code: ErrorCode = ERROR_CODES.AUTH_ROLE_FORBIDDEN, details?: unknown) {
+  constructor(code: ErrorMessageCode = "AUTH_ROLE_FORBIDDEN", details?: unknown) {
     super({ code, statusCode: 403, details });
   }
 }
 
 export class NotFoundError extends AppError {
-  constructor(code: ErrorCode = ERROR_CODES.NOT_FOUND, details?: unknown) {
+  constructor(code: ErrorMessageCode = "NOT_FOUND", details?: unknown) {
     super({ code, statusCode: 404, details });
   }
 }
 
 export class ConflictError extends AppError {
-  constructor(code: ErrorCode = ERROR_CODES.CONFLICT, details?: unknown) {
+  constructor(code: ErrorMessageCode = "CONFLICT", details?: unknown) {
     super({ code, statusCode: 409, details });
   }
 }
 
 export class BusinessRuleError extends AppError {
-  constructor(code: ErrorCode, details?: unknown) {
+  constructor(code: ErrorMessageCode, details?: unknown) {
     super({ code, statusCode: 422, details });
   }
 }
 
 export class ExternalServiceError extends AppError {
-  constructor(code: ErrorCode = ERROR_CODES.EXTERNAL_SERVICE_ERROR, details?: unknown, cause?: unknown) {
+  constructor(code: ErrorMessageCode = "EXTERNAL_SERVICE_ERROR", details?: unknown, cause?: unknown) {
     super({ code, statusCode: 502, details, cause });
   }
 }
 
 export class InternalServerError extends AppError {
-  constructor(code: ErrorCode = ERROR_CODES.INTERNAL_ERROR, details?: unknown, cause?: unknown) {
+  constructor(code: ErrorMessageCode = "INTERNAL_ERROR", details?: unknown, cause?: unknown) {
     super({ code, statusCode: 500, details, cause });
   }
 }
@@ -82,5 +82,5 @@ export function toAppError(error: unknown): AppError {
     return error;
   }
 
-  return new InternalServerError(ERROR_CODES.INTERNAL_ERROR, undefined, error);
+  return new InternalServerError("INTERNAL_ERROR", undefined, error);
 }

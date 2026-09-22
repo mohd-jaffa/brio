@@ -1,6 +1,6 @@
 import { withApiHandler } from "@/shared/api/handler";
-import { createAuthService } from "@/modules/auth/auth.service";
-import { extractBearerToken } from "@/modules/auth/auth.guard";
+import { createAuthService } from "@/features/auth/service";
+import { extractBearerToken } from "@/features/auth/guard";
 
 export const runtime = "nodejs";
 

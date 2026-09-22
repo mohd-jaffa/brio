@@ -14,9 +14,12 @@ import {
   Printer
 } from "lucide-react";
 import { fetcher } from "@/shared/api/client";
-import { type Order } from "@/modules/orders/orders.types";
-import { type Customer } from "@/modules/customers/customers.types";
-import { ReceiptPrintView } from "./_components/ReceiptPrintView";
+import { type Order } from "@/features/orders/types";
+import { type Customer } from "@/features/customers/types";
+import { ReceiptPrintView } from "@/features/orders/components/ReceiptPrintView";
+import { PaymentCollectionForm } from "@/features/payments/components/PaymentCollectionForm";
+import { OrdersClient } from "@/features/orders/api.client";
+import { getErrorMessage, ERROR_MESSAGES } from "@/constants/messages";
 
 export default function OrderDetailsPage({ params }: { params: { id: string } }) {
   // We handle params asynchronously/synchronously depending on Next15, but typical React hook:
@@ -27,24 +30,23 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
 
   const { data: order, error: orderError, mutate: mutateOrder } = useSWR<Order>(`/api/orders/${id}`, fetcher);
   const { data: customer } = useSWR<Customer>(order ? `/api/customers/${order.customerId}` : null, fetcher);
+  const { data: payments, mutate: mutatePayments } = useSWR<any[]>(`/api/orders/${id}/payments`, fetcher);
 
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isUpdatingPayment, setIsUpdatingPayment] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const formatCurrency = (paise: number) => `₹${(paise / 100).toLocaleString('en-IN')}`;
 
   const handleUpdateStatus = async (newStatus: string) => {
     setIsUpdatingStatus(true);
     try {
-      await fetcher(`/api/orders/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ status: newStatus }),
-      });
+      await OrdersClient.updateStatus(id, { status: newStatus as any });
       mutateOrder();
     } catch (err) {
       console.error(err);
-      alert("Failed to update status");
+      alert(getErrorMessage(ERROR_MESSAGES.EXTERNAL_SERVICE_ERROR));
     } finally {
       setIsUpdatingStatus(false);
     }
@@ -53,14 +55,11 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
   const handleUpdatePayment = async (newPaymentStatus: string) => {
     setIsUpdatingPayment(true);
     try {
-      await fetcher(`/api/orders/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ paymentStatus: newPaymentStatus }),
-      });
+      await OrdersClient.updateStatus(id, { paymentStatus: newPaymentStatus as any });
       mutateOrder();
     } catch (err) {
       console.error(err);
-      alert("Failed to update payment status");
+      alert(getErrorMessage(ERROR_MESSAGES.EXTERNAL_SERVICE_ERROR));
     } finally {
       setIsUpdatingPayment(false);
     }
@@ -169,19 +168,32 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
             </div>
 
             <div className="p-5 rounded-2xl bg-surface border border-border shadow-card flex flex-col justify-between">
-              <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider flex items-center gap-2 mb-3">
-                <CreditCard size={14} className="text-success" /> Payment Status
-              </h3>
-              <select
-                value={order.payment.status}
-                onChange={(e) => handleUpdatePayment(e.target.value)}
-                disabled={isUpdatingPayment}
-                className="w-full px-4 py-2.5 rounded-lg bg-background border border-border focus:border-primary outline-none text-sm font-bold"
-              >
-                <option value="UNPAID">Unpaid</option>
-                <option value="PARTIALLY_PAID">Partially Paid</option>
-                <option value="PAID">Paid</option>
-              </select>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider flex items-center gap-2">
+                  <CreditCard size={14} className="text-success" /> Payment Status
+                </h3>
+              </div>
+              <div className="space-y-3">
+                <select
+                  value={order.payment.status}
+                  onChange={(e) => handleUpdatePayment(e.target.value)}
+                  disabled={isUpdatingPayment}
+                  className="w-full px-4 py-2.5 rounded-lg bg-background border border-border focus:border-primary outline-none text-sm font-bold"
+                >
+                  <option value="UNPAID">Unpaid</option>
+                  <option value="PARTIALLY_PAID">Partially Paid</option>
+                  <option value="PAID">Paid</option>
+                </select>
+                
+                {order.payment.status !== 'PAID' && (
+                  <button 
+                    onClick={() => setShowPaymentModal(true)}
+                    className="w-full py-2 bg-primary/10 text-primary font-bold rounded-lg text-sm hover:bg-primary/20 transition-colors"
+                  >
+                    Collect Payment
+                  </button>
+                )}
+              </div>
             </div>
           </section>
 

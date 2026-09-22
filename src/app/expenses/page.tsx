@@ -5,8 +5,8 @@ import useSWR from "swr";
 import { AppShell } from "@/shared/components/AppShell";
 import { Plus, CircleDollarSign, Edit2, Calendar } from "lucide-react";
 import { fetcher } from "@/shared/api/client";
-import { type Expense } from "@/modules/expenses/expenses.types";
-import { ExpenseFormSheet } from "./_components/ExpenseFormSheet";
+import { type Expense } from "@/features/expenses/types";
+import { ExpenseFormSheet } from "@/features/expenses/components/ExpenseFormSheet";
 
 export default function ExpensesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);

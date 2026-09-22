@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { InventoryService } from "../../src/modules/inventory/inventory.service";
+import { InventoryService } from "../../src/features/inventory/service";
 
 describe("InventoryService", () => {
   it("rejects invalid transaction signs", async () => {

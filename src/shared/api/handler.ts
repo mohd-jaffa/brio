@@ -1,5 +1,5 @@
 import { ZodError } from "zod";
-import { ERROR_CODES } from "@/shared/constants/errors";
+import { ERROR_MESSAGES } from "@/constants/messages";
 import { errorResponse, successResponse } from "@/shared/api/responses";
 import { AppError, InternalServerError, ValidationError, toAppError } from "@/shared/errors/app-error";
 import { logger } from "@/shared/logging/logger";
@@ -28,14 +28,14 @@ export async function readJson(request: Request) {
   try {
     return await request.json();
   } catch (error) {
-    throw new ValidationError(ERROR_CODES.VALIDATION_INVALID_JSON, { cause: String(error) });
+    throw new ValidationError("VALIDATION_INVALID_JSON", { cause: String(error) });
   }
 }
 
 export function normalizeApiError(error: unknown): AppError {
   if (error instanceof ZodError) {
     return new ValidationError(
-      ERROR_CODES.VALIDATION_ERROR,
+      "VALIDATION_ERROR",
       error.issues.map((issue) => ({
         path: issue.path.join("."),
         message: issue.message,

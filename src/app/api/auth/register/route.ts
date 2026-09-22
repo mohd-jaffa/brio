@@ -1,6 +1,6 @@
 import { withApiHandler, readJson } from "@/shared/api/handler";
-import { createAuthService } from "@/modules/auth/auth.service";
-import { registerSchema } from "@/modules/auth/auth.validation";
+import { createAuthService } from "@/features/auth/service";
+import { registerSchema } from "@/lib/validation";
 
 export const runtime = "nodejs";
 

@@ -9,8 +9,10 @@ import useSWR from "swr";
 import { AppShell } from "@/shared/components/AppShell";
 import { ArrowLeft, Loader2, Plus, Trash2, ShoppingBag, Truck, User, CreditCard } from "lucide-react";
 import { fetcher } from "@/shared/api/client";
-import { type Customer } from "@/modules/customers/customers.types";
-import { type Product } from "@/modules/products/products.types";
+import { type Customer } from "@/features/customers/types";
+import { type Product } from "@/features/products/types";
+import { OrdersClient } from "@/features/orders/api.client";
+import { getErrorMessage, ERROR_MESSAGES } from "@/constants/messages";
 
 // Client-side schema allowing price input in Rupees for adjustments and parsing ISO date string
 const orderFormSchema = z.object({
@@ -153,15 +155,12 @@ export default function NewOrderPage() {
     };
 
     try {
-      const res = (await fetcher("/api/orders", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      })) as { data: { id: string } };
-      // Assuming response contains the created order in res.data
-      router.push(`/orders/${res.data.id}`);
+      const res = await OrdersClient.createOrder(payload as any);
+      // Assuming response contains the created order in res.data (fetcher handles unwrapping now)
+      router.push(`/orders/${res.id}`);
     } catch (err) {
       const e = err as Error;
-      setError(e.message || "Failed to create order");
+      setError(e.message || getErrorMessage(ERROR_MESSAGES.EXTERNAL_SERVICE_ERROR));
       setIsSubmitting(false); // Only set false if error, otherwise let it navigate
     }
   };

@@ -5,8 +5,8 @@ import useSWR from "swr";
 import { AppShell } from "@/shared/components/AppShell";
 import { Search, Plus, Package, Edit2 } from "lucide-react";
 import { fetcher } from "@/shared/api/client";
-import { type Product } from "@/modules/products/products.types";
-import { ProductFormSheet } from "./_components/ProductFormSheet";
+import { type Product } from "@/features/products/types";
+import { ProductFormSheet } from "@/features/products/components/ProductFormSheet";
 
 export default function ProductsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);

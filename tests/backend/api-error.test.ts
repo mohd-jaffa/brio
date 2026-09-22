@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { ERROR_CODES } from "../../src/shared/constants/errors";
+import { ERROR_MESSAGES } from "../../src/constants/messages";
 import { buildErrorPayload } from "../../src/shared/api/responses";
 import { AuthenticationError } from "../../src/shared/errors/app-error";
 import { redactSensitive } from "../../src/shared/logging/logger";
@@ -7,7 +7,7 @@ import { redactSensitive } from "../../src/shared/logging/logger";
 describe("API error contract", () => {
   it("returns the standard safe error payload", () => {
     const payload = buildErrorPayload(
-      new AuthenticationError(ERROR_CODES.AUTH_INVALID_CREDENTIALS, {
+      new AuthenticationError("AUTH_INVALID_CREDENTIALS", {
         password: "should-not-leak",
       }),
       "req_test",
@@ -15,7 +15,7 @@ describe("API error contract", () => {
 
     expect(payload.success).toBe(false);
     if (!payload.success) {
-      expect(payload.error.code).toBe(ERROR_CODES.AUTH_INVALID_CREDENTIALS);
+      expect(payload.error.code).toBe("AUTH_INVALID_CREDENTIALS");
       expect(payload.error.message).toBe("The phone number or password is incorrect.");
       expect(payload.error.requestId).toBe("req_test");
     }

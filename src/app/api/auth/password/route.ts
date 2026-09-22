@@ -1,7 +1,7 @@
 import { withApiHandler, readJson } from "@/shared/api/handler";
-import { createAuthService } from "@/modules/auth/auth.service";
-import { extractBearerToken } from "@/modules/auth/auth.guard";
-import { changePasswordSchema } from "@/modules/auth/auth.validation";
+import { createAuthService } from "@/features/auth/service";
+import { extractBearerToken } from "@/features/auth/guard";
+import { changePasswordSchema } from "@/lib/validation";
 
 export const runtime = "nodejs";
 

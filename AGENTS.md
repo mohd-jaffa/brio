@@ -128,40 +128,34 @@ If the answer requires a new feature that is not in the plan, do not implement i
 
 # 5. Architecture Rules
 
-Use the approved modular-monolith architecture.
+Use a **Feature-Based Architecture**. Code is grouped by domain feature slices rather than technical layers.
 
 ```text
-UI
- ↓
-API / Controller
- ↓
-Validation
- ↓
-Service
- ↓
-Repository
- ↓
-Supabase / PostgreSQL
+src/
+├── features/
+│   ├── auth/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── types.ts
+│   │   └── index.ts
+│   └── orders/
+├── constants/
+│   └── messages.ts
 ```
 
-Controllers must remain thin.
-
-Services contain business logic.
-
-Repositories contain database access.
-
-Validation must happen at the API boundary and important business rules must also be enforced server-side.
-
-Do not put business logic directly into UI components.
+- Each feature encapsulates its own UI components, hooks, API fetchers, types, and decomposed domain logic functions.
+- Avoid monolithic `service.ts` or `repository.ts` classes. Use focused, pure functions for domain logic.
+- **Strict Constant Centralization**: No magic strings or inline error messages are allowed anywhere in the app. Use `src/constants/messages.ts` for all UI text, validation feedback, and error codes.
 
 ---
 
-# 6. Module Boundaries
+# 6. Feature Boundaries
 
-Keep domain modules separate.
+Keep domain features separate inside `src/features/`.
 
 ```text
-modules/
+features/
 ├── auth/
 ├── customers/
 ├── products/
@@ -176,7 +170,7 @@ modules/
 └── menu/
 ```
 
-Do not create additional modules unless the plan requires them.
+Do not create additional features unless the plan requires them.
 
 ---
 
@@ -572,14 +566,15 @@ Accessibility is mandatory:
 # 22. Validation
 
 Use:
-
 - Zod
 - React Hook Form
 
+**Strict Architectural Rule**:
+All validation schemas, Zod definitions, and database constraints *MUST* be centralized inside `src/lib/validation/schemas/`. 
+Do not store validation schemas inside `src/features/*`. Use `src/lib/validation/primitives.ts` for reusable schema components (e.g. `amountText`, `optionalEmail`) bound to `src/constants/messages.ts`.
+
 Validate on the client for UX.
-
 Validate again on the server for correctness and security.
-
 The backend is authoritative.
 
 ---
@@ -655,6 +650,11 @@ Keep documentation synchronized with the actual API.
 # 26. Testing
 
 Implement tests according to the plan.
+
+## Frontend UI
+- 100% test case coverage is mandatory for all frontend UI components, custom hooks, and client services.
+- Use React Testing Library and Vitest.
+- Mock the API Client Service layer for component tests.
 
 ## Unit
 

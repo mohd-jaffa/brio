@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { generateTemporaryPassword, normalizePhone } from "../../src/modules/auth/auth.security";
+import { generateTemporaryPassword, normalizePhone } from "../../src/features/auth/security";
 import {
   changePasswordSchema,
   loginSchema,
   registerSchema,
-} from "../../src/modules/auth/auth.validation";
+} from "@/lib/validation";
 
 describe("auth validation", () => {
   it("normalizes phone numbers before validation", () => {

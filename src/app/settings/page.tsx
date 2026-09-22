@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { AppShell } from "@/shared/components/AppShell";
 import { Settings as SettingsIcon, Image as ImageIcon, Loader2, Save, UploadCloud } from "lucide-react";
+import { getErrorMessage, ERROR_MESSAGES } from "@/constants/messages";
 
 export default function SettingsPage() {
   const [isUploading, setIsUploading] = useState(false);
@@ -36,7 +37,7 @@ export default function SettingsPage() {
       await new Promise(resolve => setTimeout(resolve, 1500));
       setSuccess("Logo successfully updated! (Mock)");
     } catch {
-      setError("Failed to upload logo.");
+      setError(getErrorMessage(ERROR_MESSAGES.EXTERNAL_SERVICE_ERROR));
     } finally {
       setIsUploading(false);
       e.target.value = "";
