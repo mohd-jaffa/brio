@@ -1,35 +1,41 @@
 import { z } from "zod";
+
+import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from "@/constants/statuses";
 import { VALIDATION_MESSAGES } from "@/constants/messages";
 
-export const expenseCategorySchema = z.enum([
-  'Ingredients',
-  'Packaging',
-  'Delivery',
-  'Equipment',
-  'Utilities',
-  'Marketing',
-  'Rent',
-  'Other'
-]);
+import { optionalUrl, paiseText } from "../primitives";
 
-export const paymentMethodSchema = z.enum([
-  'CASH',
-  'UPI',
-  'BANK_TRANSFER',
-  'CARD',
-  'OTHER'
-]);
+export const expenseCategorySchema = z.enum(EXPENSE_CATEGORIES);
+export const paymentMethodSchema = z.enum(PAYMENT_METHODS);
 
+/** An expense as the form holds it. Amounts are whole paise (AGENTS.md §13). */
 export const createExpenseSchema = z.object({
   category: expenseCategorySchema,
-  description: z.string().min(1, VALIDATION_MESSAGES.required("Description")).max(500),
-  amount: z.number().int().positive(VALIDATION_MESSAGES.moreThanZero("Amount")),
+  description: z.string().trim().min(1, VALIDATION_MESSAGES.required("Description")).max(500),
+  amount: z
+    .number()
+    .int(VALIDATION_MESSAGES.wholeNumber("Amount"))
+    .positive(VALIDATION_MESSAGES.moreThanZero("Amount")),
   expenseDate: z.string().date(VALIDATION_MESSAGES.invalid),
   paymentMethod: paymentMethodSchema,
-  receiptUrl: z.string().url().max(1000).optional(),
+  receiptUrl: optionalUrl("Receipt link"),
 });
 
 export const updateExpenseSchema = createExpenseSchema.partial();
 
-export type CreateExpenseInput = z.infer<typeof createExpenseSchema>;
-export type UpdateExpenseInput = z.infer<typeof updateExpenseSchema>;
+export type CreateExpenseInput = z.input<typeof createExpenseSchema>;
+export type CreateExpensePayload = z.output<typeof createExpenseSchema>;
+export type UpdateExpenseInput = z.input<typeof updateExpenseSchema>;
+export type UpdateExpensePayload = z.output<typeof updateExpenseSchema>;
+
+/** An expense as its form holds it: the amount is typed in rupees, stored as paise. */
+export const expenseFormSchema = z.object({
+  category: expenseCategorySchema,
+  description: createExpenseSchema.shape.description,
+  amount: paiseText("Amount"),
+  expenseDate: createExpenseSchema.shape.expenseDate,
+  paymentMethod: paymentMethodSchema,
+});
+
+export type ExpenseFormValues = z.input<typeof expenseFormSchema>;
+export type ExpenseFormPayload = z.output<typeof expenseFormSchema>;

@@ -1,45 +1,122 @@
 import { z } from "zod";
+
 import { VALIDATION_MESSAGES } from "@/constants/messages";
+import {
+  ADJUSTMENT_TYPES,
+  DELIVERY_TYPES,
+  ORDER_STATUSES,
+  PAYMENT_METHODS,
+  PAYMENT_STATUSES,
+} from "@/constants/statuses";
+
+import { optionalText, optionalUrl, paiseText } from "../primitives";
 
 export const orderItemSchema = z.object({
   productId: z.string().uuid(VALIDATION_MESSAGES.invalid),
-  quantity: z.number().int(VALIDATION_MESSAGES.wholeNumber("Quantity")).min(1, VALIDATION_MESSAGES.moreThanZero("Quantity")),
-  notes: z.string().optional(),
+  quantity: z
+    .number()
+    .int(VALIDATION_MESSAGES.wholeNumber("Quantity"))
+    .min(1, VALIDATION_MESSAGES.moreThanZero("Quantity")),
+  notes: optionalText(500, "Item notes"),
 });
 
 export const orderAdjustmentSchema = z.object({
-  type: z.enum(["DISCOUNT", "CHARGE"]),
-  name: z.string().min(1, VALIDATION_MESSAGES.required("Name")),
-  amount: z.number().int(VALIDATION_MESSAGES.wholeNumber("Amount")).min(0, VALIDATION_MESSAGES.notNegative("Amount")),
+  type: z.enum(ADJUSTMENT_TYPES),
+  name: z.string().trim().min(1, VALIDATION_MESSAGES.required("Name")),
+  /** Whole paise, never negative; a DISCOUNT is subtracted by its type, not its sign. */
+  amount: z
+    .number()
+    .int(VALIDATION_MESSAGES.wholeNumber("Amount"))
+    .min(0, VALIDATION_MESSAGES.notNegative("Amount")),
 });
 
+/**
+ * A whole order as the checkout builds it (AGENTS.md §12). The server recalculates
+ * every total from the products it reads back — what arrives here is what was
+ * asked for, never what is owed.
+ */
 export const createOrderSchema = z.object({
   customerId: z.string().uuid(VALIDATION_MESSAGES.invalid),
   items: z.array(orderItemSchema).min(1, VALIDATION_MESSAGES.chooseAtLeastOne("item")),
   adjustments: z.array(orderAdjustmentSchema).optional().default([]),
-  
+
   delivery: z.object({
-    type: z.enum(["DELIVERY", "PICKUP"]),
+    type: z.enum(DELIVERY_TYPES),
     date: z.string().datetime(VALIDATION_MESSAGES.invalid),
-    address: z.string().optional(),
-    googleMapsLink: z.string().url(VALIDATION_MESSAGES.invalid).optional().or(z.literal("")),
+    address: optionalText(500, "Delivery address"),
+    googleMapsLink: optionalUrl("Google Maps link"),
   }),
-  
+
   payment: z.object({
-    status: z.enum(["UNPAID", "PAID", "PARTIALLY_PAID"]),
-    method: z.enum(["CASH", "UPI", "BANK_TRANSFER", "CARD", "OTHER"]).optional(),
-    reference: z.string().optional(),
+    status: z.enum(PAYMENT_STATUSES),
+    method: z.enum(PAYMENT_METHODS).optional(),
+    reference: optionalText(120, "Payment reference"),
   }),
-  
-  notes: z.string().optional(),
+
+  notes: optionalText(1000, "Order notes"),
 });
 
 export const updateOrderStatusSchema = z.object({
-  status: z.enum(["PENDING", "IN_PROGRESS", "IN_TRANSIT", "DELIVERED", "CANCELLED"]).optional(),
-  paymentStatus: z.enum(["UNPAID", "PAID", "PARTIALLY_PAID"]).optional(),
+  status: z.enum(ORDER_STATUSES).optional(),
+  paymentStatus: z.enum(PAYMENT_STATUSES).optional(),
 });
 
 export type CreateOrderInput = z.input<typeof createOrderSchema>;
+export type CreateOrderPayload = z.output<typeof createOrderSchema>;
 export type UpdateOrderStatusInput = z.input<typeof updateOrderStatusSchema>;
+export type UpdateOrderStatusPayload = z.output<typeof updateOrderStatusSchema>;
 export type CreateOrderItemInput = z.input<typeof orderItemSchema>;
 export type CreateOrderAdjustmentInput = z.input<typeof orderAdjustmentSchema>;
+
+/**
+ * A new order as the checkout screen holds it. Money is typed in rupees and
+ * parsed to paise here; the datetime-local field gives a local wall-clock
+ * string, which is turned into the instant that is stored.
+ */
+export const orderFormSchema = z.object({
+  customerId: z.string().min(1, VALIDATION_MESSAGES.chooseOne("customer")),
+  items: z
+    .array(
+      z.object({
+        productId: z.string().min(1, VALIDATION_MESSAGES.chooseOne("product")),
+        quantity: z
+          .number()
+          .int(VALIDATION_MESSAGES.wholeNumber("Quantity"))
+          .min(1, VALIDATION_MESSAGES.moreThanZero("Quantity")),
+        notes: optionalText(500, "Item notes"),
+      }),
+    )
+    .min(1, VALIDATION_MESSAGES.chooseAtLeastOne("item")),
+  adjustments: z.array(
+    z.object({
+      type: z.enum(ADJUSTMENT_TYPES),
+      name: z.string().trim().min(1, VALIDATION_MESSAGES.required("Name")),
+      amount: paiseText("Amount"),
+    }),
+  ),
+  delivery: z.object({
+    type: z.enum(DELIVERY_TYPES),
+    date: z
+      .string()
+      .min(1, VALIDATION_MESSAGES.required("Delivery date"))
+      .transform((local, ctx) => {
+        const when = new Date(local);
+        if (Number.isNaN(when.getTime())) {
+          ctx.addIssue({ code: "custom", message: VALIDATION_MESSAGES.invalid });
+          return z.NEVER;
+        }
+        return when.toISOString();
+      }),
+    address: optionalText(500, "Delivery address"),
+    googleMapsLink: optionalUrl("Google Maps link"),
+  }),
+  payment: z.object({
+    status: z.enum(PAYMENT_STATUSES),
+    method: z.enum(PAYMENT_METHODS).optional(),
+    reference: optionalText(120, "Payment reference"),
+  }),
+  notes: optionalText(1000, "Order notes"),
+});
+
+export type OrderFormValues = z.input<typeof orderFormSchema>;
+export type OrderFormPayload = z.output<typeof orderFormSchema>;

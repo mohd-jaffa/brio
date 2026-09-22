@@ -1,11 +1,42 @@
 /**
- * Rounds an amount to the paisa the way the database's round(x, 2) does:
+ * Money is kept as whole paise, everywhere (AGENTS.md §13). Nothing in the app
+ * holds an amount as a float: a rupee value typed into a form is converted
+ * here, on its digits, and every total is added up in paise.
+ */
+
+/**
+ * Rounds a rupee amount to the paisa the way the database's round(x, 2) does:
  * half away from zero, on the decimal digits as written.
  */
 export function roundToPaise(amount: number): number {
   const magnitude = Math.abs(amount);
   const digits = magnitude.toPrecision(15);
-  const paise = digits.includes('e') ? Math.round(magnitude * 100) : Math.round(Number(`${digits}e2`));
+  const paise = digits.includes("e") ? Math.round(magnitude * 100) : Math.round(Number(`${digits}e2`));
   const rounded = paise / 100;
   return amount < 0 && rounded !== 0 ? -rounded : rounded;
+}
+
+/**
+ * Rupees as whole paise. Given the text a person typed ("499.50"), the digits
+ * are read directly, so nothing passes through a float that cannot hold them —
+ * `19.99 * 100` is 1998.9999999999998, and that is the bug this avoids.
+ */
+export function rupeesToPaise(amount: string | number): number {
+  const text = typeof amount === "number" ? amount.toFixed(2) : amount.trim();
+  const match = /^(-)?(\d+)(?:\.(\d{1,2}))?$/.exec(text);
+  if (!match) return Math.round(roundToPaise(Number(text)) * 100);
+
+  const [, sign, whole, fraction = ""] = match;
+  const paise = Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
+  return sign ? -paise : paise;
+}
+
+/** Whole paise as a rupee number, for display only — never for adding up. */
+export function paiseToRupees(paise: number): number {
+  return paise / 100;
+}
+
+/** Adds up paise amounts. Integers all the way, so nothing drifts. */
+export function sumPaise(amounts: readonly number[]): number {
+  return amounts.reduce((total, amount) => total + amount, 0);
 }
