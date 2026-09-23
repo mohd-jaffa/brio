@@ -3,22 +3,22 @@ import { type CreateJobDTO, type Job } from "./types";
 import { internalError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 
-export async function createJob(client: SupabaseClient, payload: CreateJobDTO): Promise<Job> {
-  const { data, error } = await client
-    .from("jobs")
-    .insert({
-      type: payload.type,
-      payload: payload.payload ?? {},
-      run_at: payload.run_at ?? new Date().toISOString(),
-    })
-    .select()
-    .single();
+/**
+ * Puts work on the queue (AGENTS.md §17). The row is deliberately not read
+ * back: a job carries no bakery_id, so a baker who could select one could read
+ * every bakery's queued work. They may insert and nothing else — and no caller
+ * wants the row anyway, they want the work to happen later.
+ */
+export async function createJob(client: SupabaseClient, payload: CreateJobDTO): Promise<void> {
+  const { error } = await client.from("jobs").insert({
+    type: payload.type,
+    payload: payload.payload ?? {},
+    run_at: payload.run_at ?? new Date().toISOString(),
+  });
 
   if (error) {
     throw internalError("INTERNAL_ERROR", error);
   }
-
-  return data;
 }
 
 export async function claimNextJob(client: SupabaseClient, workerId: string): Promise<Job | null> {
