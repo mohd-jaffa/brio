@@ -1,40 +1,45 @@
-import { fetcher } from "@/lib/api/client";
-import {
-  type LoginInput,
-  type RegisterInput,
-  type PasswordResetRequestInput,
+import { fetcher, postJson } from "@/lib/api/client";
+import { apiRoutes } from "@/lib/query/keys";
+import type {
+  ChangePasswordInput,
+  ConfirmEmailInput,
+  LoginInput,
+  PasswordResetRequestInput,
+  RegisterInput,
 } from "@/lib/validation";
-import { type AuthenticatedSession } from "./types";
 
+import type { AuthSessionView } from "./types";
+
+export interface RegisteredAccount {
+  userId: string;
+  bakeryId: string;
+}
+
+/**
+ * The authentication endpoints the browser calls. None of them takes or
+ * returns a token: signing in sets HttpOnly cookies the browser carries by
+ * itself, and what comes back is the profile and whether a password change is
+ * owed (AGENTS.md §9).
+ */
 export const AuthClient = {
-  async login(payload: LoginInput): Promise<AuthenticatedSession> {
-    return fetcher<AuthenticatedSession>("/api/auth/login", {
-      method: "POST",
+  signIn: (payload: LoginInput) => postJson<AuthSessionView>(apiRoutes.auth.login, payload),
+
+  register: (payload: RegisterInput) =>
+    postJson<RegisteredAccount>(apiRoutes.auth.register, payload),
+
+  requestPasswordReset: (payload: PasswordResetRequestInput) =>
+    postJson<{ accepted: boolean }>(apiRoutes.auth.passwordReset, payload),
+
+  changePassword: (payload: ChangePasswordInput) =>
+    fetcher<AuthSessionView>(apiRoutes.auth.password, {
+      method: "PATCH",
       body: JSON.stringify(payload),
-    });
-  },
+    }),
 
-  async register(payload: RegisterInput): Promise<{ userId: string; bakeryId: string }> {
-    return fetcher<{ userId: string; bakeryId: string }>("/api/auth/register", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-  },
+  confirmEmail: (payload: ConfirmEmailInput) =>
+    postJson<AuthSessionView>(apiRoutes.auth.confirm, payload),
 
-  async requestPasswordReset(payload: PasswordResetRequestInput): Promise<{ accepted: boolean }> {
-    return fetcher<{ accepted: boolean }>("/api/auth/password-reset", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-  },
+  signOut: () => postJson<{ signedOut: boolean }>(apiRoutes.auth.logout),
 
-  async logout(): Promise<{ signedOut: boolean }> {
-    return fetcher<{ signedOut: boolean }>("/api/auth/logout", {
-      method: "POST",
-    });
-  },
-
-  async getSession(): Promise<AuthenticatedSession> {
-    return fetcher<AuthenticatedSession>("/api/auth/session");
-  },
+  getSession: () => fetcher<AuthSessionView>(apiRoutes.auth.session),
 };
