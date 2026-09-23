@@ -1,6 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ERROR_MESSAGES } from '@/constants/messages';
-import { ApiError, deleteJson, fetcher, getJson, patchJson, postJson } from './client';
+import {
+  ApiError,
+  deleteJson,
+  fetcher,
+  getJson,
+  patchJson,
+  postJson,
+  resetSessionRefresh,
+} from './client';
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
@@ -174,5 +182,59 @@ describe('the JSON verbs', () => {
     });
 
     await expect(getJson('/api/orders')).rejects.toMatchObject({ requestId: 'req_9', code: 'CONFLICT' });
+  });
+});
+
+describe('an expired session', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetSessionRefresh();
+  });
+
+  it('refreshes once and sends the request again', async () => {
+    mockFetchError(401, 'AUTH_SESSION_REQUIRED', 'Please sign in to continue.');
+    mockFetch.mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({}) });
+    mockFetchSuccess([{ id: 'o-1' }]);
+
+    await expect(getJson('/api/orders')).resolves.toEqual([{ id: 'o-1' }]);
+
+    expect(mockFetch).toHaveBeenNthCalledWith(2, '/api/auth/refresh', { method: 'POST' });
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+  });
+
+  it('gives up when the refresh is refused, so the caller sees the original failure', async () => {
+    mockFetchError(401, 'AUTH_SESSION_REQUIRED', 'Please sign in to continue.');
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 401, json: async () => ({}) });
+
+    await expect(getJson('/api/orders')).rejects.toMatchObject({ status: 401 });
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('survives a refresh that cannot be reached at all', async () => {
+    mockFetchError(401, 'AUTH_SESSION_REQUIRED', 'Please sign in to continue.');
+    mockFetch.mockRejectedValueOnce(new TypeError('Network down'));
+
+    await expect(getJson('/api/orders')).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it('refreshes only once for several requests refused together', async () => {
+    mockFetch.mockImplementation(async (url: string) => {
+      if (url === '/api/auth/refresh') return { ok: true, status: 200, json: async () => ({}) };
+      return { ok: true, status: 200, json: async () => ({ data: [] }) };
+    });
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 401, json: async () => ({}) });
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 401, json: async () => ({}) });
+
+    await Promise.all([getJson('/api/orders'), getJson('/api/products')]);
+
+    const refreshes = mockFetch.mock.calls.filter(([url]) => url === '/api/auth/refresh');
+    expect(refreshes).toHaveLength(1);
+  });
+
+  it('never tries to refresh the endpoints that establish or end a session', async () => {
+    mockFetchError(401, 'AUTH_INVALID_CREDENTIALS', 'The phone number or password is incorrect.');
+
+    await expect(postJson('/api/auth/login', { phone: '9876543210', password: 'nope' })).rejects.toThrow();
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 });

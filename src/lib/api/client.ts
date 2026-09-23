@@ -5,6 +5,12 @@ import { ERROR_MESSAGES, type ErrorMessageCode } from "@/constants/messages";
  * turns a failure envelope back into an error carrying the server's own
  * wording, and sets the headers — so a feature's client module is a list of
  * endpoints and nothing else (AGENTS.md §24).
+ *
+ * Nothing here attaches a token: the session lives in HttpOnly cookies that
+ * the browser sends on its own (src/features/auth/cookies.ts). What this does
+ * own is the one thing every caller would otherwise repeat — when a request is
+ * refused because the access token has expired, the session is refreshed once
+ * and the request is sent again, so an hour of work does not end in an error.
  */
 export class ApiError extends Error {
   constructor(
@@ -24,11 +30,43 @@ interface ApiEnvelope<T> {
   error?: { code?: ErrorMessageCode; message?: string; requestId?: string };
 }
 
+const REFRESH_ROUTE = "/api/auth/refresh";
+
+/** The routes that establish or end a session; retrying one of them is nonsense. */
+const NEVER_RETRIED = [REFRESH_ROUTE, "/api/auth/login", "/api/auth/logout", "/api/auth/confirm"];
+
+/**
+ * At most one refresh is in flight. Several screens load at once, and without
+ * this a single expiry would send one refresh per request — each rotating the
+ * refresh token out from under the others.
+ */
+let refreshInFlight: Promise<boolean> | null = null;
+
+function refreshSession(): Promise<boolean> {
+  refreshInFlight ??= fetch(REFRESH_ROUTE, { method: "POST" })
+    .then((response) => response.ok)
+    .catch(() => false)
+    .finally(() => {
+      refreshInFlight = null;
+    });
+
+  return refreshInFlight;
+}
+
+/** Only for tests: forgets an in-flight refresh between cases. */
+export function resetSessionRefresh() {
+  refreshInFlight = null;
+}
+
 export async function fetcher<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
-    ...init,
-    headers: { "Content-Type": "application/json", ...init?.headers },
-  });
+  const attempt = () =>
+    fetch(url, { ...init, headers: { "Content-Type": "application/json", ...init?.headers } });
+
+  let response = await attempt();
+
+  if (response.status === 401 && !NEVER_RETRIED.some((route) => url.startsWith(route))) {
+    if (await refreshSession()) response = await attempt();
+  }
 
   const body = (await response.json().catch(() => ({}))) as ApiEnvelope<T>;
 
