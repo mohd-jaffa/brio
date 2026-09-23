@@ -10,6 +10,7 @@
 export {
   amountText,
   firstIssue,
+  indianMobile,
   optionalEmail,
   optionalNumberText,
   optionalText,
@@ -28,7 +29,6 @@ export {
   PASSWORD_MAX_LENGTH,
   PASSWORD_MIN_LENGTH,
   passwordResetRequestSchema,
-  PHONE_REGEX,
   registerSchema,
   roleSchema,
   type ChangePasswordInput,

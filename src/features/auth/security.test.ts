@@ -1,5 +1,4 @@
 import { describe, it, expect } from "vitest";
-import { normalizePhone } from "@/lib/phone";
 import { generateTemporaryPassword } from "./security";
 import {
   changePasswordSchema,
@@ -12,14 +11,23 @@ import {
 
 describe("auth validation", () => {
   it("normalizes phone numbers before validation", () => {
-    expect(normalizePhone("+91 98765-43210")).toBe("+919876543210");
-
     const parsed = loginSchema.parse({
       phone: "+91 98765-43210",
       password: "correct-password",
     });
 
     expect(parsed.phone).toBe("+919876543210");
+  });
+
+  it("adds the country code, so the ten digits a baker types find their account", () => {
+    for (const typed of ["9876543210", "09876543210", "+91 98765-43210", "91 9876543210"]) {
+      expect(loginSchema.parse({ phone: typed, password: "x" }).phone).toBe("+919876543210");
+    }
+  });
+
+  it("refuses a number that is not a mobile one", () => {
+    expect(loginSchema.safeParse({ phone: "1234567890", password: "x" }).success).toBe(false);
+    expect(loginSchema.safeParse({ phone: "98765", password: "x" }).success).toBe(false);
   });
 
   it("requires registration email, phone, password, and confirmation", () => {

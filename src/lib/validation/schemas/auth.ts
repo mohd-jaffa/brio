@@ -2,8 +2,7 @@ import { z } from "zod";
 
 import { VALIDATION_MESSAGES } from "@/constants/messages";
 import { USER_ROLES } from "@/constants/roles";
-import { normalizePhone } from "@/lib/phone";
-import { requiredEmail } from "@/lib/validation/primitives";
+import { indianMobile, requiredEmail } from "@/lib/validation/primitives";
 
 /**
  * What the app accepts when someone signs up, signs in or changes a password
@@ -13,18 +12,11 @@ import { requiredEmail } from "@/lib/validation/primitives";
  * an email lower-cased. Nothing below this parses again.
  */
 
-export const PHONE_REGEX = /^\+?[1-9]\d{9,14}$/;
-
 /** The minimum Supabase Auth itself enforces; the maximum bcrypt can carry. */
 export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_MAX_LENGTH = 72;
 
-const phoneSchema = z
-  .string()
-  .trim()
-  .min(1, VALIDATION_MESSAGES.required("Mobile number"))
-  .transform(normalizePhone)
-  .refine((phone) => PHONE_REGEX.test(phone), VALIDATION_MESSAGES.phone);
+const phoneSchema = indianMobile();
 
 const emailSchema = requiredEmail("Email address");
 

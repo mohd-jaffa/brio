@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { VALIDATION_MESSAGES } from "@/constants/messages";
 import { rupeesToPaise } from "@/lib/money";
+import { toE164India } from "@/lib/phone";
 
 /**
  * The building blocks the entity schemas in ./schemas are made of. Every
@@ -54,6 +55,27 @@ export function optionalEmail(label: string, max = 254) {
     test: (value) => EMAIL.test(value),
     message: VALIDATION_MESSAGES.email(label),
   });
+}
+
+/**
+ * A mobile number, stored in one shape whichever way it was typed (plan §7).
+ * The country code is added here: a baker types the ten digits they think of
+ * as their number, and the account it has to match is keyed on +91 and those
+ * digits — so anything that skips this cannot find the account at all.
+ */
+export function indianMobile(label = "Mobile number") {
+  return z
+    .string()
+    .trim()
+    .min(1, VALIDATION_MESSAGES.required(label))
+    .transform((typed, ctx) => {
+      const e164 = toE164India(typed);
+      if (e164 === null) {
+        ctx.addIssue({ code: "custom", message: VALIDATION_MESSAGES.phone });
+        return z.NEVER;
+      }
+      return e164;
+    });
 }
 
 /** An email address a form must have — trimmed and lower-cased, so it matches
