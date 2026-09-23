@@ -6898,3 +6898,112 @@ voice. Those are the seeds. The moments that would earn the most, in order:
 Everything here is Enhance work and none of it should start before §134's P0
 and P1 are closed: a crash and a missing error boundary are not a backdrop for
 personality.
+
+---
+
+# 136. Impeccable Layout Pass — Findings (2026-09-23)
+
+A layout inspection of the shipped surface — reading order, grouping, rhythm,
+structure, density, adaptation — run against the live app on local Supabase at
+390×844 and 1440×900. **Nothing here was fixed**; this section is the record
+for later implementation.
+
+Two assessments were run in the order the playbook prescribes: the rendered
+assessment first, then the mechanical scan, kept apart so neither contaminated
+the other.
+
+> **The mechanical scan is clean.** `impeccable detect --scope layout` over
+> `src/app`, `src/components` and `src/features` returns `[]`, and there is not
+> one arbitrary bracket spacing value (`p-[13px]` and the like) in the codebase.
+> That is worth knowing and worth keeping. It also proves nothing about
+> hierarchy or rhythm — every finding below came from looking at the rendered
+> screens.
+
+---
+
+## 136.1 Reading order — the squint test fails on every screen
+
+Blur the detail and the app becomes a stack of identical grey rounded
+rectangles. Nothing declares what leads.
+
+| # | Finding |
+|---|---------|
+| **L1-1** | **The order detail is six equal cards.** `Panel` (`src/app/orders/[id]/page.tsx:47`) is one fixed shape — `rounded-2xl border border-border bg-surface p-5 shadow-card` — with no variant for primacy, so the header, Order Status, Payment Status, Delivery, Notes and Order Items all render at identical weight. Squinting, you cannot tell which card holds the money and which holds a free-text note. |
+| **L1-2** | **The screen's real subject is stated twice, 1,400px apart.** ₹950 and UNPAID sit in the header card; TOTAL ₹950 repeats at the bottom of Order Items. Neither placement is made primary, and no relationship is drawn between them. |
+| **L1-3** | **An overdue unpaid order has no visually primary action.** "Generate Receipt" (top) and "Collect Payment" (mid-page) are both rendered as low-emphasis buttons. The one thing this screen exists to make happen — take the money — has the same weight as printing. |
+| **L1-4** | **Analytics gives equal width to a derived value and its two inputs.** Total Revenue, Total Expenses and Net Profit are a 3-up grid of identical tiles, but Net Profit *is* the other two subtracted. The layout asserts three peers where there is one answer and two operands. |
+| **L1-5** | **Every stat tile wastes its own area.** The icon sits top-right in a tinted circle and the value bottom-left, leaving a large empty diagonal in each tile at both breakpoints. |
+
+---
+
+## 136.2 Grouping — containers are doing work that proximity should do
+
+| # | Finding |
+|---|---------|
+| **L2-1** | **The order detail prints the same label twice, 8px apart.** `src/app/orders/[id]/page.tsx:144` opens `<Panel title="Order Status">` and `:146` puts `label="Order Status"` on the select inside it; `:154` and `:157` repeat the trick for Payment Status. Two type sizes, two colours, one word. The card heading and the field label are competing to name the same control. |
+| **L2-2** | **Two single selects occupy two full cards.** Order Status and Payment Status are the same kind of decision and consume roughly 380px of phone height between them, each with its own icon, heading, label and border. They belong in one group. |
+| **L2-3** | **Group headings are not separated from their groups.** On Expenses, "SEP 2026" sits ~18px above the first card while the cards sit 16px apart — the heading is no more separated from its contents than the contents are from each other, so the grouping reads as decoration. |
+| **L2-4** | **Card headings are inconsistently marked.** On the order detail, ORDER STATUS, PAYMENT STATUS and ORDER ITEMS carry icons; NOTES does not. Same role, two treatments. |
+
+---
+
+## 136.3 Rhythm — one interval, repeated
+
+| # | Finding |
+|---|---------|
+| **L3-1** | **Every top-level section on every screen is separated by the same value.** `src/components/nav/AppShell.tsx:120` sets `space-y-6` (`lg:space-y-8`) on `<main>`, so the gap between a page header and its first section is identical to the gap between two sibling cards. There is no tight-versus-generous contrast anywhere above the component level, which is why the squint test in §136.1 fails. |
+| **L3-2** | **Twenty-eight distinct spacing values are in use with no documented meaning** — `gap-2` (22 uses), `gap-4` (21), `gap-3` (15) and `space-y-3`/`-4`/`-5`/`-6`/`-8` are applied interchangeably, alongside half-steps `mt-0.5`, `mb-0.5`, `gap-1.5`, `gap-2.5`, `mt-1.5`, `space-y-2.5`. The values are all on Tailwind's scale — the problem is that no rule says which relationship earns which step, so the same relationship gets a different interval on different screens. |
+| **L3-3** | **A three-step header stack with no scale:** on Expenses the sequence is title → 12px → subtitle → 16px → button → 40px → group label. Three different intervals, none of which expresses a different relationship. |
+
+---
+
+## 136.4 Structure and density
+
+| # | Finding |
+|---|---------|
+| **L4-1** | **The expenses row spends its scarcest space on its least useful element.** In 358px the row is: a 48px category-initial circle, the title/meta block, the amount, and a 48px edit button. The pencil has a fixed claim on every row; the title has none, and truncates on two of four rows ("Belgian chocolate and…", "Cake boxes and ribbon…"). |
+| **L4-2** | **The category initial duplicates text already on the row.** "D", "I", "P", "U" in a circle, with DELIVERY, INGREDIENTS, PACKAGING, UTILITIES printed in full two lines below — about 64px of row width restating a word that is already there. The circles are also all the same pink tint, so the colour carries no category meaning either. |
+| **L4-3** | **Order-item columns give fixed width to the numbers and let the name absorb every loss.** "Blueberry Cheesec… ×1 ₹950" truncates the only line that says what was baked, at a width where `×1` and `₹950` both have slack. |
+| **L4-4** | **Analytics commits ~1,200px of bar to rank five values.** The widest element on the page carries the least information, and the bar encodes revenue while "1 sold" — printed under it — is quantity, four of five of which are identical. The chart invites a misreading of its own axis. |
+| **L4-5** | **The rank badge does not align to anything.** The numbered circle is vertically centred against a four-part row (name, value, bar, quantity), so it floats between the product name and the bar rather than sitting on either. |
+| **L4-6** | **Analytics is thin for its own screen** — three tiles and one list, ending at roughly 80% of the viewport height with nothing below. |
+
+---
+
+## 136.5 Adaptation and extremes
+
+| # | Finding |
+|---|---------|
+| **L5-1** | **The primary create action is placed differently on every screen.** Expenses puts "Add Expense" inline under the subtitle; Create Order anchors "Place Order" in a fixed bottom bar; the order detail scatters its actions between a top row and a mid-page card. The same class of action has no consistent home. |
+| **L5-2** | **Two fixed bottom bars collide on `/orders/new`.** Measured at 390×844: the Place Order bar (`src/app/orders/new/page.tsx:365`, `z-40`, top 783, height 61) sits directly on top of AppShell's bottom nav (`src/components/nav/AppShell.tsx:127`, `z-30`, top 784, height 60). Neither offsets for the other, so the nav is entirely covered while an order is being built. *(Also recorded as §135 D5-1 — it is both a layout defect and a delight one.)* |
+| **L5-3** | **The desktop composition is the mobile one, centred.** The auth screens place a 448px card in a 1440px viewport with the brand top-left and the theme pill top-right and nothing relating them. Inside the app, `max-w-5xl` keeps content in a single column at every width above the sidebar; no screen uses the second dimension a wide viewport offers. |
+| **L5-4** | **Long content was never designed for.** Two of four expense titles truncate at the default seed length, as does the single order item on the order detail. These are not edge cases — they are the ordinary content the product ships with. |
+
+---
+
+## 136.6 The spatial thesis to set before implementing
+
+None of the above is fixed by moving individual boxes. Name these first, then
+the fixes follow:
+
+1. **One primary per screen.** The order detail's is *collect the money*; Analytics' is *net profit*; a list's is *the next row to act on*. `Panel` needs a variant that can carry primacy instead of one fixed shape.
+2. **Two intervals, not one.** A documented pair — tight for within-group, generous for between-group — applied through `<main>` and the card components, so the squint test has something to reveal. Today `space-y-6` does both jobs.
+3. **Row budget before row content.** Decide what a list row owes the scarcest width to (the name), and what earns a fixed claim (rarely the edit affordance).
+4. **A rule for where a create action lives**, applied to all five list screens and both form screens.
+
+---
+
+## 136.7 What was checked and found sound
+
+Recording this so the next pass does not redo it: the mechanical layout scan is
+clean; there are **no arbitrary bracket spacing values** anywhere in the
+codebase — every value sits on the Tailwind scale; `<main>`'s container,
+max-width and safe-area padding are defined once in `AppShell` rather than
+restated per page; `gap` is used for sibling rhythm rather than child margins
+in the shared components; and the DOM order matches the visual order on every
+screen inspected, so keyboard and assistive-technology traversal agrees with
+what is seen.
+
+**Suggested order:** L2-1 (the duplicated labels, a two-line fix), then L3-1
+and L1-1 together — the single interval and the single card shape are the same
+problem seen twice, and fixing them is what makes the squint test pass.
