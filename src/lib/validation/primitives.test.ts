@@ -13,6 +13,7 @@ import {
   optionalUuid,
   paiseText,
   positiveWholeText,
+  requiredEmail,
   wholeNumberText,
 } from "./primitives";
 
@@ -154,5 +155,29 @@ describe("firstIssue", () => {
   it("is what a single field shows", () => {
     const result = z.object({ name: z.string().min(1, "Name needs a value.") }).safeParse({ name: "" });
     expect(result.success ? "" : firstIssue(result.error)).toBe("Name needs a value.");
+  });
+});
+
+describe("requiredEmail", () => {
+  const email = requiredEmail("Email address");
+
+  it("lower-cases what was typed, so it matches the column it is stored in", () => {
+    expect(email.parse("  ASHA@Example.COM ")).toBe("asha@example.com");
+  });
+
+  it("insists on one", () => {
+    expect(email.safeParse("").success).toBe(false);
+  });
+
+  it("refuses something that is not an address", () => {
+    const result = email.safeParse("asha@example");
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(firstIssue(result.error)).toBe(VALIDATION_MESSAGES.email("Email address"));
+    }
+  });
+
+  it("refuses one longer than the column can hold", () => {
+    expect(email.safeParse(`${"a".repeat(250)}@example.com`).success).toBe(false);
   });
 });

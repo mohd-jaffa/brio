@@ -1,8 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { generateTemporaryPassword, normalizePhone } from "./security";
+import { normalizePhone } from "@/lib/phone";
+import { generateTemporaryPassword } from "./security";
 import {
   changePasswordSchema,
+  confirmEmailSchema,
   loginSchema,
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_MIN_LENGTH,
   registerSchema,
 } from "@/lib/validation";
 
@@ -62,5 +66,40 @@ describe("auth validation", () => {
     expect(second.length).toBe(12);
     expect(first).not.toBe(second);
     expect(first).toMatch(/^[A-Za-z0-9]+$/);
+  });
+});
+
+describe("password rules", () => {
+  const registration = {
+    name: "Asha Baker",
+    businessName: "Asha Bakes",
+    phone: "+919876543210",
+    email: "asha@example.com",
+  };
+
+  it("refuses a password shorter than Supabase Auth itself accepts", () => {
+    const password = "a".repeat(PASSWORD_MIN_LENGTH - 1);
+    const result = registerSchema.safeParse({ ...registration, password, confirmPassword: password });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("refuses one longer than the hash can carry", () => {
+    const password = "a".repeat(PASSWORD_MAX_LENGTH + 1);
+    const result = registerSchema.safeParse({ ...registration, password, confirmPassword: password });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("does not apply a length rule to signing in, where the stored password decides", () => {
+    expect(loginSchema.safeParse({ phone: "+919876543210", password: "old" }).success).toBe(true);
+  });
+});
+
+describe("a confirmation link", () => {
+  it("needs both tokens to be usable", () => {
+    expect(confirmEmailSchema.safeParse({ accessToken: "a", refreshToken: "r" }).success).toBe(true);
+    expect(confirmEmailSchema.safeParse({ accessToken: "a", refreshToken: "" }).success).toBe(false);
+    expect(confirmEmailSchema.safeParse({ accessToken: "" }).success).toBe(false);
   });
 });

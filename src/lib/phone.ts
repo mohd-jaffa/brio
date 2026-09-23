@@ -1,6 +1,15 @@
 const INDIA_COUNTRY_CODE = '91';
 
 /**
+ * A phone number as typed, reduced to the digits and the leading +. It is what
+ * an account is looked up by, so "+91 98765-43210" and "+919876543210" have to
+ * arrive at the same string before either is compared with what is stored.
+ */
+export function normalizePhone(phone: string) {
+  return phone.trim().replace(/[\s().-]/g, "").replace(/^00/, "+");
+}
+
+/**
  * Accepts a bare 10-digit number, one already prefixed with 91 or +91, or a
  * leading-0 trunk-prefixed number. Indian mobile numbers start 6-9.
  * Returns null if invalid.

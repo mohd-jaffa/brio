@@ -15,7 +15,7 @@ import { rupeesToPaise } from "@/lib/money";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // A shape check, not a delivery check: something@something.something.
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * A field that may be left out or left blank, stored as NULL. Missing, blank
@@ -54,6 +54,18 @@ export function optionalEmail(label: string, max = 254) {
     test: (value) => EMAIL.test(value),
     message: VALIDATION_MESSAGES.email(label),
   });
+}
+
+/** An email address a form must have — trimmed and lower-cased, so it matches
+ * the citext column it is stored in whatever way it was typed. */
+export function requiredEmail(label: string, max = 254) {
+  return z
+    .string()
+    .trim()
+    .min(1, VALIDATION_MESSAGES.required(label))
+    .max(max, VALIDATION_MESSAGES.tooLong(label, max))
+    .refine((value) => EMAIL.test(value), VALIDATION_MESSAGES.email(label))
+    .transform((value) => value.toLowerCase());
 }
 
 /** A link that may be left empty — a Google Maps pin, a receipt; blank is null. */

@@ -18,6 +18,11 @@ export const ERROR_MESSAGES = {
   AUTH_ROLE_FORBIDDEN: "You do not have permission to perform this action.",
   AUTH_EMAIL_ALREADY_EXISTS: "An account with this email address already exists.",
   AUTH_PHONE_ALREADY_EXISTS: "An account with this phone number already exists.",
+  AUTH_REGISTRATION_FAILED: "Could not create your account. Please try again.",
+  AUTH_PASSWORD_CHANGE_FAILED: "Could not change your password. Please try again.",
+  AUTH_RESET_REQUEST_FAILED: "Could not send the reset email. Please try again.",
+  AUTH_EMAIL_CONFIRM_FAILED: "That confirmation link is invalid or has expired.",
+  AUTH_SIGN_OUT_FAILED: "Could not sign you out. Please try again.",
 
   CONFIG_INVALID: "The server configuration is invalid.",
   MAIL_PROVIDER_NOT_CONFIGURED: "Email delivery is not configured.",
@@ -71,6 +76,8 @@ export const VALIDATION_MESSAGES = {
   chooseAtLeastOne: (label: string) => `Choose at least one ${label}.`,
   moreThanZero: (label: string) => `${label} must be more than 0.`,
   tooLong: (label: string, max: number) => `${label} can be at most ${max} characters.`,
+  tooShort: (label: string, min: number) => `${label} must be at least ${min} characters.`,
+  passwordsMustMatch: "Both passwords must be the same.",
   invalid: "That value is not valid.",
 } as const;
 
@@ -78,6 +85,45 @@ export const VALIDATION_MESSAGES = {
 export const UI_TEXT = {
   appName: "Ovenly",
   appTagline: "Home Bakery",
+
+  /**
+   * The words the four authentication screens share. They are the first thing
+   * anyone reads, and a baker signing in after a password reset is sent
+   * between three of them, so the wording has to agree across all of them.
+   */
+  auth: {
+    signIn: "Sign in",
+    signingIn: "Signing in…",
+    signOut: "Sign out",
+    createAccount: "Create account",
+    creatingAccount: "Creating account…",
+    forgotPassword: "Forgot password?",
+    backToSignIn: "Back to sign in",
+    showPassword: "Show password",
+    hidePassword: "Hide password",
+    phoneLabel: "Mobile number",
+    phoneHint: "The 10-digit number you signed up with.",
+    passwordLabel: "Password",
+    passwordHint: "At least 8 characters.",
+    newPasswordLabel: "New password",
+    setNewPassword: "Set new password",
+    confirmPasswordLabel: "Confirm password",
+    emailLabel: "Email address",
+    nameLabel: "Your name",
+    businessNameLabel: "Bakery name",
+    haveAccount: "Already have an account?",
+    noAccount: "New to Ovenly?",
+    sendResetEmail: "Email me a temporary password",
+    resetSent:
+      "If that email belongs to an account, a temporary password is on its way. Sign in with it and you will be asked to choose a new one.",
+    temporaryPasswordNotice:
+      "You signed in with a temporary password. Choose a new one to continue.",
+    accountCreated: "Account created. Sign in with your mobile number and password.",
+    checkingSession: "Checking your session…",
+    confirming: "Confirming your email address…",
+    confirmed: "Your email address is confirmed. Taking you to your dashboard…",
+    confirmLinkMissing: "This page opens from the link in your confirmation email.",
+  },
 
   actions: {
     save: "Save",

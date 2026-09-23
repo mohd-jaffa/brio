@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { toE164India, maskPhone, formatPhoneDigits } from './phone';
+import { toE164India, maskPhone, formatPhoneDigits, normalizePhone } from './phone';
 
 describe('toE164India', () => {
   it('normalizes 10-digit Indian mobile numbers starting with 6-9', () => {
@@ -24,5 +24,20 @@ describe('formatPhoneDigits', () => {
   it('formats digits into 5+5 group', () => {
     expect(formatPhoneDigits('9876543210')).toBe('98765 43210');
     expect(formatPhoneDigits('98765')).toBe('98765');
+  });
+});
+
+describe('normalizePhone', () => {
+  it('reduces a number to its digits and leading +, so it matches what is stored', () => {
+    expect(normalizePhone('+91 98765-43210')).toBe('+919876543210');
+    expect(normalizePhone(' (987) 654.3210 ')).toBe('9876543210');
+  });
+
+  it('reads the international 00 prefix as a +', () => {
+    expect(normalizePhone('0091 98765 43210')).toBe('+919876543210');
+  });
+
+  it('leaves an already-normalised number alone', () => {
+    expect(normalizePhone('+919876543210')).toBe('+919876543210');
   });
 });
