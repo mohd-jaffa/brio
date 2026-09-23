@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { X } from "lucide-react";
 
-import { SECONDARY_NAV } from "@/constants/navigation";
 import { UI_TEXT } from "@/constants/messages";
+import { SECONDARY_NAV } from "@/constants/navigation";
+import { AccountMenu } from "@/features/auth/components/AccountMenu";
 
 /**
  * The rest of the app, on a phone (plan §9). Its items come from the one nav
@@ -54,7 +55,7 @@ export function MoreSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
         </div>
 
         <nav aria-label="Secondary navigation">
-          <ul role="list" className="space-y-1 px-4 pb-8">
+          <ul role="list" className="space-y-1 px-4">
             {SECONDARY_NAV.map(({ id, label, icon: Icon, href }) => (
               <li key={id}>
                 <Link
@@ -69,6 +70,10 @@ export function MoreSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
             ))}
           </ul>
         </nav>
+
+        <div className="mt-2 border-t border-border px-6 py-5 pb-8">
+          <AccountMenu onSignedOut={onClose} />
+        </div>
       </div>
     </>
   );

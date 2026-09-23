@@ -1,12 +1,22 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SECONDARY_NAV, SIDEBAR_NAV } from "@/constants/navigation";
 import { ThemeProvider } from "@/lib/theme/ThemeProvider";
+import { authStub } from "@/test-utils/auth";
 
 import { AppShell } from "./AppShell";
 import { MoreSheet } from "./MoreSheet";
+
+// The shell is drawn for a signed-in baker; who that is belongs to the auth
+// feature's own tests, not to what the navigation offers.
+const { auth } = vi.hoisted(() => ({ auth: { current: {} as ReturnType<typeof authStub> } }));
+vi.mock("@/features/auth/AuthProvider", () => ({ useAuth: () => auth.current }));
+
+beforeEach(() => {
+  auth.current = authStub();
+});
 
 function shell() {
   return render(

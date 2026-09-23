@@ -7,6 +7,7 @@ import { AppShell } from "@/components/nav/AppShell";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { ScreenNotice } from "@/components/ui/screen-notice";
+import { AccountSummary } from "@/features/auth/components/AccountSummary";
 
 /**
  * The only file a baker may upload is their bakery's logo, at most 500 KB
@@ -98,6 +99,8 @@ export default function SettingsPage() {
         </p>
         <Button label="Save Details" disabled />
       </section>
+
+      <AccountSummary />
     </AppShell>
   );
 }

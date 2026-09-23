@@ -7,6 +7,8 @@ import { useCallback, useState, type ReactNode } from "react";
 
 import { UI_TEXT } from "@/constants/messages";
 import { BOTTOM_NAV, isActivePath, SIDEBAR_NAV } from "@/constants/navigation";
+import { AccountMenu } from "@/features/auth/components/AccountMenu";
+import { RequireAuth } from "@/features/auth/components/RequireAuth";
 import { useTheme, THEME_LABELS, type Theme } from "@/lib/theme/ThemeProvider";
 
 import { MoreSheet } from "./MoreSheet";
@@ -18,8 +20,19 @@ import { cn } from "../ui/cn";
  * The content container lives here too — each page used to restate the same
  * spacing and the same bottom padding that keeps the last row clear of the
  * bottom bar, and they had drifted.
+ *
+ * Every screen in the app is drawn inside this, so the session gate lives here
+ * too: no page has to remember to ask whether anyone is signed in.
  */
 export function AppShell({ children }: { children: ReactNode }) {
+  return (
+    <RequireAuth>
+      <AppFrame>{children}</AppFrame>
+    </RequireAuth>
+  );
+}
+
+function AppFrame({ children }: { children: ReactNode }) {
   const { theme, setTheme } = useTheme();
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
@@ -81,7 +94,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           </ul>
         </nav>
 
-        <div className="border-t border-border px-4 py-4">
+        <div className="space-y-4 border-t border-border px-4 py-4">
+          <AccountMenu />
           {themeToggle(`${THEME_LABELS[nextTheme]} Theme`)}
         </div>
       </aside>
