@@ -7007,3 +7007,302 @@ what is seen.
 **Suggested order:** L2-1 (the duplicated labels, a two-line fix), then L3-1
 and L1-1 together — the single interval and the single card shape are the same
 problem seen twice, and fixing them is what makes the squint test pass.
+
+---
+
+# 137. Mobile UI Redesign — "Flour Room" Direction (planned 2026-09-24)
+
+The user supplied three reference images and approved this as the product's
+visual direction. They are kept locally in `design-references/` and are
+**gitignored on purpose** — they are not committed.
+
+| File | What it establishes |
+|---|---|
+| `mobile-direction.png` | Home, Orders and Products at phone width — the brief. |
+| `hero-photography.png` | The palette source: warm cream, dusty rose, terracotta, cream buttercream, soft daylight. |
+| `tablet-desktop-direction.png` | The same system at tablet and desktop. Phase B. |
+
+**Two decisions were taken with the user before this was written:**
+
+1. **No photography.** The references lean on food photography in every row; §16 and §56 forbid any upload but the bakery logo, and that stays. Product thumbnails are replaced by a typographic **bake tile**. No new table, no bucket, no plan change. This is the hardest constraint in the redesign and §137.3 is the answer to it.
+2. **Mobile is build-ready here; tablet and desktop are specified as Phase B** (§137.9), so nothing is left undesigned while the build starts where it was asked to.
+
+---
+
+## 137.1 Scope change, recorded under §31
+
+This replaces the *look* of the two approved visual directions. It does not add
+a third, and it changes no product truth, content, function or data.
+
+| Plan section | Today | After |
+|---|---|---|
+| §21 Approved visual directions | "Clean Bakery", "Peach Bakery" | Same two directions, same `data-theme` switch, restyled. Still exactly two. |
+| §9 Mobile navigation | Home · Orders · Customers · More | Home · Orders · **Products** · Customers · More. Products is promoted out of the More sheet; everything else stays behind More. |
+| Typography | Fredoka + Plus Jakarta Sans | An editorial serif for display, a neutral sans for UI (§137.4). |
+| §16 / §56 uploads | Logo only | **Unchanged.** Logo only. |
+| Tables, endpoints, statuses, money | — | **Unchanged.** |
+
+Nothing else in the plan moves. The order flow (§12), the ledger (§14), receipts
+(§15), roles (§5) and RLS (§7) are untouched by this section.
+
+---
+
+## 137.2 The direction
+
+**Thesis: the ground is warm, the cards are white, and the type is the
+decoration.** Today the app is white-on-near-white with a rounded display face;
+every card dissolves into the page (§134 P3-2) and nothing leads (§136 L1-1).
+The reference inverts the relationship — a warm cream *ground* with white
+*cards* lifting off it — and spends its elegance on typography rather than on
+borders and tints. That inversion alone fixes the contrast finding and gives
+the squint test something to find.
+
+Five rules carry the whole direction:
+
+1. **Cream ground, white card.** Never white-on-white. A card earns its edge from the ground behind it, not from a 1px border.
+2. **Serif for what matters, sans for what works.** Money, headings and stat values are serif; labels, inputs, nav and body are sans.
+3. **Hairlines, not boxes.** Rows in a list are separated by a hairline inside one card, not wrapped in a card each. Fewer edges, more rhythm.
+4. **Status is a dot and a word.** No filled pills for order status. Colour is the dot; the word carries itself.
+5. **One black action per screen.** The circular `+` is the only pure-black element in the UI, so the eye always knows where creation lives.
+
+---
+
+## 137.3 The bake tile — what replaces the photography
+
+The references put a photograph in every row. Without one, a grey box would
+make the design worse than what it replaces, so the tile has to be a designed
+object in its own right:
+
+- **Shape:** 56×56 on a row, 20px radius, sitting on the card.
+- **Ground:** a two-stop vertical wash in the product's **category tint** (§137.5), roughly 12% → 4% opacity over the card. Warm, never flat grey.
+- **Mark:** the product's initials — first letter of the first two words, one letter if there is only one — set in the **display serif**, optically centred, in the category tint at full strength.
+- **Texture:** a single soft radial highlight at 30%/25% of the tile, 8% white. This is what stops it reading as a placeholder.
+- **Fallback:** a product with no name renders the category's own initial.
+- **Reuse:** the same tile renders on the order row for that order's first item, so an order and a product look like the same object across screens.
+
+The tile is a shared component — `src/components/ui/bake-tile.tsx` — and is the
+only place any of this is expressed.
+
+---
+
+## 137.4 Type
+
+| Role | Face | Size / weight | Used for |
+|---|---|---|---|
+| Display | **Fraunces** (variable, optical size, `next/font/google`) | 28–34px, 600 | Screen titles, the greeting, money on a stat |
+| Display small | Fraunces | 17–20px, 600 | Card titles, the quote block |
+| UI | **Inter** | 15px/400, 13px/500, 11px/600 caps | Labels, body, nav, inputs, buttons |
+| Numeric | Inter, `tabular-nums` | 15px/600 | Money inside rows and tables, so columns align |
+
+Money is serif when it is a *headline* (a stat tile, an order total) and
+tabular sans when it is *data in a column* (a list row). That distinction is
+the single most useful typographic rule in the design.
+
+**Retires** Fredoka and Plus Jakarta Sans. `--font-heading` / `--font-body` keep
+their names, so no component changes.
+
+**Fixes §134 P3-3:** the 9/10/11px type is gone. The floor is 11px, and only for
+uppercase tracked labels; everything else is 13px or more.
+
+---
+
+## 137.5 Tokens
+
+Both themes keep the existing `data-theme` switch and every existing token
+name, so nothing outside `globals.css` has to change.
+
+### Clean — warm cream
+
+```text
+--color-background   #F7F3EC   ground (was #ffffff)
+--color-surface      #FFFFFF   cards  (was #f8f9fa)  ← the inversion
+--color-surface-hover#FAF7F1
+--color-primary      #6B4226   unchanged — the brand brown
+--color-primary-hover#54331C
+--color-accent       #B4663F   terracotta, from the hero
+--color-text         #241C16
+--color-text-muted   #7C6F65
+--color-border       #E8E0D5   hairline
+--color-action       #1A1512   the black FAB / active nav  ← new token
+```
+
+### Peach — blush
+
+```text
+--color-background   #FDF1EA
+--color-surface      #FFFDFB
+--color-surface-hover#FBF2EC
+--color-primary      #C85A32   unchanged
+--color-primary-hover#AF4720
+--color-accent       #C9797A   dusty rose, from the hero florals
+--color-text         #2D1E18
+--color-text-muted   #8A6E62
+--color-border       #F4DCD0
+--color-action       #2A1A14
+```
+
+### Status and category
+
+Status keeps the existing enum and `ORDER_STATUS_LABELS` exactly — Pending,
+Baking, Out for delivery, Delivered, Cancelled. Only the rendering changes, to
+a dot plus the word:
+
+```text
+PENDING       amber  #C77D22
+IN_PROGRESS   clay   #B4663F
+IN_TRANSIT    blue   #4A6FA5
+DELIVERED     green  #3F7D58
+CANCELLED     rose   #B5555A
+```
+
+Category tints for the bake tile, drawn from the hero photograph:
+
+```text
+Cakes     #B4663F  terracotta
+Cupcakes  #C9797A  dusty rose
+Cookies   #A8763C  warm gold
+Breads    #8A6A4F  crust brown
+Other     #7C6F65  stone
+```
+
+**Fixes §134 P3-5** (four tiles, three colour treatments) — a stat tile is never
+tinted; colour belongs to the delta and the status dot only.
+
+---
+
+## 137.6 Components
+
+New, in `src/components/ui/`:
+
+| Component | Replaces / adds |
+|---|---|
+| `bake-tile.tsx` | §137.3. New. |
+| `stat-tile.tsx` | Rewritten: serif value, sans label, optional `delta` (`↑12%`) in green / `↓` in rose. No tinted backgrounds. |
+| `segmented.tsx` | Today / This Week / This Month. Dark filled pill for the active segment. |
+| `tab-bar.tsx` | Scrollable tabs with optional count badges — Orders and Products. Underline for active. |
+| `fab.tsx` | The one black circular `+`. Fixed, bottom-right, above the nav, with safe-area inset. |
+| `row.tsx` | One list row: tile · title block · trailing block · optional chevron. Hairline divider between rows, one card around the group. |
+| `quote-block.tsx` | "Small bakes. Big smiles." — centred serif on a tinted panel. |
+| `status-dot.tsx` | Dot + word. Replaces the filled `status-badge` for order status (payment status keeps a badge). |
+
+**Fixes §136 L4-1 and L1-1:** `row.tsx` gives the title the flexible width and
+lets the trailing block size to content, and a list is one card of hairline-
+separated rows instead of N identical cards.
+
+Rewritten: `AppShell` (5-item nav, cream ground, no theme pill in the header —
+it moves to Settings), `PageHeader` (serif title + sans subtitle, no icon).
+
+---
+
+## 137.7 Screens — mobile, build-ready
+
+### Home (`src/app/page.tsx`)
+
+1. **Header band.** Wordmark left; bell and account right. On the cream ground, with a soft radial wash in `--color-accent` at 6% bleeding from the right edge — the compositional role the cake photo played, done with colour.
+2. **Greeting.** `Good morning, {profile.name.split(" ")[0]}` in display serif over two lines, with the time-of-day chosen from the clock. **Fixes §134 P2-1** — both halves of that sentence are currently hard-coded.
+3. **Tagline.** "Fresh bakes. Brighter days." — muted sans.
+4. **Segmented control.** Today / This Week / This Month, driving the three stats below. New capability: `summarise()` takes a period.
+5. **Three stat tiles.** Total Sales · Orders · New Customers, each with a delta. *The delta needs period-over-period data the API does not compute today (§137.8).* Until it lands, the tile renders without a delta rather than a fake one.
+6. **Quote block.**
+7. **Recent Orders**, "View all →", three rows via `row.tsx`: bake tile, order number + product name, time, status dot.
+8. **Low stock** keeps its place from plan §20 but loses the `border-l-4` side tab. **Fixes §134 P4-1.**
+
+Order of sections follows plan §20, so Quick Actions moves below the due list — **fixes §134 P2-5**. The FAB replaces the four Quick Action buttons entirely.
+
+### Orders (`src/app/orders/page.tsx`)
+
+Serif title + subtitle; black FAB. Search field with a filter button beside it.
+Tab bar: All · Pending · Baking · Out for delivery · Delivered · Cancelled,
+each with a count computed client-side from the orders already loaded — no new
+endpoint. Rows: bake tile, `#1028` + product name + customer name + due date,
+then status dot, amount (tabular), chevron.
+
+**The due date renders through `formatDate`, never `formatDateTime`, and the
+overdue bucket compares whole days — fixes §134 P2-2.**
+
+### Products (`src/app/products/page.tsx`)
+
+Serif title + subtitle; black FAB. Category tab bar: All · Cakes · Cupcakes ·
+Cookies · Breads — these are the `categories` table, which exists with RLS and
+has no UI today (§133.4). **Until §133.4 is built the tab bar renders "All"
+only**, and the rest arrives with it. Rows: bake tile, name, category, price,
+`Active` pill, `⋮` overflow.
+
+### Order detail (`src/app/orders/[id]/page.tsx`)
+
+One card, not six. `Panel` gains a `tone` so the header can lead. Order Status
+and Payment Status become one "Status" group with two selects and **one label
+each** — **fixes §136 L2-1 and L2-2**. Collect Payment becomes the screen's
+primary button when a balance is due — **fixes §136 L1-3**.
+
+### Customers · Inventory · Expenses
+
+The same `row.tsx` pattern. Expenses drops the category-initial circle (the
+category is already written on the row) and the always-present edit pencil, which
+moves into a row press — **fixes §136 L4-1 and L4-2**. The amount is ink, not
+red; only a negative delta is red.
+
+### Settings
+
+Gains the theme switch (Clean / Peach) as a labelled two-option control,
+removed from the app header. **Fixes §134 P2-3** — the control can no longer
+contradict itself between breakpoints, because there is only one of it.
+
+---
+
+## 137.8 What this needs that does not exist
+
+| # | Need | Note |
+|---|---|---|
+| N1 | Period-over-period deltas for the three stats | New computation over existing data. Until then, no delta rendered. |
+| N2 | `summarise()` accepting Today / This Week / This Month | Pure function change, no API work. |
+| N3 | Product categories with a UI | Already tracked as §133.4. The Products tab bar degrades to "All" without it. |
+| N4 | A `not-found.tsx` and `error.tsx` in the new direction | Already tracked as §134 P0-2 and P1-1; build them in this style rather than twice. |
+| N5 | Fraunces + Inter via `next/font/google` | Replaces two existing faces; no new dependency. |
+
+---
+
+## 137.9 Phase B — tablet and desktop (specified, not scheduled)
+
+From `tablet-desktop-direction.png`, for when mobile has landed:
+
+- **Sidebar** on the cream ground, white active pill, account block pinned to the bottom, wordmark at the top. Close to today's structure, restyled.
+- **Global search** in the top bar with a `⌘K` hint.
+- **Dashboard** becomes four stat tiles with sparklines, a **Sales Overview** bar chart (7/30-day), **Top Products**, an **Order Status** donut, and **Recent Customers**. All five need aggregation the API does not compute — this is the real cost of Phase B, not the layout.
+- **Orders** becomes a true data table: Order · Customer · Items · Amount · Status · Date.
+- **Products** becomes a card grid rather than rows.
+- **Analytics** gains a tab bar, a sales trend line and a sales-by-category donut.
+
+**Fixes §136 L5-3** — the app finally uses the second dimension a wide viewport
+offers, instead of centring the phone layout.
+
+---
+
+## 137.10 Build order
+
+1. **Tokens, fonts, ground inversion** (§137.4, §137.5). One commit, and every existing screen immediately improves: card contrast (§134 P3-2) and type floor (§134 P3-3) are fixed before a single screen is rebuilt.
+2. **`bake-tile`, `row`, `status-dot`, `stat-tile`, `fab`, `segmented`, `tab-bar`, `quote-block`.** Shared kit first, per AGENTS.md §5.
+3. **`AppShell`** — 5-item nav, FAB slot, theme control out of the header.
+4. **Home**, then **Orders**, then **Products** — the three screens the reference actually specifies.
+5. **Order detail**, then Customers · Inventory · Expenses on the same row pattern.
+6. **Settings**, including the theme switch.
+7. **Peach** verified against every screen — it is a token swap, so it lands with step 1 and is *checked* here.
+8. `not-found.tsx` and `error.tsx` in the new style (N4).
+
+**Do not start before §134's P0-1 and P0-2 are closed.** The inventory screen
+throws on every load and there is no error boundary; rebuilding its visuals on
+top of that would bury a crash under a nicer surface.
+
+---
+
+## 137.11 What this redesign closes
+
+Recording the overlap so the same work is not scheduled twice. Fixed as a
+consequence of the direction: §134 P2-1, P2-2, P2-3, P2-5, P3-2, P3-3, P3-5,
+P4-1, P4-4; §135 D3-1 (the quote and greeting give the empty dashboard a
+voice); §136 L1-1, L1-3, L2-1, L2-2, L4-1, L4-2, L5-1, L5-3.
+
+Explicitly **not** closed by it, and still open: §134 P0-1, P0-2, P1-1, P1-2,
+P3-1; §135 D1-1 … D1-9 (the bill), D2-1 … D2-4 (no confirmations); §136 L5-2
+(the two colliding fixed bars — the FAB work in step 3 must resolve it, not
+inherit it).
