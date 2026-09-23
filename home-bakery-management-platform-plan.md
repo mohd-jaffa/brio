@@ -6796,3 +6796,105 @@ a console or page error at either size.
 **Suggested order:** P0-1 and P0-2 together (the crash and the boundary that
 would have surfaced it), then P1-1, then P2-1 and P2-2, which are the two
 findings a baker would notice first.
+
+---
+
+# 135. Impeccable Delight Pass — Findings (2026-09-23)
+
+A delight inspection of the shipped surface, run against the live app on local
+Supabase with the demo bakery signed in. **Nothing here was fixed** — this
+section is the record.
+
+This is an **Operate** product, so delight belongs at the moments that earn it:
+first use, completion, recovery, and the one artifact that leaves the app.
+Reliability carries everything else, and §134 covers reliability. What follows
+is about character, and about the places where the product currently has none.
+
+**The thesis it is missing.** A home baker is running a business out of a
+kitchen, usually alone, usually on a phone, usually between other tasks. The
+feeling the app should produce is *nothing is slipping*. Every moment below is
+a place where the product could have said that and says nothing instead.
+
+---
+
+## 135.1 The bill is the product's one public artifact, and it belongs to the wrong brand
+
+The bill is the only thing a customer ever sees. It is the bakery's face,
+delivered by this software. Captured from order #1004 on a phone:
+
+| # | Finding |
+|---|---------|
+| **D1-1** | **It is signed "Ovenly Bakery".** `src/features/receipts/api.ts:14` hard-codes the platform's name, so every bill Priya hands a customer is branded with her software vendor instead of *Sweet Delights Home Bakery*. This is logged as a data gap in §133.2 B4; through this lens it is the single most damaging detail in the product. |
+| **D1-2** | **The only action is "Print Receipt".** Plan §12 ends the order flow at "View / **Share** Bill" and §15 says "Preview / PDF → **Share / Download**". On a phone, in India, for a home baker, print is the one action nobody will take. There is no WhatsApp share, no image, no PDF, no copy-link. The payoff of the entire order flow is a print dialog. |
+| **D1-3** | **The bill is a dead end for the customer.** It carries no bakery phone, no address, no way to order again — nothing but line items and "THANK YOU!". The one moment the bakery is in a customer's hand, it asks for nothing and offers nothing. |
+| **D1-4** | **It does not say whether it has been paid.** #1004 is UNPAID and the bill shows Subtotal / Tax / Total with no balance due and no PAID mark. That is the fact both parties most need. |
+| **D1-5** | **It discards the visual world entirely.** `ReceiptPrintView` is `font-mono` on hard-coded `bg-white text-black` with `border-gray-200` and `bg-gray-50` — not one design token. The app is warm brown `#6b4226` with Fredoka headings and peach accents; the bill looks like a thermal till roll from a different product, and it renders identically in both approved themes. The receipt idiom is a legitimate choice, but it is currently an accident rather than a decision, and it leaves no room for the logo §133.2 is meant to add. |
+| **D1-6** | **"Generated at 23 Sep 2026, 11:28 PM"** is machine exhaust printed on a customer-facing document. |
+| **D1-7** | **A ₹0 tax line** is printed for a baker who charges no tax. |
+| **D1-8** | **The dismiss control is nearly invisible** — a 20px grey X on grey, against a heavy black "Print Receipt" pill. The weights are backwards for a modal whose likeliest next action is "close". |
+| **D1-9** | **What is already right:** the dashed tear-line under the masthead and the dotted rule above the footer are real receipt material behaviour. That is the one existing delight seed in the product, and it is worth building the rest of the bill's character on rather than replacing. |
+
+---
+
+## 135.2 Completion: the app never confirms anything
+
+| # | Finding |
+|---|---------|
+| **D2-1** | **There is no confirmation system at all.** The only `aria-live` region in the entire codebase is the one in `AuthPending`. Creating an order, collecting a payment, adjusting stock, saving a customer, moving an order to DELIVERED — every mutation completes in silence. For a product whose promise is *nothing is slipping*, nothing ever says that something landed. |
+| **D2-2** | **Placing an order — the highest-stakes action in the product — is a silent route change.** `src/app/orders/new/page.tsx:135` does `router.push(/orders/{id})` and nothing else. No order number announced, no "created", no transition. The baker is simply somewhere else. Per plan §12 this is exactly where "View / Share Bill" should begin. |
+| **D2-3** | **Payment collected and stock adjusted just close their sheets.** The amount that was taken, the new balance — neither is ever stated back. |
+| **D2-4** | **Marking an order DELIVERED is the emotional peak of the daily loop** — the cake left the kitchen, the job is done — and it produces a badge change. It is the most repeatable satisfying moment the product owns and it is entirely unmarked. |
+
+---
+
+## 135.3 First use: a new bakery is handed an operational dashboard with nothing to operate
+
+| # | Finding |
+|---|---------|
+| **D3-1** | **"Nothing is waiting on you. Every order is delivered or cancelled."** (`src/app/page.tsx:113`) is shown to a bakery that has never taken an order. The line is good — it is the app's warmest sentence — but it conflates *you are caught up* with *you have not started*, and on day one it is simply false. These are two different states and the better one is being wasted on the wrong person. |
+| **D3-2** | **There is no first-run path.** A new baker signs in to four zeros, an empty due list and an empty stock list. Nothing sequences the work — add a product, add a customer, take an order — even though that order is forced by the data model. The dashboard has no empty state of its own. |
+| **D3-3** | **All five empty states are the same sentence in five costumes:** "No customers yet" / "No products yet" / "No orders yet" / "No expenses recorded" / "No active products", each followed by "Start adding…" or "Start tracking…". None of them knows it is a bakery. |
+| **D3-4** | **The inventory empty state has no action and names a screen that does not exist:** "Add active products in the **Menu** to manage their stock" (`src/app/inventory/page.tsx:87`) — the nav item is called **Products**; Menu Builder is Phase 2. It is also the only empty state with no button, so the one screen that tells you to go elsewhere does not take you there. |
+
+---
+
+## 135.4 Waiting and recovery
+
+| # | Finding |
+|---|---------|
+| **D4-1** | **Waiting says nothing.** `SkeletonRows` is the whole vocabulary. For the two reads that are genuinely slow — building a bill, loading the dashboard's three parallel queries — there is no product-specific language, no truthful progress, nothing that reads as *this product doing its work*. |
+| **D4-2** | **Recovery has no warmth and no route out.** Every failure is a red `ScreenNotice` with a sentence and, on a list, a retry. There is no illustration, no "this is usually a connection problem", and — per §134 P1-1 — a 404 drops the baker on an unstyled Next error page with no way back. Plan §55's stakes here are money and orders; the current treatment is a flat red box. |
+
+---
+
+## 135.5 Defects found through this lens
+
+Two of these are hard defects rather than missed opportunities, and both were
+measured live rather than inferred.
+
+| # | Finding |
+|---|---------|
+| **D5-1** | **On a phone, `/orders/new` hides the entire bottom navigation.** Measured at 390×844: two `position: fixed; bottom: 0` bars occupy the same 60px band — the Place Order bar (`src/app/orders/new/page.tsx:365`, `z-40`, top 783, height 61) sits directly on top of AppShell's bottom nav (`src/components/nav/AppShell.tsx:127`, `z-30`, top 784, height 60). Neither offsets for the other, so while building an order the baker cannot see or reach Dashboard, Orders, Customers or More. |
+| **D5-2** | **Every order defaults to a delivery at whatever minute it was created, tomorrow.** `tomorrow()` (`src/app/orders/new/page.tsx:41`) returns now + 24h, and the field is a `datetime-local`, so an order entered at 11:18 PM proposes delivery tomorrow at 11:18 PM. This is the root of §134 P2-2: the form collects a precision the product has no use for and defaults it to an absurd hour. A bakery delivers in slots — morning, afternoon, evening — and the schema has no time-slot column to hold one. |
+| **D5-3** | **"No extra charges or discounts applied."** is italic grey passive text where an invitation belongs. It states an absence instead of offering the capability. |
+| **D5-4** | **"Place Order" is enabled on an untouched form**, so the first thing a first-time baker can do is submit nothing and collect validation errors. |
+| **D5-5** | **Order items truncate on the order detail** — "Blueberry Cheesec… ×1" at 390px, with room to spare. The one line that says what was actually baked is the line being cut. |
+
+---
+
+## 135.6 Where the character should live
+
+Recording the judgement so the next pass does not start from zero. The product
+already owns three things worth building on: the **receipt's tear-line
+material**, the **due-date buckets** (Overdue / Today / Tomorrow / Later is a
+genuinely good operational idea), and the **"nothing is waiting on you"**
+voice. Those are the seeds. The moments that would earn the most, in order:
+
+1. **The bill** (D1-1 … D1-9) — it is the only artifact that leaves the app, it carries the wrong name today, and it cannot be shared.
+2. **Order placed** (D2-2) — the flow's payoff, currently a silent redirect.
+3. **First run** (D3-1 … D3-4) — the one impression that cannot be retaken.
+4. **Delivered** (D2-4) — the most repeated satisfying moment in the product.
+
+Everything here is Enhance work and none of it should start before §134's P0
+and P1 are closed: a crash and a missing error boundary are not a backdrop for
+personality.
