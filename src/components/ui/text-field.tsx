@@ -1,7 +1,12 @@
 "use client";
 
 import { forwardRef, useId } from "react";
-import type { InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+import type {
+  InputHTMLAttributes,
+  ReactNode,
+  SelectHTMLAttributes,
+  TextareaHTMLAttributes,
+} from "react";
 
 import { cn } from "./cn";
 import { FieldError } from "./field-error";
@@ -48,21 +53,29 @@ function Label({ htmlFor, label, required }: { htmlFor: string; label: string; r
 
 export const TextField = forwardRef<
   HTMLInputElement,
-  FieldShell & Omit<InputHTMLAttributes<HTMLInputElement>, "className" | "id">
->(function TextField({ label, error, required, hint, ...rest }, ref) {
+  FieldShell & {
+    /** A control that sits inside the field — the reveal button on a password. */
+    trailing?: ReactNode;
+  } & Omit<InputHTMLAttributes<HTMLInputElement>, "className" | "id">
+>(function TextField({ label, error, required, hint, trailing, ...rest }, ref) {
   const { id, errorId } = useFieldIds(error);
   return (
     <div>
       <Label htmlFor={id} label={label} required={required} />
-      <input
-        id={id}
-        ref={ref}
-        aria-required={required || undefined}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={errorId}
-        className={CONTROL_CLASSES}
-        {...rest}
-      />
+      <div className="relative">
+        <input
+          id={id}
+          ref={ref}
+          aria-required={required || undefined}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={errorId}
+          className={cn(CONTROL_CLASSES, Boolean(trailing) && "pr-12")}
+          {...rest}
+        />
+        {trailing && (
+          <span className="absolute inset-y-0 right-1.5 flex items-center">{trailing}</span>
+        )}
+      </div>
       {hint && !error && <p className="mt-1.5 text-xs text-text-muted">{hint}</p>}
       <FieldError id={errorId} message={error} />
     </div>

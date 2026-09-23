@@ -1,0 +1,125 @@
+"use client";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+
+import { Button } from "@/components/ui/button";
+import { ScreenNotice } from "@/components/ui/screen-notice";
+import { TextField } from "@/components/ui/text-field";
+import { UI_TEXT } from "@/constants/messages";
+import { AUTH_ROUTES } from "@/constants/routes";
+import { useApiMutation } from "@/lib/query/useApiMutation";
+import { registerSchema, type RegisterInput, type RegisterPayload } from "@/lib/validation";
+
+import { AuthClient, type RegisteredAccount } from "../api.client";
+import { PasswordField } from "./PasswordField";
+
+const EMPTY: RegisterInput = {
+  name: "",
+  businessName: "",
+  phone: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+};
+
+/**
+ * Creating an account (plan §7). Registration deliberately does not sign
+ * anyone in: a confirmation email has just been sent, and the next step is to
+ * sign in with the phone number and password that were chosen here.
+ */
+export function RegisterForm() {
+  const router = useRouter();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterInput, unknown, RegisterPayload>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: EMPTY,
+  });
+
+  const { submit, submitting, error } = useApiMutation<RegisterPayload, RegisteredAccount>(
+    AuthClient.register,
+    {
+      fallback: "AUTH_REGISTRATION_FAILED",
+      onSuccess: () => router.replace(`${AUTH_ROUTES.signIn}?registered=1`),
+    },
+  );
+
+  return (
+    <form onSubmit={handleSubmit((values) => submit(values))} className="space-y-5" noValidate>
+      {error && <ScreenNotice>{error}</ScreenNotice>}
+
+      <TextField
+        label={UI_TEXT.auth.nameLabel}
+        autoComplete="name"
+        placeholder="Priya Sharma"
+        required
+        error={errors.name?.message}
+        {...register("name")}
+      />
+
+      <TextField
+        label={UI_TEXT.auth.businessNameLabel}
+        autoComplete="organization"
+        placeholder="Sweet Delights"
+        required
+        error={errors.businessName?.message}
+        {...register("businessName")}
+      />
+
+      <TextField
+        label={UI_TEXT.auth.phoneLabel}
+        type="tel"
+        inputMode="tel"
+        autoComplete="tel"
+        placeholder="98765 43210"
+        hint="You will sign in with this number."
+        required
+        error={errors.phone?.message}
+        {...register("phone")}
+      />
+
+      <TextField
+        label={UI_TEXT.auth.emailLabel}
+        type="email"
+        inputMode="email"
+        autoComplete="email"
+        placeholder="priya@example.com"
+        hint="Where your confirmation and password resets are sent."
+        required
+        error={errors.email?.message}
+        {...register("email")}
+      />
+
+      <PasswordField
+        label={UI_TEXT.auth.passwordLabel}
+        autoComplete="new-password"
+        hint={UI_TEXT.auth.passwordHint}
+        required
+        error={errors.password?.message}
+        {...register("password")}
+      />
+
+      <PasswordField
+        label={UI_TEXT.auth.confirmPasswordLabel}
+        autoComplete="new-password"
+        required
+        error={errors.confirmPassword?.message}
+        {...register("confirmPassword")}
+      />
+
+      <Button
+        type="submit"
+        fullWidth
+        loading={submitting}
+        icon={ArrowRight}
+        label={submitting ? UI_TEXT.auth.creatingAccount : UI_TEXT.auth.createAccount}
+      />
+    </form>
+  );
+}
