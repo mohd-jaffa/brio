@@ -1,6 +1,6 @@
 import { type Session, type SupabaseClient } from "@supabase/supabase-js";
+
 import { getServerEnv, type ServerEnv } from "@/lib/env/server";
-import { createConfiguredMailService } from "@/lib/mail/nodemailer.provider";
 import {
   authenticationError,
   authorizationError,
@@ -9,18 +9,28 @@ import {
   internalError,
 } from "@/lib/errors";
 import { logger } from "@/lib/logger";
-import { generateTemporaryPassword } from "@/features/auth/security";
-import {
-  changePasswordSchema,
-  loginSchema,
-  passwordResetRequestSchema,
-  registerSchema,
-  type ChangePasswordInput,
-  type LoginInput,
-  type PasswordResetRequestInput,
-  type RegisterInput,
+import { createConfiguredMailService } from "@/lib/mail/nodemailer.provider";
+import type {
+  ChangePasswordPayload,
+  ConfirmEmailPayload,
+  LoginPayload,
+  PasswordResetRequestPayload,
+  RegisterPayload,
 } from "@/lib/validation";
-import { type AuthenticatedSession, type AuthProfile, type UserRole } from "@/features/auth/types";
+
+import { generateTemporaryPassword } from "./security";
+import {
+  type AuthProfile,
+  type AuthSessionView,
+  type AuthenticatedSession,
+  type UserRole,
+} from "./types";
+
+/** Where the confirmation link in the welcome email lands. */
+export const EMAIL_CONFIRMATION_PATH = "/confirm-email";
+
+const PROFILE_COLUMNS =
+  "id, phone, email, name, role, bakery_id, is_active, must_change_password, email_confirmed_at";
 
 export interface ProfileRow {
   id: string;
@@ -37,6 +47,12 @@ export interface ProfileRow {
 // ------------------------------------------------------------------
 // Error Mapping
 // ------------------------------------------------------------------
+
+/**
+ * Supabase says "duplicate key value violates unique constraint …" whichever
+ * field collided. The baker needs to know which one, and must not be shown the
+ * driver's own sentence (AGENTS.md §10), so the column is read out of it here.
+ */
 function mapDatabaseError(error: unknown) {
   const message =
     error && typeof error === "object" && "message" in error
@@ -58,10 +74,6 @@ function mapDatabaseError(error: unknown) {
   return externalServiceError("EXTERNAL_SERVICE_ERROR", undefined, error);
 }
 
-function mapAuthMutationError(error: unknown) {
-  return mapDatabaseError(error);
-}
-
 // ------------------------------------------------------------------
 // Repository Logic
 // ------------------------------------------------------------------
@@ -74,9 +86,8 @@ export async function createBakeryAndProfile(
     phone: string;
     email: string;
     name: string;
-  }
+  },
 ) {
-  // 1. Create Bakery
   const { data: bakeryData, error: bakeryError } = await client
     .from("bakeries")
     .insert({
@@ -95,7 +106,6 @@ export async function createBakeryAndProfile(
 
   const bakeryId = String((bakeryData as { id: string }).id);
 
-  // 2. Create Profile
   const { data: profileData, error: profileError } = await client
     .from("profiles")
     .insert({
@@ -108,13 +118,12 @@ export async function createBakeryAndProfile(
       is_active: true,
       must_change_password: false,
     })
-    .select(
-      "id, phone, email, name, role, bakery_id, is_active, must_change_password, email_confirmed_at"
-    )
+    .select(PROFILE_COLUMNS)
     .single();
 
   if (profileError || !profileData) {
-    // Rollback bakery creation if profile fails
+    // A bakery with no owner profile is unreachable and blocks the owner's
+    // next attempt, because owner_id is unique.
     await client.from("bakeries").delete().eq("id", bakeryId);
     throw mapDatabaseError(profileError);
   }
@@ -125,12 +134,13 @@ export async function createBakeryAndProfile(
   };
 }
 
-export async function getProfileById(client: SupabaseClient, userId: string): Promise<ProfileRow | null> {
+export async function getProfileById(
+  client: SupabaseClient,
+  userId: string,
+): Promise<ProfileRow | null> {
   const { data, error } = await client
     .from("profiles")
-    .select(
-      "id, phone, email, name, role, bakery_id, is_active, must_change_password, email_confirmed_at"
-    )
+    .select(PROFILE_COLUMNS)
     .eq("id", userId)
     .maybeSingle();
 
@@ -141,12 +151,13 @@ export async function getProfileById(client: SupabaseClient, userId: string): Pr
   return data as ProfileRow | null;
 }
 
-export async function getProfileByEmail(client: SupabaseClient, email: string): Promise<ProfileRow | null> {
+export async function getProfileByEmail(
+  client: SupabaseClient,
+  email: string,
+): Promise<ProfileRow | null> {
   const { data, error } = await client
     .from("profiles")
-    .select(
-      "id, phone, email, name, role, bakery_id, is_active, must_change_password, email_confirmed_at"
-    )
+    .select(PROFILE_COLUMNS)
     .eq("email", email)
     .maybeSingle();
 
@@ -157,10 +168,14 @@ export async function getProfileByEmail(client: SupabaseClient, email: string): 
   return data as ProfileRow | null;
 }
 
-export async function requirePasswordChange(client: SupabaseClient, userId: string): Promise<void> {
+async function setPasswordChangeRequirement(
+  client: SupabaseClient,
+  userId: string,
+  required: boolean,
+): Promise<void> {
   const { error } = await client
     .from("profiles")
-    .update({ must_change_password: true })
+    .update({ must_change_password: required })
     .eq("id", userId);
 
   if (error) {
@@ -168,10 +183,16 @@ export async function requirePasswordChange(client: SupabaseClient, userId: stri
   }
 }
 
-export async function clearPasswordChangeRequirement(client: SupabaseClient, userId: string): Promise<void> {
+export const requirePasswordChange = (client: SupabaseClient, userId: string) =>
+  setPasswordChangeRequirement(client, userId, true);
+
+export const clearPasswordChangeRequirement = (client: SupabaseClient, userId: string) =>
+  setPasswordChangeRequirement(client, userId, false);
+
+async function markEmailConfirmed(client: SupabaseClient, userId: string, at: string) {
   const { error } = await client
     .from("profiles")
-    .update({ must_change_password: false })
+    .update({ email_confirmed_at: at })
     .eq("id", userId);
 
   if (error) {
@@ -207,12 +228,20 @@ function buildAuthenticatedSession(session: Session, profile: AuthProfile): Auth
   };
 }
 
+/** What the browser is allowed to see of a session: everything except the tokens. */
+export function toSessionView(session: AuthenticatedSession): AuthSessionView {
+  return {
+    profile: session.profile,
+    requiresPasswordChange: session.requiresPasswordChange,
+  };
+}
+
 async function createConfirmationUrl(client: SupabaseClient, email: string, env: ServerEnv) {
   const { data, error } = await client.auth.admin.generateLink({
     type: "magiclink",
     email,
     options: {
-      redirectTo: `${env.NEXT_PUBLIC_APP_URL}/auth/confirm`,
+      redirectTo: `${env.NEXT_PUBLIC_APP_URL}${EMAIL_CONFIRMATION_PATH}`,
     },
   });
 
@@ -242,8 +271,12 @@ async function fetchProfile(client: SupabaseClient, userId: string): Promise<Aut
   return mapProfile(profile);
 }
 
-export async function register(client: SupabaseClient, input: RegisterInput) {
-  const registration = registerSchema.parse(input);
+/** A deactivated account keeps its rows but may not act (plan §64). */
+function assertActive(profile: AuthProfile) {
+  if (!profile.isActive) throw authorizationError("AUTH_ACCOUNT_INACTIVE");
+}
+
+export async function register(client: SupabaseClient, registration: RegisterPayload) {
   const env = getServerEnv();
   const mailService = createConfiguredMailService();
 
@@ -260,7 +293,7 @@ export async function register(client: SupabaseClient, input: RegisterInput) {
   });
 
   if (userError) {
-    throw mapAuthMutationError(userError);
+    throw mapDatabaseError(userError);
   }
 
   const user = userData.user;
@@ -290,73 +323,135 @@ export async function register(client: SupabaseClient, input: RegisterInput) {
       profile: mapProfile(profile),
     };
   } catch (error) {
+    // Without this the phone and email stay taken by an account that has no
+    // bakery, and the same person can never register again.
     await rollbackCreatedUser(client, user.id);
     throw error;
   }
 }
 
-export async function login(client: SupabaseClient, input: LoginInput): Promise<AuthenticatedSession> {
-  const credentials = loginSchema.parse(input);
-
+export async function login(
+  client: SupabaseClient,
+  credentials: LoginPayload,
+): Promise<AuthenticatedSession> {
   const { data, error } = await client.auth.signInWithPassword({
     phone: credentials.phone,
     password: credentials.password,
   });
 
+  // One message for a wrong password and for a phone number with no account:
+  // telling them apart tells an attacker which numbers are registered.
   if (error || !data.session || !data.user) {
     throw authenticationError("AUTH_INVALID_CREDENTIALS");
   }
 
   const profile = await fetchProfile(client, data.user.id);
-
-  if (!profile.isActive) {
-    throw authorizationError("AUTH_ACCOUNT_INACTIVE");
-  }
+  assertActive(profile);
 
   return buildAuthenticatedSession(data.session, profile);
 }
 
+/**
+ * Ends the session the caller is holding. The token is revoked at Supabase, so
+ * it cannot be replayed even if it was copied before the cookies were cleared;
+ * a token already expired or missing is not an error — the caller wanted to be
+ * signed out, and they are.
+ */
 export async function logout(client: SupabaseClient) {
   const { error } = await client.auth.signOut();
 
   if (error) {
-    throw authenticationError("AUTH_SESSION_INVALID");
+    logger.warn("Sign out could not revoke the session", { error: error.message });
   }
 
   return { signedOut: true };
 }
 
-export async function getSession(client: SupabaseClient, accessToken?: string): Promise<AuthenticatedSession> {
-  const { data, error } = accessToken 
-    ? await client.auth.getUser(accessToken) 
-    : await client.auth.getUser();
+export async function getSession(
+  client: SupabaseClient,
+  accessToken: string,
+): Promise<AuthenticatedSession> {
+  const { data, error } = await client.auth.getUser(accessToken);
 
   if (error || !data.user) {
     throw authenticationError("AUTH_SESSION_INVALID");
   }
 
   const profile = await fetchProfile(client, data.user.id);
-
-  if (!profile.isActive) {
-    throw authorizationError("AUTH_ACCOUNT_INACTIVE");
-  }
-
-  const { data: sessionData } = await client.auth.getSession();
-  const session = sessionData.session;
+  assertActive(profile);
 
   return {
-    accessToken: accessToken ?? session?.access_token ?? "",
-    refreshToken: session?.refresh_token ?? "",
-    expiresAt: session?.expires_at ?? null,
+    accessToken,
+    refreshToken: "",
+    expiresAt: null,
     profile,
     requiresPasswordChange: profile.mustChangePassword,
   };
 }
 
-export async function requestPasswordReset(client: SupabaseClient, input: PasswordResetRequestInput) {
-  const resetRequest = passwordResetRequestSchema.parse(input);
-  const mailService = createConfiguredMailService();
+/**
+ * Trades a refresh token for a fresh access token (plan §19). Called when a
+ * request is refused for an expired token, so a baker keeps working instead of
+ * being sent back to sign-in every hour.
+ */
+export async function refreshSession(
+  client: SupabaseClient,
+  adminClient: SupabaseClient,
+  refreshToken: string,
+): Promise<AuthenticatedSession> {
+  const { data, error } = await client.auth.refreshSession({ refresh_token: refreshToken });
 
+  if (error || !data.session || !data.user) {
+    throw authenticationError("AUTH_SESSION_INVALID");
+  }
+
+  const profile = await fetchProfile(adminClient, data.user.id);
+  assertActive(profile);
+
+  return buildAuthenticatedSession(data.session, profile);
+}
+
+/**
+ * Completes the link in the welcome email (plan §7). Supabase has already
+ * verified the address by the time these tokens exist; what is left is to
+ * record it on the profile and hand the baker a signed-in session, so
+ * confirming lands them in the app rather than back at sign-in.
+ */
+export async function confirmEmail(
+  client: SupabaseClient,
+  adminClient: SupabaseClient,
+  tokens: ConfirmEmailPayload,
+): Promise<AuthenticatedSession> {
+  const { data, error } = await client.auth.setSession({
+    access_token: tokens.accessToken,
+    refresh_token: tokens.refreshToken,
+  });
+
+  if (error || !data.session || !data.user) {
+    throw authenticationError("AUTH_EMAIL_CONFIRM_FAILED");
+  }
+
+  const confirmedAt = data.user.email_confirmed_at ?? new Date().toISOString();
+  await markEmailConfirmed(adminClient, data.user.id, confirmedAt);
+
+  const profile = await fetchProfile(adminClient, data.user.id);
+  assertActive(profile);
+
+  return buildAuthenticatedSession(data.session, profile);
+}
+
+/**
+ * The reset flow the plan approves (§94): a cryptographically random temporary
+ * password is set, the account is marked as owing a password change, and the
+ * password is emailed. The answer is the same whether or not the address
+ * belongs to an account, so this endpoint cannot be used to discover who has
+ * one; the temporary password is never returned and never logged.
+ */
+export async function requestPasswordReset(
+  client: SupabaseClient,
+  resetRequest: PasswordResetRequestPayload,
+) {
+  const mailService = createConfiguredMailService();
   const profile = await getProfileByEmail(client, resetRequest.email);
 
   if (!profile || !profile.is_active) {
@@ -383,19 +478,27 @@ export async function requestPasswordReset(client: SupabaseClient, input: Passwo
   return { accepted: true };
 }
 
+/**
+ * Replaces the caller's password and lifts the forced-change flag (plan §95).
+ * The token is resolved to a user first, so the change can only ever be
+ * applied to the account that asked for it, and every other session that
+ * account has open is revoked — a password changed after a reset must not
+ * leave the temporary one working anywhere else (plan §19).
+ */
 export async function changePassword(
-  client: SupabaseClient,
   adminClient: SupabaseClient,
-  input: ChangePasswordInput
-) {
-  const passwordChange = changePasswordSchema.parse(input);
-  const { data: userData, error: userError } = await client.auth.getUser();
+  accessToken: string,
+  passwordChange: ChangePasswordPayload,
+): Promise<AuthSessionView> {
+  const { data: userData, error: userError } = await adminClient.auth.getUser(accessToken);
 
   if (userError || !userData.user) {
     throw authenticationError("AUTH_SESSION_INVALID");
   }
 
-  const { error: updateError } = await client.auth.updateUser({
+  const userId = userData.user.id;
+
+  const { error: updateError } = await adminClient.auth.admin.updateUserById(userId, {
     password: passwordChange.newPassword,
   });
 
@@ -403,12 +506,23 @@ export async function changePassword(
     throw externalServiceError("EXTERNAL_SERVICE_ERROR", undefined, updateError);
   }
 
-  await clearPasswordChangeRequirement(adminClient, userData.user.id);
+  await clearPasswordChangeRequirement(adminClient, userId);
+  await revokeOtherSessions(adminClient, accessToken);
 
-  const profile = await fetchProfile(adminClient, userData.user.id);
+  const profile = await fetchProfile(adminClient, userId);
 
   return {
     profile,
     requiresPasswordChange: false,
   };
+}
+
+/** Best effort: the password is already changed, so a failure here is logged, not raised. */
+async function revokeOtherSessions(adminClient: SupabaseClient, accessToken: string) {
+  try {
+    const { error } = await adminClient.auth.admin.signOut(accessToken, "others");
+    if (error) logger.warn("Could not revoke other sessions after a password change");
+  } catch {
+    logger.warn("Could not revoke other sessions after a password change");
+  }
 }

@@ -12,6 +12,8 @@ export const apiRoutes = {
     register: "/api/auth/register",
     password: "/api/auth/password",
     passwordReset: "/api/auth/password-reset",
+    refresh: "/api/auth/refresh",
+    confirm: "/api/auth/confirm",
   },
   customers: {
     list: "/api/customers",

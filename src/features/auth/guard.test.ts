@@ -1,0 +1,105 @@
+import { describe, expect, it, vi } from "vitest";
+
+import { AppError } from "@/lib/errors";
+
+import { ACCESS_TOKEN_COOKIE } from "./cookies";
+import type { AuthProfile, AuthenticatedSession } from "./types";
+
+// The guard reaches for a session and for Supabase clients; neither is what
+// these cases are about, and neither should need configuration to run.
+vi.mock("./api", () => ({ getSession: vi.fn() }));
+vi.mock("@/lib/supabase/server", () => ({
+  createSupabaseAnonClient: vi.fn(),
+  createSupabaseServiceRoleClient: vi.fn(),
+}));
+
+const { assertPasswordChanged, assertRole, bearerToken, readAccessToken } = await import("./guard");
+
+const profile = (role: AuthProfile["role"]): AuthProfile => ({
+  id: "u-1",
+  phone: "+919876543210",
+  email: "asha@example.com",
+  name: "Asha",
+  role,
+  bakeryId: "b-1",
+  isActive: true,
+  mustChangePassword: false,
+  emailConfirmedAt: null,
+});
+
+function requestWith(headers: Record<string, string>) {
+  return new Request("https://ovenly.test/api/orders", { headers });
+}
+
+function codeOf(run: () => unknown): string {
+  try {
+    run();
+  } catch (error) {
+    return error instanceof AppError ? error.code : "NOT_AN_APP_ERROR";
+  }
+  return "NOTHING_THROWN";
+}
+
+describe("the token behind a request", () => {
+  it("reads an Authorization header", () => {
+    expect(bearerToken(new Headers({ authorization: "Bearer abc" }))).toBe("abc");
+    expect(bearerToken(new Headers({ authorization: "bearer abc" }))).toBe("abc");
+  });
+
+  it("ignores a header that is not a bearer token", () => {
+    expect(bearerToken(new Headers({ authorization: "Basic abc" }))).toBeNull();
+    expect(bearerToken(new Headers({ authorization: "Bearer" }))).toBeNull();
+    expect(bearerToken(new Headers())).toBeNull();
+  });
+
+  it("falls back to the session cookie the browser sends", () => {
+    expect(readAccessToken(requestWith({ cookie: `${ACCESS_TOKEN_COOKIE}=from-cookie` }))).toBe(
+      "from-cookie",
+    );
+  });
+
+  it("prefers an explicit bearer token over the cookie", () => {
+    const request = requestWith({
+      authorization: "Bearer from-header",
+      cookie: `${ACCESS_TOKEN_COOKIE}=from-cookie`,
+    });
+
+    expect(readAccessToken(request)).toBe("from-header");
+  });
+
+  it("refuses a request carrying neither", () => {
+    expect(codeOf(() => readAccessToken(requestWith({})))).toBe("AUTH_SESSION_REQUIRED");
+  });
+});
+
+describe("what a role may do", () => {
+  it("lets through a role the route serves", () => {
+    expect(() => assertRole(profile("BAKER"), ["BAKER"])).not.toThrow();
+  });
+
+  it("refuses a role the route does not serve, so DEV does not inherit business data", () => {
+    expect(codeOf(() => assertRole(profile("DEV"), ["BAKER"]))).toBe("AUTH_ROLE_FORBIDDEN");
+  });
+
+  it("has no default that would let everyone through", () => {
+    expect(codeOf(() => assertRole(profile("BAKER"), []))).toBe("AUTH_ROLE_FORBIDDEN");
+  });
+});
+
+describe("a temporary password still in use", () => {
+  const session = (requiresPasswordChange: boolean): AuthenticatedSession => ({
+    accessToken: "t",
+    refreshToken: "",
+    expiresAt: null,
+    profile: profile("BAKER"),
+    requiresPasswordChange,
+  });
+
+  it("is refused everywhere but the screen that replaces it", () => {
+    expect(codeOf(() => assertPasswordChanged(session(true)))).toBe("AUTH_PASSWORD_CHANGE_REQUIRED");
+  });
+
+  it("stops mattering once the password has been changed", () => {
+    expect(() => assertPasswordChanged(session(false))).not.toThrow();
+  });
+});
