@@ -6700,3 +6700,99 @@ The following UI/UX, native platform integration, and production hardening items
 | **L11** | **Impeccable Operational Layout & Geometry System** | Responsive Layout / Spatial UX | Standardize screen spatial geometry: enforce `dvh` dynamic viewport containers, `safe-area` insets for PWA/Capacitor, responsive 4-column desktop grids vs 1-column mobile cards, right-aligned tabular currency formatting, and sticky sheet modal footers. |
 | **L12** | **Impeccable Design Critique & Comprehensive Polish Audit** | Design Quality / Accessibility | Comprehensive design critique: verify dual-theme visual token harmony (`Clean Bakery` vs `Peach Bakery`), WCAG AAA text contrast, 44px touch ergonomics, glassmorphic headers, smooth micro-interactions, and accessibility focus traps. |
 
+
+---
+
+# 134. Impeccable Polish Pass — Findings (2026-09-23)
+
+A polish inspection of the shipped surface, run against the live app on local
+Supabase with the demo bakery signed in. **Nothing here was fixed** — this
+section is the record, so the work can be scheduled.
+
+**How it was gathered.** The mechanical detector over `src/app`, `src/components`
+and `src/features`; then every route captured at 390×844 and 1440×900 with a
+real browser, signed out and signed in, with console and page errors recorded;
+then the source read against what the captures showed. Findings are ordered by
+the triage in the polish playbook: broken first, cosmetic last. Every one names
+the file and line it lives at.
+
+> The two detector hits (`border-l-4`, `src/app/page.tsx:144` and `:215`) appear
+> below as **P4-1**. A near-clean detector run is not evidence of quality; the
+> defects that matter here were found by using the app.
+
+---
+
+## 134.1 P0 — Broken
+
+| # | Finding |
+|---|---------|
+| **P0-1** | **`/inventory` throws on every load.** `TypeError: Cannot read properties of undefined (reading 'id')`, reproduced on both viewports. `InventoryAdjustmentSheet` guards with `if (!product) return null` — but the guard sits *after* `useApiMutation`, and the callback closes over `product!.id` (`src/features/inventory/components/InventoryAdjustmentSheet.tsx:58`). With `reactCompiler: true` the React Compiler lifts that read into a memo dependency (`if ($[6] !== product.id)` in the emitted chunk), so it runs at render, before the guard, while the sheet is closed and `product` is `undefined`. The screen still paints because React recovers, but it throws on every visit and any error boundary would catch it. **Fix:** drop the `!` and read `product.id` inside the callback body after a null check, or move the guard above the hook. **The class of bug matters more than the instance:** under the React Compiler, any `x!.y` inside a hook argument that is guarded by a later early return becomes a render-time read. This is the only occurrence in a component today (`src/features/orders/checkout.ts` has three more, but that file is server-side and not compiled). |
+| **P0-2** | **No error boundary anywhere.** There is no `error.tsx` or `global-error.tsx` in `src/app`. A render error in any screen takes the whole app to a blank page in production, with no recovery and no way back. Given P0-1 exists, this is not hypothetical. |
+
+---
+
+## 134.2 P1 — Missing states
+
+| # | Finding |
+|---|---------|
+| **P1-1** | **No `not-found.tsx`.** `/receipts` is in the app's own sidebar and More sheet (`src/constants/navigation.ts`) and has no page, so a baker who taps it lands on Next's stock black-on-white "404 — This page could not be found": no shell, no nav, no theme, no way back. Verified at both sizes. Either build the screen (§133.8) or remove the nav entry — but ship a branded `not-found.tsx` regardless, because a mistyped URL does the same thing. |
+| **P1-2** | **No `loading.tsx` on any route.** Every screen renders its own skeleton once the client component mounts, so navigation shows the previous screen until the new one hydrates. |
+| **P1-3** | **The forced-password-change screen is unreachable in practice, so its state is unverified.** `/change-password` is only reached after a temporary-password sign-in, which needs the reset email. It renders, but the "you are here because of a temporary password" path has never been walked end to end. Worth one manual pass through Mailpit before release. |
+| **P1-4** | **Sign-in leaves focus on the submit button after a refusal.** On both an empty submit and a wrong password, focus stays where it was; nothing moves to the banner or the first invalid field. The per-field `role="alert"` fires, but several simultaneous alerts are unreliable — a keyboard or screen-reader user has to hunt for what went wrong. |
+
+---
+
+## 134.3 P2 — Flow, hierarchy and system drift
+
+| # | Finding |
+|---|---------|
+| **P2-1** | **The dashboard greets the role, not the person, and ignores the clock.** `src/app/page.tsx:67` hard-codes `Good morning, Baker!`. The sidebar two inches away reads "Priya Baker" from the session, and the capture that says "Good morning" was taken at 23:15. Both halves of the sentence are wrong, and the session has had the name since authentication shipped. |
+| **P2-2** | **A delivery date is printed as a timestamp.** `src/app/page.tsx:156` uses `formatDateTime`, so the due list reads "23 Sep 2026, 11:08 PM". There is no time-slot column in `orders` — the minute is an artefact of whatever `created_at`-like value produced the date, and every seeded order shows the same one, which reads as broken data. Worse, it changes behaviour: an order due *today* flips to **OVERDUE** partway through the day. The dashboard capture shows #1003 dated 23 Sep, on 23 Sep, badged OVERDUE. For a bakery, "due today" should stay "today" until the day ends. Use `formatDate`, and bucket by day. |
+| **P2-3** | **The same theme control means opposite things at two breakpoints.** `src/components/nav/AppShell.tsx:99` (sidebar) labels it with the *next* theme — "Peach Theme"; `:111` (phone header) labels it with the *current* one — "Clean". Same button, same product, contradictory reading depending on window width. The signed-out `AuthCard` follows the sidebar convention, so signing in on a phone changes what the control claims. |
+| **P2-4** | **Settings leads with two dead sections.** "Brand Logo" offers a full-width, primary-styled "Upload New Logo" control (`src/app/settings/page.tsx:76`) that can only ever fail — there is no endpoint (§133.2) — and "Bakery Profile" is a paragraph plus a permanently disabled "Save Details" button (`:100`) that has nothing to save. The only section that works, "Your Account", is third. Either disable the upload affordance as visibly as the button below it, or hold both sections until §133.2 lands. |
+| **P2-5** | **Quick Actions interrupts the operational scan.** Plan §20 orders the dashboard: what needs attention → pending orders → pending payments → today → low stock → snapshot. Quick Actions currently sits between Pending Orders and Low Stock Alerts, so the baker reads two overdue orders, then four buttons, then the stock warning. |
+| **P2-6** | **No skip link.** With a nine-item sidebar on every screen, a keyboard user tabs through the whole nav before reaching content, on every navigation. |
+| **P2-7** | **Only the five auth screens set a title.** Every other page inherits the root metadata, so eleven routes share the tab title "Ovenly — Home Bakery Management" — indistinguishable in history, bookmarks and tab strips. |
+
+---
+
+## 134.4 P3 — Visual and interaction
+
+| # | Finding |
+|---|---------|
+| **P3-1** | **An invalid field that has focus shows two conflicting colours.** `*:focus-visible` paints a 2px `--color-primary` (brown) outline globally (`src/app/globals.css:138`), while the field's own border goes `--color-danger` red (`src/components/ui/text-field.tsx:24`). The result, visible in the empty-submit capture, is a red box inside a brown halo. The focus ring should take the error colour when the field is invalid. |
+| **P3-2** | **Cards are nearly invisible against the page.** `--color-background: #ffffff` and `--color-surface: #f8f9fa` are ~2% apart in luminance, so every card, sheet and tile depends entirely on a 1px `#e5e7eb` border. Most visible on the signed-out auth screens, where a 448px card floats in white with almost no edge. |
+| **P3-3** | **Twenty-four instances of sub-12px type** — one at 9px, nineteen at 10px, four at 11px — carrying real content: stock units, low-stock thresholds, status eyebrows, role labels. On a mobile-first product used in a kitchen this is the wrong floor. |
+| **P3-4** | **"Forgot password?" is stranded between the password field and the primary button**, right-aligned, so it competes with the CTA and leaves a ragged edge. It belongs beside the password label or below the button. |
+| **P3-5** | **The four "Business Today" tiles use three different colour treatments** — two neutral, one green-tinted, one red-tinted — and "Pending orders" renders its value in orange inside a neutral tile. Colour is not carrying a consistent meaning across four items of the same role. |
+| **P3-6** | **The 500 KB logo hint is styled as a warning** (amber background, `src/app/settings/page.tsx:86`) when it is neutral guidance. |
+| **P3-7** | **1440px is mostly empty on the auth screens.** The mobile card is centred with no desktop composition. Acceptable for Operate, but it is the first screen anyone sees. |
+
+---
+
+## 134.5 P4 — Content and code
+
+| # | Finding |
+|---|---------|
+| **P4-1** | **Side-tab accent borders** — `border-l-4` on the overdue order rows and the low-stock row (`src/app/page.tsx:144`, `:215`). Both detector hits; it is the most recognisable tell of generated UI. |
+| **P4-2** | **"Phone number" vs "Mobile number".** Every label and hint on the sign-in screen says *Mobile number*; the refusal banner says "The phone number or password is incorrect" (`ERROR_MESSAGES.AUTH_INVALID_CREDENTIALS`). One term. |
+| **P4-3** | **Unpluralised and inaccurate stock copy.** `src/app/page.tsx:224` renders "5 piece left • alerts below 5" — the unit is never pluralised, and the threshold is `<=`, so 5 *is* the alert, not below it. `InventoryAdjustmentSheet` pluralises the other way, by appending "s" to any unit, which yields "kgs" and "boxs". |
+| **P4-4** | **"Dashboard" appears three times** in the top-left of the desktop dashboard: sidebar active item, sticky header, and the eyebrow above the greeting. |
+| **P4-5** | **The signed-out screens fire a session request that always 401s**, and the fetcher then spends a refresh attempt on it before giving up — two wasted round trips on every visit to `/login`, `/register`, `/forgot-password` and `/confirm-email`. Harmless but visible in the console on every load. |
+| **P4-6** | **The bakery's phone is printed raw.** Settings shows `+919876543210`; `formatPhoneDigits` exists in `src/lib/phone.ts` and is unused. |
+
+---
+
+## 134.6 What was checked and found sound
+
+Recording this so the next pass does not redo it: `prefers-reduced-motion` is
+honoured for all four animations (`src/app/globals.css:212`); `*:focus-visible`
+gives every control a visible ring; `.touch-target` holds a 44px minimum and is
+applied on the controls that need it; `--color-text-muted` on `--color-surface`
+is 4.83:1, which clears AA; the shared field components tie label, control,
+hint and error together with real ids; and no route except `/inventory` logged
+a console or page error at either size.
+
+**Suggested order:** P0-1 and P0-2 together (the crash and the boundary that
+would have surfaced it), then P1-1, then P2-1 and P2-2, which are the two
+findings a baker would notice first.
