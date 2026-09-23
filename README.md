@@ -1,36 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ovenly — Home Bakery Management Platform
 
-## Getting Started
+A mobile-first management app for home bakers: orders, customers, products,
+stock, expenses and bills.
 
-First, run the development server:
+The product and architecture specification is
+[`home-bakery-management-platform-plan.md`](./home-bakery-management-platform-plan.md),
+and it is the source of truth. How to work in this repository is in
+[`AGENTS.md`](./AGENTS.md).
+
+---
+
+## Running it locally
+
+### What you need
+
+- **Node 20.9 or newer.** Next 16 refuses to start on Node 18. There is an
+  `.nvmrc`, so `nvm use` picks the right one.
+- **Docker**, running. The local Supabase stack runs in it.
+- **The Supabase CLI** (`brew install supabase/tap/supabase`).
+
+### First run
 
 ```bash
+nvm use                 # Node 22
+npm install
+cp .env.example .env.local
+npm run db:start        # starts Postgres, Auth, Storage and Mailpit in Docker
+npm run db:reset        # applies the migrations and loads the demo data
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open <http://localhost:3000>.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Signing in
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The demo bakery is created by `supabase/seed.sql`:
 
-## Learn More
+| | |
+|---|---|
+| **Mobile number** | `9876543210` |
+| **Password** | `Password123!` |
 
-To learn more about Next.js, take a look at the following resources:
+The country code is added for you, so `9876543210`, `09876543210` and
+`+91 98765 43210` all sign in to the same account.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+It belongs to **Sweet Delights Home Bakery** (Priya Baker) and comes with four
+customers, five products, five orders across every status, a stock ledger, some
+expenses and two payments — enough for every screen to have something real to
+draw, including an overdue order and a product that is low on stock.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Where things run
 
-## Deploy on Vercel
+| | |
+|---|---|
+| App | <http://localhost:3000> |
+| Supabase Studio | <http://127.0.0.1:54323> |
+| Mail (Mailpit) | <http://127.0.0.1:54324> |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+`supabase status` prints every URL and key the running stack is using. The app
+itself needs no database connection string: it talks to Supabase over its API,
+and schema changes go through the CLI.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Registration and password-reset emails are real emails — they are delivered to
+Mailpit, so open it to follow a confirmation link or read a temporary password.
+Nothing leaves your machine.
+
+### Starting over
+
+`npm run db:reset` drops the database, replays every migration and reloads the
+demo data. Run it whenever the data gets into a state you did not mean.
+
+---
+
+## Moving to a hosted Supabase project
+
+```bash
+supabase link --project-ref <project-ref>
+supabase db push          # replays supabase/migrations against the project
+```
+
+Then comment out the local block in `.env.local` and uncomment the cloud one,
+filling in the three values from **Project Settings → API**. That is the whole
+switch — the app reads nothing else, and there is no connection string to
+change.
+
+Do not load `supabase/seed.sql` into a hosted project — it writes a known
+password into `auth.users`. Register the first account through the app instead.
+
+The **service-role key** bypasses row-level security. It is a real secret: it
+belongs in `.env.local` and in your host's environment settings, never in the
+repository and never in anything the browser receives.
+
+---
+
+## Checks
+
+```bash
+npm run typecheck
+npm run lint
+npm test
+```
