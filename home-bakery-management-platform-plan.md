@@ -6569,6 +6569,8 @@ Every gap recorded here has been implemented. The entry is kept rather than dele
 | C2 | **No idempotency** anywhere. A double-tapped Place Order creates two orders; a retried payment records twice. §24 of AGENTS.md requires critical mutations to be safe against duplicate submission. | Money |
 | C3 | No cart/draft state and **no bill-preview step** before Confirm. The plan's flow is Cart → Bill → Confirm (§110–§112); the screen is one long form with a running total. | Approved UX |
 | C4 | **Stock can be oversold.** Nothing reads the balance before an `ORDER_RESERVATION` is posted, so an order can reserve stock that is not there (§21). | Inventory truth |
+| C5 | **A delivered order deducts its stock twice.** `checkout.ts` posts `ORDER_RESERVATION` at `-quantity` and `status.ts` posts `ORDER_CONSUMPTION` at `-quantity` on first delivery, and nothing ever releases the reservation. Every balance in the app is therefore short by the quantity of every delivered order. Consumption should release the reservation, not repeat it. | Inventory truth |
+| C6 | **`updateOrderStatus` is not transactional either.** It persists the status, then the ledger line, then the audit row, then enqueues the notification. Observed on 2026-09-23: a failure at the last step left the status changed, the stock consumed and the audit written, and the retry then saw `before.status === 'DELIVERED'` and silently skipped the notification. Same fix as C1. | Data integrity |
 
 ---
 
@@ -6603,6 +6605,7 @@ The queue table and the claim/complete/fail helpers exist. Nothing runs them.
 | F5 | No stale-job recovery: `locked_at` is written and cleared but never reclaimed, so a job whose worker died stays `processing` for good. |
 | F6 | Backoff is a fixed five minutes, not exponential. |
 | F7 | `MenuBuildWorker` and `CleanupWorker` (§27) do not exist. |
+| F8 | Jobs are enqueued with the **caller's** Supabase client, so the insert arrives as `authenticated`, but `jobs` has no `bakery_id` and so no row can be scoped to a tenant. `0004_api_role_grants.sql` therefore grants INSERT and withholds SELECT, and `createJob` no longer reads the row back — a baker must not be able to read another bakery's queued work. The queue is infrastructure, not tenant data: enqueuing belongs on the service-role client, which is the same threading change as the audit actor in §133.7. |
 
 ---
 
