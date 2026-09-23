@@ -6533,20 +6533,20 @@ Legend for **Blocks**: what cannot be trusted or used until the item is done.
 
 ---
 
-## 133.1 Authentication — the app cannot be used signed in (Phase 1)
+## 133.1 Authentication — built (Phase 1, closed 2026-09-23)
 
-This is the first thing to build. Every other screen is unreachable in a real browser until it is.
+Every gap recorded here has been implemented. The entry is kept rather than deleted so the numbering of the rest of this register stays stable, and so what was built is on record.
 
-| # | Gap | Where | Blocks |
-|---|-----|-------|--------|
-| A1 | No sign-in, register or forgot-password screens exist. | `src/app` has no auth routes | Everything |
-| A2 | Nothing stores the session. `login` returns an `accessToken`, and no client code keeps it. | no auth context, no storage | A3, A4 |
-| A3 | The browser client never sends `Authorization: Bearer`, but every tenant route requires it. **Every screen would answer 401 today.** | `src/lib/api/client.ts` | Every screen |
-| A4 | No route protection: there is no `middleware.ts` and no redirect for a signed-out visitor. | — | §55 |
-| A5 | The forced password-change gate is not enforced. `getSession` returns `requiresPasswordChange` and nothing reads it. | `src/features/auth/api.ts` | §7 |
-| A6 | Role enforcement is nominal: `assertRole` defaults to allowing every role and no route passes `roles`. | `src/features/auth/guard.ts` | §5 |
+| Was | Now |
+|-----|-----|
+| No sign-in, register or forgot-password screens. | `/login`, `/register`, `/forgot-password`, `/change-password` and `/confirm-email`, built on the shared UI kit in `src/features/auth/components`. |
+| Nothing stored the session. | Signing in sets HttpOnly `SameSite=Lax` cookies (`src/features/auth/cookies.ts`); the browser never holds a token. |
+| The browser client never sent a credential. | It no longer needs to: cookies ride with every same-origin request, and `src/lib/api/client.ts` refreshes the session once and retries when one is refused for an expired token. |
+| No route protection. | `src/proxy.ts` sends a signed-out visitor to sign-in remembering where they were, and a signed-in one off the sign-in screen. It gates on cookie presence only — authorization stays in the route guard and RLS. |
+| The forced password change was not enforced. | `RequireAuth` redirects in the browser and `withBakeryRoute` refuses on the server, so hiding the screens is not what does the work (plan §95). |
+| `assertRole` allowed every role by default. | It has no default. `withBakeryRoute` serves `BAKERY_ROLES` (`BAKER`), so DEV does not inherit business data (plan §5). |
 
-**Done looks like:** a signed-out visitor lands on sign-in; a signed-in baker's token rides on every request; an expired session sends them back; a baker holding a temporary password reaches nothing but the change-password screen.
+**Still open, tracked elsewhere:** rate limiting on sign-in and password reset (§133.11 — it needs shared state, and the blocker is recorded in changelog.md); account deactivation from a screen (§64); the DEV platform surface — system logs, worker status, health — which has no routes yet (§5, §8).
 
 ---
 
@@ -6660,7 +6660,7 @@ The queue table and the claim/complete/fail helpers exist. Nothing runs them.
 ## 133.12 Suggested order of work
 
 ```text
-1. Authentication end to end        (133.1)  — nothing else is usable without it
+1. Authentication end to end        (133.1)  — DONE 2026-09-23
 2. Order transaction + idempotency  (133.3)  — money and stock correctness
 3. Oversell guard                   (133.3)
 4. Audit actor                      (133.7)  — one threading change, do it with 2
@@ -6674,7 +6674,7 @@ The queue table and the claim/complete/fail helpers exist. Nothing runs them.
 12. PWA, then Capacitor             (133.10)
 ```
 
-Items 1–4 are correctness. Everything below them is feature completion, and none of it should start before an order can be created safely by a signed-in baker.
+Items 1–4 are correctness. Everything below them is feature completion, and none of it should start before an order can be created safely by a signed-in baker. Item 1 is done; item 2 is next.
 
 ---
 

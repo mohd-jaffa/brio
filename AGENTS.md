@@ -133,12 +133,13 @@ Use a **Feature-Based Architecture**. Code is grouped by domain feature slices r
 ```text
 src/
 ├── app/                      # Next.js routes only — thin; no business logic
+│   ├── (auth)/               # sign in, register, reset, change password, confirm
 │   └── api/                  # REST endpoints (§24)
 ├── components/
 │   ├── nav/                  # AppShell, MoreSheet
 │   └── ui/                   # the shared kit: button, text-field, form-sheet,
 │                             # list-screen, page-header, status-badge, …
-├── constants/                # messages, statuses, navigation, editableColumns, …
+├── constants/                # messages, statuses, navigation, roles, routes, …
 ├── features/<domain>/
 │   ├── api.ts                # server-side data access (pure functions)
 │   ├── api.client.ts         # the endpoints the browser calls
@@ -146,6 +147,7 @@ src/
 │   ├── hooks/                # useXxx.ts
 │   └── types.ts
 ├── hooks/                    # shared hooks (useDisclosure, useDebouncedValue)
+├── proxy.ts                  # the signed-in/signed-out gate (§9)
 └── lib/
     ├── api/                  # route handler, response envelope, browser client
     ├── audit/                # the central audit logger (§11)
@@ -248,12 +250,28 @@ Account confirmation uses the centralized mail abstraction.
 
 Password reset uses the approved temporary-password flow.
 
+## Sessions
+
+The session lives in **HttpOnly cookies** set by the server, never in `localStorage` and never in a JavaScript variable:
+
+- `src/features/auth/cookies.ts` is the only place that names, builds or reads them. They are `HttpOnly`, `SameSite=Lax`, `Path=/`, and `Secure` outside development.
+- Signing in, refreshing and confirming an email all answer through `withSessionRoute` (`src/features/auth/route.ts`), so the cookies are set in one place and the response body carries the profile, never a token.
+- A route reads the caller's token with `readAccessToken` (`src/features/auth/guard.ts`), which accepts the cookie or an `Authorization: Bearer` header.
+- The browser attaches nothing. `src/lib/api/client.ts` refreshes the session once and retries when a request is refused for an expired token.
+- `src/proxy.ts` keeps a signed-out visitor out of the app's screens. It gates on cookie presence only; **it is not an authorization check** — that is the route guard and RLS.
+
+## Authorization
+
+- `assertRole` has no default. A route names the roles it serves, and `withBakeryRoute` serves `BAKERY_ROLES` (`BAKER` only) unless told otherwise — DEV does not inherit access to business data (plan §5).
+- A baker owing a password change is refused everywhere but the screen that replaces it, on the server (`assertPasswordChanged`) as well as in the browser (`RequireAuth`).
+
 Never:
 
 - log plaintext passwords
 - log temporary passwords
 - expose authentication secrets
 - store tokens in logs
+- return a token in an API response body
 
 ---
 
