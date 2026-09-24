@@ -4,16 +4,19 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     environment: "jsdom",
-    setupFiles: ["./vitest.setup.ts"],
-    // Unit and component tests sit beside what they test; tests/ holds the
-    // database and end-to-end contracts, which belong to no one module.
-    include: ["src/**/*.test.{ts,tsx}", "tests/**/*.test.{ts,tsx}"],
-    alias: { "@": path.resolve(__dirname, "./src") },
+    setupFiles: ["./tests/support/setup.ts"],
+    // Every test lives under tests/ (plan §139.16): unit/ mirrors src/, db/ and
+    // contract/ hold what belongs to no one module. src/ holds only what ships.
+    include: ["tests/**/*.test.{ts,tsx}"],
+    alias: {
+      "@tests": path.resolve(__dirname, "./tests"),
+      "@": path.resolve(__dirname, "./src"),
+    },
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
       include: ["src/**/*.{ts,tsx}"],
-      exclude: ["src/**/*.test.{ts,tsx}", "src/app/**/layout.tsx", "src/test-utils/**"],
+      exclude: ["src/app/**/layout.tsx"],
     },
   },
 });

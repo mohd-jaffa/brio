@@ -693,7 +693,20 @@ Keep documentation synchronized with the actual API.
 
 Implement tests according to the plan.
 
-Unit and component tests sit **beside what they test** (`src/lib/money.test.ts`, `src/features/customers/components/CustomerFormSheet.test.tsx`). `tests/` holds only what belongs to no one module: the database contracts (`tests/db`) and the end-to-end journeys (`tests/e2e`).
+Every test lives under **`tests/`**, and `src/` holds only code that ships (plan §139.16):
+
+```text
+tests/
+├── unit/       mirrors src/ exactly — src/lib/money.ts → tests/unit/lib/money.test.ts
+├── db/         database contracts; later, integration tests against local Supabase
+├── contract/   route-shape contracts
+├── e2e/        Playwright browser journeys
+└── support/    setup, auth stubs (`@tests/support/auth`), fixtures
+```
+
+- **One test file, one subject.** A unit test's path is its subject's path with `src/` replaced by `tests/unit/` and `.test` before the extension. A test that covers several modules is split, one file per module.
+- **Imports and mocks use `@/` paths**, never `./` or `../`: they survive moves, and `vi.mock("@/features/x/api.client")` still intercepts a component that imports `../api.client`.
+- **`scripts/check-test-paths.mjs` runs before every `npm test`** and fails on a unit test whose subject no longer exists, or a test left inside `src/`.
 
 ## Frontend UI
 - 100% test case coverage is mandatory for all frontend UI components, custom hooks, and client services.

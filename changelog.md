@@ -709,3 +709,19 @@ entry grows with them.
 
 ### Blockers
 - None. Deliberately left to their own rows: order numbers (`#6-799`, BUG-08 → R3.2), the create and status transactions (R3.1, R3.4), the payment recorded at creation (BUG-02 → R3.12) and audit written by the server (R2.10).
+
+## 2026-09-24 — Phase 1: Foundation (plan §139.18, tracker §139.19)
+
+The ground the redesign stands on: tests in one place, the two themes, safe
+areas, the shell and component kit, the response card, input hygiene, the
+illustration library and the chart kit. Each row is committed on its own; this
+entry grows with them.
+
+### Changed
+- **R1.1 — every test now lives under `tests/`** (plan §139.16), done first so the redesign does not move files that are also being rewritten.
+  - **Layout.** `tests/unit/` mirrors `src/` exactly. `tests/db/` holds the database contracts, `tests/contract/` the route-shape contract (it was misnamed `e2e`), and `tests/support/` the setup (from `vitest.setup.ts`) and the auth stubs (from `src/test-utils`, now imported as `@tests/support/auth`).
+  - **How the move was done.** 64 files were moved with `git mv`, so their history follows. Every relative import and `vi.mock` became an `@/` path. The plan asked for a check before scripting the rest, and it was done on the first file: an `@/` mock still intercepts a component that imports `../api.client`.
+  - **One file, one subject.** Five tests covered several modules (`display`, `clients`, `errors`, `schemas`, `system-screens`). They were split by `describe` block, one file per module, and the imports and helpers each split no longer needed were pruned.
+  - **`scripts/check-test-paths.mjs` runs as `pretest`.** It fails on a unit test whose subject is gone and on any test left in `src/`. Both were checked by planting one of each.
+  - **Config.** `vitest.config.mts`, `tsconfig.json` (`@tests/*`) and AGENTS.md §26 are updated.
+  - **Same suite, same count: 579 tests**, now in 94 files. `tsc` and `eslint` are clean.
