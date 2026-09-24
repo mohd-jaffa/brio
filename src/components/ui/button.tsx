@@ -101,21 +101,27 @@ export function LinkButton({
   label,
   variant = "primary",
   size = "md",
+  shape = "rounded",
+  fullWidth = false,
   icon: Icon,
 }: {
   href: string;
   label: string;
   variant?: ButtonVariant;
   size?: ButtonSize;
+  shape?: ButtonShape;
+  fullWidth?: boolean;
   icon?: LucideIcon;
 }) {
   return (
     <Link
       href={href}
       className={cn(
-        "touch-target inline-flex items-center justify-center gap-2 rounded-xl font-bold transition-all active:scale-[0.98]",
+        "touch-target inline-flex items-center justify-center gap-2 font-bold transition-all active:scale-[0.98]",
         VARIANTS[variant],
         SIZES[size],
+        SHAPES[shape],
+        fullWidth && "w-full",
       )}
     >
       {Icon && <Icon size={18} strokeWidth={2.5} aria-hidden="true" />}
