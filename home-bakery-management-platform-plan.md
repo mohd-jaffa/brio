@@ -7614,7 +7614,7 @@ against the ground the token is used on.
 | `text` | `#33201A` | Body and headings | 13.6 on background |
 | `text-muted` | `#77574A` | Secondary text | 5.69 on background · 6.24 on surface · 5.32 on sunken |
 | `primary` | `#A94A26` | Terracotta | 5.48 as text on surface; `#FFF8F3` on it 5.41 |
-| `primary-soft` | `#FADFD0` | Medallions, the active nav pill | — |
+| `primary-soft` | `#FBE3D6` | Medallions, the active nav pill | primary on it 4.62. *Was `#FADFD0`, which measured 4.47 when built (R1.3).* |
 | `accent` | `#C46A3C` | Highlights and chart accent. **Not for text.** | 3.70 on surface |
 | `action` | `#3A2119` | The one dark control | `#FFF8F3` on it 14.2 |
 
@@ -8541,9 +8541,9 @@ the row needs; without an answer it is built on that question's default
 |---|---|---|---|---|
 | R1.1 | Tests into `/tests`, mirroring `src/` | §139.16 | — | DONE (2026-09-24) |
 | R1.2 | AGENTS.md updated: roles, themes, response card, input hygiene, tests, "business" wording, and app-owned art (illustrations and plates are not uploads) | §139.1 | — | DONE (2026-09-24) |
-| R1.3 | Golden and Peach tokens; the Flour Room tokens merged; Clean retired; stored `clean` → `golden` | §139.4 | — | TODO |
-| R1.4 | No theme flash; `theme-color` per theme; the theme on the account if chosen | BUG-15 | Q14 | TODO |
-| R1.5 | Type: Fraunces and Inter; Fredoka and Plus Jakarta Sans retired | §137.4 | — | TODO |
+| R1.3 | Golden and Peach tokens; the Flour Room tokens merged; Clean retired; stored `clean` → `golden` | §139.4 | — | DONE (2026-09-24) |
+| R1.4 | No theme flash; `theme-color` per theme; the theme on the account if chosen | BUG-15 | Q14 | DONE (2026-09-24; per device, Q14 default) |
+| R1.5 | Type: Fraunces and Inter; Fredoka and Plus Jakarta Sans retired | §137.4 | — | DONE (2026-09-24) |
 | R1.6 | The safe-area system: `viewport-fit`, `--safe-*`, `dvh`, keyboard, the five call sites | BUG-14; §138.6.3 | — | TODO |
 | R1.7 | AppShell: business header, five-item bottom nav, icon rail, grouped sidebar, top bar | §139.5 | — | TODO |
 | R1.8 | The component kit | §139.5 | — | TODO |

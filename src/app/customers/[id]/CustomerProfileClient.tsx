@@ -163,7 +163,7 @@ export function CustomerProfileClient({ id }: { id: string }) {
 
       <section className="rounded-2xl border border-border bg-surface p-5 shadow-card">
         <h2 className="mb-4 flex items-center gap-2 font-heading text-sm font-bold text-text">
-          <TrendingUp size={18} strokeWidth={2.5} className="text-secondary" aria-hidden="true" />
+          <TrendingUp size={18} strokeWidth={2.5} className="text-primary" aria-hidden="true" />
           Customer Analytics
         </h2>
         <dl className="grid grid-cols-2 gap-3">

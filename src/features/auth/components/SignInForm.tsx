@@ -85,7 +85,7 @@ export function SignInForm() {
       <div className="flex justify-end pt-0.5">
         <Link
           href={AUTH_ROUTES.forgotPassword}
-          className="text-[0.8125rem] font-medium text-ink-muted underline decoration-rule underline-offset-4 transition-colors hover:text-ink hover:decoration-primary"
+          className="text-[0.8125rem] font-medium text-text-muted underline decoration-border underline-offset-4 transition-colors hover:text-text hover:decoration-primary"
         >
           {UI_TEXT.auth.forgotPassword}
         </Link>

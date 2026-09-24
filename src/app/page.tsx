@@ -34,7 +34,7 @@ import { useApiQuery } from "@/lib/query/useApiQuery";
 
 const QUICK_ACTIONS = [
   { label: "Add Order", icon: ShoppingBag, tone: "text-primary", href: "/orders/new" },
-  { label: "Add Customer", icon: Users, tone: "text-secondary", href: "/customers" },
+  { label: "Add Customer", icon: Users, tone: "text-primary", href: "/customers" },
   { label: "Add Stock", icon: Package, tone: "text-warning", href: "/inventory" },
   { label: "Add Expense", icon: CircleDollarSign, tone: "text-danger", href: "/expenses" },
 ] as const;
@@ -62,7 +62,7 @@ export default function DashboardPage() {
   return (
     <AppShell>
       <section>
-        <p className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-secondary">Dashboard</p>
+        <p className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-primary">Dashboard</p>
         <h1 className="font-heading text-2xl font-bold tracking-tight text-text sm:text-3xl">
           Good morning, Baker!
         </h1>
@@ -73,7 +73,7 @@ export default function DashboardPage() {
 
       <section className="rounded-2xl border border-border bg-surface p-5 shadow-card">
         <h2 className="mb-4 flex items-center gap-2 font-heading text-sm font-bold text-text">
-          <ClipboardList size={18} strokeWidth={2.5} className="text-secondary" aria-hidden="true" />
+          <ClipboardList size={18} strokeWidth={2.5} className="text-primary" aria-hidden="true" />
           Business Today
         </h2>
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">

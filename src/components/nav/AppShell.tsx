@@ -38,7 +38,7 @@ function AppFrame({ children }: { children: ReactNode }) {
   const [moreOpen, setMoreOpen] = useState(false);
 
   const closeMore = useCallback(() => setMoreOpen(false), []);
-  const nextTheme: Theme = theme === "clean" ? "peach" : "clean";
+  const nextTheme: Theme = theme === "golden" ? "peach" : "golden";
   const currentPage = SIDEBAR_NAV.find((item) => isActivePath(item.href, pathname));
 
   const themeToggle = (label: string) => (
@@ -46,7 +46,7 @@ function AppFrame({ children }: { children: ReactNode }) {
       type="button"
       onClick={() => setTheme(nextTheme)}
       aria-label={`Switch to ${THEME_LABELS[nextTheme]} theme`}
-      className="touch-target rounded-full border border-accent-border bg-accent px-4 py-1.5 text-xs font-bold text-secondary transition-all hover:bg-accent/80 active:scale-95"
+      className="touch-target rounded-full border border-border bg-primary-soft px-4 py-1.5 text-xs font-bold text-primary transition-all hover:bg-surface-hover active:scale-95"
     >
       {label}
     </button>
@@ -56,7 +56,7 @@ function AppFrame({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen flex-col bg-background text-text md:flex-row">
       <aside className="hidden flex-shrink-0 flex-col border-r border-border bg-surface md:flex md:w-64">
         <div className="flex items-center gap-3 border-b border-border px-4 py-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-primary-light bg-primary text-primary-text shadow-card">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-primary-soft bg-primary text-primary-text shadow-card">
             <Cake size={20} strokeWidth={2.5} aria-hidden="true" />
           </div>
           <div>
@@ -132,7 +132,7 @@ function AppFrame({ children }: { children: ReactNode }) {
             const active = isMore ? moreOpen : isActivePath(href, pathname);
             const classes = cn(
               "touch-target flex min-w-16 flex-col items-center justify-center rounded-xl px-3 py-1.5 transition-all active:scale-95",
-              active ? "bg-primary-light/50 font-bold text-primary" : "text-text-muted hover:text-text",
+              active ? "bg-primary-soft font-bold text-primary" : "text-text-muted hover:text-text",
             );
 
             return (

@@ -1,22 +1,28 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useSyncExternalStore, type ReactNode } from "react";
+
+import {
+  DEFAULT_THEME,
+  THEME_COLORS,
+  THEME_STORAGE_KEY,
+  toTheme,
+  type Theme,
+} from "./themes";
+
+export { THEME_LABELS, THEMES, type Theme } from "./themes";
 
 /**
- * Which of the approved visual directions is in use (AGENTS.md §21). The
- * choice is a data-theme attribute on <html>; every colour in the app comes
- * from the tokens that attribute switches (src/app/globals.css), so nothing
- * anywhere needs to know which theme is on.
+ * Which approved direction is in use (AGENTS.md §21). The truth is the
+ * data-theme attribute on <html>: the pre-paint script in the root layout sets
+ * it before anything is drawn (BUG-15), and every colour comes from the tokens
+ * it switches (src/app/globals.css), so nothing else needs to know the theme.
+ *
+ * React reads it through useSyncExternalStore: the server and the first client
+ * render both see the default, and React moves to the real value right after
+ * hydration — no mismatch, and no flash, because the page already painted with
+ * the attribute the script set.
  */
-export const THEMES = ["clean", "peach"] as const;
-export type Theme = (typeof THEMES)[number];
-
-export const THEME_LABELS: Record<Theme, string> = {
-  clean: "Clean",
-  peach: "Peach",
-};
-
-const STORAGE_KEY = "ovenly_theme";
 
 interface ThemeContextValue {
   theme: Theme;
@@ -26,38 +32,32 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
-function isTheme(value: string | null): value is Theme {
-  return value !== null && (THEMES as readonly string[]).includes(value);
+const CHANGED = "ovenly:themechange";
+
+function subscribe(onChange: () => void) {
+  window.addEventListener(CHANGED, onChange);
+  return () => window.removeEventListener(CHANGED, onChange);
 }
 
-function storedTheme(): Theme {
-  if (typeof window === "undefined") return "clean";
+const current = (): Theme => toTheme(document.documentElement.getAttribute("data-theme"));
+const onServer = (): Theme => DEFAULT_THEME;
+
+function apply(theme: Theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME_COLORS[theme]);
   try {
-    const saved = window.localStorage.getItem(STORAGE_KEY);
-    return isTheme(saved) ? saved : "clean";
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
   } catch {
-    // A browser with site data blocked: the default is fine.
-    return "clean";
+    // Not being able to remember the choice must not break the app.
   }
+  window.dispatchEvent(new Event(CHANGED));
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(storedTheme);
+  const theme = useSyncExternalStore(subscribe, current, onServer);
 
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, theme);
-    } catch {
-      // Not being able to remember the choice must not break the app.
-    }
-    document.documentElement.setAttribute("data-theme", theme);
-  }, [theme]);
-
-  const setTheme = useCallback((next: Theme) => setThemeState(next), []);
-  const toggleTheme = useCallback(
-    () => setThemeState((current) => (current === "clean" ? "peach" : "clean")),
-    [],
-  );
+  const setTheme = useCallback((next: Theme) => apply(next), []);
+  const toggleTheme = useCallback(() => apply(current() === "golden" ? "peach" : "golden"), []);
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>{children}</ThemeContext.Provider>

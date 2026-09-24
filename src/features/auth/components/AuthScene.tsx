@@ -36,13 +36,13 @@ export function AuthScene({
   footer?: ReactNode;
 }) {
   return (
-    <div className="auth-canvas flex min-h-dvh flex-col text-ink">
+    <div className="auth-canvas flex min-h-dvh flex-col text-text">
       <header className="safe-top [--safe-pt:1.25rem] mx-auto flex w-full max-w-xl items-start justify-between gap-4 px-6">
         {backHref ? (
           <Link
             href={backHref}
             aria-label={UI_TEXT.actions.back}
-            className="touch-target -ml-2 flex items-center justify-center rounded-full text-ink/80 transition-colors hover:text-ink"
+            className="touch-target -ml-2 flex items-center justify-center rounded-full text-text/80 transition-colors hover:text-text"
           >
             <ArrowLeft size={22} strokeWidth={2} aria-hidden="true" />
           </Link>
@@ -51,11 +51,11 @@ export function AuthScene({
         )}
 
         {counterpart && (
-          <p className="pt-1 text-right text-sm font-medium text-ink-muted">
+          <p className="pt-1 text-right text-sm font-medium text-text-muted">
             {counterpart.question}{" "}
             <Link
               href={counterpart.href}
-              className="font-semibold text-ink underline decoration-primary/60 decoration-2 underline-offset-4 transition-colors hover:decoration-primary"
+              className="font-semibold text-text underline decoration-primary/60 decoration-2 underline-offset-4 transition-colors hover:decoration-primary"
             >
               {counterpart.label}
             </Link>
@@ -71,7 +71,7 @@ export function AuthScene({
         <p className="mt-3 font-display text-[1.75rem] font-semibold leading-none tracking-[-0.02em]">
           {UI_TEXT.appName}
         </p>
-        <p className="mt-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.34em] text-ink-muted">
+        <p className="mt-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.34em] text-text-muted">
           {UI_TEXT.appTagline}
         </p>
 
@@ -85,7 +85,7 @@ export function AuthScene({
 
         <span aria-hidden="true" className="mt-6 block h-px w-14 bg-primary/70" />
 
-        <p className="mt-5 max-w-[22ch] text-[0.72rem] font-semibold uppercase leading-[1.7] tracking-[0.2em] text-ink-muted">
+        <p className="mt-5 max-w-[22ch] text-[0.72rem] font-semibold uppercase leading-[1.7] tracking-[0.2em] text-text-muted">
           {intro}
         </p>
       </div>
@@ -105,7 +105,7 @@ export function AuthScene({
 /** The line the sheet closes on — the bakery's promise, not a legal footer. */
 export function AuthPromise({ children }: { children: string }) {
   return (
-    <p className="flex items-center justify-center gap-2.5 rounded-2xl bg-field px-4 py-3.5 text-center text-sm text-ink-muted">
+    <p className="flex items-center justify-center gap-2.5 rounded-2xl bg-sunken px-4 py-3.5 text-center text-sm text-text-muted">
       <span className="shrink-0 text-primary">
         <BrandMark size={17} />
       </span>

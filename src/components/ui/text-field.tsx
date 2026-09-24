@@ -19,7 +19,7 @@ import { FieldError } from "./field-error";
  * once, and react-hook-form's `register()` spreads straight onto them.
  */
 const CONTROL_CLASSES =
-  "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium outline-none transition-all " +
+  "w-full rounded-xl border border-border bg-sunken px-4 py-3 text-sm font-medium outline-none transition-all " +
   "placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary " +
   "aria-[invalid=true]:border-danger aria-[invalid=true]:focus:ring-danger";
 

@@ -5,6 +5,7 @@ import { RotateCcw, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SystemScreen } from "@/components/ui/system-screen";
 import { UI_TEXT } from "@/constants/messages";
+import { DEFAULT_THEME, THEME_BOOT_SCRIPT } from "@/lib/theme/themes";
 
 import "./globals.css";
 
@@ -20,7 +21,10 @@ export default function GlobalError({
   retry: () => void;
 }) {
   return (
-    <html lang="en" data-theme="clean">
+    <html lang="en" data-theme={DEFAULT_THEME}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+      </head>
       <body>
         <title>{`${UI_TEXT.system.errorTitle} · ${UI_TEXT.appName}`}</title>
         <SystemScreen

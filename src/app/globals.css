@@ -1,144 +1,136 @@
 @import "tailwindcss";
 
 /* ============================================================
-   OVENLY DESIGN SYSTEM — Semantic Design Tokens
-   Plan Section 42: UI Themes
-   Token names match plan Lines 1669–1678 exactly.
+   OVENLY DESIGN TOKENS — Golden and Peach (plan §139.4)
+
+   One vocabulary for the whole app. A screen never picks a colour; it
+   names a role, and the theme on <html data-theme> decides the value.
+   Every text pairing here was measured: body and muted text ≥ 4.5 : 1
+   on the ground it is used on, marks and accents ≥ 3 : 1.
    ============================================================ */
 
+/* Golden — caramel on warm cream. It replaces Clean, so a stored "clean"
+   still lands here (plan §139.4). */
 :root,
+[data-theme="golden"],
 [data-theme="clean"] {
-  /* Clean Bakery — Plan Lines 1650–1655 */
-  --color-background: #ffffff;
-  --color-surface: #f8f9fa;
-  --color-surface-hover: #f1f3f5;
-  --color-primary: #6b4226;
-  --color-primary-hover: #54331c;
-  --color-primary-light: rgba(107, 66, 38, 0.08);
-  --color-primary-text: #ffffff;
-  --color-secondary: #8b5a2b;
-  --color-accent: #fff8e7;
-  --color-accent-border: #f5e6c8;
-  --color-text: #1f2937;
-  --color-text-muted: #6b7280;
-  --color-border: #e5e7eb;
-  --color-success: #15803d;
-  --color-success-bg: #f0fdf4;
-  --color-warning: #b45309;
-  --color-warning-bg: #fffbeb;
-  --color-danger: #b91c1c;
-  --color-danger-bg: #fef2f2;
+  --color-background: #f6efe5; /* page ground */
+  --color-surface: #fffcf8; /* cards, sheets, the response card */
+  --color-sunken: #f1e8db; /* fields, tile wells, the quote block */
+  --color-border: #e6dacb; /* hairlines */
+  --color-text: #2b1d14; /* 14.3 : 1 on background */
+  --color-text-muted: #6b5747; /* 5.97 on background, 6.67 on surface, 5.62 on sunken */
+  --color-primary: #7a4a25; /* caramel: active tab, links, icons, filled buttons */
+  --color-primary-hover: #633b1d;
+  --color-primary-text: #fff8f0; /* 7.04 on primary */
+  --color-primary-soft: #f3e6d6; /* medallions, the active nav pill; primary on it 6.03 */
+  --color-accent: #a67628; /* gold — marks and charts, never text */
+  --color-action: #2a1b12; /* the one dark control per screen */
+  --color-action-hover: #3a2619;
+  --color-action-text: #fff8f0; /* 15.8 on action */
 
-  /* ── Flour Room (plan §137) ───────────────────────────────
-     The redesign's ground-and-sheet palette. Declared for both
-     themes and mapped in @theme inline; the authentication
-     screens use it today and the rest of the app adopts it in
-     §137.10 step 1. */
-  --color-canvas: #efe7d9;
-  --color-canvas-deep: #ded2bd;
-  --color-sheet: #faf5ef;
-  --color-field: #f3ece3;
-  --color-ink: #3a2317;
-  --color-ink-muted: #766353;
-  --color-rule: #e4d8c9;
-  --color-action: #4a2c1a;
-  --color-action-hover: #331d10;
-  --color-action-text: #fdf8f2;
-
-  /* Centralized Radii */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-
-  /* Centralized Shadows */
-  --shadow-card: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-elevated: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-tone: 43 29 20;
 }
 
+/* Peach — terracotta on blush. */
 [data-theme="peach"] {
-  /* Peach Bakery — Plan Lines 1660–1664 */
-  --color-background: #fff5ee;
-  --color-surface: #fefaf6;
-  --color-surface-hover: #faf0e6;
-  --color-primary: #c85a32;
-  --color-primary-hover: #af4720;
-  --color-primary-light: rgba(200, 90, 50, 0.08);
-  --color-primary-text: #ffffff;
-  --color-secondary: #b24c27;
-  --color-accent: #fff0e5;
-  --color-accent-border: #fadbd0;
-  --color-text: #2d1e18;
-  --color-text-muted: #7a6258;
-  --color-border: #f4dcd0;
-  --color-success: #15803d;
-  --color-success-bg: #f0fdf4;
-  --color-warning: #b45309;
-  --color-warning-bg: #fffbeb;
-  --color-danger: #b91c1c;
-  --color-danger-bg: #fef2f2;
+  --color-background: #fbeee6;
+  --color-surface: #fffaf6;
+  --color-sunken: #f7e6da;
+  --color-border: #f0dbcd;
+  --color-text: #33201a; /* 13.6 on background */
+  --color-text-muted: #77574a; /* 5.69 on background, 6.24 on surface, 5.32 on sunken */
+  --color-primary: #a94a26; /* terracotta; 5.48 as text on surface */
+  --color-primary-hover: #8e3c1d;
+  --color-primary-text: #fff8f3; /* 5.41 on primary */
+  /* #fadfd0 in the plan put the active nav label at 4.47 : 1; this is the
+     nearest tint that clears 4.5 (4.62). */
+  --color-primary-soft: #fbe3d6;
+  --color-accent: #c46a3c;
+  --color-action: #3a2119;
+  --color-action-hover: #4c2d22;
+  --color-action-text: #fff8f3; /* 14.2 on action */
 
-  /* ── Flour Room — blush (plan §137) ─────────────────────── */
-  --color-canvas: #f3ddd0;
-  --color-canvas-deep: #e6c3b1;
-  --color-sheet: #fdf6f1;
-  --color-field: #f8ebe2;
-  --color-ink: #40241a;
-  --color-ink-muted: #7b5c4d;
-  --color-rule: #eed9cb;
-  --color-action: #8a3d1e;
-  --color-action-hover: #6d2d13;
-  --color-action-text: #fff7f1;
+  --shadow-tone: 51 32 26;
+}
+
+/* What both themes share: the status colours, every one ≥ 4.5 : 1 as a word
+   on its own 12 % tint in either theme, and everything derived from a role. */
+:root {
+  --color-status-pending: #8a5208;
+  --color-status-preparing: #944616;
+  --color-status-ready: #2f6f5e;
+  --color-status-transit: #355f9a;
+  --color-status-delivered: #2e7048;
+  --color-status-cancelled: #a63a34;
+  --color-status-neutral: #5e5550;
 
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
+}
 
-  --shadow-card: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-  --shadow-elevated: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+:root,
+[data-theme] {
+  --color-surface-hover: color-mix(in oklab, var(--color-sunken) 60%, var(--color-surface));
+
+  --color-success: var(--color-status-delivered);
+  --color-warning: var(--color-status-pending);
+  --color-danger: var(--color-status-cancelled);
+  --color-info: var(--color-status-transit);
+  --color-success-bg: color-mix(in oklab, var(--color-success) 12%, var(--color-surface));
+  --color-warning-bg: color-mix(in oklab, var(--color-warning) 12%, var(--color-surface));
+  --color-danger-bg: color-mix(in oklab, var(--color-danger) 12%, var(--color-surface));
+  --color-info-bg: color-mix(in oklab, var(--color-info) 12%, var(--color-surface));
+
+  /* Warm, offset and soft: depth that belongs to the ground it sits on. */
+  --shadow-card: 0 1px 2px rgb(var(--shadow-tone) / 0.05), 0 1px 1px rgb(var(--shadow-tone) / 0.03);
+  --shadow-elevated: 0 14px 32px -14px rgb(var(--shadow-tone) / 0.2), 0 2px 6px -2px rgb(var(--shadow-tone) / 0.08);
 }
 
 /* ============================================================
-   Tailwind v4 @theme Bridge
-   Maps CSS custom properties into native Tailwind utilities:
-   bg-background, text-primary, border-border, font-heading, etc.
+   Tailwind v4 @theme bridge: the tokens as utilities —
+   bg-surface, text-text-muted, border-border, font-display, …
    ============================================================ */
 @theme inline {
   --color-background: var(--color-background);
   --color-surface: var(--color-surface);
   --color-surface-hover: var(--color-surface-hover);
-  --color-primary: var(--color-primary);
-  --color-primary-hover: var(--color-primary-hover);
-  --color-primary-light: var(--color-primary-light);
-  --color-primary-text: var(--color-primary-text);
-  --color-secondary: var(--color-secondary);
-  --color-accent: var(--color-accent);
-  --color-accent-border: var(--color-accent-border);
+  --color-sunken: var(--color-sunken);
+  --color-border: var(--color-border);
   --color-text: var(--color-text);
   --color-text-muted: var(--color-text-muted);
-  --color-border: var(--color-border);
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-text: var(--color-primary-text);
+  --color-primary-soft: var(--color-primary-soft);
+  --color-accent: var(--color-accent);
+  --color-action: var(--color-action);
+  --color-action-hover: var(--color-action-hover);
+  --color-action-text: var(--color-action-text);
+
   --color-success: var(--color-success);
   --color-success-bg: var(--color-success-bg);
   --color-warning: var(--color-warning);
   --color-warning-bg: var(--color-warning-bg);
   --color-danger: var(--color-danger);
   --color-danger-bg: var(--color-danger-bg);
+  --color-info: var(--color-info);
+  --color-info-bg: var(--color-info-bg);
 
-  --color-canvas: var(--color-canvas);
-  --color-canvas-deep: var(--color-canvas-deep);
-  --color-sheet: var(--color-sheet);
-  --color-field: var(--color-field);
-  --color-ink: var(--color-ink);
-  --color-ink-muted: var(--color-ink-muted);
-  --color-rule: var(--color-rule);
-  --color-action: var(--color-action);
-  --color-action-hover: var(--color-action-hover);
-  --color-action-text: var(--color-action-text);
+  --color-status-pending: var(--color-status-pending);
+  --color-status-preparing: var(--color-status-preparing);
+  --color-status-ready: var(--color-status-ready);
+  --color-status-transit: var(--color-status-transit);
+  --color-status-delivered: var(--color-status-delivered);
+  --color-status-cancelled: var(--color-status-cancelled);
+  --color-status-neutral: var(--color-status-neutral);
 
+  /* Fraunces for display, Inter for everything you operate (plan §137.4). */
   --font-heading: var(--font-heading);
   --font-body: var(--font-body);
-  --font-display: var(--font-display);
+  --font-display: var(--font-heading);
 
   --shadow-card: var(--shadow-card);
   --shadow-elevated: var(--shadow-elevated);
@@ -340,7 +332,8 @@ a {
    ============================================================ */
 
 .auth-canvas {
-  background-color: var(--color-canvas);
+  --auth-ground-deep: color-mix(in oklab, var(--color-background) 84%, var(--color-primary));
+  background-color: var(--color-background);
   background-image:
     var(--auth-photo, none),
     /* Three soft shafts rather than a repeat: window light falls in a few
@@ -364,38 +357,26 @@ a {
     linear-gradient(
       104deg,
       transparent 32%,
-      rgba(58, 35, 23, 0.05) 40%,
+      rgb(var(--shadow-tone) / 0.05) 40%,
       transparent 48%
     ),
     /* the warmth a bake would throw, lower right */
     radial-gradient(108% 76% at 88% 72%, color-mix(in oklab, var(--color-primary) 10%, transparent), transparent 66%),
     /* daylight, upper left */
     radial-gradient(84% 60% at 6% -2%, rgba(255, 254, 250, 0.95), transparent 62%),
-    linear-gradient(180deg, transparent 52%, var(--color-canvas-deep) 100%);
+    linear-gradient(180deg, transparent 52%, var(--auth-ground-deep) 100%);
   background-size: cover, auto, auto, auto, auto, auto;
   background-position: center, 0 0, 0 0, 0 0, 0 0, 0 0;
 }
 
-/**
- * The form sheet re-points the semantic tokens to the Flour Room palette, so
- * the shared field and button components come out warm inside it without one
- * of them being restyled from the outside.
- */
+/* The form sheet rises out of the canvas and is what the eye lands on. The
+   fields inside it sit on the sunken tone like every field in the app, so it
+   needs no palette of its own (plan §139.4 retired the Flour Room tokens). */
 .auth-sheet {
-  --color-background: var(--color-field);
-  /* Surface is the field tone, not the sheet's own: a notice or a panel drawn
-     on the sheet has to be visible against it. */
-  --color-surface: var(--color-field);
-  --color-surface-hover: var(--color-rule);
-  --color-border: var(--color-rule);
-  --color-text: var(--color-ink);
-  --color-text-muted: var(--color-ink-muted);
-
-  /* The sheet rises into the canvas and is what the eye lands on. */
-  background: var(--color-sheet);
+  background: var(--color-surface);
   box-shadow:
-    0 -1px 0 0 color-mix(in oklab, var(--color-rule) 70%, transparent),
-    0 -18px 40px -22px rgba(58, 35, 23, 0.28);
+    0 -1px 0 0 color-mix(in oklab, var(--color-border) 70%, transparent),
+    0 -18px 40px -22px rgb(var(--shadow-tone) / 0.28);
 }
 
 @media (prefers-reduced-motion: reduce) {

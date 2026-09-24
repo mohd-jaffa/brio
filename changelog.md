@@ -734,3 +734,16 @@ entry grows with them.
   - **UI:** Golden and Peach, the token vocabulary, all three widths, safe areas, and the response card as the one way to report an outcome.
   - **Validation:** the input-hygiene rules.
   - **Architecture tree:** `src/assets/`.
+- **R1.3 — Golden and Peach, one token vocabulary** (plan §139.4).
+  - **The palettes.** Golden replaces Clean. Both themes carry the plan's values: `background`, `surface`, the new `sunken`, `border`, `text`, `text-muted`, `primary` with its hover, text and new `primary-soft`, `accent` (gold or terracotta, for marks only), and the dark `action`.
+  - **Status and state colours.** The seven status colours are shared by both themes. `success`, `warning`, `danger` and the new `info` map onto them, and each `-bg` is its colour at 12 % over `surface`.
+  - **Shadows** now take the theme's own warm tone instead of neutral black.
+  - **Retired tokens.** The Flour Room tokens (`canvas`, `sheet`, `field`, `ink`, `ink-muted`, `rule`) and the unused `secondary`, `accent-border` and `primary-light` are gone, and every class that used them now names the replacement. Fields sit on `sunken`. The auth sheet no longer re-points the palette, because the shared one is now right for it.
+  - **Contrast, measured.** Every derived pairing was checked: hover shades, status text on its tint (4.82 – 6.24), primary on `primary-soft`, and muted text on hover. **One plan value failed:** Peach `primary-soft` `#FADFD0` put the active nav label at 4.47 : 1. It is now `#FBE3D6` (4.62), and plan §139.4 records the change.
+- **R1.4 · BUG-15 — no theme flash.**
+  - **The pre-paint script.** An inline script in `<head>` (`THEME_BOOT_SCRIPT`, built from the same constants as the picker) applies the stored theme and the `theme-color` before the first paint, the pattern in Next 16's "Preventing flash before hydration" guide.
+  - **React reads the attribute, not storage.** `ThemeProvider` reads `<html data-theme>` through `useSyncExternalStore`, so the server and the first client render agree and nothing mismatches.
+  - **A stored `clean` reads as Golden.**
+  - **The theme stays per device (Q14's default).**
+  - **Checked in a browser:** with nothing stored, with `peach`, and with a legacy `clean`, `data-theme` and the toolbar colour are already correct when the document finishes parsing, before React runs.
+- **R1.5 — type:** Fraunces for display and every heading, Inter for everything you operate (plan §137.4). Fredoka and Plus Jakarta Sans are gone. `font-heading` and `font-body` keep their names, and `font-display` now points at the heading face. Measured in the browser: body `Inter`, `h1` `Fraunces`.
