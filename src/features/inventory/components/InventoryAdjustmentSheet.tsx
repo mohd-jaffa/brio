@@ -52,10 +52,15 @@ export function InventoryAdjustmentSheet({
     if (isOpen) reset(EMPTY);
   }, [isOpen, reset]);
 
+  // Read here, never as `product!.id` inside the callback: the React Compiler
+  // lifts that read into a render-time memo dependency, and it threw on every
+  // visit while the sheet was closed with no product (plan §134 P0-1). Without a
+  // product the sheet renders nothing, so the empty id is never sent.
+  const productId = product?.id ?? "";
   const { submit, submitting, error } = useApiMutation<StockAdjustmentFormPayload, InventoryTransaction>(
     (values) =>
       InventoryClient.adjustStock({
-        productId: product!.id,
+        productId,
         type: values.type,
         quantity: signedQuantity(values.type, values.quantity),
         referenceType: "MANUAL",
