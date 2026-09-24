@@ -3,6 +3,7 @@ import { type Order, type OrderRow } from "./types";
 import { type CreateOrderPayload } from "@/lib/validation";
 import { MAX_ORDER_TOTAL_PAISE } from "@/constants/limits";
 import { businessRuleError, conflictError } from "@/lib/errors";
+import { getCustomerById } from "@/features/customers/api";
 import { getProductById } from "@/features/products/api";
 import { logInventoryTransaction } from "@/features/inventory/api";
 import { generateOrderNumber, insertOrder, insertOrderItems, insertOrderAdjustments, deleteOrderHard } from "./api";
@@ -14,6 +15,11 @@ export async function createOrder(
   bakeryId: string, 
   input: CreateOrderPayload,
 ): Promise<Order> {
+  // The customer is read back through this business's records, so one that
+  // belongs to another business is refused here as not found — not left to a
+  // foreign key, and never stored (BUG-19).
+  await getCustomerById(client, bakeryId, input.customerId);
+
   // Every product is read back: the prices the order is built from are the
   // ones in the database now, never the ones the browser sent (AGENTS.md §13).
   const products = await Promise.all(

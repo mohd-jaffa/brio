@@ -1,6 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const getCustomerById = vi.fn();
+vi.mock("@/features/customers/api", () => ({
+  getCustomerById: (...args: unknown[]) => getCustomerById(...args),
+}));
 const getProductById = vi.fn();
 vi.mock("@/features/products/api", () => ({
   getProductById: (...args: unknown[]) => getProductById(...args),
@@ -32,6 +36,7 @@ function orderFor(quantity: number) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  getCustomerById.mockResolvedValue({ id: "c-1" });
   // The dearest a product can be: ₹10,00,000.
   getProductById.mockResolvedValue({ id: PRODUCT_ID, name: "Wedding cake", defaultPrice: 100_000_000, isActive: true });
 });
@@ -42,6 +47,15 @@ describe("createOrder", () => {
       code: "ORDER_TOTAL_TOO_LARGE",
       kind: "BUSINESS_RULE",
     });
+    expect(insertOrder).not.toHaveBeenCalled();
+  });
+
+  it("refuses a customer this business does not have, before writing anything (BUG-19)", async () => {
+    getCustomerById.mockRejectedValue(Object.assign(new Error("not found"), { code: "RECORD_NOT_FOUND" }));
+    await expect(createOrder({} as SupabaseClient, "b-1", orderFor(1))).rejects.toMatchObject({
+      code: "RECORD_NOT_FOUND",
+    });
+    expect(getCustomerById).toHaveBeenCalledWith({}, "b-1", "3f2504e0-4f89-11d3-9a0c-0305e82c3302");
     expect(insertOrder).not.toHaveBeenCalled();
   });
 

@@ -684,3 +684,28 @@ entry grows with them.
   - `z.config({ customError })` in `primitives.ts` is the floor for anything left unnamed.
   - **`src/lib/validation/messages.test.ts`** feeds every exported schema missing, blank, wrong-typed, over-long, over-large and NaN values at every depth, and fails on Zod-shaped wording. Against the old schemas it fails for more than twenty of them.
   - The server's environment check keeps Zod's detail, because operators read it, not customers.
+- **R0.11 – R0.13 · BUG-18, BUG-19, BUG-21 — migration `0005_tenant_integrity.sql`.**
+  - **Composite foreign keys (BUG-19).** Foreign keys are checked without RLS, so an order could name another business's customer, and likewise a payment's order, a stock line's product and a product's category. RLS hid them on read, but the rows were corrupt. `orders`, `payments`, `inventory_transactions` and `products` now reference `(bakery_id, id)`, so the database refuses a cross-business reference on every write. The four single-column keys they replace are dropped. Deleting a category clears only `category_id` (`on delete set null (category_id)`, PostgreSQL 15+), never the product's business.
+  - **The customer is also checked when an order is created.** `createOrder` reads it through the business's own records, so one from another business is refused as not found before anything is written.
+  - **Policies (BUG-18).** The payments, audit-log and notification policies are rewritten to `to authenticated` with `current_profile_bakery_id()`, like the rest of the schema, so a deactivated profile reads none of them. Audit inserts stay open to the business's own rows until the server writes audit itself (R2.10, BUG-20).
+  - **Payment constraints (BUG-21).** `payments.amount > 0`, and `payment_method` must be one of the five known methods.
+  - **Proved against the local database** in a rolled-back transaction with a second business:
+    - All three cross-business references refused (23503).
+    - A zero payment and an unknown method refused (23514).
+    - A same-business payment accepted.
+    - Deleting a category kept the product's business and cleared its category.
+    - The same profile read 3 payments and 10 audit rows while active, and **none** once deactivated.
+  - `tests/db/tenant-integrity-migration.test.ts` pins the migration's contract.
+- **Phase 0 journey, end to end on a freshly reset database:**
+  - "Pending payments" read ₹1,910. The old rule gave ₹2,410, counting a ₹500 part payment as unpaid.
+  - An order placed through the form, with a "₹1,000" charge written with a comma, came to ₹2,900.
+  - Collect payment took ₹500 and stored 50,000 paise. The order became Part paid, and the dashboard rose to ₹4,310.
+  - Cancelling through the confirmation took the dashboard back to ₹1,910.
+  - No page errors.
+
+### Validation
+- `tsc --noEmit` clean; `eslint` clean; `vitest run` **71 files, 579 tests**, up from 62 and 490 at the start of the phase. Every behavioural fix has a test that fails against the code it replaced.
+- `supabase db reset` applies `0001` – `0005` and the seed cleanly.
+
+### Blockers
+- None. Deliberately left to their own rows: order numbers (`#6-799`, BUG-08 → R3.2), the create and status transactions (R3.1, R3.4), the payment recorded at creation (BUG-02 → R3.12) and audit written by the server (R2.10).
