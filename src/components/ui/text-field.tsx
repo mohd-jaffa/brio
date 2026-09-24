@@ -25,12 +25,24 @@ const CONTROL_CLASSES =
 
 const LABEL_CLASSES = "mb-1.5 block text-xs font-bold uppercase tracking-wider text-text-muted";
 
+/** Sentence case, sized to sit beside its control rather than above a table. */
+const LABEL_PLAIN_CLASSES = "mb-2 block text-sm font-semibold text-text";
+
+/**
+ * Most of the app labels a field in small caps, which reads well in a dense
+ * sheet of them. The authentication screens set their labels in sentence case
+ * (plan §137), so the option lives here rather than being restyled from a
+ * parent.
+ */
+export type LabelCase = "caps" | "sentence";
+
 interface FieldShell {
   label: string;
   error?: string;
   /** Marks the field required, both visually and to assistive technology. */
   required?: boolean;
   hint?: string;
+  labelCase?: LabelCase;
 }
 
 function useFieldIds(error?: string) {
@@ -38,9 +50,19 @@ function useFieldIds(error?: string) {
   return { id, errorId: error ? `${id}-error` : undefined };
 }
 
-function Label({ htmlFor, label, required }: { htmlFor: string; label: string; required?: boolean }) {
+function Label({
+  htmlFor,
+  label,
+  required,
+  labelCase = "caps",
+}: {
+  htmlFor: string;
+  label: string;
+  required?: boolean;
+  labelCase?: LabelCase;
+}) {
   return (
-    <label htmlFor={htmlFor} className={LABEL_CLASSES}>
+    <label htmlFor={htmlFor} className={labelCase === "sentence" ? LABEL_PLAIN_CLASSES : LABEL_CLASSES}>
       {label}
       {required && (
         <span className="text-danger" aria-hidden="true">
@@ -56,20 +78,34 @@ export const TextField = forwardRef<
   FieldShell & {
     /** A control that sits inside the field — the reveal button on a password. */
     trailing?: ReactNode;
+    /** A mark that sits inside the field before the text — an icon naming the field. */
+    leading?: ReactNode;
   } & Omit<InputHTMLAttributes<HTMLInputElement>, "className" | "id">
->(function TextField({ label, error, required, hint, trailing, ...rest }, ref) {
+>(function TextField({ label, error, required, hint, trailing, leading, labelCase, ...rest }, ref) {
   const { id, errorId } = useFieldIds(error);
   return (
     <div>
-      <Label htmlFor={id} label={label} required={required} />
+      <Label htmlFor={id} label={label} required={required} labelCase={labelCase} />
       <div className="relative">
+        {leading && (
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-text-muted"
+          >
+            {leading}
+          </span>
+        )}
         <input
           id={id}
           ref={ref}
           aria-required={required || undefined}
           aria-invalid={error ? true : undefined}
           aria-describedby={errorId}
-          className={cn(CONTROL_CLASSES, Boolean(trailing) && "pr-12")}
+          className={cn(
+            CONTROL_CLASSES,
+            Boolean(leading) && "pl-12",
+            Boolean(trailing) && "pr-12",
+          )}
           {...rest}
         />
         {trailing && (
