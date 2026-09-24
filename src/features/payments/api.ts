@@ -6,7 +6,7 @@ import { createJob } from "@/lib/jobs/queue";
 import { findOrderById, updateOrder } from "@/features/orders/api";
 import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
 import { conflictError } from "@/lib/errors";
-import { rupeesToPaise, sumPaise } from "@/lib/money";
+import { sumPaise } from "@/lib/money";
 
 export async function createPaymentRecord(client: SupabaseClient, bakeryId: string, data: CreatePaymentDTO): Promise<Payment> {
   const { data: payment, error } = await client
@@ -40,7 +40,9 @@ export async function findPaymentsByOrderId(client: SupabaseClient, bakeryId: st
 export async function processPayment(client: SupabaseClient, bakeryId: string, input: CreatePaymentPayload): Promise<Payment> {
   const orderData = await findOrderById(client, bakeryId, input.order_id);
   const order = orderData.order;
-  const amountPaise = rupeesToPaise(input.amount);
+  // Already whole paise: the form converted the rupees a baker typed, and the
+  // schema carries paise (AGENTS.md §13). Converting again stored 100× the amount.
+  const amountPaise = input.amount;
 
   const existingPayments = await findPaymentsByOrderId(client, bakeryId, input.order_id);
   const totalPaid = sumPaise(existingPayments.map((payment) => payment.amount));

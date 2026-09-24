@@ -638,3 +638,12 @@ schema or configuration changed.
 
 ### Blockers
 - **Q16 (open):** the licence for the illustrations. It defaults to a credit in Settings → About, and needs confirming before the Play release.
+
+## 2026-09-24 — Phase 0: Correctness and Security (plan §139.18, tracker §139.19)
+
+Phase 0 of the v2 roadmap: stop the bugs that corrupt money, stock or tenant
+data, and the crash. **No redesign.** Each row is committed on its own; this
+entry grows with them.
+
+### Fixed
+- **R0.1 · BUG-01 — payments were stored at 100 times their amount** (`src/features/payments/api.ts`). The collect-payment form converts rupees to paise and the schema carries paise, but `processPayment` ran `rupeesToPaise` on that value again. ₹500 was stored as ₹50,000, so any payment above 1 % of the order total was refused as exceeding it. Collect payment now works. **`processPayment` had no tests;** five now cover the stored amount, a large part payment, reaching the total, refusing an overpayment without writing anything, and leaving an unchanged status alone. Four of the five fail against the old code.

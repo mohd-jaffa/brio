@@ -8520,7 +8520,7 @@ the row needs; without an answer it is built on that question's default
 
 | ID | Work | Source | Waits on | Status |
 |---|---|---|---|---|
-| R0.1 | Payments store their real amount; tests for `processPayment` | BUG-01 | — | TODO |
+| R0.1 | Payments store their real amount; tests for `processPayment` | BUG-01 | — | DONE (2026-09-24) |
 | R0.2 | "Pending payments" counts total minus paid | BUG-03 | — | TODO |
 | R0.3 | Fix the `/inventory` crash | §134 P0-1 | — | TODO |
 | R0.4 | Error boundary, not-found and loading states; remove the dead Receipts nav entry | §134 P0-2, P1-1, P1-2; §133.8 H2 | — | TODO |
