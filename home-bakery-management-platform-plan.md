@@ -6569,7 +6569,7 @@ Every gap recorded here has been implemented. The entry is kept rather than dele
 | C2 | **No idempotency** anywhere. A double-tapped Place Order creates two orders; a retried payment records twice. §24 of AGENTS.md requires critical mutations to be safe against duplicate submission. | Money |
 | C3 | No cart/draft state and **no bill-preview step** before Confirm. The plan's flow is Cart → Bill → Confirm (§110–§112); the screen is one long form with a running total. | Approved UX |
 | C4 | **Stock can be oversold.** Nothing reads the balance before an `ORDER_RESERVATION` is posted, so an order can reserve stock that is not there (§21). | Inventory truth |
-| C5 | **A delivered order deducts its stock twice.** `checkout.ts` posts `ORDER_RESERVATION` at `-quantity` and `status.ts` posts `ORDER_CONSUMPTION` at `-quantity` on first delivery, and nothing ever releases the reservation. Every balance in the app is therefore short by the quantity of every delivered order. Consumption should release the reservation, not repeat it. | Inventory truth |
+| C5 | **A delivered order deducts its stock twice.** `checkout.ts` posts `ORDER_RESERVATION` at `-quantity` and `status.ts` posts `ORDER_CONSUMPTION` at `-quantity` on first delivery, and nothing ever releases the reservation. Every balance in the app is therefore short by the quantity of every delivered order. Consumption should release the reservation, not repeat it. | Inventory truth **Closed 2026-09-24 by R0.7.** |
 | C6 | **`updateOrderStatus` is not transactional either.** It persists the status, then the ledger line, then the audit row, then enqueues the notification. Observed on 2026-09-23: a failure at the last step left the status changed, the stock consumed and the audit written, and the retry then saw `before.status === 'DELIVERED'` and silently skipped the notification. Same fix as C1. | Data integrity |
 
 ---
@@ -6622,7 +6622,7 @@ The queue table and the claim/complete/fail helpers exist. Nothing runs them.
 | # | Gap |
 |---|-----|
 | H1 | The receipt is an on-screen HTML view with browser print. There is no PDF generation, no native share, no WhatsApp share and no download (§24). Generation stays on demand and nothing is stored — that part of §24 is respected and must stay that way. |
-| H2 | `/receipts` is in the navigation (§9) but no page exists, so the link 404s. Either build the screen or take the entry out of `src/constants/navigation.ts`. |
+| H2 | `/receipts` is in the navigation (§9) but no page exists, so the link 404s. Either build the screen or take the entry out of `src/constants/navigation.ts`. **Closed 2026-09-24 by R0.4** (the entry was removed). |
 
 ---
 
@@ -6729,8 +6729,8 @@ the file and line it lives at.
 
 | # | Finding |
 |---|---------|
-| **P0-1** | **`/inventory` throws on every load.** `TypeError: Cannot read properties of undefined (reading 'id')`, reproduced on both viewports. `InventoryAdjustmentSheet` guards with `if (!product) return null` — but the guard sits *after* `useApiMutation`, and the callback closes over `product!.id` (`src/features/inventory/components/InventoryAdjustmentSheet.tsx:58`). With `reactCompiler: true` the React Compiler lifts that read into a memo dependency (`if ($[6] !== product.id)` in the emitted chunk), so it runs at render, before the guard, while the sheet is closed and `product` is `undefined`. The screen still paints because React recovers, but it throws on every visit and any error boundary would catch it. **Fix:** drop the `!` and read `product.id` inside the callback body after a null check, or move the guard above the hook. **The class of bug matters more than the instance:** under the React Compiler, any `x!.y` inside a hook argument that is guarded by a later early return becomes a render-time read. This is the only occurrence in a component today (`src/features/orders/checkout.ts` has three more, but that file is server-side and not compiled). |
-| **P0-2** | **No error boundary anywhere.** There is no `error.tsx` or `global-error.tsx` in `src/app`. A render error in any screen takes the whole app to a blank page in production, with no recovery and no way back. Given P0-1 exists, this is not hypothetical. |
+| **P0-1** | **`/inventory` throws on every load.** `TypeError: Cannot read properties of undefined (reading 'id')`, reproduced on both viewports. `InventoryAdjustmentSheet` guards with `if (!product) return null` — but the guard sits *after* `useApiMutation`, and the callback closes over `product!.id` (`src/features/inventory/components/InventoryAdjustmentSheet.tsx:58`). With `reactCompiler: true` the React Compiler lifts that read into a memo dependency (`if ($[6] !== product.id)` in the emitted chunk), so it runs at render, before the guard, while the sheet is closed and `product` is `undefined`. The screen still paints because React recovers, but it throws on every visit and any error boundary would catch it. **Fix:** drop the `!` and read `product.id` inside the callback body after a null check, or move the guard above the hook. **The class of bug matters more than the instance:** under the React Compiler, any `x!.y` inside a hook argument that is guarded by a later early return becomes a render-time read. This is the only occurrence in a component today (`src/features/orders/checkout.ts` has three more, but that file is server-side and not compiled). **Closed 2026-09-24 by R0.3.** |
+| **P0-2** | **No error boundary anywhere.** There is no `error.tsx` or `global-error.tsx` in `src/app`. A render error in any screen takes the whole app to a blank page in production, with no recovery and no way back. Given P0-1 exists, this is not hypothetical. **Closed 2026-09-24 by R0.4.** |
 
 ---
 
@@ -6738,8 +6738,8 @@ the file and line it lives at.
 
 | # | Finding |
 |---|---------|
-| **P1-1** | **No `not-found.tsx`.** `/receipts` is in the app's own sidebar and More sheet (`src/constants/navigation.ts`) and has no page, so a baker who taps it lands on Next's stock black-on-white "404 — This page could not be found": no shell, no nav, no theme, no way back. Verified at both sizes. Either build the screen (§133.8) or remove the nav entry — but ship a branded `not-found.tsx` regardless, because a mistyped URL does the same thing. |
-| **P1-2** | **No `loading.tsx` on any route.** Every screen renders its own skeleton once the client component mounts, so navigation shows the previous screen until the new one hydrates. |
+| **P1-1** | **No `not-found.tsx`.** `/receipts` is in the app's own sidebar and More sheet (`src/constants/navigation.ts`) and has no page, so a baker who taps it lands on Next's stock black-on-white "404 — This page could not be found": no shell, no nav, no theme, no way back. Verified at both sizes. Either build the screen (§133.8) or remove the nav entry — but ship a branded `not-found.tsx` regardless, because a mistyped URL does the same thing. **Closed 2026-09-24 by R0.4.** |
+| **P1-2** | **No `loading.tsx` on any route.** Every screen renders its own skeleton once the client component mounts, so navigation shows the previous screen until the new one hydrates. **Closed 2026-09-24 by R0.4.** |
 | **P1-3** | **The forced-password-change screen is unreachable in practice, so its state is unverified.** `/change-password` is only reached after a temporary-password sign-in, which needs the reset email. It renders, but the "you are here because of a temporary password" path has never been walked end to end. Worth one manual pass through Mailpit before release. |
 | **P1-4** | **Sign-in leaves focus on the submit button after a refusal.** On both an empty submit and a wrong password, focus stays where it was; nothing moves to the banner or the first invalid field. The per-field `role="alert"` fires, but several simultaneous alerts are unreliable — a keyboard or screen-reader user has to hunt for what went wrong. |
 
@@ -8314,33 +8314,34 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 
 ## 139.14 Bugs found in this pass
 
-Verified against the code on 2026-09-24. **None of them is fixed here.** Severity:
+Verified against the code on 2026-09-24. **Phase 0 fixed twelve of them the same day**
+(marked in the Row column; changelog, "Phase 0"). Severity:
 **S1** corrupts money, stock or data · **S2** a feature does not work · **S3**
 wrong but survivable · **S4** polish.
 
 | # | Sev | Finding | Where | Fix | Row |
 |---|---|---|---|---|---|
-| **BUG-01** | **S1** | **Every payment is recorded at 100 times its amount.** The form parses rupees to paise and the schema carries paise, then `processPayment` runs `rupeesToPaise` on it **again**: a ₹500 payment arrives as 50,000 paise and is stored as 5,000,000 — ₹50,000. In practice, **any payment above 1 % of the order total is refused** with "payment exceeds order total", so Collect payment does not work. No test covers `processPayment`. | `src/features/payments/api.ts:43` | The amount is already paise — drop the conversion; add tests | R0.1 |
+| **BUG-01** | **S1** | **Every payment is recorded at 100 times its amount.** The form parses rupees to paise and the schema carries paise, then `processPayment` runs `rupeesToPaise` on it **again**: a ₹500 payment arrives as 50,000 paise and is stored as 5,000,000 — ₹50,000. In practice, **any payment above 1 % of the order total is refused** with "payment exceeds order total", so Collect payment does not work. No test covers `processPayment`. | `src/features/payments/api.ts:43` | The amount is already paise — drop the conversion; add tests | R0.1 · **fixed 2026-09-24** |
 | **BUG-02** | **S1** | **An order placed as Paid or Part paid records no payment, and Part paid never asks how much.** The payments table, the balance due and the dashboard disagree from the first minute. | `src/app/orders/new/page.tsx:51`, `checkout.ts:59–61` | §139.11.9 | R3.12 |
-| **BUG-03** | **S1** | **"Pending payments" counts the full total of part-paid orders**, ignoring what has been paid. | `src/features/dashboard/summary.ts:37` | Total minus payments | R0.2 |
-| **BUG-04** | **S1** | **Cancelling an order never releases its stock.** The reservation stays, so every cancelled order lowers stock permanently. §133.3 C5 covers the double count on delivery; this is the other half. | `src/features/orders/status.ts` (no cancel branch) | §139.11.8 | R0.7 |
-| **BUG-05** | **S2** | **Any status can follow any other.** A free select fires on change, with no confirmation, and the server has no transition rules. Delivered → Pending → Delivered consumes stock twice; Cancelled → Delivered is allowed. | `src/app/orders/[id]/page.tsx:145`, `status.ts:20` | §139.11.8 | R0.6 |
+| **BUG-03** | **S1** | **"Pending payments" counts the full total of part-paid orders**, ignoring what has been paid. | `src/features/dashboard/summary.ts:37` | Total minus payments | R0.2 · **fixed 2026-09-24** |
+| **BUG-04** | **S1** | **Cancelling an order never releases its stock.** The reservation stays, so every cancelled order lowers stock permanently. §133.3 C5 covers the double count on delivery; this is the other half. | `src/features/orders/status.ts` (no cancel branch) | §139.11.8 | R0.7 · **fixed 2026-09-24** |
+| **BUG-05** | **S2** | **Any status can follow any other.** A free select fires on change, with no confirmation, and the server has no transition rules. Delivered → Pending → Delivered consumes stock twice; Cancelled → Delivered is allowed. | `src/app/orders/[id]/page.tsx:145`, `status.ts:20` | §139.11.8 | R0.6 · **fixed 2026-09-24** |
 | **BUG-06** | **S2** | **Payment status can be set by hand** to Paid with nothing recorded. | `src/app/orders/[id]/page.tsx:156` | Derive it; remove the control | R3.12 |
-| **BUG-07** | **S3** | **Dates are taken in UTC.** Between midnight and 05:30 IST, a bill and the customer's order list show **yesterday's date**, and a new expense **defaults to yesterday**. | `ReceiptPrintView.tsx:72`, `CustomerProfileClient.tsx:235` (`createdAt.slice(0, 10)`); `ExpenseFormSheet.tsx:28` | `dayKey()` / `todayKey()` | R0.5 |
+| **BUG-07** | **S3** | **Dates are taken in UTC.** Between midnight and 05:30 IST, a bill and the customer's order list show **yesterday's date**, and a new expense **defaults to yesterday**. | `ReceiptPrintView.tsx:72`, `CustomerProfileClient.tsx:235` (`createdAt.slice(0, 10)`); `ExpenseFormSheet.tsx:28` | `dayKey()` / `todayKey()` | R0.5 · **fixed 2026-09-24** |
 | **BUG-08** | **S3** | **Order numbers read like `#13-482`:** a count plus one, and a random suffix. They are not sequential; a number is **reused** after a rollback deletes an order; and two can collide on the unique key and answer 500. | `src/features/orders/api.ts:136–147` | A per-business counter inside the transaction → `ORD-1001` | R3.2 |
 | **BUG-09** | **S2** | **A failed order leaves stock reserved.** The compensation deletes the order but not the ledger lines already posted. (One instance of §133.3 C1.) | `src/features/orders/checkout.ts:101–107` | The `create_order` transaction | R3.1 |
-| **BUG-10** | **S3** | **The running total shows "₹NaN"** once a charge contains a comma ("1,000"), and "1,000" or "₹500" is refused as an amount. | `src/app/orders/new/page.tsx:126`; `primitives.ts` `paiseText` | Tolerant money parsing (§139.7) | R0.8 |
-| **BUG-11** | **S3** | **Zod's own English reaches the screen:** "Too big: expected string to have <=100 characters"; an empty quantity gives "Invalid input: expected number, received NaN". | `customer.ts:9`, `product.ts:10`, `expense.ts:14`, `order.ts:16, 82` | Every message from `VALIDATION_MESSAGES` (§139.7) | R0.14 |
-| **BUG-12** | **S2** | **Unbounded numbers overflow the database.** Money and quantities have no maximum; the `integer` columns overflow, and the user gets a 500 instead of a message. | `primitives.ts` (`paiseText`, `wholeNumberText`), `order.ts:16, 82` | Bounds (§139.7) | R0.9 |
-| **BUG-13** | **S3** | **Map links accept any scheme.** `URL.canParse` accepts `javascript:` and `data:`. React 19.2 blocks `javascript:` in `href` when it renders, so the two links on screen today are safe — but the link now goes onto **shared bills and native share text**, where nothing blocks it. | `src/lib/validation/primitives.ts:94` | `http:`/`https:` only | R0.10 |
+| **BUG-10** | **S3** | **The running total shows "₹NaN"** once a charge contains a comma ("1,000"), and "1,000" or "₹500" is refused as an amount. | `src/app/orders/new/page.tsx:126`; `primitives.ts` `paiseText` | Tolerant money parsing (§139.7) | R0.8 · **fixed 2026-09-24** |
+| **BUG-11** | **S3** | **Zod's own English reaches the screen:** "Too big: expected string to have <=100 characters"; an empty quantity gives "Invalid input: expected number, received NaN". | `customer.ts:9`, `product.ts:10`, `expense.ts:14`, `order.ts:16, 82` | Every message from `VALIDATION_MESSAGES` (§139.7) | R0.14 · **fixed 2026-09-24** |
+| **BUG-12** | **S2** | **Unbounded numbers overflow the database.** Money and quantities have no maximum; the `integer` columns overflow, and the user gets a 500 instead of a message. | `primitives.ts` (`paiseText`, `wholeNumberText`), `order.ts:16, 82` | Bounds (§139.7) | R0.9 · **fixed 2026-09-24** |
+| **BUG-13** | **S3** | **Map links accept any scheme.** `URL.canParse` accepts `javascript:` and `data:`. React 19.2 blocks `javascript:` in `href` when it renders, so the two links on screen today are safe — but the link now goes onto **shared bills and native share text**, where nothing blocks it. | `src/lib/validation/primitives.ts:94` | `http:`/`https:` only | R0.10 · **fixed 2026-09-24** |
 | **BUG-14** | **S2** | **Safe areas are inert on iPhone** — no `viewportFit: "cover"`. Also: the five call sites of §138.6.3; the main content's fixed `pb-24` ignores the inset; sheets use `90vh`. | `src/app/layout.tsx:38–42`, `AppShell.tsx:120`, `form-sheet.tsx:89` | §139.8 | R1.6 |
 | **BUG-15** | **S3** | **The theme flashes on every load.** The server renders `data-theme="clean"`, and the stored theme is applied only after hydration; the client's first render also differs from the server's. The `theme-color` never changes. | `src/app/layout.tsx:41, 52`; `ThemeProvider.tsx:44–54` | An inline pre-paint script; `theme-color` per theme | R1.4 |
 | **BUG-16** | **S2** | **Registration fails whenever mail does.** The confirmation is sent inline, and a send failure rolls the whole account back. AGENTS §17 puts mail on the queue. | `src/features/auth/api.ts:314, 328` | Queue it; Resend confirmation | R2.5 |
 | **BUG-17** | **S3** | **The role is written into `user_metadata`**, which users can edit themselves. Nothing reads it today — a future read would be a privilege escalation. | `src/features/auth/api.ts:289–292` | Stop writing it | R2.3 |
-| **BUG-18** | **S2** | **The payments, audit-log and notifications policies skip the `is_active` check** the rest of the schema uses, and are not `to authenticated`. Once deactivation exists (§64), a deactivated user would keep reading those three tables. | `supabase/migrations/0003_payments_and_jobs.sql` | Use `current_profile_bakery_id()` | R0.11 |
-| **BUG-19** | **S3** | **Nothing stops a row pointing into another business.** Foreign keys are checked without RLS, so an order can reference another business's customer — `createOrder` never checks — and the same holds for a payment's order, a ledger line's product and a product's category. RLS hides them on read, but the rows are corrupt. | `checkout.ts:56`; FKs in `0002`, `0003` | Composite FKs; check at the route | R0.12 |
+| **BUG-18** | **S2** | **The payments, audit-log and notifications policies skip the `is_active` check** the rest of the schema uses, and are not `to authenticated`. Once deactivation exists (§64), a deactivated user would keep reading those three tables. | `supabase/migrations/0003_payments_and_jobs.sql` | Use `current_profile_bakery_id()` | R0.11 · **fixed 2026-09-24** |
+| **BUG-19** | **S3** | **Nothing stops a row pointing into another business.** Foreign keys are checked without RLS, so an order can reference another business's customer — `createOrder` never checks — and the same holds for a payment's order, a ledger line's product and a product's category. RLS hides them on read, but the rows are corrupt. | `checkout.ts:56`; FKs in `0002`, `0003` | Composite FKs; check at the route | R0.12 · **fixed 2026-09-24** |
 | **BUG-20** | **S3** | **The audit trail can be forged:** `authenticated` may INSERT into `audit_logs`, so any signed-in user can write audit rows for their business directly. | `supabase/migrations/0004_api_role_grants.sql:34` | The server writes audit (G1) | R2.10 |
-| **BUG-21** | **S3** | **`payments` has no amount check and no method check**, unlike `orders` and `expenses`. | `0003` | Constraints | R0.13 |
+| **BUG-21** | **S3** | **`payments` has no amount check and no method check**, unlike `orders` and `expenses`. | `0003` | Constraints | R0.13 · **fixed 2026-09-24** |
 | **BUG-22** | **S3** | **A delivery order is accepted with neither an address nor a map link**, against §96. | `src/lib/validation/schemas/order.ts:43–48` | A refinement on the delivery type | R3.8 |
 | **BUG-23** | **S3** | **Customer search misses numbers as they are written.** Phones are stored as `+919876543210`, so typing "98765 43210" finds nothing. | `src/app/customers/page.tsx:23` | Match on digits | R5.3 |
 | **BUG-24** | **S3** | **The search box's placeholder and icon fail contrast** (`text-muted/60`) — §138.6 C3 fixed the text field but not this one. | `src/components/ui/search-input.tsx:28, 36` | Full-strength muted | R1.12 |
@@ -8351,10 +8352,9 @@ wrong but survivable · **S4** polish.
 | **BUG-29** | **S4** | **`console.error` in the order compensation** bypasses the structured logger and loses the request id (§11). | `src/features/orders/checkout.ts:104` | The logger | R3.16 |
 | **BUG-30** | **S4** | **136 hard-coded UI strings** in JSX attributes alone (`label=`, `title=`, `placeholder=`) — AGENTS §5. | `src/app`, `src/components`, `src/features` | Swept screen by screen as each is rebuilt | R5.14 |
 
-**Still open from earlier passes, and confirmed again today:** §134 **P0-1** (the
-`/inventory` crash is still there — `InventoryAdjustmentSheet.tsx:58`) and **P0-2**
-(there is still no `error.tsx`, `global-error.tsx`, `not-found.tsx` or
-`loading.tsx`). Every other open item in §133–§138 is mapped to a tracker row in
+**Still open from earlier passes when this was written, and closed by Phase 0:**
+§134 **P0-1** (the `/inventory` crash — R0.3) and **P0-2** (no `error.tsx`,
+`global-error.tsx`, `not-found.tsx` or `loading.tsx` — R0.4). Every other open item in §133–§138 is mapped to a tracker row in
 §139.19 rather than repeated here.
 
 ---
@@ -8520,20 +8520,20 @@ the row needs; without an answer it is built on that question's default
 
 | ID | Work | Source | Waits on | Status |
 |---|---|---|---|---|
-| R0.1 | Payments store their real amount; tests for `processPayment` | BUG-01 | — | DONE (2026-09-24) |
-| R0.2 | "Pending payments" counts total minus paid | BUG-03 | — | DONE (2026-09-24) |
-| R0.3 | Fix the `/inventory` crash | §134 P0-1 | — | DONE (2026-09-24) |
-| R0.4 | Error boundary, not-found and loading states; remove the dead Receipts nav entry | §134 P0-2, P1-1, P1-2; §133.8 H2 | — | DONE (2026-09-24) |
-| R0.5 | Dates in the business's timezone | BUG-07 | — | DONE (2026-09-24) |
-| R0.6 | A status transition table on the server; confirm before Cancel | BUG-05 | — | DONE (2026-09-24) |
-| R0.7 | Stock follows status — cancel releases, delivery converts | BUG-04; §133.3 C5 | — | DONE (2026-09-24) |
-| R0.8 | Tolerant money parsing; no "₹NaN" | BUG-10; IMP-12 | — | DONE (2026-09-24) |
-| R0.9 | Bounds on money and quantities | BUG-12 | — | DONE (2026-09-24) |
-| R0.10 | Links accept `http:`/`https:` only | BUG-13 | — | DONE (2026-09-24) |
-| R0.11 | RLS: `is_active` and `to authenticated` on payments, audit logs, notifications | BUG-18 | — | DONE (2026-09-24) |
-| R0.12 | Tenant-integrity foreign keys; the customer checked at order creation | BUG-19 | — | DONE (2026-09-24) |
-| R0.13 | Payment amount and method constraints | BUG-21 | — | DONE (2026-09-24) |
-| R0.14 | Every validation message from the catalogue | BUG-11 | — | DONE (2026-09-24) |
+| R0.1 | Payments store their real amount; tests for `processPayment` | BUG-01 | — | DONE (2026-09-24 · 29ca506) |
+| R0.2 | "Pending payments" counts total minus paid | BUG-03 | — | DONE (2026-09-24 · 2fb09b4) |
+| R0.3 | Fix the `/inventory` crash | §134 P0-1 | — | DONE (2026-09-24 · 3165b44) |
+| R0.4 | Error boundary, not-found and loading states; remove the dead Receipts nav entry | §134 P0-2, P1-1, P1-2; §133.8 H2 | — | DONE (2026-09-24 · 87a4499) |
+| R0.5 | Dates in the business's timezone | BUG-07 | — | DONE (2026-09-24 · 8953040) |
+| R0.6 | A status transition table on the server; confirm before Cancel | BUG-05 | — | DONE (2026-09-24 · 218d78d) |
+| R0.7 | Stock follows status — cancel releases, delivery converts | BUG-04; §133.3 C5 | — | DONE (2026-09-24 · 218d78d) |
+| R0.8 | Tolerant money parsing; no "₹NaN" | BUG-10; IMP-12 | — | DONE (2026-09-24 · 5aba1c6) |
+| R0.9 | Bounds on money and quantities | BUG-12 | — | DONE (2026-09-24 · 5aba1c6) |
+| R0.10 | Links accept `http:`/`https:` only | BUG-13 | — | DONE (2026-09-24 · 5aba1c6) |
+| R0.11 | RLS: `is_active` and `to authenticated` on payments, audit logs, notifications | BUG-18 | — | DONE (2026-09-24 · dab556e) |
+| R0.12 | Tenant-integrity foreign keys; the customer checked at order creation | BUG-19 | — | DONE (2026-09-24 · dab556e) |
+| R0.13 | Payment amount and method constraints | BUG-21 | — | DONE (2026-09-24 · dab556e) |
+| R0.14 | Every validation message from the catalogue | BUG-11 | — | DONE (2026-09-24 · 5aba1c6) |
 
 ### Phase 1 — Foundation
 
@@ -8547,7 +8547,7 @@ the row needs; without an answer it is built on that question's default
 | R1.6 | The safe-area system: `viewport-fit`, `--safe-*`, `dvh`, keyboard, the five call sites | BUG-14; §138.6.3 | — | TODO |
 | R1.7 | AppShell: business header, five-item bottom nav, icon rail, grouped sidebar, top bar | §139.5 | — | TODO |
 | R1.8 | The component kit | §139.5 | — | TODO |
-| R1.9 | Sheets and dialogs trap focus, make the page `inert` and return focus | BUG-25 | — | TODO |
+| R1.9 | Sheets and dialogs trap focus, make the page `inert` and return focus. A form stays mounted while its sheet is closed, and every change is checked in the browser — a form mounted only while open lost its typed value under the React Compiler, which jsdom does not run (changelog, R0.3) | BUG-25 | — | TODO |
 | R1.10 | The response card and provider; action outcomes moved onto it | §139.6 | Q13 | TODO |
 | R1.11 | Input-hygiene primitives and the text-hygiene migration | §139.7 | — | TODO |
 | R1.12 | Search field contrast | BUG-24 | — | TODO |
