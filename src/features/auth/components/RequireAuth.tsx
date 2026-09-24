@@ -7,7 +7,7 @@ import { UI_TEXT } from "@/constants/messages";
 import { AUTH_ROUTES, signInPath } from "@/constants/routes";
 
 import { useAuth } from "../AuthProvider";
-import { AuthPending } from "./AuthPending";
+import { Pending } from "@/components/ui/pending";
 
 /**
  * The gate every signed-in screen sits behind (plan §19). It sends a visitor
@@ -33,7 +33,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   }, [status, requiresPasswordChange, pathname, router]);
 
   if (status === "loading" || blocked) {
-    return <AuthPending message={UI_TEXT.auth.checkingSession} />;
+    return <Pending message={UI_TEXT.auth.checkingSession} />;
   }
 
   return <>{children}</>;

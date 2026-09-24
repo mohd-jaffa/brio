@@ -161,4 +161,14 @@ export const UI_TEXT = {
     loading: "Loading…",
     noResults: (term: string) => `Nothing matches “${term}”.`,
   },
+
+  /** The screens shown when a route is missing or a screen fails (plan §134 P0-2, P1-1). */
+  system: {
+    notFoundTitle: "This page isn’t here",
+    notFoundBody: "The link may be out of date, or the address mistyped.",
+    errorTitle: "Something went wrong",
+    errorBody: "This screen stopped before it finished loading. Anything you had already saved is safe.",
+    errorReference: (digest: string) => `Reference: ${digest}`,
+    toDashboard: "Go to the dashboard",
+  },
 } as const;

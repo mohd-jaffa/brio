@@ -7,7 +7,7 @@ import { UI_TEXT } from "@/constants/messages";
 import { AUTH_ROUTES, RETURN_TO_PARAM, returnToPath } from "@/constants/routes";
 
 import { useAuth } from "../AuthProvider";
-import { AuthPending } from "./AuthPending";
+import { Pending } from "@/components/ui/pending";
 
 /**
  * The other half of the gate: someone already signed in has no use for the
@@ -30,7 +30,7 @@ export function RedirectWhenSignedIn({ children }: { children: ReactNode }) {
     );
   }, [signedIn, requiresPasswordChange, router, searchParams]);
 
-  if (signedIn) return <AuthPending message={UI_TEXT.auth.checkingSession} />;
+  if (signedIn) return <Pending message={UI_TEXT.auth.checkingSession} />;
 
   return <>{children}</>;
 }

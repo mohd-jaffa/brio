@@ -5,7 +5,6 @@ import {
   Home,
   Menu,
   Package,
-  ReceiptText,
   Settings,
   ShoppingBag,
   Users,
@@ -36,7 +35,6 @@ export const SECONDARY_NAV: readonly NavItem[] = [
   { id: "inventory", label: "Inventory", icon: Package, href: "/inventory" },
   { id: "expenses", label: "Expenses", icon: CircleDollarSign, href: "/expenses" },
   { id: "analytics", label: "Analytics", icon: BarChart3, href: "/analytics" },
-  { id: "receipts", label: "Receipts", icon: ReceiptText, href: "/receipts" },
   { id: "settings", label: "Settings", icon: Settings, href: "/settings" },
 ];
 

@@ -1,17 +1,17 @@
 import { Loader2 } from "lucide-react";
 
-import { cn } from "@/components/ui/cn";
+import { cn } from "./cn";
 
 /**
- * What a screen shows while it does not yet know who is asking. It is
- * announced, because the alternative is a blank page that says nothing to
- * anyone who cannot see the spinner (AGENTS.md §21).
+ * What a screen shows while it waits: for the session to be known, or for a
+ * route to arrive. It is announced, because the alternative is a blank page
+ * that says nothing to anyone who cannot see the spinner (AGENTS.md §21).
  *
  * `inline` is the same wait shown inside a form sheet rather than in place of
  * a whole screen — the confirmation screen waits with its scene already drawn
  * around it, so it must not paint its own background over it.
  */
-export function AuthPending({ message, inline = false }: { message: string; inline?: boolean }) {
+export function Pending({ message, inline = false }: { message: string; inline?: boolean }) {
   return (
     <div
       role="status"

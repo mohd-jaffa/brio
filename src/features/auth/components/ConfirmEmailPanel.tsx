@@ -11,7 +11,7 @@ import { errorMessage } from "@/lib/errors/errorMessage";
 
 import { AuthClient } from "../api.client";
 import { useAuth } from "../AuthProvider";
-import { AuthPending } from "./AuthPending";
+import { Pending } from "@/components/ui/pending";
 
 type ConfirmState = "working" | "done" | "failed";
 
@@ -94,7 +94,7 @@ export function ConfirmEmailPanel() {
     };
   }, [adopt, router]);
 
-  if (state === "working") return <AuthPending message={UI_TEXT.auth.confirming} inline />;
+  if (state === "working") return <Pending message={UI_TEXT.auth.confirming} inline />;
 
   if (state === "done") return <ScreenNotice tone="info">{UI_TEXT.auth.confirmed}</ScreenNotice>;
 

@@ -8523,7 +8523,7 @@ the row needs; without an answer it is built on that question's default
 | R0.1 | Payments store their real amount; tests for `processPayment` | BUG-01 | — | DONE (2026-09-24) |
 | R0.2 | "Pending payments" counts total minus paid | BUG-03 | — | DONE (2026-09-24) |
 | R0.3 | Fix the `/inventory` crash | §134 P0-1 | — | DONE (2026-09-24) |
-| R0.4 | Error boundary, not-found and loading states; remove the dead Receipts nav entry | §134 P0-2, P1-1, P1-2; §133.8 H2 | — | TODO |
+| R0.4 | Error boundary, not-found and loading states; remove the dead Receipts nav entry | §134 P0-2, P1-1, P1-2; §133.8 H2 | — | DONE (2026-09-24) |
 | R0.5 | Dates in the business's timezone | BUG-07 | — | TODO |
 | R0.6 | A status transition table on the server; confirm before Cancel | BUG-05 | — | TODO |
 | R0.7 | Stock follows status — cancel releases, delivery converts | BUG-04; §133.3 C5 | — | TODO |
