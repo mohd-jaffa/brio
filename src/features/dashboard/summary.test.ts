@@ -13,6 +13,7 @@ function order(
   {
     status = "PENDING" as OrderStatus,
     payment = "UNPAID" as PaymentStatus,
+    paid = 0,
     total = 10000,
     due = "2026-09-22T12:00:00Z",
     createdAt = "2026-09-22T05:00:00Z",
@@ -23,7 +24,7 @@ function order(
     customerId: "c-1",
     orderNumber: `#${id}`,
     status,
-    payment: { status: payment },
+    payment: { status: payment, paid },
     pricing: { subtotal: total, discount: 0, deliveryCharge: 0, tax: 0, total },
     delivery: { type: "PICKUP", date: due },
     items: [],
@@ -88,6 +89,17 @@ describe("summarise", () => {
       now,
     );
     expect(summary.pendingPayments).toBe(50000);
+  });
+
+  it("takes what has been paid off a part-paid order", () => {
+    const summary = summarise(
+      [
+        order("a", { payment: "PARTIALLY_PAID", total: 150000, paid: 50000 }),
+        order("b", { payment: "UNPAID", total: 30000 }),
+      ],
+      now,
+    );
+    expect(summary.pendingPayments).toBe(130000);
   });
 
   it("is all zeroes for a bakery with no orders", () => {

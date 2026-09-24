@@ -1,7 +1,7 @@
 import { LOW_STOCK_THRESHOLD } from "@/constants/inventory";
 import type { InventoryBalance } from "@/features/inventory/types";
 import type { Order } from "@/features/orders/types";
-import { byDueDate, isOpen } from "@/features/orders/view";
+import { balanceDue, byDueDate, isOpen } from "@/features/orders/view";
 import type { Product } from "@/features/products/types";
 import { dayKey, dueBucket, todayKey, type DueBucket } from "@/lib/dates/calendar";
 import { sumPaise } from "@/lib/money";
@@ -17,6 +17,7 @@ export interface DashboardSummary {
   /** Whole paise. */
   todaysRevenue: number;
   pendingOrders: number;
+  /** Whole paise still owed across every order — part payments taken off. */
   pendingPayments: number;
 }
 
@@ -26,15 +27,12 @@ export function summarise(orders: readonly Order[], now: Date = new Date()): Das
   const placedToday = orders.filter(
     (order) => order.status !== "CANCELLED" && dayKey(order.createdAt) === today,
   );
-  const owing = orders.filter(
-    (order) => order.status !== "CANCELLED" && order.payment.status !== "PAID",
-  );
 
   return {
     todaysOrders: placedToday.length,
     todaysRevenue: sumPaise(placedToday.map((order) => order.pricing.total)),
     pendingOrders: open.length,
-    pendingPayments: sumPaise(owing.map((order) => order.pricing.total)),
+    pendingPayments: sumPaise(orders.map(balanceDue)),
   };
 }
 

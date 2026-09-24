@@ -25,7 +25,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { CustomerFormSheet } from "@/features/customers/components/CustomerFormSheet";
 import type { Customer } from "@/features/customers/types";
 import type { Order } from "@/features/orders/types";
-import { statusBadge } from "@/features/orders/view";
+import { balanceDue, statusBadge } from "@/features/orders/view";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { formatPaise } from "@/lib/format/currency";
 import { formatDate } from "@/lib/format/date";
@@ -47,12 +47,11 @@ interface CustomerTrade {
 function trade(orders: readonly Order[]): CustomerTrade {
   const counted = orders.filter((order) => order.status !== "CANCELLED");
   const totalSpent = sumPaise(counted.map((order) => order.pricing.total));
-  const owing = counted.filter((order) => order.payment.status !== "PAID");
 
   return {
     totalOrders: counted.length,
     totalSpent,
-    pendingPayments: sumPaise(owing.map((order) => order.pricing.total)),
+    pendingPayments: sumPaise(counted.map(balanceDue)),
     avgOrder: counted.length === 0 ? 0 : Math.round(totalSpent / counted.length),
   };
 }

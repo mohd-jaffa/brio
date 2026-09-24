@@ -1,6 +1,11 @@
 import { type Order, type OrderRow, type OrderItemRow, type OrderAdjustmentRow } from "./types";
 
-export function mapToOrderModel(order: OrderRow, items: OrderItemRow[], adjustments: OrderAdjustmentRow[]): Order {
+export function mapToOrderModel(
+  order: OrderRow,
+  items: OrderItemRow[],
+  adjustments: OrderAdjustmentRow[],
+  paid = 0,
+): Order {
   return {
     id: order.id,
     customerId: order.customer_id,
@@ -8,6 +13,7 @@ export function mapToOrderModel(order: OrderRow, items: OrderItemRow[], adjustme
     status: order.status,
     payment: {
       status: order.payment_status,
+      paid,
       method: order.payment_method ?? undefined,
       reference: order.payment_reference ?? undefined,
     },

@@ -76,6 +76,8 @@ export interface Order {
   status: OrderStatus;
   payment: {
     status: PaymentStatus;
+    /** What the payments recorded against this order add up to, in whole paise. */
+    paid: number;
     method?: PaymentMethod;
     reference?: string;
   };

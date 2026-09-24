@@ -13,7 +13,7 @@ const receipt: ReceiptData = {
     customerId: "c-1",
     orderNumber: "#1024",
     status: "DELIVERED",
-    payment: { status: "PAID", reference: "UPI-991" },
+    payment: { status: "PAID", paid: 94000, reference: "UPI-991" },
     pricing: { subtotal: 100000, discount: 10000, deliveryCharge: 4000, tax: 0, total: 94000 },
     delivery: { type: "DELIVERY", date: "2026-09-22T12:00:00Z" },
     items: [],

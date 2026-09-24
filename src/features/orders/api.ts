@@ -146,6 +146,31 @@ export async function generateOrderNumber(client: SupabaseClient, bakeryId: stri
   return `#${baseNumber}-${randomSuffix}`;
 }
 
+/**
+ * What has been paid against each of several orders, in whole paise. One query
+ * for the whole list; an order with no payments is simply absent from the map.
+ */
+export async function findPaidByOrder(
+  client: SupabaseClient,
+  bakeryId: string,
+  orderIds: readonly string[],
+): Promise<Map<string, number>> {
+  const paid = new Map<string, number>();
+  if (orderIds.length === 0) return paid;
+
+  const { data, error } = await client
+    .from("payments")
+    .select("order_id, amount")
+    .eq("bakery_id", bakeryId)
+    .in("order_id", orderIds);
+
+  if (error) throw fromPostgrestError(error);
+  for (const payment of (data ?? []) as { order_id: string; amount: number }[]) {
+    paid.set(payment.order_id, (paid.get(payment.order_id) ?? 0) + payment.amount);
+  }
+  return paid;
+}
+
 /** The items and adjustments of several orders at once, for a list view. */
 export async function findOrderLines(
   client: SupabaseClient,

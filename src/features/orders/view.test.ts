@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { Order, OrderStatus, PaymentStatus } from "./types";
-import { byDueDate, isOpen, isOverdue, paymentBadge, statusBadge } from "./view";
+import { balanceDue, byDueDate, isOpen, isOverdue, paymentBadge, statusBadge } from "./view";
 
 function order(
   id: string,
@@ -14,7 +14,7 @@ function order(
     customerId: "c-1",
     orderNumber: `#${id}`,
     status,
-    payment: { status: paymentStatus },
+    payment: { status: paymentStatus, paid: 0 },
     pricing: { subtotal: 0, discount: 0, deliveryCharge: 0, tax: 0, total: 0 },
     delivery: { type: "PICKUP", date: due },
     items: [],
@@ -96,5 +96,29 @@ describe("byDueDate", () => {
     const original = [...orders];
     byDueDate(orders, true);
     expect(orders).toEqual(original);
+  });
+});
+
+describe("balanceDue", () => {
+  function owing(status: OrderStatus, paymentStatus: PaymentStatus, total: number, paid: number) {
+    const base = order("1", status, now.toISOString(), paymentStatus);
+    return { ...base, payment: { status: paymentStatus, paid }, pricing: { ...base.pricing, total } };
+  }
+
+  it("is the total less what has been paid", () => {
+    expect(balanceDue(owing("PENDING", "PARTIALLY_PAID", 150000, 50000))).toBe(100000);
+    expect(balanceDue(owing("PENDING", "UNPAID", 30000, 0))).toBe(30000);
+  });
+
+  it("is nothing on a cancelled order", () => {
+    expect(balanceDue(owing("CANCELLED", "UNPAID", 30000, 0))).toBe(0);
+  });
+
+  it("is nothing on an order marked paid, even with no payment recorded", () => {
+    expect(balanceDue(owing("DELIVERED", "PAID", 30000, 0))).toBe(0);
+  });
+
+  it("never goes below nothing", () => {
+    expect(balanceDue(owing("PENDING", "PARTIALLY_PAID", 30000, 40000))).toBe(0);
   });
 });
