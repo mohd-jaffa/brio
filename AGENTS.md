@@ -6,7 +6,9 @@
 
 This repository contains the Home Bakery Management Platform.
 
-The product is a mobile-first internal management application for home bakers.
+The product is a mobile-first internal management application for **home businesses** — home bakers first, and also hamper makers, florists and gift makers (plan §139.1).
+
+**Words.** Anything a user reads says **business**, not *bakery*: "Business details", "your business". Internal names keep `bakery` — the `bakeries` table, `bakery_id`, `bakeryId` — because renaming them would touch every table, policy and module for no visible gain (plan §139.11.1). New code does not mix the two: `bakery` in identifiers, "business" in copy.
 
 Primary stack:
 
@@ -135,6 +137,7 @@ src/
 ├── app/                      # Next.js routes only — thin; no business logic
 │   ├── (auth)/               # sign in, register, reset, change password, confirm
 │   └── api/                  # REST endpoints (§24)
+├── assets/                   # app-owned art: illustrations/, plates/ (§16)
 ├── components/
 │   ├── nav/                  # AppShell, MoreSheet
 │   └── ui/                   # the shared kit: button, text-field, form-sheet,
@@ -228,9 +231,14 @@ Baker A must never be able to access Baker B's business data.
 The approved roles are:
 
 ```text
-BAKER
-DEV
+USER   the business owner — every right BAKER had
+DEV    unchanged; never inherits business data
 ```
+
+`BAKER` becomes `USER` in Phase 2 (tracker R2.2, plan §139.11.1). Until that
+lands, the code and the database still say `BAKER`; do not rename it piecemeal.
+A role is never read from, or written to, Supabase `user_metadata` — users can
+edit their own metadata (BUG-17).
 
 Do not introduce additional roles unless explicitly requested.
 
@@ -238,11 +246,17 @@ Do not introduce additional roles unless explicitly requested.
 
 # 9. Authentication
 
-Registration requires:
+Registration requires (plan §139.11.2):
 
-- phone number
+- your name
+- mobile number — the sign-in credential
 - email
 - password
+- business name
+- city and business address
+- a catch phrase — optional
+
+Sign-in stays by mobile number.
 
 Phone and email must be unique per account as specified by the plan.
 
@@ -339,23 +353,25 @@ Do not log sensitive credentials.
 
 # 12. Orders
 
-The approved order workflow is:
+The approved order workflow is **items first** (plan §139.2 Q11, §139.10):
 
 ```text
-Add Order
-→ Select Customer
-→ Add Items
-→ Modify Quantities
-→ Delivery
-→ Extra Charges / Discount
-→ Payment
-→ Bill Preview
-→ Confirm
-→ Create Order
-→ View / Share Bill
+New order
+→ Items — the product grid, or a custom item (name + amount)
+→ Order details — customer (a saved one, a new one made on the spot, or Guest);
+  delivery, filled from the customer and editable; quantities; charges and discounts
+→ Payment — unpaid, paid in full, or part paid with the amount
+→ View bill (an estimate — nothing is stored) · Share
+→ Place order
+→ View / share the bill
 ```
 
-An order draft is not a final order.
+An order draft is not a final order. **A customer is optional:** an order may be
+for a Guest, and Guest orders are reported as Guest sales (plan §139.11.3).
+
+Statuses move only as the transition table allows (`ORDER_STATUS_TRANSITIONS`,
+plan §139.11.8), and stock follows them: placing reserves, delivering turns the
+reservation into consumption, cancelling releases it.
 
 The server must:
 
@@ -455,6 +471,8 @@ Rules:
 - Do not delete the old logo before the new upload has been validated and successfully stored.
 - Never expose arbitrary storage paths.
 - Do not introduce image uploads for products, customers, orders, expenses, receipts, menu items, or users unless the plan is explicitly changed.
+
+**App-owned artwork is not an upload.** The illustration library (`artwork/illustrations/`, shipped from `src/assets/illustrations/`, plan §139.11.10) and the photographic plates (`src/assets/plates/`, §139.11.12) ship with the app. A user **chooses** an illustration for a product or an expense category; nothing they choose is stored except its key. Their masters are committed; the design references in `design-references/` are not.
 
 ---
 
@@ -581,14 +599,26 @@ Primary target sizes:
 
 Support responsive tablet and desktop layouts.
 
-Approved visual directions:
+Approved visual directions (plan §139.4):
 
-- Clean Bakery
-- Peach Bakery
+- **Golden** — replaces Clean; a stored `clean` choice reads as Golden
+- **Peach**
 
-Use shared design tokens.
+Use the shared design tokens in `src/app/globals.css` — `background`, `surface`,
+`sunken`, `border`, `text`, `text-muted`, `primary`, `primary-soft`, `accent`,
+`action` and the status colours. A screen never picks a colour itself.
 
 Do not randomly introduce new themes or visual systems.
+
+**Every screen ships phone, tablet and desktop together** (plan §139.9), and
+respects the safe areas: every inset flows through `--safe-top/right/bottom/left`,
+and heights use `dvh`, never `vh` (plan §139.8).
+
+**Reporting an outcome.** The result of an action — saved, created, recorded,
+refused, failed — is a **response card** (`useResponse()`, plan §139.6), on the
+web and in the Android app alike. What stays inline: field validation, beside
+the field; and a screen that could not load (`ScreenNotice` with Retry). An
+error card shows the API's message and its `requestId`, never raw text.
 
 Accessibility is mandatory:
 
@@ -614,6 +644,14 @@ All validation schemas, Zod definitions, and database constraints *MUST* be cent
 Use `src/lib/validation/primitives.ts` for reusable schema components (e.g. `paiseText`, `optionalEmail`) bound to `src/constants/messages.ts`.
 
 Each schema exports both shapes: `XxxInput` (`z.input`, what a form or client sends) and `XxxPayload` (`z.output`, what the server works with). A payload is parsed **once**, at the route boundary, and the feature's `api.ts` takes the parsed value.
+
+**Input hygiene** (plan §139.7). Every text input is normalised by one set of
+primitives — trimmed, whitespace collapsed, zero-width and control characters
+removed — and every field is bounded so it fits its column. Money is read the
+way people write it ("₹1,500") and never through a float. **Passwords are never
+altered, not even trimmed.** Every message comes from `VALIDATION_MESSAGES`: a
+schema never falls back to Zod's own English, and `index.test.ts` in
+`tests/unit/lib/validation` fails if one does.
 
 Validate on the client for UX.
 Validate again on the server for correctness and security.

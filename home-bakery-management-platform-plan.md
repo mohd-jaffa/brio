@@ -8540,7 +8540,7 @@ the row needs; without an answer it is built on that question's default
 | ID | Work | Source | Waits on | Status |
 |---|---|---|---|---|
 | R1.1 | Tests into `/tests`, mirroring `src/` | §139.16 | — | DONE (2026-09-24) |
-| R1.2 | AGENTS.md updated: roles, themes, response card, input hygiene, tests, "business" wording, and app-owned art (illustrations and plates are not uploads) | §139.1 | — | TODO |
+| R1.2 | AGENTS.md updated: roles, themes, response card, input hygiene, tests, "business" wording, and app-owned art (illustrations and plates are not uploads) | §139.1 | — | DONE (2026-09-24) |
 | R1.3 | Golden and Peach tokens; the Flour Room tokens merged; Clean retired; stored `clean` → `golden` | §139.4 | — | TODO |
 | R1.4 | No theme flash; `theme-color` per theme; the theme on the account if chosen | BUG-15 | Q14 | TODO |
 | R1.5 | Type: Fraunces and Inter; Fredoka and Plus Jakarta Sans retired | §137.4 | — | TODO |

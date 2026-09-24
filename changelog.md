@@ -725,3 +725,12 @@ entry grows with them.
   - **`scripts/check-test-paths.mjs` runs as `pretest`.** It fails on a unit test whose subject is gone and on any test left in `src/`. Both were checked by planting one of each.
   - **Config.** `vitest.config.mts`, `tsconfig.json` (`@tests/*`) and AGENTS.md §26 are updated.
   - **Same suite, same count: 579 tests**, now in 94 files. `tsc` and `eslint` are clean.
+- **R1.2 — AGENTS.md follows the approved v2 decisions**, so an agent reading it does not rebuild v1:
+  - **Purpose and words:** the product serves home businesses. Copy says "business", and identifiers keep `bakery`.
+  - **Roles:** USER and DEV, with the rename left to R2.2 so it is not done piecemeal, and no role in `user_metadata`.
+  - **Registration:** the new fields.
+  - **Orders:** items first, Guest orders, and the status transitions with the stock that follows them.
+  - **Uploads:** app-owned illustrations and plates are not uploads.
+  - **UI:** Golden and Peach, the token vocabulary, all three widths, safe areas, and the response card as the one way to report an outcome.
+  - **Validation:** the input-hygiene rules.
+  - **Architecture tree:** `src/assets/`.
