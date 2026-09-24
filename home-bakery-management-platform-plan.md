@@ -7457,7 +7457,19 @@ Shared work rather than per-screen work:
 - Evaluate moving **tests into `/tests`** instead of beside the code.
 
 **References:** eleven images in `design-references/`, prefixed `v2-`. That
-folder is gitignored and the images are **not committed**.
+folder is gitignored and the images are **not committed**. The illustration
+masters are the exception: they are app artwork, and they are committed under
+`artwork/illustrations/` (§139.11.10).
+
+## Answers and additions (2026-09-24, later the same day)
+
+- **Q1:** a customer's **address and map link are both optional**, as §92 had it. Name and phone stay required.
+- **Q3:** **yes.** Add `READY`, rename "Baking" to "Preparing", and show "Completed" for a finished pickup.
+- **Q5:** **yes.** A custom item is a **name and an amount** the user types.
+- **Q6:** **still no uploads.** The photographs supplied with the references may be used as **backgrounds** wherever a screen needs one (§139.11.12).
+- **Q7:** **none** of the reference-only features, Help & Support included.
+- **Expenses and Analytics** carry the **graphs and visual analytics the references show** (§139.11.11).
+- **An illustration library.** 26 files were supplied; after de-duplication and splitting they make 28 illustrations. They are stored in the codebase in their own folder under **constant names**. Every product and every expense category starts on a **default illustration**, and the user can pick **any** illustration from the library instead (§139.11.10).
 
 ---
 
@@ -7474,7 +7486,7 @@ detail in §139.2 but the change itself is approved.
 | 4 | **Visual directions** | Clean Bakery, Peach Bakery | **Golden** and **Peach** — still exactly two. Clean is retired, and a stored `clean` choice becomes Golden. | §42, §137.5, AGENTS §21 |
 | 5 | **Order customer** | Required (`orders.customer_id NOT NULL`) | **Optional.** An order is for a saved customer or for a **Guest**. Guest orders are reported as **Guest sales**. *Q12* | §15, §16, §86, §100 |
 | 6 | **Creating a customer** | Customers screen only | Also **inline from the order screen**. | §11, §16 |
-| 7 | **Customer fields** | name, phone, email, address, maps link, notes | **Name, phone and address required** (as listed in the brief); **map link optional**; email and notes stay optional. *Q1* | §92 |
+| 7 | **Customer fields** | name, phone, email, address, maps link, notes | **Unchanged:** name and phone required; address, map link, email and notes optional (Q1, answered). A delivery order still needs an address or a map link on the order itself (§96). | — |
 | 8 | **When a bill exists** | After the order is created (§70, §72) | A **draft bill (estimate)** can be viewed and shared **before the order is saved**; the confirmed bill follows creation. **Neither is stored** — §15 and §132 are unchanged. | §70, §72 |
 | 9 | **What a bill shows** | Business name, lines, totals, payment | Adds the **catch phrase, address and phone**, delivery details and **balance due**; the footer credits the app by **name and web link**. The business leads and the credit is a small footer — this settles §134's "bill branded with the vendor" finding in the brief's favour. | §72, §99, §133.2 B4 |
 | 10 | **Feedback** | Inline banners; success mostly silent | A **response card** for every action's outcome, app-wide (§139.6). | §101, §102 |
@@ -7483,6 +7495,11 @@ detail in §139.2 but the change itself is approved.
 | 13 | **Mobile navigation** | Home · Orders · Products · Customers · More (§137.1) | **Unchanged** — the references confirm it. | — |
 | 14 | **Where tests live** | Beside the code (AGENTS §26) | **`/tests`, mirroring `src/`** — recommended in §139.16. | AGENTS §26 |
 | 15 | **Android** | Phase 7 (§60) | **Phase 8 of this roadmap**, after the web app is redesigned and hardened (§139.17). | §60 |
+| 16 | **Illustrations** | Products show a typographic monogram tile (§137.3); nothing marks an expense category | **An app-owned illustration library** (§139.11.10). Each product and each expense category shows an illustration: a default until the user picks another. **Not an upload.** The art ships with the app, and §16 is unchanged. | §137.3; §137 decision 1 |
+| 17 | **Photography** | None (§137 decision 1) | **App-owned photographic plates** as backgrounds where a screen needs one: the auth screens, the Home hero, the Analytics and Expenses bands, and the desktop panels (§139.11.12). There are still **no uploaded photographs** of anything. | §137 decision 1 |
+| 18 | **Order statuses** | Pending · In progress · Out for delivery · Delivered · Cancelled | Adds **`READY`**. "In progress" reads **Preparing**, and a finished pickup reads **Completed** (Q3, answered). | §17, §85 |
+| 19 | **Order lines** | Catalogue products only | Also **custom items**: a typed name and amount that move no stock (Q5, answered). | §15 |
+| 20 | **Charts** | Numbers on Analytics; a list on Expenses | The **graphs the references show**, on Expenses and Analytics (§139.11.11). The Dashboard stays operational (§10, AGENTS §20). | — |
 
 ---
 
@@ -7490,16 +7507,18 @@ detail in §139.2 but the change itself is approved.
 
 Each question blocks **only** the tracker rows that name it (§139.19). Everything
 else proceeds, and a question left unanswered is built on its **default**.
+**Answered** questions keep their row. The answer replaces the default, and the
+tracker rows that waited on them no longer wait.
 
 | # | Question | Default if unanswered | Recommendation | Waits on it |
 |---|---|---|---|---|
-| **Q1** | **Is a customer's address required?** The brief lists it as required; the reference form marks it "(Optional)". Required means a pickup-only regular customer needs an address too — Guest covers true walk-ins. | Required, as the brief says | Required, as the brief says | R3.7 |
+| **Q1** | **Is a customer's address required?** The brief listed it as required; the reference form marks it "(Optional)". | **Answered 2026-09-24: no.** Address and map link are both optional, as §92 had it. | — | R3.7 |
 | **Q2** | **Are city and address required at registration?** They are listed without "optional". | Required — the bill prints them | Required | R2.4 |
-| **Q3** | **Order statuses.** The references show Pending · Preparing · Ready · Out for delivery · Delivered · Completed · Cancelled. The product has Pending · Baking · Out for delivery · Delivered · Cancelled. | Rename "Baking" → **"Preparing"** only (a label, not data) | Rename, **add `READY`**, and keep `DELIVERED` as the single finished state, labelled **"Completed"** for pickup orders and **"Delivered"** for delivery. Adding `READY` changes a CHECK constraint and the transition table. | R3.11 |
+| **Q3** | **Order statuses.** The references show Pending · Preparing · Ready · Out for delivery · Delivered · Completed · Cancelled. The product has Pending · Baking · Out for delivery · Delivered · Cancelled. | **Answered 2026-09-24: yes.** Rename to "Preparing", **add `READY`**, and keep `DELIVERED` as the single finished state, labelled **"Completed"** for a pickup and **"Delivered"** for a delivery (§139.11.8). | — | R3.11 |
 | **Q4** | **Tax.** The references show "Tax (GST 5%)"; `totals.ts` charges none, and most home businesses sit below the GST threshold. | No tax; the tax row is hidden when it is 0 | Not in v2. If wanted later: a per-business setting (registered, GSTIN, rate). | — |
-| **Q5** | **Custom items.** The desktop reference has "Add custom item — for special requests or non-listed items". This matters a lot for hampers and flowers. The schema already allows it (`order_items.product_id` is nullable and keeps a name and price snapshot). | Not built | **Build it.** A custom line moves no stock. | R3.10 |
-| **Q6** | **Photography.** The references are photo-led. §16/§118 allow **only** the logo upload, and for §137 you chose no photos — but you have now supplied a clean plate (`v2-plate-cake-clean.png`). | Monogram tiles everywhere; no hero plate | Use **app-owned hero plates** on the auth screens and Home (optimised to WebP ≤ 200 KB and committed as assets only when built). Products keep the monogram tile (§137.3). **Product photo uploads only if §16 is changed.** | R1.13, R2.8 |
-| **Q7** | **Reference features outside the plan:** Messages/chat, Staff/team, Suppliers, a Wholesale customer type, Language and Currency settings, Payment-methods settings, a barcode scanner, a dark-mode toggle, a multi-business switcher, "Today's special", and the copy "the customer will be notified". | Omitted | **Omit all of them.** Keep the **Regular / New** customer tabs, which are derived from order history and need no new data. Help & Support can be a static contact screen (optional). | R5.11 |
+| **Q5** | **Custom items.** The desktop reference has "Add custom item — for special requests or non-listed items". The schema already allows it (`order_items.product_id` is nullable and keeps a name and price snapshot). | **Answered 2026-09-24: yes.** A custom item name with a custom amount; it moves no stock (§139.11.7). | — | R3.10 |
+| **Q6** | **Photography.** The references are photo-led. §16/§118 allow **only** the logo upload. | **Answered 2026-09-24: no uploads, as planned.** The supplied photographs are used as **backgrounds** where needed (§139.11.12). Products show **illustrations** (§139.11.10), not photographs. | — | R1.13, R2.8 |
+| **Q7** | **Reference features outside the plan:** Messages/chat, Staff/team, Suppliers, a Wholesale customer type, Language and Currency settings, Payment-methods settings, a barcode scanner, a dark-mode toggle, a multi-business switcher, "Today's special", Help & Support, and the copy "the customer will be notified". | **Answered 2026-09-24: omit all of them**, Help & Support included. The **Regular / New** customer tabs stay: they are derived from order history and are not on this list. | — | R5.11 |
 | **Q8** | **Wording for the wider audience.** The tagline "Home Bakery", the auth headlines ("Good bakes start here.") and the product units (piece, kg, gram, box, dozen) are bakery-only. | Tagline "Home Business"; neutral auth headlines; units add **set, bunch, pack** | Same as the default | R1.14, R2.8, R5.6 |
 | **Q9** | **How the Android app ships:** the hosted app inside a native shell, or a static export bundled into the APK (§139.17.1). | Hosted app in a native shell | Hosted app in a native shell | R8.1 |
 | **Q10** | **Android identity and Play requirements:** the application id (e.g. `app.ovenly`), the Play developer account, a **Privacy Policy page**, and **account deletion** (in the app and via the web). Play requires both for an app that creates accounts and stores personal data — here, the customers' names, phones and addresses. **Neither exists** (§138.2 F). | — | Build both pages in Phase 8 | R8.2, R8.10 |
@@ -7508,6 +7527,7 @@ else proceeds, and a question left unanswered is built on its **default**.
 | **Q13** | **Success cards:** close on their own after about 3 seconds when they offer no next step, or always need a tap? | Close on their own | Close on their own (errors and confirmations never do) | R1.10 |
 | **Q14** | **Theme choice:** remembered per device (today, `localStorage`), or saved on the account so it follows the user into the Android app (one column on `profiles`)? | Per device | Per account | R1.4 |
 | **Q15** | **A theme switch on the signed-out screens** (§138.6.3 left this open). | None — the stored choice is honoured | None | R2.9 |
+| **Q16** | **The illustrations' licence.** Three of the files are Vecteezy downloads. `IMG_2470` is the same picture as one of them, so the `IMG_` files are probably from Vecteezy too. Vecteezy's free licence asks for a credit; its Pro licence does not. | A credit, "Illustrations: Vecteezy.com", in Settings → About | Confirm the licence for every file before the Play release (Phase 8) | R1.15, R5.11 |
 
 ---
 
@@ -7542,6 +7562,7 @@ else proceeds, and a question left unanswered is built on its **default**.
 **What we do not take** — product truth wins (§139.2 Q6, Q7):
 
 - **Customer and profile photos** become **initials avatars**. Photo uploads are outside §16.
+- **Product photos** become the product's **illustration** (§139.11.10). The supplied photographs appear only as app-owned backgrounds (§139.11.12).
 - The **"Admin" and "Baker" role labels** become **"Owner"**.
 - **"The customer will be notified"** — customers receive nothing from this product, so the copy must not promise it.
 - **The mock's own inconsistencies** are not specifications: an average order value of "4.8", and a cart that says ₹1,410 over a summary of ₹1,570.
@@ -7638,21 +7659,23 @@ a shared component** (AGENTS §5).
 |---|---|---|
 | `AppShell` | Rewrite | **Phone:** a top bar with the business mark, name and catch phrase, a bell and an initials avatar; a five-item bottom nav with a tinted active pill. **Tablet:** an icon rail. **Desktop:** a grouped sidebar — *Home, Orders, Products, Customers* · *Analytics, Expenses* · *Inventory, Notifications, Business details, Settings* — and a top bar with global search, the bell and the account menu. Safe areas on every edge. |
 | `page-header` | Rewrite | Back, a serif title, a sans subtitle, and a trailing action (a range picker or a `+`). |
-| `hero` | New | An optional plate, a two-line serif, a rule and a tracked line. **Home only on phones**; Analytics and Expenses get a compact band, so their numbers stay above the fold. |
+| `hero` | New | An optional photographic plate (§139.11.12), a two-line serif, a rule and a tracked line. **Home only on phones**; Analytics and Expenses get a compact band, so their numbers stay above the fold. |
 | `stat-tile` | Rewrite | Medallion icon, value (serif when it is a headline amount), label, a delta against the previous period (up green, down rose), and an optional sparkline on desktop. |
 | `tabs` | New | Underlined, scrollable, with optional counts. |
 | `segmented`, `range-picker` | New | Today / Week / Month, and "Last 30 days". |
 | `row`, `row-list` | New | Tile or avatar · title block · trailing block (amount, pill) · chevron, with hairline dividers inside **one** card. |
 | `status-pill` | Rewrite of `status-badge` | A tinted pill with a dot (§139.4). |
 | `avatar` | New | Initials on a tint picked deterministically from the name, within the theme's palette. |
-| `product-tile` | New (the §137.3 bake tile, renamed for the wider audience) | Initials in the serif on the category tint. |
+| `product-tile` | New (replaces the §137.3 bake tile) | The product's **illustration** (§139.11.10) on a rounded tile in the theme's sunken tone, or `default-product` until one is chosen. 40 px in a row, 48 px in a desktop table, and the full width of a card. |
+| `illustration` | New | Renders a library key from the registry through `next/image`. Decorative (`alt=""`) beside a name, and labelled where it stands alone. An unknown key renders the default. |
+| `illustration-picker` | New | A sheet on phones and a dialog from tablet up: the library by group, a filter by name, the current choice marked, and **Use default**. A radio group with arrow-key movement, each option named by its label. |
 | `product-card` | New | Tile, name, price and a `+`, for grids. |
 | `cart-bar` | New | A count badge, the running total and a go-on button. Sticky, clear of the safe area. |
 | `quantity-stepper` | New | − / value / + with 44 px targets, long-press repeat and keyboard support. |
 | `search-field` | Rewrite of `search-input` | Fixes placeholder contrast (BUG-24). Optional filter button; a global variant with ⌘K on desktop. |
 | `sheet` / `dialog` | Rewrite of `form-sheet` | A bottom sheet on phones and a dialog from tablet up. Focus trap, `inert` background, `dvh` height, a footer that rides above the keyboard, safe areas (BUG-25). |
 | `response-card` + `ResponseProvider` | New | §139.6. |
-| `charts` | New | `line-trend`, `bar-trend`, `donut` with legend — each with a data-table fallback for screen readers. |
+| `charts` | New | `line-trend`, `bar-trend`, `donut` with legend, and `sparkline`. Authored SVG, each with a data-table fallback for screen readers (§139.11.11). |
 | `quote-block` | New | The centred serif panel. |
 | `fab` | New | The one dark circular `+` on a phone screen; on desktop it becomes a header button. |
 | `choice-chips` | New | Category filters. |
@@ -7846,15 +7869,15 @@ the whole payload once.
 
 ### Orders
 
-Tabs with counts: All · Pending · Preparing · (Ready) · Out for delivery ·
+Tabs with counts: All · Pending · Preparing · Ready · Out for delivery ·
 Delivered · Cancelled. Search, and a filter for dates, payment status and Guest.
 
-- **Phone rows:** the first item's tile (or the Guest mark) · `ORD-1028` · the first item "+2 more" · the customer or "Guest" · due date · status pill · amount · chevron.
+- **Phone rows:** the first item's illustration (or the Guest mark) · `ORD-1028` · the first item "+2 more" · the customer or "Guest" · due date · status pill · amount · chevron.
 - **Desktop:** a table — Order, Customer, Items, Amount, Status, Due — with **New order** in the header.
 
 ### Create order (§139.11.3 – §139.11.5)
 
-1. **Items** — search, category chips, the product grid with `+` on each card; **Add custom item** (Q5); the cart bar shows the count and total.
+1. **Items** — search, category chips, the product grid with `+` on each card; **Add custom item**, a name and an amount (§139.11.7); the cart bar shows the count and total.
 2. **Order details** — **Customer** (a saved customer or **Guest**, plus **+ New customer**); **Delivery** (pickup or delivery, date and time; the address and map link **filled from the customer** and editable); the items with steppers; a **note** printed on the bill (a cake message, for example) kept separate from **internal notes**, which never are; discounts and charges; the summary. Buttons: **[View bill]** and **[Proceed to payment]**.
 3. **Payment** — Unpaid / Paid in full / Part paid (**asks for the amount**) · method · reference. Buttons: **[View bill]** and **[Place order]**.
 4. → **Response card:** "Order placed", with the facts, **[View bill] [New order]**.
@@ -7905,7 +7928,8 @@ reorder and deactivate — §133.4 D1).
 - **Phone rows:** tile · name · category · price · Active pill · overflow menu (edit, deactivate, stock).
 - **Desktop:** a grid of product cards with **+ Add product**.
 
-Units add set, bunch and pack (Q8).
+Units add set, bunch and pack (Q8). The product form has an **Icon** field:
+the current illustration and **Change**, which opens the picker (§139.11.10).
 
 ### Inventory
 
@@ -7914,19 +7938,32 @@ crashes — §134 P0-1); each product's ledger.
 
 ### Expenses
 
-A range picker and **+ Add**. Tabs: **Overview · Categories · Transactions**
-(Suppliers omitted — Q7). The Overview has total, daily average and the change
-on the previous period; a category donut; daily bars; recent expenses. The
-Transactions tab groups by month.
+As `v2-analytics-expenses-mobile-golden.png` shows: a compact photographic band
+(§139.11.12), a range picker and **+ Add**. Tabs: **Overview · Categories ·
+Transactions** (Suppliers omitted — Q7). The charts follow §139.11.11.
+
+- **Overview:** two KPI tiles, **Total expenses** and **Daily average**, each with its change on the previous period. For a cost, up reads rose and down reads green. Then **Expenses by category**, a donut with the total in its centre and a legend of each category's share; **Expense trend**, daily bars (weekly beyond 31 days) with the peak marked and a tooltip; **Recent expenses**, each with the category's illustration, the description, the category, the date and the amount, and **View all**; and the quote block.
+- **Categories:** the eight categories, each with its illustration, the period's total, its share and its count. **Tapping the illustration changes it** (§139.11.10); tapping the row opens its transactions.
+- **Transactions:** grouped by month, and filterable by category.
+- **Desktop:** the KPIs in a row, the donut and the bars side by side, and recent expenses as a table.
+
+The expense form's **Category** field shows each category's illustration beside
+its name.
 
 ### Analytics
 
-A range picker. Tabs: **Overview · Sales · Orders · Customers · Products**.
-KPIs: sales, orders, new customers, and **average order value in rupees**. A
-sales-trend line (daily or weekly), top products, sales by category, and **guest
-against customer** sales. **Aggregated on the server** (§133.9 I3), with the
-previous period for the deltas; Top Customers (§133.9 I1) sits in the Customers
-tab.
+As the references show: a compact photographic band, and a range picker. Tabs:
+**Overview · Sales · Orders · Customers · Products**. The charts follow
+§139.11.11.
+
+- **Overview:** four KPI tiles with deltas: **Total sales**, **Total orders**, **New customers** and **Average order value** (in rupees). Then **Sales trend**, a line with a soft fill, Daily / Weekly and a tooltip, with the previous period as a dashed comparison on desktop; **Top selling products**, with the illustration, name, orders and sales, and **View all**; **Sales by category**, a donut with the total in its centre, where custom items count as "Custom items"; and the quote block.
+- **Sales:** the trend against the previous period; **Guest and customer** sales as a split; and collected against still to collect.
+- **Orders:** orders per day as bars; orders **by status** as a donut; and pickup against delivery.
+- **Customers:** new against returning; and **Top customers** (§133.9 I1), with guests left out.
+- **Products:** every product ranked by sales and by quantity; and sales by category.
+
+Everything is **aggregated on the server** (§133.9 I3), in the business's
+timezone, with the previous period for every delta.
 
 ### Notifications
 
@@ -7937,15 +7974,15 @@ the existing `notifications` table. Tapping a row follows its `action_url`
 
 ### More (phone)
 
-Analytics · Expenses · Inventory · Business details · Settings · Help (Q7) ·
-Sign out — each with a medallion icon and a chevron.
+Analytics · Expenses · Inventory · Business details · Settings · Sign out, each
+with a medallion icon and a chevron. There is no Help entry (Q7).
 
 ### Settings
 
 A profile card (initials, name, "Owner · {business}", the catch phrase as a
 quote). Then **Business details**; **Account** (name, email, the sign-in number,
 change password); **Appearance** (Golden or Peach); **Notifications** (the
-Android permission); **About** (version, the privacy policy); **Sign out**.
+Android permission); **About** (the version, the privacy policy, and the illustration credit if Q16 needs one); **Sign out**.
 The reference's separate Profile screen is folded in here.
 
 ### Business details
@@ -8001,8 +8038,8 @@ and an offline screen (PWA and Android).
 ### 139.11.4 Customers on the fly, and the delivery address
 
 - **New customer from the order screen:** the sheet (phone) or dialog (desktop) posts to `/api/customers` as it does today, and **the new customer is selected** in the draft. A **phone that already exists** answers with a card: **[Use that customer]** or **[Edit]**.
-- **Fields:** name*, phone*, address* (Q1), map link (optional), email (optional), notes (optional). The column is `customers.google_maps_link`, and the label becomes **"Map link"** because any maps service will do.
-- **Autofill:** choosing a customer for a **delivery** fills the order's delivery address and map link **only if those fields are empty or still hold the previous autofill**. A value the user typed is kept, and a **"Use {name}'s address"** link offers the swap. The values are a **snapshot on the order** (§93), and editing them **never** changes the customer's record.
+- **Fields:** name* and phone*. Address, map link, email and notes are optional (Q1, answered; as §92 had it). The column is `customers.google_maps_link`, and the label becomes **"Map link"** because any maps service will do.
+- **Autofill:** choosing a customer for a **delivery** fills the order's delivery address and map link **only if those fields are empty or still hold the previous autofill**. A value the user typed is kept, and a **"Use {name}'s address"** link offers the swap. A customer with no address fills nothing, so a delivery then needs the address typed on the order. The values are a **snapshot on the order** (§93), and editing them **never** changes the customer's record.
 - **Rule:** a delivery order needs an **address or a map link** (§96). Today that is not enforced (BUG-22).
 
 ### 139.11.5 View bill before saving — the estimate
@@ -8052,7 +8089,7 @@ and an offline screen (PWA and Android).
   - **Print** — a print stylesheet.
 - **Accessibility:** the preview is a real dialog with a heading, and the bill reads in order to a screen reader.
 
-### 139.11.7 Custom items (if Q5)
+### 139.11.7 Custom items (Q5, approved)
 
 The draft's item is a union: `{ productId, quantity, note }` **or**
 `{ custom: { name, unitPrice }, quantity, note }`. A custom line is stored with
@@ -8060,18 +8097,30 @@ The draft's item is a union: `{ productId, quantity, note }` **or**
 line** — the ledger code must skip it, where today it would fail on
 `item.product_id!` (`status.ts:40`, `checkout.ts:90`).
 
+- **Adding one:** **Add custom item** opens a small sheet with **Item name** (required, trimmed, 2–120 characters) and **Amount**, the price of one (required, above ₹0, within the BUG-12 bounds). The quantity starts at 1 and uses the stepper like any other line.
+- **On screen** the line shows the `default-product` illustration and a "Custom" mark. **On the bill** it prints like any other line.
+- **In reports** custom lines count toward sales, and **Sales by category** shows them as "Custom items". **Top products** lists catalogue products only.
+
 ### 139.11.8 Order statuses and transitions
 
 | From | Allowed next |
 |---|---|
 | Pending | Preparing, Cancelled |
-| Preparing | Ready *(if Q3)*, Out for delivery *(delivery only)*, Delivered/Completed, Cancelled |
+| Preparing | Ready, Out for delivery *(delivery only)*, Delivered/Completed, Cancelled |
 | Ready | Out for delivery *(delivery only)*, Delivered/Completed, Cancelled |
 | Out for delivery | Delivered, Cancelled |
 | Delivered / Completed | — (final) |
 | Cancelled | — (final) |
 
-The server refuses anything else (BUG-05). **Stock follows the transitions:**
+The server refuses anything else (BUG-05). **Out for delivery** exists only for
+a delivery order.
+
+**Labels** (`ORDER_STATUS_LABELS`): Pending · **Preparing** (`IN_PROGRESS`) ·
+**Ready** (`READY`, new) · Out for delivery (`IN_TRANSIT`) · **Delivered** for a
+delivery or **Completed** for a pickup (`DELIVERED`) · Cancelled. No stored value
+changes, apart from the new `READY`.
+
+**Stock follows the transitions:**
 
 - **Created:** reserved (−q).
 - **Delivered or Completed:** the reservation is released (+q) and consumption posted (−q), so the balance does not move again (§133.3 C5).
@@ -8087,6 +8136,129 @@ payments, never chosen. The hand-set payment-status control on the order
 detail is removed (BUG-02, BUG-06). This supersedes §68's "no payments table in
 V1": the table exists and is the source of truth.
 
+### 139.11.10 Illustrations for products and expense categories
+
+The user supplied 26 illustration files on 2026-09-24. They are **app-owned
+artwork**: they ship with the app and the user chooses among them. **Nothing is
+uploaded**, so the rule in §16 and §56 that the logo is the only upload stands.
+
+**Where everything lives**
+
+| Path | What | Committed |
+|---|---|---|
+| `artwork/illustrations/<key>.jpg` | **The masters.** One illustration per file, on a white ground, as supplied (1920 px square, or the split's own size). Never served. | Yes (2026-09-24) |
+| `design-references/illustration-originals/` | The 26 files exactly as supplied, under their original names | No (gitignored) |
+| `src/assets/illustrations/<key>.webp` | What the app ships, generated from the masters | Yes, when R1.15 builds it |
+| `src/constants/illustrations.ts` | The registry: `ILLUSTRATIONS` (key → asset, label, group), `ILLUSTRATION_KEYS`, `DEFAULT_PRODUCT_ILLUSTRATION = "default-product"` and `DEFAULT_EXPENSE_ILLUSTRATION = "default-expense"` | Yes, when R1.15 builds it |
+
+**How the 26 files became 28 illustrations**
+
+- `IMG_2470.JPG` is the Vecteezy gold-coins file saved again (perceptual-hash distance 1 of 256). It was **dropped as a duplicate**, and `gold-coins` keeps the Vecteezy original.
+- `IMG_2474.JPG` was **four illustrations on one sheet**. It was split on its blank gutters into `heart-gift-box`, `teddy-bear`, `rose-bunch` and `gift-box-pink`, each centred on a white square with the same margin as the rest.
+- Every other file was copied **byte for byte** under its key. The user's own names were kept for the two defaults.
+
+**Naming rules**
+
+- **The file name is the key.** It is lowercase kebab-case and names the thing shown. A colour or a size appears only to tell two apart (`gift-box`, `gift-box-pink`).
+- **A key is stored in the database, so it is permanent.** It is never renamed and never reused. Retiring one takes a migration that moves its users to another key.
+- **No duplicates.** A new file is compared with the library by content hash and by perceptual hash (dHash, 256 bits). A distance of 10 or less is a duplicate. The build script refuses both kinds (R1.15).
+
+**The catalogue**
+
+| Key | Shows | Group | Supplied as |
+|---|---|---|---|
+| `default-product` | A price tag | Basics | `default-product.JPG` |
+| `default-expense` | A receipt | Basics | `default-expense.JPG` |
+| `gold-coins` | Stacked gold coins | Basics | `vecteezy_stacked-gold-coins…_77459804.jpg` |
+| `shopping-bags` | A shopper with bags | Basics | `IMG_2488.JPG` |
+| `delivery-scooter` | A delivery rider on a scooter | Basics | `IMG_2484.JPG` |
+| `delivery-ninja` | A courier with a parcel | Basics | `IMG_2483.JPG` |
+| `donut` | A sprinkled donut | Bakes and sweets | `IMG_2469.JPG` |
+| `cupcake` | A cupcake with a cherry | Bakes and sweets | `IMG_2472.JPG` |
+| `choco-chip-muffin` | A chocolate-chip muffin | Bakes and sweets | `IMG_2471.JPG` |
+| `chocolate-cake-slice` | A slice of chocolate cake | Bakes and sweets | `IMG_2473.JPG` |
+| `strawberry-cake-slice` | A slice of pink cake | Bakes and sweets | `IMG_2492.JPG` |
+| `strawberry-cake` | A whole strawberry cake | Bakes and sweets | `vecteezy_whimsical-hand-drawn-layered-cake…_78313078.jpg` |
+| `glazed-cake` | A glazed cake on a plate | Bakes and sweets | `IMG_2480.JPG` |
+| `pudding` | A pudding with chocolate sauce | Bakes and sweets | `IMG_2479.JPG` |
+| `cake-squares` | Layered cake squares on a board | Bakes and sweets | `IMG_2478.JPG` |
+| `cookie-cup` | A cookie in a cup | Bakes and sweets | `IMG_2481.JPG` |
+| `chocolate-bar` | A chocolate bar | Bakes and sweets | `IMG_2477.JPG` |
+| `choco-sponge-bar` | A chocolate-topped sponge bar | Bakes and sweets | `IMG_2476.JPG` |
+| `gift-box` | A gift box with a rose bow | Gifts and flowers | `IMG_2475.JPG` |
+| `gift-box-pink` | A pink gift box | Gifts and flowers | `IMG_2474.JPG`, bottom right |
+| `heart-gift-box` | A heart-shaped gift box | Gifts and flowers | `IMG_2474.JPG`, top left |
+| `teddy-bear` | A teddy bear with a heart | Gifts and flowers | `IMG_2474.JPG`, top right |
+| `rose-bouquet` | A wrapped rose bouquet | Gifts and flowers | `vecteezy_hand-drawn-style-rose-bouquet…_77459823.jpg` |
+| `rose-bunch` | A small bunch of roses | Gifts and flowers | `IMG_2474.JPG`, bottom left |
+| `heart-balloons` | Two children with heart balloons | Gifts and flowers | `IMG_2482.JPG` |
+| `chick-gift` | A chick holding a gift | Gifts and flowers | `IMG_2485.JPG` |
+| `fried-chicken` | A plate of fried chicken | Food | `IMG_2486.JPG` |
+| `taco` | A taco | Food | `IMG_2487.JPG` |
+
+The picker shows the groups in that order, with the defaults first.
+
+**What the app ships (R1.15).** `scripts/illustrations.mjs` runs `sharp`, pinned
+as a devDependency, and is deterministic:
+
+1. **The white ground becomes transparent.** Only white connected to the border changes, using colour-to-alpha against white, so the soft ground shadows become translucent instead of grey patches on a cream theme. White inside an outline stays opaque: the cupcake's cream, the cup, the receipt.
+2. **Trim to the content**, and centre it on a square with 8% padding.
+3. **512 × 512 WebP with alpha**, quality about 82, **≤ 40 KB each** and **≤ 1 MB for the library**.
+4. **It refuses** a duplicate (above) and a file name that is not a valid key.
+
+The WebPs are imported statically by the registry. A missing file therefore
+fails the build, the URLs are hashed and cached for good, and `next/image`
+serves the size each place draws.
+
+**Where they appear**
+
+- **Products:** the product tile in rows, cards, the create-order grid, the cart lines, and top products on Home and in Analytics. This replaces the §137.3 monogram tile.
+- **Expenses:** each expense row shows its **category's** illustration, and so do the Categories tab and the expense form's category field.
+- **Custom order lines** show `default-product`.
+- **Not on the bill.** A bill is a document (§139.11.6).
+
+**Choosing one**
+
+- **A product:** the product form's **Icon** field opens the picker. The choice is stored as `products.icon_key`, and NULL means `default-product`.
+- **An expense category:** from the Expenses **Categories** tab. The choice is stored **per business** in `bakeries.expense_category_icons`, a JSON object mapping a category to a key; a category it does not mention uses `default-expense`. The category, not each expense, carries the illustration, because the brief ties icons to categories. `PATCH /api/expense-categories/{category}` writes the choice on the server with the owner check, because `bakeries` stays SELECT-only for the API role.
+- **Validation:** the server accepts only registry keys (`z.enum(ILLUSTRATION_KEYS)`). The database checks only the key's shape, so adding an illustration needs no migration. A stored key the registry no longer knows renders the default.
+
+**Accessibility and theme.** The illustration sits on a rounded tile in the
+theme's sunken tone, so it reads on Golden and on Peach alike. Beside a name it
+is decorative. In the picker, each option is named by its label ("Rose
+bouquet").
+
+### 139.11.11 Charts on Expenses and Analytics
+
+The graphs follow `v2-analytics-expenses-mobile-golden.png` and
+`v2-tablet-desktop-layouts.png`. They are **authored SVG** in
+`src/components/ui/charts/`, with **no chart library**. Four small chart types
+do not justify a dependency that brings its own styling and its own
+accessibility gaps (§2.2).
+
+| Chart | Where | What it draws |
+|---|---|---|
+| `line-trend` | Analytics' sales trend; the Sales tab | A smooth monotone line with a soft fill beneath it, and horizontal gridlines only. Compact rupee ticks on the y axis (₹2K … ₹8K; lakh from ₹1,00,000). Five or six date ticks on the x axis. A tooltip bubble with the value and date on hover, tap or keyboard focus, with the chosen point marked. An optional **previous-period** series, dashed and muted, with a two-item legend. |
+| `bar-trend` | Expense trend; orders per day; the desktop Home sales overview | Round-topped bars. The peak or the chosen bar is in the strong tone and the rest in a lighter tone of it, with the same tooltip. Daily up to 31 days, and weekly beyond that or by the toggle. |
+| `donut` | Expenses by category; Sales by category; orders by status | A ring with the **total in its centre** in the serif, and a legend with a dot, the name and the share. The legend sits beside the ring on phones and beneath it below 360 px. The top five plus **Others**, with a 2 px surface-coloured gap between segments. |
+| `sparkline` | Desktop stat tiles | A 2 px line with no axes and a dot on the last point. `aria-hidden`, because the tile states its delta in words. |
+
+- **Colour:** `--chart-1` to `--chart-6` per theme, taken from the references' browns and oranges. They are validated as §139.4's tokens were, and the line and the strong bar tone must be **≥ 3:1** against the card (WCAG 1.4.11). Donut segments need not be, because the legend carries every value as text.
+- **Data:** the server aggregates, in the business's timezone (BUG-07), with the previous period for each delta. The client never sums raw rows. Endpoints: `GET /api/expenses/summary` and `GET /api/analytics/overview` (§139.13).
+- **Ranges:** Last 7 days, Last 30 days, This month, Last month and Custom. The choice is remembered per screen.
+- **Numbers:** `formatPaise` for every value, and a compact form (`formatPaiseCompact`, in `src/lib/format/currency.ts`) for the axes.
+- **Accessibility:** each chart is a `figure` with a heading and `role="img"`, with a one-sentence summary as its label ("Sales rose 12% to ₹45,280 over the last 30 days"). A visually hidden **table** carries the same numbers. Arrow keys move the tooltip from point to point. Under `prefers-reduced-motion` there is no draw-in.
+- **Touch and size:** each point or bar has a hit column at least 44 px wide, and the tooltip stays inside the chart. The SVG takes its size from its container with a `ResizeObserver`, so its text is drawn at real pixel sizes rather than scaled by a `viewBox`. Narrow widths draw fewer ticks.
+- **States:** a skeleton in the chart's own shape while loading; an empty state that names the period ("No expenses in the last 7 days") with the next action; and an error with **Try again**.
+
+### 139.11.12 Photographic plates (Q6)
+
+- **The sources** are the supplied photographs in `design-references/`: `v2-plate-cake-clean.png` as it is, and `v2-hero-cake-with-type.png` and `v2-hero-brownie-with-type.png` **cropped to their right-hand half**, clear of the type printed on their left. (`hero-photography.png` is the same file as the clean plate.)
+- **What is committed** is only the derived plates, at `src/assets/plates/<name>.webp`: WebP, **≤ 200 KB** each, and wide enough for a 1536 px render. The source PNGs stay uncommitted.
+- **Where they are used:** behind the auth scene (§138); the Home hero on phones; the compact bands on Analytics and Expenses; the desktop panels; and the small picture in the quote blocks.
+- **Text is never set on a photograph without a scrim** that keeps it at ≥ 4.5:1. The LCP plate alone is `priority`.
+- **App-owned only.** Products and customers never get photographs (§16).
+
 ---
 
 ## 139.12 Data model and migrations
@@ -8101,7 +8273,8 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `…_business_profile` | `bakeries.tagline` (≤ 80), `bakeries.city`, trimmed-length checks; `bakeries.next_order_number` (int, default 1001). | 2 |
 | `…_guest_orders` | `orders.customer_id` drops NOT NULL; a partial index on `(bakery_id, created_at) where customer_id is null`. | 3 |
 | `…_order_rpc` | **`create_order(payload jsonb, idempotency_key uuid)`** and **`change_order_status(order_id, status)`** as `security invoker` functions, so RLS still applies and each is **one transaction** (C1, C6); the order number is taken from `next_order_number` inside it (BUG-08); stock is checked before it is reserved (C4). `orders.idempotency_key uuid` with `unique (bakery_id, idempotency_key)` — no new table (C2); the same on `payments`. | 3 |
-| `…_status_ready` *(if Q3)* | Add `READY` to the status CHECK. | 3 |
+| `…_status_ready` | Add `READY` to the status CHECK (Q3, answered). | 3 |
+| `…_illustrations` | `products.image` is renamed **`icon_key`** (text; NULL means the default). Any existing value that is not a key's shape is cleared, and a CHECK allows only `^[a-z0-9]+(-[a-z0-9]+)*$` up to 64 characters. `bakeries.expense_category_icons` is `jsonb not null default '{}'`, with a CHECK that it is an object. The server checks keys against the registry, so a new illustration needs no migration. | 1 |
 | `…_text_hygiene` | Trimmed-length checks on customer, product and category names; categories unique per business on `lower(name)`. | 1 |
 | `…_notification_kind` | `notifications.kind` (`ORDER`, `PAYMENT`, `STOCK`, `CUSTOMER`, `SYSTEM`); index `(bakery_id, is_read, created_at desc)`. | 5 |
 | `…_audit_writes` | Revoke `INSERT` on `audit_logs` from `authenticated`; audit is written by the server with the acting user (§133.7 G1, BUG-20). | 2 |
@@ -8127,7 +8300,10 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `GET /api/customers` | `?search=` matches phone numbers on digits; pagination. |
 | `GET /api/customers/{id}/summary` | New — stats, and the delivery addresses taken from orders. |
 | `GET /api/guest-sales` | New — `?from&to`. |
-| `GET /api/analytics/overview` | `?from&to` with the previous period for deltas; the Guest split (§133.9 I3). |
+| `GET /api/analytics/overview` | `?from&to&interval=day\|week`. Returns the KPIs with their previous-period values, the sales series and the previous period's, top products (with their `iconKey`), sales by category, orders by status, and the Guest split (§133.9 I3, §139.11.11). |
+| `GET /api/expenses/summary` | New — `?from&to&interval=day\|week`. Returns the total and daily average, each with the previous period's; totals by category; the series; and the five most recent (§139.11.11). |
+| `GET /api/expense-categories`, `PATCH /api/expense-categories/{category}` | New — each category's illustration. The PATCH takes `{ iconKey }` and writes `bakeries.expense_category_icons` on the server (§139.11.10). |
+| `POST /api/products`, `PATCH /api/products/{id}` | Accept `iconKey`: a registry key, or null for the default. |
 | `GET /api/search?q=` | New — global search across orders, customers and products. |
 | `GET, POST, PATCH /api/categories` | New (§133.4 D1). |
 | `GET /api/notifications`, `POST /api/notifications/read-all` | New (§133.5 E1). |
@@ -8318,11 +8494,11 @@ green; the screens it touched are captured at every width in both themes;
 | Phase | Goal | Depends on | Done when |
 |---|---|---|---|
 | **0 — Correctness and security** | Stop the bugs that corrupt money, stock or tenant data, and the crash. **No redesign.** | — | Payments record their real amount; cancelling releases stock; status changes follow the table; dates are local; RLS and foreign keys are tenant-tight; every screen has an error boundary. |
-| **1 — Foundation** | Tests in `/tests`; AGENTS.md updated; Golden and Peach tokens; the safe-area system; the new shell and component kit; the response card; input hygiene. | 0 | Every existing screen runs inside the new shell with the new tokens, and nothing sits under a notch. |
+| **1 — Foundation** | Tests in `/tests`; AGENTS.md updated; Golden and Peach tokens; the safe-area system; the new shell and component kit; the response card; input hygiene; the illustration library, the photographic plates and the chart kit. | 0 | Every existing screen runs inside the new shell with the new tokens, nothing sits under a notch, and every product shows an illustration. |
 | **2 — Accounts and the business** | USER/DEV; the new registration; the business profile and logo; the queue actually running; audit that records who. | 1 | A new user registers with every field, edits their business, and the confirmation arrives through the queue. |
 | **3 — Orders** | One-transaction creation with idempotency; order numbers; the oversell guard; Guest; customers on the fly; delivery autofill; custom items; statuses; payment at creation; the estimate endpoint. | 2 | A guest order and a new-customer order can each be placed twice by a double tap and produce **one** order; stock and payments reconcile. |
 | **4 — The bill** | The bill component; the estimate before saving; share as an image; the PDF; print. | 3 | A bill and an estimate share to WhatsApp from a phone, and nothing is stored. |
-| **5 — Screens** | Home, Orders, Customers and Guest sales, Customer detail, Products and categories, Inventory, Expenses, Analytics, Notifications, More, Settings, Business details, search — responsive, both themes. | 1, 3 (for order screens), 4 | Every screen matches §139.10 at 360 – 1440 px in both themes, and no hard-coded strings remain. |
+| **5 — Screens** | Home, Orders, Customers and Guest sales, Customer detail, Products and categories (with the icon picker), Inventory, Expenses and Analytics (with their charts and the category illustrations), Notifications, More, Settings, Business details, search — responsive, both themes. | 1, 3 (for order screens), 4 | Every screen matches §139.10 at 360 – 1440 px in both themes, the charts match §139.11.11, and no hard-coded strings remain. |
 | **6 — Hardening** | The worker system completed, rate limiting, OpenAPI, CI with SonarQube, Playwright journeys, database integration tests, BugSnag, an accessibility pass. | 5 | CI runs the full §125 pipeline, and the E2E journey in AGENTS §26 passes, tenant isolation included. |
 | **7 — PWA** | Manifest, icons, the service worker, the offline page, install. | 6 | Installable on Android Chrome and iOS Safari; opens offline to the offline page. |
 | **8 — Android** | The Capacitor app (§139.17). | 7, Q9, Q10 | A signed build on the Play internal track passes the device matrix. |
@@ -8364,7 +8540,7 @@ the row needs; without an answer it is built on that question's default
 | ID | Work | Source | Waits on | Status |
 |---|---|---|---|---|
 | R1.1 | Tests into `/tests`, mirroring `src/` | §139.16 | — | TODO |
-| R1.2 | AGENTS.md updated: roles, themes, response card, input hygiene, tests, "business" wording | §139.1 | — | TODO |
+| R1.2 | AGENTS.md updated: roles, themes, response card, input hygiene, tests, "business" wording, and app-owned art (illustrations and plates are not uploads) | §139.1 | — | TODO |
 | R1.3 | Golden and Peach tokens; the Flour Room tokens merged; Clean retired; stored `clean` → `golden` | §139.4 | — | TODO |
 | R1.4 | No theme flash; `theme-color` per theme; the theme on the account if chosen | BUG-15 | Q14 | TODO |
 | R1.5 | Type: Fraunces and Inter; Fredoka and Plus Jakarta Sans retired | §137.4 | — | TODO |
@@ -8375,8 +8551,11 @@ the row needs; without an answer it is built on that question's default
 | R1.10 | The response card and provider; action outcomes moved onto it | §139.6 | Q13 | TODO |
 | R1.11 | Input-hygiene primitives and the text-hygiene migration | §139.7 | — | TODO |
 | R1.12 | Search field contrast | BUG-24 | — | TODO |
-| R1.13 | Hero plate asset, WebP ≤ 200 KB | §139.3 | Q6 | TODO |
+| R1.13 | Photographic plates from the supplied photographs, WebP ≤ 200 KB | §139.11.12 | Q6 (answered) | TODO |
 | R1.14 | Shared copy for the wider audience — tagline, empty states, errors | §139.1 #2 | Q8 | TODO |
+| R1.15 | The illustration library ships: the build script (transparent WebP, the duplicate check), `src/assets/illustrations`, the registry, the `illustration` component, and the product tile built on it | §139.11.10 | Q16 | TODO |
+| R1.16 | The `…_illustrations` migration: `products.icon_key` and `bakeries.expense_category_icons` | §139.12 | — | TODO |
+| R1.17 | The chart kit — line, bar, donut, sparkline; the chart palette per theme; compact rupee ticks | §139.11.11 | — | TODO |
 
 ### Phase 2 — Accounts and the business
 
@@ -8389,7 +8568,7 @@ the row needs; without an answer it is built on that question's default
 | R2.5 | The confirmation mail through the queue; Resend confirmation | BUG-16 | — | TODO |
 | R2.6 | The business profile endpoint and the Business details screen | §133.2 B1, B3 | — | TODO |
 | R2.7 | Logo upload | §133.2 B2; §56 | — | TODO |
-| R2.8 | Auth screens re-tokened; neutral headlines; the hero plate | §138 | Q6, Q8 | TODO |
+| R2.8 | Auth screens re-tokened; neutral headlines; the hero plate | §138 | Q6 (answered), Q8 | TODO |
 | R2.9 | A theme switch on the signed-out screens | §138.6.3 | Q15 | TODO |
 | R2.10 | Audit records the acting user and is written by the server only | §133.7 G1; BUG-20 | — | TODO |
 
@@ -8403,11 +8582,11 @@ the row needs; without an answer it is built on that question's default
 | R3.4 | `change_order_status` as one transaction; readable notification text | §133.3 C6; BUG-26 | — | TODO |
 | R3.5 | Guest orders; `?customer=guest` | §139.11.3 | Q12 | TODO |
 | R3.6 | The customer picker: Guest pinned, search, add new inline, the duplicate-phone card | §139.11.4 | — | TODO |
-| R3.7 | Customer fields: address required, map link optional | §139.11.4 | Q1 | TODO |
+| R3.7 | Customer fields: name and phone required; address, map link, email and notes optional (unchanged from §92) | §139.11.4 | Q1 (answered) | TODO |
 | R3.8 | Delivery address and map link filled from the customer; the address-or-link rule | §95, §96; BUG-22 | — | TODO |
 | R3.9 | Items-first flow: grid, chips, cart bar → details → payment; the draft survives a refresh | §139.10; §110 | Q11 | TODO |
-| R3.10 | Custom items | §139.11.7 | Q5 | TODO |
-| R3.11 | Statuses: Preparing; `READY`; Completed for pickup | §139.11.8 | Q3 | TODO |
+| R3.10 | Custom items: a typed name and amount, no stock | §139.11.7 | Q5 (answered) | TODO |
+| R3.11 | Statuses: Preparing; `READY`; Completed for pickup | §139.11.8 | Q3 (answered) | TODO |
 | R3.12 | Payment at creation records a payment; part paid asks the amount; the manual status control removed | BUG-02, BUG-06 | — | TODO |
 | R3.13 | `POST /api/orders/preview` | §139.11.5 | — | TODO |
 | R3.14 | Place order → a response card with the facts and actions | §139.6 | — | TODO |
@@ -8435,16 +8614,17 @@ the row needs; without an answer it is built on that question's default
 | R5.3 | Customers: segments, the pinned Guest sales row, search on digits | §139.10; BUG-23 | — | TODO |
 | R5.4 | Customer detail: stats, orders, notes, addresses, create order, order again | IMP-03, IMP-04 | — | TODO |
 | R5.5 | Guest sales | §139.11.3 | — | TODO |
-| R5.6 | Products; managing categories; neutral units | §133.4 D1 | Q8 | TODO |
+| R5.6 | Products; managing categories; neutral units; the **Icon** field and picker | §133.4 D1; §139.11.10 | Q8 | TODO |
 | R5.7 | Inventory | §139.10 | — | TODO |
-| R5.8 | Expenses, with charts | §139.10 | — | TODO |
-| R5.9 | Analytics: server aggregation, deltas, Top Customers, the guest split | §133.9 I1, I3; IMP-10 | — | TODO |
+| R5.8 | Expenses as the reference shows: KPIs, the category donut, daily bars, recent expenses; the Categories and Transactions tabs; `GET /api/expenses/summary` | §139.10; §139.11.11 | — | TODO |
+| R5.9 | Analytics as the reference shows: KPIs with deltas, the sales-trend line, top products, sales by category; the Sales, Orders, Customers and Products tabs; server aggregation; Top Customers; the guest split | §133.9 I1, I3; IMP-10; §139.11.11 | — | TODO |
 | R5.10 | Notifications inbox and bell; the `kind` column | §133.5 E1 | — | TODO |
-| R5.11 | More and Settings (Appearance, Account, About); Help if wanted | §139.10 | Q7 | TODO |
+| R5.11 | More and Settings (Appearance, Account, About with the illustration credit); no Help | §139.10 | Q7 (answered), Q16 | TODO |
 | R5.12 | Global search | IMP-01 | — | TODO |
 | R5.13 | Pagination on every list | §133.9 I4; IMP-11 | — | TODO |
 | R5.14 | Hard-coded strings swept, screen by screen | BUG-30 | — | TODO |
 | R5.15 | Dashboard filters | §133.9 I2 | — | TODO |
+| R5.16 | Expense category illustrations: the Categories tab, the picker, the expense form's category field, `/api/expense-categories` | §139.11.10 | — | TODO |
 
 ### Phase 6 — Hardening
 
@@ -8488,7 +8668,8 @@ the row needs; without an answer it is built on that question's default
 
 ## 139.20 How this section relates to the ones before it
 
-- **§137 (the Flour Room mobile direction) is superseded where the two differ:** status rendering (a pill with a dot, not a dot and a word); photography (Q6); theme values (§137.5 → §139.4); desktop, now in scope (§137.9 → §139.9, §139.10); and the build order (§137.10 → §139.18). **Kept from §137:** the navigation (§137.1), the type (§137.4), the tile (§137.3, now `product-tile`), hairline rows, and one dark action per screen.
+- **§137 (the Flour Room mobile direction) is superseded where the two differ:** status rendering (a pill with a dot, not a dot and a word); photography (Q6); theme values (§137.5 → §139.4); desktop, now in scope (§137.9 → §139.9, §139.10); and the build order (§137.10 → §139.18). **Kept from §137:** the navigation (§137.1), the type (§137.4), the tile's place in every row (§137.3, now `product-tile`, showing an illustration), hairline rows, and one dark action per screen.
+- **§137 decision 1 ("no photography") and the §137.3 monogram** are superseded by §139.11.12 and §139.11.10. **§16 and §56 are not:** the logo is still the only upload.
 - **§133 (the gap register):** every open item is mapped to a tracker row through its *Source* column. Close both when the work is done.
 - **§134 – §136:** folded into Phases 0, 1 and 5. Those sections remain as the record of what was found.
 - **§138:** the authentication screens are built; R2.8 re-tokens them, and §138.6.3's two open items become R1.6 and Q15.

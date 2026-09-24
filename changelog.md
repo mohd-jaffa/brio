@@ -612,3 +612,29 @@ committed).
 
 ### Blockers
 - **Open questions Q1–Q15** (§139.2). Each blocks only the tracker rows that name it; unanswered rows proceed on the stated default.
+
+## 2026-09-24 — v2 Answers, the Illustration Library and the Charts (plan §139)
+
+**Planning, plus the illustration masters filed in the repo.** No app code,
+schema or configuration changed.
+
+### Added
+- **`artwork/illustrations/`** — 28 illustration masters under their permanent keys (`donut`, `rose-bouquet`, `default-product`, …). The user supplied 26 files. `IMG_2470.JPG` was dropped because it is the Vecteezy gold-coins file saved again (perceptual-hash distance 1 of 256). `IMG_2474.JPG`, a sheet of four, was split on its blank gutters into four files. Every other file is a byte-for-byte copy. The originals are kept, untouched, in `design-references/illustration-originals/` (gitignored).
+- **Plan §139.11.10 — the illustration library.** Naming and duplicate rules, the catalogue, the WebP build (transparent ground, ≤ 40 KB each), the registry, and where the illustrations appear. Every product and every expense category starts on a default and can use any illustration. Nothing is uploaded, so §16 stands.
+- **Plan §139.11.11 — charts on Expenses and Analytics**, as the references show: a trend line with the previous period, daily bars, category donuts and sparklines. They are authored SVG with no chart library, aggregated on the server and accessible as tables.
+- **Plan §139.11.12 — photographic plates** made from the supplied photographs and used as backgrounds. Only the derived WebPs will be committed.
+- **Tracker rows R1.15–R1.17 and R5.16**, making 103 in total. **Q16** asks about the illustrations' licence.
+
+### Changed (the user's answers, 2026-09-24)
+- **Q1:** customer address and map link stay **optional** (§92 unchanged).
+- **Q3:** add `READY`, label `IN_PROGRESS` "Preparing", and show "Completed" for a finished pickup.
+- **Q5:** custom items are approved: a typed name and amount that move no stock.
+- **Q6:** still no uploads; the supplied photographs are used as backgrounds.
+- **Q7:** every reference-only feature is omitted, Help & Support included.
+
+### Validation
+- A script check of §139: every table row has its header's column count, every tracker and question reference resolves, and every question's *Waits on* list matches the tracker.
+- The library was checked for duplicates by content hash and perceptual hash, and inspected as a contact sheet.
+
+### Blockers
+- **Q16 (open):** the licence for the illustrations. It defaults to a credit in Settings → About, and needs confirming before the Play release.
