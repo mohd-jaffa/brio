@@ -39,7 +39,9 @@ const serverEnvSchema = z.object({
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 
 export function getServerEnv(source: NodeJS.ProcessEnv = process.env): ServerEnv {
-  const parsed = serverEnvSchema.safeParse(source);
+  // Operators read these, not customers: keep Zod's own detail here, ahead of
+  // the app-wide catalogue wording set in src/lib/validation/primitives.ts.
+  const parsed = serverEnvSchema.safeParse(source, { error: (issue) => z.config().localeError?.(issue) });
 
   if (!parsed.success) {
     throw internalError(

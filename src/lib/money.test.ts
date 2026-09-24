@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { paiseToRupees, roundToPaise, rupeesToPaise, sumPaise } from './money';
+import { paiseToRupees, parseRupees, roundToPaise, rupeesToPaise, sumPaise } from './money';
 
 describe('roundToPaise', () => {
   it('rounds positive numbers to 2 decimal places', () => {
@@ -54,5 +54,21 @@ describe('sumPaise', () => {
 
   it('is zero for nothing', () => {
     expect(sumPaise([])).toBe(0);
+  });
+});
+
+describe('parseRupees', () => {
+  it('reads money the way people write it, as whole paise', () => {
+    expect(parseRupees('1500')).toBe(150000);
+    expect(parseRupees('₹1,500')).toBe(150000);
+    expect(parseRupees('1,00,000.50')).toBe(10000050);
+    expect(parseRupees(' ₹ 250 ')).toBe(25000);
+    expect(parseRupees('19.99')).toBe(1999);
+  });
+
+  it('is null for anything that is not an amount — never NaN', () => {
+    for (const text of ['', '₹', 'abc', '1.234', '-5', '1e3', '12..5']) {
+      expect(parseRupees(text)).toBeNull();
+    }
   });
 });

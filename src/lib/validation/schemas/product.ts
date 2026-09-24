@@ -1,19 +1,14 @@
 import { z } from "zod";
 
-import { VALIDATION_MESSAGES } from "@/constants/messages";
-
-import { optionalText, optionalUuid, paiseText } from "../primitives";
+import { optionalText, optionalUuid, paiseAmount, paiseText, requiredText } from "../primitives";
 
 /** A product as the form holds it. Prices are whole paise — never a float (AGENTS.md §13). */
 export const createProductSchema = z.object({
   categoryId: optionalUuid("Category"),
-  name: z.string().trim().min(1, VALIDATION_MESSAGES.required("Name")).max(200),
-  description: optionalText(2000),
-  defaultPrice: z
-    .number()
-    .int(VALIDATION_MESSAGES.wholeNumber("Price"))
-    .min(0, VALIDATION_MESSAGES.notNegative("Price")),
-  unit: z.string().trim().min(1).default("piece"),
+  name: requiredText("Name", 200),
+  description: optionalText(2000, "Description"),
+  defaultPrice: paiseAmount("Price", { allowZero: true }),
+  unit: requiredText("Unit", 30).default("piece"),
   isActive: z.boolean().default(true),
 });
 

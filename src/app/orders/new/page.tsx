@@ -31,7 +31,7 @@ import { orderTotals } from "@/features/orders/totals";
 import type { Order } from "@/features/orders/types";
 import type { Product } from "@/features/products/types";
 import { formatPaise } from "@/lib/format/currency";
-import { rupeesToPaise } from "@/lib/money";
+import { parseRupees } from "@/lib/money";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiMutation } from "@/lib/query/useApiMutation";
 import { useApiQuery } from "@/lib/query/useApiQuery";
@@ -123,7 +123,9 @@ export default function NewOrderPage() {
         .map((item) => ({ unitPrice: priceOf.get(item.productId) ?? 0, quantity: item.quantity })),
       watchedAdjustments.map((entry) => ({
         type: entry.type,
-        amount: entry.amount === "" ? 0 : rupeesToPaise(entry.amount),
+        // What is typed so far, read the way the form will read it; an
+        // amount still being typed counts as nothing rather than "₹NaN".
+        amount: parseRupees(entry.amount) ?? 0,
       })),
     );
   }, [watchedItems, watchedAdjustments, active]);

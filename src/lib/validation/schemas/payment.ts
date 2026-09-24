@@ -3,7 +3,7 @@ import { z } from "zod";
 import { VALIDATION_MESSAGES } from "@/constants/messages";
 import { PAYMENT_METHODS } from "@/constants/statuses";
 
-import { optionalText, paiseText } from "../primitives";
+import { optionalText, paiseAmount, paiseText } from "../primitives";
 
 /**
  * A payment collected against an order. Money crosses the wire as whole paise,
@@ -12,10 +12,7 @@ import { optionalText, paiseText } from "../primitives";
  */
 export const createPaymentSchema = z.object({
   order_id: z.string().uuid(VALIDATION_MESSAGES.invalid),
-  amount: z
-    .number()
-    .int(VALIDATION_MESSAGES.wholeNumber("Amount"))
-    .positive(VALIDATION_MESSAGES.moreThanZero("Amount")),
+  amount: paiseAmount("Amount"),
   payment_method: z.enum(PAYMENT_METHODS),
   reference: optionalText(120, "Reference"),
 });

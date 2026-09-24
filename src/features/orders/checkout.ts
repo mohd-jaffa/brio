@@ -1,7 +1,8 @@
 import { type SupabaseClient } from "@supabase/supabase-js";
 import { type Order, type OrderRow } from "./types";
 import { type CreateOrderPayload } from "@/lib/validation";
-import { conflictError } from "@/lib/errors";
+import { MAX_ORDER_TOTAL_PAISE } from "@/constants/limits";
+import { businessRuleError, conflictError } from "@/lib/errors";
 import { getProductById } from "@/features/products/api";
 import { logInventoryTransaction } from "@/features/inventory/api";
 import { generateOrderNumber, insertOrder, insertOrderItems, insertOrderAdjustments, deleteOrderHard } from "./api";
@@ -45,6 +46,11 @@ export async function createOrder(
 
   if (total < 0) {
     throw conflictError("CONFLICT", { reason: "negative_order_total" });
+  }
+  // Each field is bounded, but enough lines of them are not; the stored
+  // totals must fit their integer columns (BUG-12).
+  if (subtotal > MAX_ORDER_TOTAL_PAISE || total > MAX_ORDER_TOTAL_PAISE) {
+    throw businessRuleError("ORDER_TOTAL_TOO_LARGE", { subtotal, total });
   }
 
   const orderNumber = await generateOrderNumber(client, bakeryId);

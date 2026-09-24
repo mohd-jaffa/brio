@@ -31,6 +31,19 @@ export function rupeesToPaise(amount: string | number): number {
   return sign ? -paise : paise;
 }
 
+/**
+ * Money as people write it — "1500", "₹1,500", "1,00,000.50", "₹ 250" — as whole
+ * paise, or null when it is not an amount (plan §139.7, BUG-10). The rupee
+ * sign, spaces and commas are dropped wherever they sit, so Indian and
+ * Western grouping both read; what is left must be digits with at most two
+ * decimals. Never through a float.
+ */
+export function parseRupees(text: string): number | null {
+  const digits = text.trim().replace(/^₹/, "").replace(/[\s,]/g, "");
+  if (!/^\d+(\.\d{1,2})?$/.test(digits)) return null;
+  return rupeesToPaise(digits);
+}
+
 /** Whole paise as a rupee number, for display only — never for adding up. */
 export function paiseToRupees(paise: number): number {
   return paise / 100;

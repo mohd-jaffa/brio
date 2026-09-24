@@ -8527,13 +8527,13 @@ the row needs; without an answer it is built on that question's default
 | R0.5 | Dates in the business's timezone | BUG-07 | — | DONE (2026-09-24) |
 | R0.6 | A status transition table on the server; confirm before Cancel | BUG-05 | — | DONE (2026-09-24) |
 | R0.7 | Stock follows status — cancel releases, delivery converts | BUG-04; §133.3 C5 | — | DONE (2026-09-24) |
-| R0.8 | Tolerant money parsing; no "₹NaN" | BUG-10; IMP-12 | — | TODO |
-| R0.9 | Bounds on money and quantities | BUG-12 | — | TODO |
-| R0.10 | Links accept `http:`/`https:` only | BUG-13 | — | TODO |
+| R0.8 | Tolerant money parsing; no "₹NaN" | BUG-10; IMP-12 | — | DONE (2026-09-24) |
+| R0.9 | Bounds on money and quantities | BUG-12 | — | DONE (2026-09-24) |
+| R0.10 | Links accept `http:`/`https:` only | BUG-13 | — | DONE (2026-09-24) |
 | R0.11 | RLS: `is_active` and `to authenticated` on payments, audit logs, notifications | BUG-18 | — | TODO |
 | R0.12 | Tenant-integrity foreign keys; the customer checked at order creation | BUG-19 | — | TODO |
 | R0.13 | Payment amount and method constraints | BUG-21 | — | TODO |
-| R0.14 | Every validation message from the catalogue | BUG-11 | — | TODO |
+| R0.14 | Every validation message from the catalogue | BUG-11 | — | DONE (2026-09-24) |
 
 ### Phase 1 — Foundation
 

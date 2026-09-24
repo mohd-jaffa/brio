@@ -48,6 +48,7 @@ export const ERROR_MESSAGES = {
   RECEIPT_LOAD_FAILED: "Could not build this bill. Please try again.",
 
   ORDER_STATUS_UPDATE_FAILED: "Could not update this order. Please try again.",
+  ORDER_TOTAL_TOO_LARGE: "An order can come to at most ₹1,00,00,000. Split it into smaller orders.",
   ORDER_STATUS_TRANSITION_INVALID: "This order can’t move to that status from where it is now.",
   ORDER_STATUS_CHANGED: "This order was just changed somewhere else. Refresh to see where it is now.",
   PAYMENT_FAILED: "Could not record this payment. Please try again.",
@@ -72,7 +73,8 @@ export const VALIDATION_MESSAGES = {
   notNegative: (label: string) => `${label} cannot be negative.`,
   amount: (label: string) => `${label} must be a valid amount.`,
   email: (label: string) => `${label} must look like name@example.com.`,
-  url: (label: string) => `${label} must be a valid link.`,
+  url: (label: string) => `${label} must be a web link starting with https:// or http://.`,
+  tooLarge: (label: string, max: string) => `${label} can be at most ${max}.`,
   phone: "Enter a valid mobile number.",
   chooseOne: (label: string) => `Choose a ${label}.`,
   chooseAtLeastOne: (label: string) => `Choose at least one ${label}.`,

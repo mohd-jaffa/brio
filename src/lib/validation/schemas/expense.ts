@@ -3,7 +3,7 @@ import { z } from "zod";
 import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from "@/constants/statuses";
 import { VALIDATION_MESSAGES } from "@/constants/messages";
 
-import { optionalUrl, paiseText } from "../primitives";
+import { optionalUrl, paiseAmount, paiseText, requiredText } from "../primitives";
 
 export const expenseCategorySchema = z.enum(EXPENSE_CATEGORIES);
 export const paymentMethodSchema = z.enum(PAYMENT_METHODS);
@@ -11,11 +11,8 @@ export const paymentMethodSchema = z.enum(PAYMENT_METHODS);
 /** An expense as the form holds it. Amounts are whole paise (AGENTS.md §13). */
 export const createExpenseSchema = z.object({
   category: expenseCategorySchema,
-  description: z.string().trim().min(1, VALIDATION_MESSAGES.required("Description")).max(500),
-  amount: z
-    .number()
-    .int(VALIDATION_MESSAGES.wholeNumber("Amount"))
-    .positive(VALIDATION_MESSAGES.moreThanZero("Amount")),
+  description: requiredText("Description", 500),
+  amount: paiseAmount("Amount"),
   expenseDate: z.string().date(VALIDATION_MESSAGES.invalid),
   paymentMethod: paymentMethodSchema,
   receiptUrl: optionalUrl("Receipt link"),

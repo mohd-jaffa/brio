@@ -9,6 +9,8 @@ import {
   type InventoryTransactionType,
 } from "@/constants/statuses";
 
+import { MAX_STOCK_MOVEMENT } from "@/constants/limits";
+
 import { optionalText, wholeNumberText } from "../primitives";
 
 /** Which way a transaction of each type must move stock (AGENTS.md §14). */
@@ -27,7 +29,11 @@ export const logInventoryTransactionSchema = z
   .object({
     productId: z.string().uuid(VALIDATION_MESSAGES.invalid),
     type: z.enum(INVENTORY_TRANSACTION_TYPES),
-    quantity: z.number().int(VALIDATION_MESSAGES.wholeNumber("Quantity")),
+    quantity: z
+      .number({ error: VALIDATION_MESSAGES.wholeNumber("Quantity") })
+      .int(VALIDATION_MESSAGES.wholeNumber("Quantity"))
+      .min(-MAX_STOCK_MOVEMENT, VALIDATION_MESSAGES.tooLarge("Quantity", MAX_STOCK_MOVEMENT.toLocaleString("en-IN")))
+      .max(MAX_STOCK_MOVEMENT, VALIDATION_MESSAGES.tooLarge("Quantity", MAX_STOCK_MOVEMENT.toLocaleString("en-IN"))),
     referenceType: optionalText(50, "Reference type"),
     referenceId: optionalText(64, "Reference"),
   })
@@ -47,7 +53,7 @@ export type LogInventoryTransactionPayload = z.output<typeof logInventoryTransac
  */
 export const stockAdjustmentFormSchema = z.object({
   type: z.enum(MANUAL_INVENTORY_TYPES),
-  quantity: wholeNumberText("Quantity").refine(
+  quantity: wholeNumberText("Quantity", MAX_STOCK_MOVEMENT).refine(
     (quantity) => quantity !== 0,
     VALIDATION_MESSAGES.moreThanZero("Quantity"),
   ),

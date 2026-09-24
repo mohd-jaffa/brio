@@ -1,7 +1,9 @@
 import { z } from "zod";
 
+import { MAX_AMOUNT_PAISE, MAX_QUANTITY } from "@/constants/limits";
 import { VALIDATION_MESSAGES } from "@/constants/messages";
-import { rupeesToPaise } from "@/lib/money";
+import { formatPaise } from "@/lib/format/currency";
+import { parseRupees } from "@/lib/money";
 import { toE164India } from "@/lib/phone";
 
 /**
@@ -13,6 +15,16 @@ import { toE164India } from "@/lib/phone";
  * same schema again, and the database's CHECK constraints are what actually
  * protect the data (AGENTS.md §22).
  */
+
+/**
+ * The last word on wording: a check that names no message of its own gets the
+ * catalogue's, never Zod's English ("Too big: expected string to have <=100
+ * characters" reached the screen — BUG-11). Every field should still say what
+ * is wrong with it; this is the floor, not the fix. It is set here because
+ * every schema is built from these primitives, so it is in force wherever one
+ * is parsed.
+ */
+z.config({ customError: () => VALIDATION_MESSAGES.invalid });
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // A shape check, not a delivery check: something@something.something.
@@ -42,6 +54,15 @@ function optionalString(
     }
     return value;
   });
+}
+
+/** Text a form must have — a name, a description: trimmed, and bounded with its own words. */
+export function requiredText(label: string, max: number) {
+  return z
+    .string({ error: VALIDATION_MESSAGES.required(label) })
+    .trim()
+    .min(1, VALIDATION_MESSAGES.required(label))
+    .max(max, VALIDATION_MESSAGES.tooLong(label, max));
 }
 
 /** Free text that may be left empty: trimmed, and blank stored as null. */
@@ -90,12 +111,23 @@ export function requiredEmail(label: string, max = 254) {
     .transform((value) => value.toLowerCase());
 }
 
-/** A link that may be left empty — a Google Maps pin, a receipt; blank is null. */
+/**
+ * A web link that may be left empty — a map pin, a receipt; blank is null.
+ * Only `http:` and `https:`: `URL.canParse` also accepts `javascript:` and
+ * `data:`, and a link like that would travel onto a shared bill, where nothing
+ * stops it running (BUG-13).
+ */
 export function optionalUrl(label: string, max = 1000) {
   return optionalString(label, max, {
-    test: (value) => URL.canParse(value),
+    test: isWebLink,
     message: VALIDATION_MESSAGES.url(label),
   });
+}
+
+function isWebLink(value: string): boolean {
+  if (!URL.canParse(value)) return false;
+  const { protocol } = new URL(value);
+  return protocol === "https:" || protocol === "http:";
 }
 
 /** A reference to another record that may be left unset; blank is null. */
@@ -126,28 +158,63 @@ export function amountText(label: string) {
 }
 
 /**
- * An amount typed in rupees ("499.50"), stored as whole paise. The digits are
- * read as written rather than multiplied as a float, so nothing is ever a
- * paisa out (AGENTS.md §13). This is what every money field in a form uses.
+ * An amount typed in rupees ("499.50", "₹1,500"), stored as whole paise. The
+ * digits are read as written rather than multiplied as a float, so nothing is
+ * ever a paisa out (AGENTS.md §13), and it is bounded so it fits its column
+ * (BUG-12). This is what every money field in a form uses.
  */
-export function paiseText(label: string) {
+export function paiseText(label: string, max = MAX_AMOUNT_PAISE) {
   return z
-    .string()
+    .string({ error: VALIDATION_MESSAGES.required(label) })
     .trim()
     .transform((text, ctx) => {
+      // Straight from the digits: never through a float.
+      const paise = text === "" ? null : parseRupees(text);
       const problem =
         text === ""
           ? VALIDATION_MESSAGES.required(label)
-          : !/^\d+(\.\d{1,2})?$/.test(text)
+          : paise === null
             ? VALIDATION_MESSAGES.amount(label)
-            : null;
-      if (problem) {
-        ctx.addIssue({ code: "custom", message: problem });
+            : paise > max
+              ? VALIDATION_MESSAGES.tooLarge(label, formatPaise(max))
+              : null;
+      if (problem || paise === null) {
+        ctx.addIssue({ code: "custom", message: problem ?? VALIDATION_MESSAGES.amount(label) });
         return z.NEVER;
       }
-      // Straight from the digits: never through a float.
-      return rupeesToPaise(text);
+      return paise;
     });
+}
+
+/**
+ * An amount that has already been parsed to whole paise — what a route
+ * receives. Bounded like the field it came from (BUG-12).
+ */
+export function paiseAmount(label: string, { allowZero = false, max = MAX_AMOUNT_PAISE } = {}) {
+  const amount = z
+    .number({ error: VALIDATION_MESSAGES.amount(label) })
+    .int(VALIDATION_MESSAGES.wholeNumber(label))
+    .max(max, VALIDATION_MESSAGES.tooLarge(label, formatPaise(max)));
+  return allowZero
+    ? amount.min(0, VALIDATION_MESSAGES.notNegative(label))
+    : amount.positive(VALIDATION_MESSAGES.moreThanZero(label));
+}
+
+/**
+ * How many of a thing an order line is for: a whole number from 1 to 9,999.
+ * An emptied number field arrives as NaN, and says so in words (BUG-11).
+ */
+export function quantity(label = "Quantity") {
+  return z
+    .number({
+      error: (issue) =>
+        issue.input === undefined || Number.isNaN(issue.input)
+          ? VALIDATION_MESSAGES.required(label)
+          : VALIDATION_MESSAGES.wholeNumber(label),
+    })
+    .int(VALIDATION_MESSAGES.wholeNumber(label))
+    .min(1, VALIDATION_MESSAGES.moreThanZero(label))
+    .max(MAX_QUANTITY, VALIDATION_MESSAGES.tooLarge(label, MAX_QUANTITY.toLocaleString("en-IN")));
 }
 
 /** A number that may be left empty ("2.5" kg); blank is null. */
@@ -165,29 +232,35 @@ export function optionalNumberText(label: string) {
     });
 }
 
-/** A whole number typed into a text field ("12"), parsed to a number. */
-export function wholeNumberText(label: string) {
+/**
+ * A whole number typed into a text field ("12", "1,500"), parsed to a number
+ * and bounded either way by `max`, so it fits its column (BUG-12).
+ */
+export function wholeNumberText(label: string, max = MAX_QUANTITY) {
   return z
-    .string()
+    .string({ error: VALIDATION_MESSAGES.required(label) })
     .trim()
     .transform((text, ctx) => {
+      const digits = text.replace(/[\s,]/g, "");
       const problem =
-        text === ""
+        digits === ""
           ? VALIDATION_MESSAGES.required(label)
-          : !/^-?\d+$/.test(text)
+          : !/^-?\d+$/.test(digits)
             ? VALIDATION_MESSAGES.wholeNumber(label)
-            : null;
+            : Math.abs(Number(digits)) > max
+              ? VALIDATION_MESSAGES.tooLarge(label, max.toLocaleString("en-IN"))
+              : null;
       if (problem) {
         ctx.addIssue({ code: "custom", message: problem });
         return z.NEVER;
       }
-      return Number(text);
+      return Number(digits);
     });
 }
 
 /** A whole number above 0 that must be given ("3" boxes). */
-export function positiveWholeText(label: string) {
-  return wholeNumberText(label).pipe(
+export function positiveWholeText(label: string, max = MAX_QUANTITY) {
+  return wholeNumberText(label, max).pipe(
     z.number().refine((value) => value > 0, VALIDATION_MESSAGES.moreThanZero(label)),
   );
 }

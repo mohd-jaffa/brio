@@ -673,3 +673,14 @@ entry grows with them.
     - Delivering `#1003` left stock where its reservation had put it.
     - Repeating the delivery changed nothing.
   - **Still not one transaction**, so a failure between the move and its ledger lines leaves them apart. That is R3.4.
+- **R0.8 · BUG-10, IMP-12 — money had to be typed bare.** "1,000" and "₹500" were refused as amounts, and a charge with a comma turned the new-order running total into "₹NaN". `parseRupees` (`src/lib/money.ts`) reads money the way people write it: the rupee sign, spaces and commas anywhere (Indian or Western grouping), then digits with at most two decimals. It returns **null**, never NaN, for anything else. `paiseText` and the new-order preview both use it. In the browser, a "1,000" charge adds ₹1,000, and a half-typed "1,0a" counts as nothing until it is fixed.
+- **R0.9 · BUG-12 — numbers had no upper bound**, so a large one overflowed an `integer` column and came back as a 500. The bounds live in `src/constants/limits.ts`:
+  - **₹10,00,000** per money field (`paiseText`, and the new `paiseAmount` for routes). **9,999** per order line (`quantity`). **10,00,000** per stock movement, because a product may be counted in grams.
+  - Each refusal says the limit in words.
+  - **The server also refuses an order over ₹1,00,00,000 before writing anything** (`ORDER_TOTAL_TOO_LARGE`). Each field was bounded, but enough lines of them were not.
+- **R0.10 · BUG-13 — links accepted any scheme.** `URL.canParse` lets `javascript:` and `data:` through, and a map link is headed for shared bills. `optionalUrl` now takes **`http:` and `https:` only**, and its message says so.
+- **R0.14 · BUG-11 — Zod's own English reached the screen** ("Too big: expected string to have <=100 characters"; "Invalid input: expected number, received NaN" for an emptied quantity).
+  - Every field now names itself through the catalogue: new `requiredText`, `quantity` and `paiseAmount` primitives, and labels on every optional text field.
+  - `z.config({ customError })` in `primitives.ts` is the floor for anything left unnamed.
+  - **`src/lib/validation/messages.test.ts`** feeds every exported schema missing, blank, wrong-typed, over-long, over-large and NaN values at every depth, and fails on Zod-shaped wording. Against the old schemas it fails for more than twenty of them.
+  - The server's environment check keeps Zod's detail, because operators read it, not customers.

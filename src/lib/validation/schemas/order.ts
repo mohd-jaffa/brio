@@ -9,25 +9,19 @@ import {
   PAYMENT_STATUSES,
 } from "@/constants/statuses";
 
-import { optionalText, optionalUrl, paiseText } from "../primitives";
+import { optionalText, optionalUrl, paiseAmount, paiseText, quantity, requiredText } from "../primitives";
 
 export const orderItemSchema = z.object({
   productId: z.string().uuid(VALIDATION_MESSAGES.invalid),
-  quantity: z
-    .number()
-    .int(VALIDATION_MESSAGES.wholeNumber("Quantity"))
-    .min(1, VALIDATION_MESSAGES.moreThanZero("Quantity")),
+  quantity: quantity(),
   notes: optionalText(500, "Item notes"),
 });
 
 export const orderAdjustmentSchema = z.object({
   type: z.enum(ADJUSTMENT_TYPES),
-  name: z.string().trim().min(1, VALIDATION_MESSAGES.required("Name")),
+  name: requiredText("Name", 120),
   /** Whole paise, never negative; a DISCOUNT is subtracted by its type, not its sign. */
-  amount: z
-    .number()
-    .int(VALIDATION_MESSAGES.wholeNumber("Amount"))
-    .min(0, VALIDATION_MESSAGES.notNegative("Amount")),
+  amount: paiseAmount("Amount", { allowZero: true }),
 });
 
 /**
@@ -79,10 +73,7 @@ export const orderFormSchema = z.object({
     .array(
       z.object({
         productId: z.string().min(1, VALIDATION_MESSAGES.chooseOne("product")),
-        quantity: z
-          .number()
-          .int(VALIDATION_MESSAGES.wholeNumber("Quantity"))
-          .min(1, VALIDATION_MESSAGES.moreThanZero("Quantity")),
+        quantity: quantity(),
         notes: optionalText(500, "Item notes"),
       }),
     )
@@ -90,7 +81,7 @@ export const orderFormSchema = z.object({
   adjustments: z.array(
     z.object({
       type: z.enum(ADJUSTMENT_TYPES),
-      name: z.string().trim().min(1, VALIDATION_MESSAGES.required("Name")),
+      name: requiredText("Name", 120),
       amount: paiseText("Amount"),
     }),
   ),

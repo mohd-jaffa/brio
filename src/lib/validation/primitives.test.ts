@@ -11,9 +11,12 @@ import {
   optionalText,
   optionalUrl,
   optionalUuid,
+  paiseAmount,
   paiseText,
   positiveWholeText,
+  quantity,
   requiredEmail,
+  requiredText,
   wholeNumberText,
 } from "./primitives";
 
@@ -72,6 +75,13 @@ describe("optionalUrl", () => {
   it("refuses something that is not a link", () => {
     expect(messageOf(schema, "maps dot google")).toBe(VALIDATION_MESSAGES.url("Google Maps link"));
   });
+
+  it("refuses a link that is not a web link — it could run on a shared bill (BUG-13)", () => {
+    for (const link of ["javascript:alert(1)", "data:text/html,<script>1</script>", "ftp://files.example.com/x"]) {
+      expect(messageOf(schema, link)).toBe(VALIDATION_MESSAGES.url("Google Maps link"));
+    }
+    expect(schema.parse("http://maps.example.com/pin")).toBe("http://maps.example.com/pin");
+  });
 });
 
 describe("optionalUuid", () => {
@@ -117,6 +127,60 @@ describe("paiseText", () => {
 
   it("refuses an amount that is not an amount", () => {
     expect(messageOf(schema, "five hundred")).toBe(VALIDATION_MESSAGES.amount("Price"));
+    expect(messageOf(schema, "₹")).toBe(VALIDATION_MESSAGES.amount("Price"));
+    expect(messageOf(schema, "12.345")).toBe(VALIDATION_MESSAGES.amount("Price"));
+  });
+
+  it("accepts money the way people write it (BUG-10)", () => {
+    expect(schema.parse("₹1,500")).toBe(150000);
+    expect(schema.parse("1,00,000.50")).toBe(10000050);
+    expect(schema.parse(" ₹ 250 ")).toBe(25000);
+  });
+
+  it("stops at ₹10,00,000, so it fits its column (BUG-12)", () => {
+    expect(schema.parse("10,00,000")).toBe(100_000_000);
+    expect(messageOf(schema, "10,00,000.01")).toBe(VALIDATION_MESSAGES.tooLarge("Price", "₹10,00,000"));
+    expect(messageOf(schema, "99999999999999")).toBe(VALIDATION_MESSAGES.tooLarge("Price", "₹10,00,000"));
+  });
+});
+
+describe("paiseAmount", () => {
+  it("takes whole paise within the field's bounds", () => {
+    expect(paiseAmount("Amount").parse(50000)).toBe(50000);
+    expect(messageOf(paiseAmount("Amount"), 0)).toBe(VALIDATION_MESSAGES.moreThanZero("Amount"));
+    expect(paiseAmount("Price", { allowZero: true }).parse(0)).toBe(0);
+    expect(messageOf(paiseAmount("Price", { allowZero: true }), -1)).toBe(VALIDATION_MESSAGES.notNegative("Price"));
+    expect(messageOf(paiseAmount("Amount"), 100_000_001)).toBe(VALIDATION_MESSAGES.tooLarge("Amount", "₹10,00,000"));
+  });
+
+  it("names the field when it is not a number at all", () => {
+    expect(messageOf(paiseAmount("Amount"), "500")).toBe(VALIDATION_MESSAGES.amount("Amount"));
+    expect(messageOf(paiseAmount("Amount"), 12.5)).toBe(VALIDATION_MESSAGES.wholeNumber("Amount"));
+  });
+});
+
+describe("quantity", () => {
+  it("is a whole number from 1 to 9,999", () => {
+    expect(quantity().parse(3)).toBe(3);
+    expect(messageOf(quantity(), 0)).toBe(VALIDATION_MESSAGES.moreThanZero("Quantity"));
+    expect(messageOf(quantity(), 1.5)).toBe(VALIDATION_MESSAGES.wholeNumber("Quantity"));
+    expect(messageOf(quantity(), 10_000)).toBe(VALIDATION_MESSAGES.tooLarge("Quantity", "9,999"));
+  });
+
+  it("says an emptied field is missing, instead of Zod's NaN message (BUG-11)", () => {
+    expect(messageOf(quantity(), Number.NaN)).toBe(VALIDATION_MESSAGES.required("Quantity"));
+    expect(messageOf(quantity(), undefined)).toBe(VALIDATION_MESSAGES.required("Quantity"));
+  });
+});
+
+describe("requiredText", () => {
+  const schema = requiredText("Name", 5);
+
+  it("trims what it keeps and names the field in each refusal", () => {
+    expect(schema.parse("  Anu ")).toBe("Anu");
+    expect(messageOf(schema, "   ")).toBe(VALIDATION_MESSAGES.required("Name"));
+    expect(messageOf(schema, "Priyanka")).toBe(VALIDATION_MESSAGES.tooLong("Name", 5));
+    expect(messageOf(schema, undefined)).toBe(VALIDATION_MESSAGES.required("Name"));
   });
 });
 
@@ -124,6 +188,16 @@ describe("wholeNumberText and positiveWholeText", () => {
   it("reads a count, and lets it be negative where that is meaningful", () => {
     expect(wholeNumberText("Quantity").parse("12")).toBe(12);
     expect(wholeNumberText("Quantity").parse("-3")).toBe(-3);
+  });
+
+  it("reads a count written with a comma", () => {
+    expect(wholeNumberText("Quantity").parse("1,500")).toBe(1500);
+  });
+
+  it("stops at its bound either way, so it fits its column (BUG-12)", () => {
+    expect(messageOf(wholeNumberText("Quantity"), "10000")).toBe(VALIDATION_MESSAGES.tooLarge("Quantity", "9,999"));
+    expect(messageOf(wholeNumberText("Quantity"), "-10000")).toBe(VALIDATION_MESSAGES.tooLarge("Quantity", "9,999"));
+    expect(wholeNumberText("Quantity", 1_000_000).parse("25,000")).toBe(25000);
   });
 
   it("refuses a fraction of a count", () => {
