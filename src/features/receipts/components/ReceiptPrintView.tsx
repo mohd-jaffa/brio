@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Printer, X } from "lucide-react";
 
 import { UI_TEXT } from "@/constants/messages";
+import { dayKey } from "@/lib/dates/calendar";
 import { formatPaise } from "@/lib/format/currency";
 import { formatDate, formatDateTime } from "@/lib/format/date";
 import { type ReceiptData } from "@/features/receipts/types";
@@ -69,7 +70,7 @@ export function ReceiptPrintView({ receipt, customerName, customerPhone, onClose
             </div>
             <div className="text-right">
               <p className="text-gray-500 uppercase tracking-wider mb-1 text-[10px]">Date</p>
-              <p className="font-bold">{formatDate(order.createdAt.slice(0, 10))}</p>
+              <p className="font-bold">{formatDate(dayKey(order.createdAt))}</p>
             </div>
           </div>
 

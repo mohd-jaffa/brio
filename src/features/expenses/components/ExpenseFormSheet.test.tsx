@@ -45,8 +45,19 @@ describe("ExpenseFormSheet", () => {
   });
 
   it("starts on today, so the common case is no typing", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-09-24T10:00:00Z"));
     open();
-    expect(screen.getByLabelText(/Date/)).toHaveValue(new Date().toISOString().slice(0, 10));
+    expect(screen.getByLabelText(/Date/)).toHaveValue("2026-09-24");
+    vi.useRealTimers();
+  });
+
+  it("starts on the business's today, not UTC's, just after midnight in India", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-09-24T19:00:00Z")); // 00:30 on the 25th in India
+    open();
+    expect(screen.getByLabelText(/Date/)).toHaveValue("2026-09-25");
+    vi.useRealTimers();
   });
 
   it("shows a stored amount in rupees", () => {

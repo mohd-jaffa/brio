@@ -27,6 +27,7 @@ import type { Customer } from "@/features/customers/types";
 import type { Order } from "@/features/orders/types";
 import { balanceDue, statusBadge } from "@/features/orders/view";
 import { useDisclosure } from "@/hooks/useDisclosure";
+import { dayKey } from "@/lib/dates/calendar";
 import { formatPaise } from "@/lib/format/currency";
 import { formatDate } from "@/lib/format/date";
 import { sumPaise } from "@/lib/money";
@@ -231,7 +232,7 @@ export function CustomerProfileClient({ id }: { id: string }) {
                           {order.orderNumber}
                         </span>
                         <span className="mt-0.5 block text-xs font-medium text-text-muted">
-                          {formatDate(order.createdAt.slice(0, 10))}
+                          {formatDate(dayKey(order.createdAt))}
                         </span>
                       </div>
                       <div className="space-y-1 text-right">

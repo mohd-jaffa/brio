@@ -11,6 +11,7 @@ import {
   PAYMENT_METHOD_LABELS,
   PAYMENT_METHODS,
 } from "@/constants/statuses";
+import { todayKey } from "@/lib/dates/calendar";
 import { paiseToRupees } from "@/lib/money";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiMutation } from "@/lib/query/useApiMutation";
@@ -23,18 +24,14 @@ import {
 import { ExpensesClient } from "../api.client";
 import type { Expense } from "../types";
 
-/** Today, as a date input wants it. */
-function today(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 function valuesOf(expense?: Expense): ExpenseFormValues {
   if (!expense) {
     return {
       category: "Ingredients",
       description: "",
       amount: "",
-      expenseDate: today(),
+      // The business's today, not UTC's: before 05:30 in India that is still yesterday.
+      expenseDate: todayKey(),
       paymentMethod: "CASH",
     };
   }

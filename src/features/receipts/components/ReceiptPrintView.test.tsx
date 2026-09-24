@@ -46,6 +46,12 @@ afterEach(() => {
 });
 
 describe("ReceiptPrintView", () => {
+  it("dates the bill on the business's day, not UTC's", () => {
+    const lateNight = { ...receipt, order: { ...receipt.order, createdAt: "2026-09-21T20:00:00Z" } }; // 01:30 on the 22nd in India
+    render(<ReceiptPrintView receipt={lateNight} customerName="Meena Gupta" onClose={vi.fn()} />);
+    expect(screen.getByText("22 Sep 2026")).toBeInTheDocument();
+  });
+
   it("bills the order to the customer it belongs to", () => {
     render(<ReceiptPrintView receipt={receipt} customerName="Meena Gupta" customerPhone="+919876543210" onClose={vi.fn()} />);
 
