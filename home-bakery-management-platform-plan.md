@@ -7378,7 +7378,51 @@ Recorded because each is a decision, not an oversight.
 
 ## 138.5 Left open
 
-- **Three auth screens still on the old design** — forgot password, change password, confirm email. They work; they do not match. Bringing them across is small and should happen before the app screens.
+- ~~**Three auth screens still on the old design**~~ — forgot password, change password, confirm email. **Closed by §138.6.**
 - **Desktop is contained, not composed.** The scene centres itself in a `max-w-xl` column from tablet up and the sheet becomes a card, so wide viewports are tidy rather than stretched. The real wide-screen treatment is §137.9.
 - **`--auth-photo` is unused.** Supply a clean photographic plate — no interface drawn on it, ~1600px wide, under 200 KB — and set it on `.auth-canvas` to switch the backdrop on.
 - **The required asterisk** is kept on every field. The references have none; it is retained because it is the product's existing convention for a required field and is read out by assistive technology.
+
+
+---
+
+# 138.6 The remaining authentication screens (built 2026-09-24)
+
+Forgot password, change password and confirm email brought onto the same
+scene, closing the split recorded in §138.5. No product truth, route, schema
+or endpoint changed.
+
+## 138.6.1 What was built
+
+| Screen | Headline | Scene |
+|---|---|---|
+| Forgot password | "Let's get you back in." | Back link to sign in; no counterpart — there is no second door to offer. |
+| Change password | "A fresh password." | **Neither** back link nor counterpart: a baker holding a temporary password cannot reach another screen until this is done (§95), so the scene must not offer one. |
+| Confirm email | "Nearly there." | No links; the screen acts on the link that opened it. |
+
+The headline for confirm email is deliberately state-neutral. The screen is
+three things at once — working, confirmed, or looking at a link that expired —
+and a headline of "Confirming your email" is a lie in two of them.
+
+Shared work rather than per-screen work:
+
+- **`AuthScene`** — `counterpart` is now optional; the screens behind the front door have no second door.
+- **`AuthPending`** gained an `inline` form: the confirmation screen waits *inside* its sheet, and the full-screen version was painting its own background over the scene.
+- **`LinkButton`** gained `shape` and `fullWidth`, so "Back to sign in" is the same pill as every other action instead of a smaller near-miss.
+- **`AuthCard` is deleted.** It had no callers left. The app now has one authentication frame, not two.
+- **The sent state of forgot password** offers the step that follows instead of ending on a notice with nothing to press.
+- **Copy moved to `UI_TEXT.auth`.** All five titles and subtitles were inline strings in the page files (AGENTS.md §5).
+
+## 138.6.2 Three defects found by building it
+
+| # | Finding |
+|---|---|
+| **C1** | **The peach theme never got the Flour Room palette, and the clean theme got peach's.** Both token blocks were written into the same `:root, [data-theme="clean"]` rule in §138, so the blush values overwrote the cream ones, and `[data-theme="peach"]` — which also matches `:root` — inherited them. Every auth screen rendered blush in both themes. Screenshots did not catch it: both themes looked *consistent*, which is exactly what a theme check looks for. Caught by reading `getComputedStyle(document.documentElement)` per theme instead. The blush block now lives in `[data-theme="peach"]`, verified as `#efe7d9` vs `#f3ddd0`. |
+| **C2** | **`.safe-top` / `.safe-bottom` were silently deleting padding utilities.** Both are unlayered, so they beat Tailwind's utility layer on the same property — `safe-bottom pb-8` resolved to `padding-bottom: 0px`, measured live. The helpers now **add** to the element's own padding: `padding-bottom: calc(var(--safe-pb, 0px) + env(safe-area-inset-bottom, 0px))`, written as `safe-bottom [--safe-pb:2rem]`. This is the same failure mode as **B1** — unlayered CSS beating a utility — in a second place. |
+| **C3** | **Muted text and every placeholder in the app failed contrast.** `--color-ink-muted` measured 3.36–4.11:1 against the three Flour Room grounds, below the 4.5:1 floor (AGENTS.md §21) — it carries the intro line, field hints and the counterpart link. Worse, the shared control set placeholders to `text-text-muted/50`: **1.66:1** inside the auth sheet and **1.99:1** on an app screen. Muted is now `#766353` / `#7b5c4d` (4.62–5.64:1) and placeholders use the muted colour at full strength (4.83:1 on an app screen). The placeholder fix lands on every field in the product, not only these screens. |
+
+## 138.6.3 Left open
+
+- **The theme switch is gone from the signed-out screens.** It lived only in `AuthCard`. A stored preference is still honoured — a baker who chose Peach still sees Peach here — but it cannot be *changed* before signing in, and §137.6 moves the app's pill to Settings, which a signed-out visitor cannot reach. Decide whether the auth scene carries one; the references show none.
+- **C2 is fixed in the helper but not at five call sites.** `AppShell`'s bottom nav (`py-2`), the checkout bar in `orders/new` (`p-4`), `form-sheet`, `MoreSheet` and `AppShell`'s mobile header all still pair a `safe-*` class with a padding utility, so their bottom or top padding is currently `0`. Each is a one-class edit — `p-4` → `[--safe-pb:1rem]`. Not done here because it moves the layout of app screens this pass did not verify; **do it in §137.10, which rewrites all four components anyway.**
+- **Desktop remains contained, not composed** (unchanged from §138.5). The wide treatment is §137.9.
