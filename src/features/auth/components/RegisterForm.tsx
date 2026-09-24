@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Lock, Mail, Smartphone, Store, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
@@ -28,7 +28,11 @@ const EMPTY: RegisterInput = {
 /**
  * Creating an account (plan §7). Registration deliberately does not sign
  * anyone in: a confirmation email has just been sent, and the next step is to
- * sign in with the phone number and password that were chosen here.
+ * sign in with the number and password chosen here.
+ *
+ * The reference marks the phone number optional and omits the bakery's name.
+ * Neither is possible: the number is the credential this account is signed in
+ * with, and the bakery name is what the bakery row is created from.
  */
 export function RegisterForm() {
   const router = useRouter();
@@ -51,73 +55,91 @@ export function RegisterForm() {
   );
 
   return (
-    <form onSubmit={handleSubmit((values) => submit(values))} className="space-y-5" noValidate>
+    <form onSubmit={handleSubmit((values) => submit(values))} className="space-y-4" noValidate>
       {error && <ScreenNotice>{error}</ScreenNotice>}
 
       <TextField
         label={UI_TEXT.auth.nameLabel}
+        labelCase="sentence"
         autoComplete="name"
-        placeholder="Priya Sharma"
+        placeholder="Enter your full name"
         required
+        leading={<User size={18} strokeWidth={1.8} />}
         error={errors.name?.message}
         {...register("name")}
       />
 
       <TextField
         label={UI_TEXT.auth.businessNameLabel}
+        labelCase="sentence"
         autoComplete="organization"
         placeholder="Sweet Delights"
         required
+        leading={<Store size={18} strokeWidth={1.8} />}
         error={errors.businessName?.message}
         {...register("businessName")}
       />
 
       <TextField
+        label={UI_TEXT.auth.emailLabel}
+        labelCase="sentence"
+        type="email"
+        inputMode="email"
+        autoComplete="email"
+        placeholder="your@email.com"
+        hint="Where your confirmation and password resets are sent."
+        required
+        leading={<Mail size={18} strokeWidth={1.8} />}
+        error={errors.email?.message}
+        {...register("email")}
+      />
+
+      <TextField
         label={UI_TEXT.auth.phoneLabel}
+        labelCase="sentence"
         type="tel"
         inputMode="tel"
         autoComplete="tel"
         placeholder="98765 43210"
         hint="You will sign in with this number."
         required
+        leading={<Smartphone size={18} strokeWidth={1.8} />}
         error={errors.phone?.message}
         {...register("phone")}
       />
 
-      <TextField
-        label={UI_TEXT.auth.emailLabel}
-        type="email"
-        inputMode="email"
-        autoComplete="email"
-        placeholder="priya@example.com"
-        hint="Where your confirmation and password resets are sent."
-        required
-        error={errors.email?.message}
-        {...register("email")}
-      />
-
       <PasswordField
         label={UI_TEXT.auth.passwordLabel}
+        labelCase="sentence"
         autoComplete="new-password"
+        placeholder="Create a password"
         hint={UI_TEXT.auth.passwordHint}
         required
+        leading={<Lock size={18} strokeWidth={1.8} />}
         error={errors.password?.message}
         {...register("password")}
       />
 
       <PasswordField
         label={UI_TEXT.auth.confirmPasswordLabel}
+        labelCase="sentence"
         autoComplete="new-password"
+        placeholder="Repeat your password"
         required
+        leading={<Lock size={18} strokeWidth={1.8} />}
         error={errors.confirmPassword?.message}
         {...register("confirmPassword")}
       />
 
       <Button
         type="submit"
+        variant="action"
+        size="lg"
+        shape="pill"
         fullWidth
         loading={submitting}
         icon={ArrowRight}
+        iconPosition="end"
         label={submitting ? UI_TEXT.auth.creatingAccount : UI_TEXT.auth.createAccount}
       />
     </form>

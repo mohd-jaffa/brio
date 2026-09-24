@@ -1,7 +1,7 @@
 "use client";
 
 import { Eye, EyeOff } from "lucide-react";
-import { forwardRef, useState, type InputHTMLAttributes } from "react";
+import { forwardRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
 
 import { TextField } from "@/components/ui/text-field";
 import { UI_TEXT } from "@/constants/messages";
@@ -19,6 +19,8 @@ export const PasswordField = forwardRef<
     error?: string;
     hint?: string;
     required?: boolean;
+    leading?: ReactNode;
+    labelCase?: "caps" | "sentence";
   } & Omit<InputHTMLAttributes<HTMLInputElement>, "className" | "id" | "type">
 >(function PasswordField(props, ref) {
   const [visible, setVisible] = useState(false);

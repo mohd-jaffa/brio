@@ -120,6 +120,14 @@ export const UI_TEXT = {
       "You signed in with a temporary password. Choose a new one to continue.",
     accountCreated: "Account created. Sign in with your mobile number and password.",
     checkingSession: "Checking your session…",
+
+    // The Flour Room direction (plan §137): the line breaks are the
+    // composition, so the headline is written as its lines.
+    signInHeadline: ["Good bakes", "start here."],
+    signInIntro: "Sign in to continue your sweet journey",
+    registerHeadline: ["Join a", "sweeter", "journey."],
+    registerIntro: "Create your account and start baking happiness",
+    promise: "Baking a sweeter tomorrow.",
     confirming: "Confirming your email address…",
     confirmed: "Your email address is confirmed. Taking you to your dashboard…",
     confirmLinkMissing: "This page opens from the link in your confirmation email.",

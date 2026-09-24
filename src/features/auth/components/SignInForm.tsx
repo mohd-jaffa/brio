@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Lock, Smartphone } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -19,9 +19,13 @@ import type { AuthSessionView } from "../types";
 import { PasswordField } from "./PasswordField";
 
 /**
- * Signing in (plan §7). Where it goes next depends on the account: a baker
- * still holding a temporary password is sent to change it and nowhere else
- * (§95); anyone else returns to the screen that sent them here.
+ * Signing in (plan §7). A baker signs in with the mobile number their account
+ * is keyed on, not an email address — the reference shows an email field, and
+ * the product does not have one to sign in with.
+ *
+ * Where it goes next depends on the account: a baker still holding a temporary
+ * password is sent to change it and nowhere else (§95); anyone else returns to
+ * the screen that sent them here.
  */
 export function SignInForm() {
   const router = useRouter();
@@ -48,34 +52,40 @@ export function SignInForm() {
   });
 
   return (
-    <form onSubmit={handleSubmit((values) => submit(values))} className="space-y-5" noValidate>
-      {justRegistered && !error && <ScreenNotice tone="info">{UI_TEXT.auth.accountCreated}</ScreenNotice>}
+    <form onSubmit={handleSubmit((values) => submit(values))} className="space-y-4" noValidate>
+      {justRegistered && !error && (
+        <ScreenNotice tone="info">{UI_TEXT.auth.accountCreated}</ScreenNotice>
+      )}
       {error && <ScreenNotice>{error}</ScreenNotice>}
 
       <TextField
         label={UI_TEXT.auth.phoneLabel}
+        labelCase="sentence"
         type="tel"
         inputMode="tel"
         autoComplete="tel"
         placeholder="98765 43210"
-        hint={UI_TEXT.auth.phoneHint}
         required
+        leading={<Smartphone size={18} strokeWidth={1.8} />}
         error={errors.phone?.message}
         {...register("phone")}
       />
 
       <PasswordField
         label={UI_TEXT.auth.passwordLabel}
+        labelCase="sentence"
         autoComplete="current-password"
+        placeholder="Enter your password"
         required
+        leading={<Lock size={18} strokeWidth={1.8} />}
         error={errors.password?.message}
         {...register("password")}
       />
 
-      <div className="flex justify-end">
+      <div className="flex justify-end pt-0.5">
         <Link
           href={AUTH_ROUTES.forgotPassword}
-          className="text-xs font-bold text-primary transition-colors hover:text-primary-hover hover:underline"
+          className="text-[0.8125rem] font-medium text-ink-muted underline decoration-rule underline-offset-4 transition-colors hover:text-ink hover:decoration-primary"
         >
           {UI_TEXT.auth.forgotPassword}
         </Link>
@@ -83,9 +93,13 @@ export function SignInForm() {
 
       <Button
         type="submit"
+        variant="action"
+        size="lg"
+        shape="pill"
         fullWidth
         loading={submitting}
         icon={ArrowRight}
+        iconPosition="end"
         label={submitting ? UI_TEXT.auth.signingIn : UI_TEXT.auth.signIn}
       />
     </form>

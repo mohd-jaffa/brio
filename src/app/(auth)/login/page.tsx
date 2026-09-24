@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 
 import { UI_TEXT } from "@/constants/messages";
 import { AUTH_ROUTES } from "@/constants/routes";
-import { AuthCard } from "@/features/auth/components/AuthCard";
 import { AuthPending } from "@/features/auth/components/AuthPending";
+import { AuthPromise, AuthScene } from "@/features/auth/components/AuthScene";
 import { RedirectWhenSignedIn } from "@/features/auth/components/RedirectWhenSignedIn";
 import { SignInForm } from "@/features/auth/components/SignInForm";
 
@@ -17,23 +16,18 @@ export default function SignInPage() {
   return (
     <Suspense fallback={<AuthPending message={UI_TEXT.auth.checkingSession} />}>
       <RedirectWhenSignedIn>
-        <AuthCard
-          title="Welcome back"
-          subtitle="Sign in to manage your orders, stock and bills."
-          footer={
-            <>
-              {UI_TEXT.auth.noAccount}{" "}
-              <Link
-                href={AUTH_ROUTES.register}
-                className="font-bold text-primary transition-colors hover:text-primary-hover hover:underline"
-              >
-                {UI_TEXT.auth.createAccount}
-              </Link>
-            </>
-          }
+        <AuthScene
+          headline={UI_TEXT.auth.signInHeadline}
+          intro={UI_TEXT.auth.signInIntro}
+          counterpart={{
+            question: UI_TEXT.auth.noAccount,
+            label: UI_TEXT.auth.createAccount,
+            href: AUTH_ROUTES.register,
+          }}
+          footer={<AuthPromise>{UI_TEXT.auth.promise}</AuthPromise>}
         >
           <SignInForm />
-        </AuthCard>
+        </AuthScene>
       </RedirectWhenSignedIn>
     </Suspense>
   );
