@@ -39,25 +39,13 @@
   --color-sheet: #faf5ef;
   --color-field: #f3ece3;
   --color-ink: #3a2317;
-  --color-ink-muted: #8a7461;
+  --color-ink-muted: #766353;
   --color-rule: #e4d8c9;
   --color-action: #4a2c1a;
   --color-action-hover: #331d10;
   --color-action-text: #fdf8f2;
 
   /* Centralized Radii */
-  /* ── Flour Room — blush (plan §137) ─────────────────────── */
-  --color-canvas: #f3ddd0;
-  --color-canvas-deep: #e6c3b1;
-  --color-sheet: #fdf6f1;
-  --color-field: #f8ebe2;
-  --color-ink: #40241a;
-  --color-ink-muted: #96705e;
-  --color-rule: #eed9cb;
-  --color-action: #8a3d1e;
-  --color-action-hover: #6d2d13;
-  --color-action-text: #fff7f1;
-
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
@@ -89,6 +77,18 @@
   --color-warning-bg: #fffbeb;
   --color-danger: #b91c1c;
   --color-danger-bg: #fef2f2;
+
+  /* ── Flour Room — blush (plan §137) ─────────────────────── */
+  --color-canvas: #f3ddd0;
+  --color-canvas-deep: #e6c3b1;
+  --color-sheet: #fdf6f1;
+  --color-field: #f8ebe2;
+  --color-ink: #40241a;
+  --color-ink-muted: #7b5c4d;
+  --color-rule: #eed9cb;
+  --color-action: #8a3d1e;
+  --color-action-hover: #6d2d13;
+  --color-action-text: #fff7f1;
 
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
@@ -188,12 +188,17 @@
 /* ============================================================
    Safe Area Insets for PWA / Capacitor standalone mode
    ============================================================ */
+/* These are deliberately unlayered, so they win over a padding utility — which
+   means they must ADD to the element's own padding rather than replace it. An
+   element that wants both states its padding here: `safe-bottom
+   [--safe-pb:2rem]`, never `safe-bottom pb-8`, because the utility would be
+   silently dropped. */
 .safe-top {
-  padding-top: env(safe-area-inset-top, 0px);
+  padding-top: calc(var(--safe-pt, 0px) + env(safe-area-inset-top, 0px));
 }
 
 .safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: calc(var(--safe-pb, 0px) + env(safe-area-inset-bottom, 0px));
 }
 
 /* ============================================================
@@ -378,14 +383,15 @@ a {
  */
 .auth-sheet {
   --color-background: var(--color-field);
-  --color-surface: var(--color-sheet);
+  /* Surface is the field tone, not the sheet's own: a notice or a panel drawn
+     on the sheet has to be visible against it. */
+  --color-surface: var(--color-field);
+  --color-surface-hover: var(--color-rule);
   --color-border: var(--color-rule);
   --color-text: var(--color-ink);
   --color-text-muted: var(--color-ink-muted);
-}
 
-/* The sheet rises into the canvas and is what the eye lands on. */
-.auth-sheet {
+  /* The sheet rises into the canvas and is what the eye lands on. */
   background: var(--color-sheet);
   box-shadow:
     0 -1px 0 0 color-mix(in oklab, var(--color-rule) 70%, transparent),

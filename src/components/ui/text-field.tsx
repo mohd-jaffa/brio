@@ -20,7 +20,7 @@ import { FieldError } from "./field-error";
  */
 const CONTROL_CLASSES =
   "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium outline-none transition-all " +
-  "placeholder:text-text-muted/50 focus:border-primary focus:ring-1 focus:ring-primary " +
+  "placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary " +
   "aria-[invalid=true]:border-danger aria-[invalid=true]:focus:ring-danger";
 
 const LABEL_CLASSES = "mb-1.5 block text-xs font-bold uppercase tracking-wider text-text-muted";
