@@ -144,7 +144,7 @@
     background-color: var(--color-background);
     color: var(--color-text);
     font-family: var(--font-body), system-ui, -apple-system, sans-serif;
-    min-height: 100vh;
+    min-height: 100dvh;
     -webkit-tap-highlight-color: transparent;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -178,19 +178,43 @@
 }
 
 /* ============================================================
-   Safe Area Insets for PWA / Capacitor standalone mode
+   Safe areas, the viewport and the keyboard (plan §139.8)
+
+   Every inset flows through these four variables, so the native
+   layer can override them if a WebView under-reports, and a test
+   can set them to fake a notch. Nothing else reads env() directly.
    ============================================================ */
-/* These are deliberately unlayered, so they win over a padding utility — which
-   means they must ADD to the element's own padding rather than replace it. An
-   element that wants both states its padding here: `safe-bottom
-   [--safe-pb:2rem]`, never `safe-bottom pb-8`, because the utility would be
-   silently dropped. */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+
+  /* How far the on-screen keyboard covers the bottom of the layout, where
+     the browser does not resize it for us (iOS) — set by KeyboardInset. */
+  --keyboard-inset: 0px;
+
+  /* The phone's bottom navigation, without its inset. */
+  --nav-height: 4.25rem;
+}
+
+/* These are deliberately unlayered, so they win over a padding utility —
+   which means they must ADD to the element's own padding rather than replace
+   it. An element that wants both states its padding here: `safe-bottom
+   [--safe-pb:1rem]`, never `safe-bottom pb-4`, because the utility would be
+   silently dropped (plan §138.6 C2). */
 .safe-top {
-  padding-top: calc(var(--safe-pt, 0px) + env(safe-area-inset-top, 0px));
+  padding-top: calc(var(--safe-pt, 0px) + var(--safe-top));
 }
 
 .safe-bottom {
-  padding-bottom: calc(var(--safe-pb, 0px) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(var(--safe-pb, 0px) + var(--safe-bottom));
+}
+
+/* Left and right, for a landscape notch: `safe-x [--safe-px:1rem]`. */
+.safe-x {
+  padding-left: calc(var(--safe-px, 0px) + var(--safe-left));
+  padding-right: calc(var(--safe-px, 0px) + var(--safe-right));
 }
 
 /* ============================================================

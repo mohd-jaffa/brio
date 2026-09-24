@@ -747,3 +747,18 @@ entry grows with them.
   - **The theme stays per device (Q14's default).**
   - **Checked in a browser:** with nothing stored, with `peach`, and with a legacy `clean`, `data-theme` and the toolbar colour are already correct when the document finishes parsing, before React runs.
 - **R1.5 — type:** Fraunces for display and every heading, Inter for everything you operate (plan §137.4). Fredoka and Plus Jakarta Sans are gone. `font-heading` and `font-body` keep their names, and `font-display` now points at the heading face. Measured in the browser: body `Inter`, `h1` `Fraunces`.
+- **R1.6 · BUG-14 — the safe-area system** (plan §139.8).
+  - **The viewport.** It now declares `viewport-fit=cover`, without which iOS reports every inset as 0 and every `safe-*` helper did nothing, and `interactive-widget=resizes-content`, so the keyboard resizes the layout where supported.
+  - **One set of inset variables.** `--safe-top/right/bottom/left` are the only readers of `env()`, so the native layer can override them and a test can fake a notch. The additive helpers read them, and there is a new `safe-x` for a landscape notch.
+  - **The five call sites from §138.6.3 are fixed.** The app header, the bottom nav, the checkout bar, the More sheet and the form sheet were each pairing a helper with a padding utility, which silently zeroed their padding. Their padding now goes through the helper's variable.
+  - **Main content** pays `--nav-height + --safe-bottom` instead of a fixed `pb-24`.
+  - **Heights.** Every `vh` and `min-h-screen` is now `dvh`, so the body, the sheets, the receipt and the system screens use the visible viewport.
+  - **`KeyboardInset`.** It keeps `--keyboard-inset` equal to how much the keyboard covers, which is what iOS needs because it does not resize the layout, and the form sheet rides above it. Tested with a fake visual viewport.
+  - **Measured in a browser with a faked 47 px notch and 34 px home indicator:**
+    - auth header 67 px (20 + 47);
+    - auth sheet 66 px (32 + 34);
+    - app header 59 px (12 + 47), where it was 0 + 47 before;
+    - bottom nav 42 px (8 + 34);
+    - main content 126 px (68 + 34 + 24);
+    - checkout bar 50 px (16 + 34);
+    - form sheet 34 px, with a `90dvh` ceiling.

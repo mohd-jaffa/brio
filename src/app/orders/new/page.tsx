@@ -364,7 +364,7 @@ export default function NewOrderPage() {
         </Step>
       </form>
 
-      <div className="safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/80 p-4 shadow-elevated backdrop-blur-md md:pl-64">
+      <div className="safe-bottom [--safe-pb:1rem] safe-x [--safe-px:1rem] fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/80 pt-4 shadow-elevated backdrop-blur-md md:pl-64">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Total</span>

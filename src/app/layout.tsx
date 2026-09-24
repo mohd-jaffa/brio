@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import { AuthProvider } from "@/features/auth/AuthProvider";
 import { ThemeProvider } from "@/lib/theme/ThemeProvider";
+import { KeyboardInset } from "@/lib/viewport/KeyboardInset";
 import { DEFAULT_THEME, THEME_BOOT_SCRIPT, THEME_COLORS } from "@/lib/theme/themes";
 import "./globals.css";
 
@@ -34,6 +35,11 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  // Lets the safe-area insets reach the page: without "cover", iOS reports
+  // them as 0 and every safe-* helper does nothing (BUG-14, plan §139.8).
+  viewportFit: "cover",
+  // The keyboard resizes the layout instead of covering it, where supported.
+  interactiveWidget: "resizes-content",
   // The boot script swaps this for the stored theme's before the first paint.
   themeColor: THEME_COLORS[DEFAULT_THEME],
 };
@@ -57,6 +63,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
           <AuthProvider>{children}</AuthProvider>
+          <KeyboardInset />
         </ThemeProvider>
       </body>
     </html>

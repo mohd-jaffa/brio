@@ -20,7 +20,7 @@ export function Pending({ message, inline = false }: { message: string; inline?:
         "flex items-center gap-3",
         inline
           ? "justify-center rounded-2xl bg-surface px-4 py-6 text-text-muted"
-          : "min-h-screen flex-col justify-center bg-background text-text-muted",
+          : "min-h-dvh flex-col justify-center bg-background text-text-muted",
       )}
     >
       <Loader2 size={inline ? 20 : 28} className="animate-spin text-primary" aria-hidden="true" />

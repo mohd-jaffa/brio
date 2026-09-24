@@ -36,7 +36,7 @@ export function MoreSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
         role="dialog"
         aria-modal="true"
         aria-label="More navigation options"
-        className="safe-bottom animate-slide-up fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t border-border bg-surface shadow-[0_-8px_30px_rgba(0,0,0,0.12)] md:hidden"
+        className="safe-bottom [--safe-pb:0.5rem] animate-slide-up fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t border-border bg-surface shadow-[0_-8px_30px_rgba(0,0,0,0.12)] md:hidden"
       >
         <div className="flex justify-center py-3">
           <div className="h-1.5 w-12 rounded-full bg-border" aria-hidden="true" />

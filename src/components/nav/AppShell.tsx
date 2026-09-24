@@ -53,7 +53,7 @@ function AppFrame({ children }: { children: ReactNode }) {
   );
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-text md:flex-row">
+    <div className="flex min-h-dvh flex-col bg-background text-text md:flex-row">
       <aside className="hidden flex-shrink-0 flex-col border-r border-border bg-surface md:flex md:w-64">
         <div className="flex items-center gap-3 border-b border-border px-4 py-4">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-primary-soft bg-primary text-primary-text shadow-card">
@@ -101,7 +101,7 @@ function AppFrame({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="safe-top sticky top-0 z-20 flex items-center justify-between border-b border-border bg-surface/85 px-4 py-3 shadow-sm backdrop-blur-md transition-colors md:hidden">
+        <header className="safe-top [--safe-pt:0.75rem] safe-x [--safe-px:1rem] sticky top-0 z-20 flex items-center justify-between border-b border-border bg-surface/85 pb-3 shadow-sm backdrop-blur-md transition-colors md:hidden">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-text shadow-card">
               <Cake size={16} strokeWidth={2.5} aria-hidden="true" />
@@ -117,14 +117,14 @@ function AppFrame({ children }: { children: ReactNode }) {
           </span>
         </header>
 
-        <main className="animate-fade-in-up mx-auto w-full max-w-5xl flex-1 space-y-6 p-4 pb-24 md:p-6 md:pb-8 lg:space-y-8 lg:p-8">
+        <main className="animate-fade-in-up mx-auto w-full max-w-5xl flex-1 space-y-6 p-4 pb-[calc(var(--nav-height)+var(--safe-bottom)+1.5rem)] md:p-6 md:pb-8 lg:space-y-8 lg:p-8">
           {children}
         </main>
       </div>
 
       <nav
         aria-label="Main navigation"
-        className="safe-bottom fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-surface/85 px-2 py-2 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] backdrop-blur-md transition-colors md:hidden"
+        className="safe-bottom [--safe-pb:0.5rem] safe-x [--safe-px:0.5rem] fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-surface/85 pt-2 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] backdrop-blur-md transition-colors md:hidden"
       >
         <ul role="list" className="flex items-center justify-around">
           {BOTTOM_NAV.map(({ id, label, icon: Icon, href }) => {

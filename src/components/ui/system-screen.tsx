@@ -22,7 +22,7 @@ export function SystemScreen({
   children: ReactNode;
 }) {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-background px-6 py-12 text-center">
+    <main className="flex min-h-dvh flex-col items-center justify-center bg-background px-6 py-12 text-center">
       <div className="flex w-full max-w-sm flex-col items-center">
         <span className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
           <Icon size={28} strokeWidth={2} aria-hidden="true" />

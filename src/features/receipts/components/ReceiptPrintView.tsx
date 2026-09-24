@@ -32,7 +32,7 @@ export function ReceiptPrintView({ receipt, customerName, customerPhone, onClose
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       {/* Receipt Container - The only thing visible during print */}
-      <div className="relative w-full max-w-md bg-white rounded-none sm:rounded-2xl shadow-elevated flex flex-col max-h-[95vh] print:max-h-none print:shadow-none print:rounded-none print:absolute print:inset-0 print:bg-white overflow-hidden">
+      <div className="relative w-full max-w-md bg-white rounded-none sm:rounded-2xl shadow-elevated flex flex-col max-h-[95dvh] print:max-h-none print:shadow-none print:rounded-none print:absolute print:inset-0 print:bg-white overflow-hidden">
         
         {/* Actions Bar (Hidden on print) */}
         <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50 print:hidden shrink-0">

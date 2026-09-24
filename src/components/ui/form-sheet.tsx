@@ -89,7 +89,7 @@ export function FormSheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby={headingId}
-        className="safe-bottom animate-slide-up fixed inset-x-0 bottom-0 z-50 flex max-h-[90vh] flex-col rounded-t-3xl border border-border bg-surface shadow-elevated md:inset-auto md:left-1/2 md:top-1/2 md:w-full md:max-w-md md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl"
+        className="safe-bottom animate-slide-up fixed inset-x-0 bottom-[var(--keyboard-inset)] z-50 flex max-h-[calc(90dvh-var(--keyboard-inset))] flex-col rounded-t-3xl border border-border bg-surface shadow-elevated md:inset-auto md:left-1/2 md:top-1/2 md:w-full md:max-w-md md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl"
       >
         <div className="flex justify-center py-3 md:hidden">
           <div className="h-1.5 w-12 rounded-full bg-border" aria-hidden="true" />
