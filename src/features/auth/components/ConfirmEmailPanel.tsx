@@ -47,7 +47,12 @@ export function ConfirmEmailPanel() {
   const router = useRouter();
   const { adopt } = useAuth();
   const [state, setState] = useState<ConfirmState>("working");
-  const [message, setMessage] = useState<string>(UI_TEXT.auth.confirmLinkMissing);
+  // A link that expired is a failure; arriving here without one at all is
+  // just someone in the wrong place, and it should not be shouted at them.
+  const [notice, setNotice] = useState<{ message: string; tone: "danger" | "info" }>({
+    message: UI_TEXT.auth.confirmLinkMissing,
+    tone: "info",
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -60,8 +65,10 @@ export function ConfirmEmailPanel() {
 
       if (!parsed.link) {
         if (cancelled) return;
-        setMessage(
-          parsed.expired ? ERROR_MESSAGES.AUTH_EMAIL_CONFIRM_FAILED : UI_TEXT.auth.confirmLinkMissing,
+        setNotice(
+          parsed.expired
+            ? { message: ERROR_MESSAGES.AUTH_EMAIL_CONFIRM_FAILED, tone: "danger" }
+            : { message: UI_TEXT.auth.confirmLinkMissing, tone: "info" },
         );
         setState("failed");
         return;
@@ -75,7 +82,7 @@ export function ConfirmEmailPanel() {
         router.replace(HOME_ROUTE);
       } catch (failure) {
         if (cancelled) return;
-        setMessage(errorMessage(failure, "AUTH_EMAIL_CONFIRM_FAILED"));
+        setNotice({ message: errorMessage(failure, "AUTH_EMAIL_CONFIRM_FAILED"), tone: "danger" });
         setState("failed");
       }
     };
@@ -93,7 +100,7 @@ export function ConfirmEmailPanel() {
 
   return (
     <div className="space-y-5">
-      <ScreenNotice>{message}</ScreenNotice>
+      <ScreenNotice tone={notice.tone}>{notice.message}</ScreenNotice>
       <LinkButton
         href={AUTH_ROUTES.signIn}
         variant="action"

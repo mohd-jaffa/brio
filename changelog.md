@@ -569,6 +569,7 @@ references supplied for sign-in and register. Plan §138 records the build and
 - All five screens now use `AuthScene`. **`AuthCard` is deleted** — it had no callers left, and the product has one authentication frame instead of two.
 - Titles and subtitles moved out of the page files into `UI_TEXT.auth` (AGENTS.md §5).
 - The sent state of forgot password offers the step that follows instead of ending on a notice with nothing to press.
+- Opening `/confirm-email` without a link is no longer reported in the failure tone. An expired link is a failure; arriving with no link at all is someone in the wrong place, and it now reads as guidance.
 
 ### Fixed
 - **Every heading in the app ignored its font utility** (§138.4 B1). `h1…h6 { font-family }` sat outside any layer in `globals.css`, and unlayered rules beat Tailwind's utility layer, so `font-display` on a heading silently lost. Now inside `@layer base`.
