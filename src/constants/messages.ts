@@ -48,6 +48,8 @@ export const ERROR_MESSAGES = {
   RECEIPT_LOAD_FAILED: "Could not build this bill. Please try again.",
 
   ORDER_STATUS_UPDATE_FAILED: "Could not update this order. Please try again.",
+  ORDER_STATUS_TRANSITION_INVALID: "This order can’t move to that status from where it is now.",
+  ORDER_STATUS_CHANGED: "This order was just changed somewhere else. Refresh to see where it is now.",
   PAYMENT_FAILED: "Could not record this payment. Please try again.",
   STOCK_UPDATE_FAILED: "Could not update stock. Please try again.",
 } as const;
@@ -160,6 +162,13 @@ export const UI_TEXT = {
   states: {
     loading: "Loading…",
     noResults: (term: string) => `Nothing matches “${term}”.`,
+  },
+
+  /** Moving an order along (plan §139.11.8). */
+  orders: {
+    cancelTitle: (orderNumber: string) => `Cancel order ${orderNumber}?`,
+    cancelBody: "Its reserved stock goes back on the shelf. A cancelled order can’t be reopened.",
+    cancelConfirm: "Cancel order",
   },
 
   /** The screens shown when a route is missing or a screen fails (plan §134 P0-2, P1-1). */

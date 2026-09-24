@@ -170,7 +170,9 @@ begin
   -- ----------------------------------------------------------
   -- 6. Stock ledger (AGENTS.md §14). Movements only — a balance is their sum,
   --    so what leaves is stored negative, exactly as the app posts it: a
-  --    reservation when an order is placed, consumption when it is delivered.
+  --    reservation when an order is placed; on delivery the reservation is
+  --    released and consumption posted, so stock is taken once; on cancel the
+  --    reservation is released (plan §139.11.8).
   -- ----------------------------------------------------------
   insert into public.inventory_transactions (bakery_id, product_id, type, quantity, reference_type, reference_id, created_at)
   values
@@ -181,11 +183,14 @@ begin
     (v_bakery_id, v_prod_cheese, 'STOCK_IN',  6, null, null, now() - interval '7 days'),
 
     (v_bakery_id, v_prod_cake,   'ORDER_RESERVATION',  -1, 'ORDER', v_order_1::text, now() - interval '3 days'),
+    (v_bakery_id, v_prod_cake,   'ORDER_RESERVATION',   1, 'ORDER', v_order_1::text, now() - interval '1 day'),
     (v_bakery_id, v_prod_cake,   'ORDER_CONSUMPTION',  -1, 'ORDER', v_order_1::text, now() - interval '1 day'),
     (v_bakery_id, v_prod_cup,    'ORDER_RESERVATION',  -1, 'ORDER', v_order_2::text, now()),
     (v_bakery_id, v_prod_brown,  'ORDER_RESERVATION',  -2, 'ORDER', v_order_3::text, now()),
     (v_bakery_id, v_prod_bread,  'ORDER_RESERVATION',  -1, 'ORDER', v_order_3::text, now()),
     (v_bakery_id, v_prod_cheese, 'ORDER_RESERVATION',  -1, 'ORDER', v_order_4::text, now() - interval '6 days'),
+    (v_bakery_id, v_prod_bread,  'ORDER_RESERVATION',  -2, 'ORDER', v_order_5::text, now() - interval '4 days'),
+    (v_bakery_id, v_prod_bread,  'ORDER_RESERVATION',   2, 'ORDER', v_order_5::text, now() - interval '2 days'),
 
     (v_bakery_id, v_prod_bread,  'WASTAGE', -1, null, null, now() - interval '2 days')
   on conflict do nothing;

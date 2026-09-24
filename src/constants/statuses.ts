@@ -12,6 +12,23 @@
 export const ORDER_STATUSES = ["PENDING", "IN_PROGRESS", "IN_TRANSIT", "DELIVERED", "CANCELLED"] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
+/**
+ * Where an order may go next (plan §139.11.8). Anything else is refused by the
+ * server. Out for delivery exists only for a delivery order, and a delivered
+ * or cancelled order is final: stock has already followed it, and moving it
+ * again would move stock again.
+ */
+export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
+  PENDING: ["IN_PROGRESS", "CANCELLED"],
+  IN_PROGRESS: ["IN_TRANSIT", "DELIVERED", "CANCELLED"],
+  IN_TRANSIT: ["DELIVERED", "CANCELLED"],
+  DELIVERED: [],
+  CANCELLED: [],
+};
+
+/** The statuses only a delivery order can pass through. */
+export const DELIVERY_ONLY_STATUSES: readonly OrderStatus[] = ["IN_TRANSIT"];
+
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   PENDING: "Pending",
   IN_PROGRESS: "Baking",
@@ -72,9 +89,15 @@ export const INVENTORY_TRANSACTION_LABELS: Record<InventoryTransactionType, stri
   RETURN: "Returned",
 };
 
-/** The types that only ever add to stock, and the ones that only ever take from it. */
+/**
+ * The types that only ever add to stock, and the ones that only ever take from
+ * it. A reservation is in neither: it is posted negative when an order is
+ * placed and released by a positive line of the same type when the order is
+ * delivered or cancelled (plan §139.11.8), so the ledger reads reserved, then
+ * released, rather than hiding the release in an adjustment.
+ */
 export const STOCK_INCREASING_TYPES = ["STOCK_IN", "RETURN"] as const;
-export const STOCK_DECREASING_TYPES = ["ORDER_RESERVATION", "ORDER_CONSUMPTION", "WASTAGE"] as const;
+export const STOCK_DECREASING_TYPES = ["ORDER_CONSUMPTION", "WASTAGE"] as const;
 
 /** The types a baker may record by hand; the rest are posted by the order flow. */
 export const MANUAL_INVENTORY_TYPES = ["STOCK_IN", "ADJUSTMENT", "WASTAGE", "RETURN"] as const;

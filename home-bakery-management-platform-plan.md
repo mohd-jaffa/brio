@@ -8525,8 +8525,8 @@ the row needs; without an answer it is built on that question's default
 | R0.3 | Fix the `/inventory` crash | §134 P0-1 | — | DONE (2026-09-24) |
 | R0.4 | Error boundary, not-found and loading states; remove the dead Receipts nav entry | §134 P0-2, P1-1, P1-2; §133.8 H2 | — | DONE (2026-09-24) |
 | R0.5 | Dates in the business's timezone | BUG-07 | — | DONE (2026-09-24) |
-| R0.6 | A status transition table on the server; confirm before Cancel | BUG-05 | — | TODO |
-| R0.7 | Stock follows status — cancel releases, delivery converts | BUG-04; §133.3 C5 | — | TODO |
+| R0.6 | A status transition table on the server; confirm before Cancel | BUG-05 | — | DONE (2026-09-24) |
+| R0.7 | Stock follows status — cancel releases, delivery converts | BUG-04; §133.3 C5 | — | DONE (2026-09-24) |
 | R0.8 | Tolerant money parsing; no "₹NaN" | BUG-10; IMP-12 | — | TODO |
 | R0.9 | Bounds on money and quantities | BUG-12 | — | TODO |
 | R0.10 | Links accept `http:`/`https:` only | BUG-13 | — | TODO |

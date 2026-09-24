@@ -657,3 +657,19 @@ entry grows with them.
   - **Shared kit.** The auth screens' `AuthPending` moved to `src/components/ui/pending.tsx` as **`Pending`**, since the route loading state needs it too, and **`SystemScreen`** holds the stop screen that not-found and both error files share.
   - **Checked in the browser:** `/receipts` and a made-up path show the branded 404, `/` and `/inventory` load with no page errors, and the first build of `not-found.tsx` failed and was caught by the new boundary. It was a Server Component handing an icon component to a client button; it is now a Client Component.
 - **R0.5 · BUG-07 — dates were taken in UTC.** Between midnight and 05:30 in India, a bill and a customer's order list showed **yesterday's** date, and a new expense **defaulted to yesterday**. The bill (`ReceiptPrintView`) and the customer profile now date an order with `dayKey()`, and the expense form defaults to `todayKey()`, both on the business's calendar (`src/lib/dates/calendar.ts`). Two new tests pin the case at 00:30 and 01:30 in India, and both fail against the old code. The existing "starts on today" test compared with UTC's today, so it would have failed every evening after 18:30 UTC; it now runs at a fixed time. Nothing else in `src` takes a day from UTC or the device's clock. The new-order default delivery time is BUG-28 (R3.16).
+- **R0.6 · BUG-05 — any status could follow any other.** A delivered order could go back to Pending and be delivered again, taking its stock twice; a cancelled one could be delivered.
+  - **The server enforces the transition table** in `ORDER_STATUS_TRANSITIONS` (`src/constants/statuses.ts`), through `canMoveTo` and `nextStatuses` (`src/features/orders/lifecycle.ts`). Out for delivery exists only for a delivery order, and Delivered and Cancelled are final. A forbidden move answers **422 `ORDER_STATUS_TRANSITION_INVALID`** and writes nothing.
+  - **A move applies only if the order is still in the status it was read in** (`moveOrderStatus`). A double tap, or a second device, gets **409 `ORDER_STATUS_CHANGED`** instead of posting stock twice.
+  - **On the order page**, the status control offers only the moves allowed from here, and it is locked once the order is finished. **Cancelling asks first:** a confirmation sheet with a danger button. `FormSheet` gained `submitVariant`.
+  - `READY` joins the table with R3.11.
+- **R0.7 · BUG-04, §133.3 C5 — stock did not follow the order.** Cancelling never released the reservation, so every cancelled order lowered stock for good. Delivering posted consumption **on top of** the reservation, so every delivered order was taken twice. Now, on delivery, the reservation is released (`ORDER_RESERVATION` +q) and consumption is posted (−q). On cancel, the reservation is released (+q). A line with no product never touched stock and is left alone.
+  - `ORDER_RESERVATION` is therefore no longer a decrease-only type: it is posted negative and released positive, so the ledger reads reserved, then released.
+  - **Seed:** the delivered order now carries its release, and the cancelled order its reservation and release, as the app would post them.
+  - **Checked end to end against the local stack after `supabase db reset`:**
+    - The seed balances add up.
+    - Moving `#1001` from Delivered back to Pending is refused (422).
+    - A pickup order is not offered Out for delivery.
+    - Cancelling `#1002` through the confirmation returned its cupcakes (29 → 30).
+    - Delivering `#1003` left stock where its reservation had put it.
+    - Repeating the delivery changed nothing.
+  - **Still not one transaction**, so a failure between the move and its ledger lines leaves them apart. That is R3.4.

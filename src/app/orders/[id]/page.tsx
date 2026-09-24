@@ -10,9 +10,10 @@ import { ScreenNotice } from "@/components/ui/screen-notice";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { optionsFrom, SelectField } from "@/components/ui/text-field";
+import { FormSheet } from "@/components/ui/form-sheet";
+import { UI_TEXT } from "@/constants/messages";
 import {
   ORDER_STATUS_LABELS,
-  ORDER_STATUSES,
   PAYMENT_STATUS_LABELS,
   PAYMENT_STATUSES,
   type OrderStatus,
@@ -21,6 +22,7 @@ import {
 import type { Customer } from "@/features/customers/types";
 import { OrdersClient } from "@/features/orders/api.client";
 import type { Order } from "@/features/orders/types";
+import { nextStatuses } from "@/features/orders/lifecycle";
 import { isOverdue, paymentBadge, statusBadge } from "@/features/orders/view";
 import { PaymentCollectionForm } from "@/features/payments/components/PaymentCollectionForm";
 import type { Payment } from "@/features/payments/types";
@@ -60,6 +62,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
 
   const [showReceipt, setShowReceipt] = useState(false);
   const [collecting, setCollecting] = useState(false);
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
 
   const order = useApiQuery<Order>(apiRoutes.orders.detail(id));
   const customer = useApiQuery<Customer>(
@@ -98,6 +101,14 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
   const payment = paymentBadge(current);
   const late = isOverdue(current);
   const paid = sumPaise((payments.data ?? []).map((line) => line.amount));
+  // Only where this order may go from here (plan §139.11.8); a finished order goes nowhere.
+  const statusChoices = [current.status, ...nextStatuses(current.status, current.delivery.type)];
+
+  function moveTo(next: OrderStatus) {
+    // Cancelling cannot be undone and returns stock, so it is asked first.
+    if (next === "CANCELLED") setConfirmingCancel(true);
+    else void update.submit({ status: next });
+  }
 
   return (
     <>
@@ -145,9 +156,9 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
             <SelectField
               label="Order Status"
               value={current.status}
-              disabled={update.submitting}
-              options={optionsFrom(ORDER_STATUSES, ORDER_STATUS_LABELS)}
-              onChange={(event) => update.submit({ status: event.target.value as OrderStatus })}
+              disabled={update.submitting || statusChoices.length === 1}
+              options={optionsFrom(statusChoices, ORDER_STATUS_LABELS)}
+              onChange={(event) => moveTo(event.target.value as OrderStatus)}
             />
           </Panel>
 
@@ -266,6 +277,21 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
           </dl>
         </Panel>
       </AppShell>
+
+      <FormSheet
+        open={confirmingCancel}
+        title={UI_TEXT.orders.cancelTitle(current.orderNumber)}
+        onClose={() => setConfirmingCancel(false)}
+        onSubmit={async () => {
+          if (await update.submit({ status: "CANCELLED" })) setConfirmingCancel(false);
+        }}
+        submitLabel={UI_TEXT.orders.cancelConfirm}
+        submitVariant="danger"
+        submitting={update.submitting}
+        error={update.error}
+      >
+        <p className="text-sm text-text-muted">{UI_TEXT.orders.cancelBody}</p>
+      </FormSheet>
 
       {collecting && (
         <PaymentCollectionForm

@@ -5,7 +5,7 @@ import { useEffect, useId, useRef, type ReactNode } from "react";
 
 import { UI_TEXT } from "@/constants/messages";
 
-import { Button } from "./button";
+import { Button, type ButtonVariant } from "./button";
 import { ScreenNotice } from "./screen-notice";
 
 /**
@@ -27,6 +27,7 @@ export function FormSheet({
   onClose,
   onSubmit,
   submitLabel,
+  submitVariant = "primary",
   submitting = false,
   error,
   children,
@@ -37,6 +38,8 @@ export function FormSheet({
   /** Wired to the footer button through the form's id, so the button can sit outside the scroll area. */
   onSubmit: () => void;
   submitLabel: string;
+  /** `danger` for a sheet that confirms something that cannot be undone. */
+  submitVariant?: ButtonVariant;
   submitting?: boolean;
   error?: string | null;
   children: ReactNode;
@@ -131,6 +134,7 @@ export function FormSheet({
             form={formId}
             label={submitting ? UI_TEXT.actions.saving : submitLabel}
             loading={submitting}
+            variant={submitVariant}
             fullWidth
           />
         </div>

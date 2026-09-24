@@ -4,6 +4,7 @@ import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
 import { requireRow } from "@/lib/supabase/writes";
 import { pickColumns } from "@/lib/supabase/columns";
 import { EDITABLE_COLUMNS } from "@/constants/editableColumns";
+import { conflictError } from "@/lib/errors";
 
 /**
  * Reads all orders for a tenant sorted by created_at descending.
@@ -120,6 +121,33 @@ export async function updateOrder(
       .maybeSingle(),
     "RECORD_NOT_FOUND"
   );
+}
+
+/**
+ * Moves an order to a new status only if it is still where it was read. Two
+ * taps, or two devices, cannot both apply the same move — the second finds the
+ * order already moved, changes nothing, and is told so — so the stock that
+ * follows a move is never posted twice.
+ */
+export async function moveOrderStatus(
+  client: SupabaseClient,
+  bakeryId: string,
+  id: string,
+  from: OrderRow["status"],
+  to: OrderRow["status"],
+): Promise<OrderRow> {
+  const { data, error } = await client
+    .from("orders")
+    .update({ status: to })
+    .eq("bakery_id", bakeryId)
+    .eq("id", id)
+    .eq("status", from)
+    .select()
+    .maybeSingle();
+
+  if (error) throw fromPostgrestError(error);
+  if (data === null) throw conflictError("ORDER_STATUS_CHANGED", { from, to });
+  return data as OrderRow;
 }
 
 /**
