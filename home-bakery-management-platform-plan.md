@@ -7306,3 +7306,79 @@ Explicitly **not** closed by it, and still open: §134 P0-1, P0-2, P1-1, P1-2,
 P3-1; §135 D1-1 … D1-9 (the bill), D2-1 … D2-4 (no confirmations); §136 L5-2
 (the two colliding fixed bars — the FAB work in step 3 must resolve it, not
 inherit it).
+
+---
+
+# 138. Authentication Screens — Flour Room (built 2026-09-24)
+
+Two further references were supplied and are the brief for the sign-in and
+register screens. They live in `design-references/` and are **gitignored**.
+
+| File | Screen |
+|---|---|
+| `auth-signin-direction.png` | Sign in |
+| `auth-register-direction.png` | Register |
+
+**Scope:** these two screens only, as asked. Forgot password, change password
+and confirm email keep the previous `AuthCard` and are unchanged — the product
+is deliberately split until they are brought across (§138.5).
+
+---
+
+## 138.1 What the references establish
+
+A full-bleed photographic scene — warm wall, soft daylight through a window, a
+bake and dried florals — with the bakery's mark, wordmark and a large serif
+promise set over it, and a cream sheet rising from the bottom carrying the
+form. Fields are sentence-case labels over rounded inputs with a leading icon;
+the primary action is a dark full-width pill with a trailing arrow.
+
+This is the same Flour Room world as §137, applied to the screens that come
+before the app.
+
+---
+
+## 138.2 Where the references and the product disagree
+
+Recorded because each is a decision, not an oversight.
+
+| # | Reference asks for | What shipped, and why |
+|---|---|---|
+| **A** | **Email address** as the sign-in field. | **Mobile number.** Plan §7: bakers authenticate with phone and password. The product has no email sign-in to offer, and drawing one would be a promise it cannot keep. |
+| **B** | **Phone number marked "(Optional)"** on register. | **Required.** It is the credential the account is signed in with. Optional is not available. |
+| **C** | **No bakery name field.** | **Added, required.** `registerSchema` needs it and the `bakeries` row is created from it. |
+| **D** | **No confirm-password field.** | **Added, required.** `registerSchema` requires it. |
+| **E** | **Continue with Google / Apple.** | **Not built.** New authentication methods need explicit approval under §31, and none is in the plan. The dividers and buttons are omitted rather than shown dead. |
+| **F** | **Terms of Service / Privacy Policy links.** | **Not built.** Neither page exists; a link to nothing is worse than no link. |
+| **G** | **A photographic background.** | **A composed one.** The references are mockups with the interface drawn into them, so there is no plate to cut out, and a geometric stand-in for a photographic subject reads worse than atmosphere. The canvas is built from light: three soft shafts with feathered edges, the shadow between them, a warm pool where a bake would sit, and daylight from the upper left. `--auth-photo` on `.auth-canvas` is the single hook a real photograph drops into — no other change needed. |
+
+---
+
+## 138.3 What was built
+
+- **`AuthScene`** (`src/features/auth/components/AuthScene.tsx`) — the shared frame: canvas, mark, wordmark, headline, rule, intro, and the rising sheet. `AuthPromise` closes the sign-in screen.
+- **`BrandMark`** — an authored SVG: a seed over two leaf pairs on a stem. The product's only ornament.
+- **Tokens** — `--color-canvas`, `-canvas-deep`, `-sheet`, `-field`, `-ink`, `-ink-muted`, `-rule`, `-action`, `-action-hover`, `-action-text`, declared for **both** themes and mapped in `@theme inline`. The rest of the app adopts them at §137.10 step 1.
+- **`.auth-sheet` re-points the semantic tokens** to the Flour Room palette, so the shared field and button components come out warm inside it **without any of them being restyled from a parent** (AGENTS.md §5).
+- **Fraunces** as `--font-display`, alongside the existing faces. Nothing else changed voice.
+- **Shared kit gained, rather than being worked around:** `Button` has an `action` variant, `lg` size, `pill` shape and `iconPosition`; `TextField` has `leading` and `labelCase`; `PasswordField` forwards both.
+- **Browser surfaces themed** — selection, caret, accent colour, scrollbars, underline offset, and a `.tabular` numeric class.
+- **One authored motion** — the sheet rises once on arrival, exponential ease-out, disabled under `prefers-reduced-motion`.
+
+---
+
+## 138.4 Two defects found by building it
+
+| # | Finding |
+|---|---|
+| **B1** | **Every heading in the app ignored its font utility.** `globals.css` set `h1…h6 { font-family: var(--font-heading) }` **outside any layer**, and unlayered rules beat Tailwind's utility layer — so `font-display` on an `<h1>` silently lost while the same class on a `<p>` worked. The base rules are now inside `@layer base`, which keeps them as the default and lets a utility override. This had been true for every heading on every screen. |
+| **B2** | **`next/font` rejects `weight` alongside `axes`** on a variable font: "Axes can only be defined for variable fonts when the weight property is nonexistent or set to `variable`." It compiles and typechecks, then fails at runtime — `tsc` and `eslint` were both clean while the app would not render. Caught by loading the page, not by the toolchain. |
+
+---
+
+## 138.5 Left open
+
+- **Three auth screens still on the old design** — forgot password, change password, confirm email. They work; they do not match. Bringing them across is small and should happen before the app screens.
+- **Desktop is contained, not composed.** The scene centres itself in a `max-w-xl` column from tablet up and the sheet becomes a card, so wide viewports are tidy rather than stretched. The real wide-screen treatment is §137.9.
+- **`--auth-photo` is unused.** Supply a clean photographic plate — no interface drawn on it, ~1600px wide, under 200 KB — and set it on `.auth-canvas` to switch the backdrop on.
+- **The required asterisk** is kept on every field. The references have none; it is retained because it is the product's existing convention for a required field and is read out by assistive technology.
