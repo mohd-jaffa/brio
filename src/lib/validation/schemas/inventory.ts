@@ -11,7 +11,7 @@ import {
 
 import { MAX_STOCK_MOVEMENT } from "@/constants/limits";
 
-import { optionalText, wholeNumberText } from "../primitives";
+import { optionalLine, wholeNumberText } from "../primitives";
 
 /** Which way a transaction of each type must move stock (AGENTS.md §14). */
 function signIsRight(type: InventoryTransactionType, quantity: number): boolean {
@@ -34,8 +34,8 @@ export const logInventoryTransactionSchema = z
       .int(VALIDATION_MESSAGES.wholeNumber("Quantity"))
       .min(-MAX_STOCK_MOVEMENT, VALIDATION_MESSAGES.tooLarge("Quantity", MAX_STOCK_MOVEMENT.toLocaleString("en-IN")))
       .max(MAX_STOCK_MOVEMENT, VALIDATION_MESSAGES.tooLarge("Quantity", MAX_STOCK_MOVEMENT.toLocaleString("en-IN"))),
-    referenceType: optionalText(50, "Reference type"),
-    referenceId: optionalText(64, "Reference"),
+    referenceType: optionalLine("Reference type", 50),
+    referenceId: optionalLine("Reference", 64),
   })
   .refine((line) => signIsRight(line.type, line.quantity), {
     message: VALIDATION_MESSAGES.invalid,

@@ -1,14 +1,14 @@
 import { z } from "zod";
 
-import { optionalText, optionalUuid, paiseAmount, paiseText, requiredText } from "../primitives";
+import { optionalLines, optionalUuid, paiseAmount, paiseText, requiredLine } from "../primitives";
 
 /** A product as the form holds it. Prices are whole paise — never a float (AGENTS.md §13). */
 export const createProductSchema = z.object({
   categoryId: optionalUuid("Category"),
-  name: requiredText("Name", 200),
-  description: optionalText(2000, "Description"),
+  name: requiredLine("Name", { max: 200 }),
+  description: optionalLines("Description", 2000),
   defaultPrice: paiseAmount("Price", { allowZero: true }),
-  unit: requiredText("Unit", 30).default("piece"),
+  unit: requiredLine("Unit", { max: 30 }).default("piece"),
   isActive: z.boolean().default(true),
 });
 

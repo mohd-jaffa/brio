@@ -5,6 +5,7 @@ import { VALIDATION_MESSAGES } from "@/constants/messages";
 import { formatPaise } from "@/lib/format/currency";
 import { parseRupees } from "@/lib/money";
 import { toE164India } from "@/lib/phone";
+import { normaliseLine, normaliseLines } from "@/lib/text/normalise";
 
 /**
  * The building blocks the entity schemas in ./schemas are made of. Every
@@ -35,14 +36,16 @@ export const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * and null are the same thing to a form, so they are the same thing here —
  * which also lets what one of these schemas produced be parsed by it again,
  * as it is when the client posts it and the server checks it (AGENTS.md §22).
+ * `tidy` is how the text is normalised first; a plain trim by default.
  */
 function optionalString(
   label: string,
   max: number,
   check?: { test: (value: string) => boolean; message: string },
+  tidy: (text: string) => string = (text) => text.trim(),
 ) {
   return z.optional(z.union([z.string(), z.null()])).transform((text, ctx) => {
-    const value = (text ?? "").trim();
+    const value = tidy(text ?? "");
     if (value === "") return null;
     if (value.length > max) {
       ctx.addIssue({ code: "custom", message: VALIDATION_MESSAGES.tooLong(label, max) });
@@ -56,18 +59,47 @@ function optionalString(
   });
 }
 
-/** Text a form must have — a name, a description: trimmed, and bounded with its own words. */
-export function requiredText(label: string, max: number) {
-  return z
-    .string({ error: VALIDATION_MESSAGES.required(label) })
-    .trim()
-    .min(1, VALIDATION_MESSAGES.required(label))
-    .max(max, VALIDATION_MESSAGES.tooLong(label, max));
+/**
+ * Text a form must have, normalised by `tidy` and then bounded, each problem in
+ * the field's own words. A blank field is missing, not too short.
+ */
+function requiredString(label: string, min: number, max: number, tidy: (text: string) => string) {
+  return z.string({ error: VALIDATION_MESSAGES.required(label) }).transform((text, ctx) => {
+    const value = tidy(text);
+    const problem =
+      value === ""
+        ? VALIDATION_MESSAGES.required(label)
+        : value.length < min
+          ? VALIDATION_MESSAGES.tooShort(label, min)
+          : value.length > max
+            ? VALIDATION_MESSAGES.tooLong(label, max)
+            : null;
+    if (problem) {
+      ctx.addIssue({ code: "custom", message: problem });
+      return z.NEVER;
+    }
+    return value;
+  });
 }
 
-/** Free text that may be left empty: trimmed, and blank stored as null. */
-export function optionalText(max = 1000, label = "This field") {
-  return optionalString(label, max);
+/** One line a form must have — a name, a business name, a city (plan §139.7). */
+export function requiredLine(label: string, { min = 1, max }: { min?: number; max: number }) {
+  return requiredString(label, min, max, normaliseLine);
+}
+
+/** One line that may be left empty — a reference, an item note; blank is null. */
+export function optionalLine(label: string, max: number) {
+  return optionalString(label, max, undefined, normaliseLine);
+}
+
+/** Several lines a form must have — a business address. */
+export function requiredLines(label: string, { min = 1, max }: { min?: number; max: number }) {
+  return requiredString(label, min, max, normaliseLines);
+}
+
+/** Several lines that may be left empty — an address, notes; blank is null. */
+export function optionalLines(label: string, max: number) {
+  return optionalString(label, max, undefined, normaliseLines);
 }
 
 /** An email address that may be left empty; blank is null. */

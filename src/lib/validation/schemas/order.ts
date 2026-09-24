@@ -9,17 +9,25 @@ import {
   PAYMENT_STATUSES,
 } from "@/constants/statuses";
 
-import { optionalText, optionalUrl, paiseAmount, paiseText, quantity, requiredText } from "../primitives";
+import {
+  optionalLine,
+  optionalLines,
+  optionalUrl,
+  paiseAmount,
+  paiseText,
+  quantity,
+  requiredLine,
+} from "../primitives";
 
 export const orderItemSchema = z.object({
   productId: z.string().uuid(VALIDATION_MESSAGES.invalid),
   quantity: quantity(),
-  notes: optionalText(500, "Item notes"),
+  notes: optionalLine("Item notes", 500),
 });
 
 export const orderAdjustmentSchema = z.object({
   type: z.enum(ADJUSTMENT_TYPES),
-  name: requiredText("Name", 120),
+  name: requiredLine("Name", { max: 120 }),
   /** Whole paise, never negative; a DISCOUNT is subtracted by its type, not its sign. */
   amount: paiseAmount("Amount", { allowZero: true }),
 });
@@ -37,17 +45,17 @@ export const createOrderSchema = z.object({
   delivery: z.object({
     type: z.enum(DELIVERY_TYPES),
     date: z.string().datetime(VALIDATION_MESSAGES.invalid),
-    address: optionalText(500, "Delivery address"),
+    address: optionalLines("Delivery address", 500),
     googleMapsLink: optionalUrl("Google Maps link"),
   }),
 
   payment: z.object({
     status: z.enum(PAYMENT_STATUSES),
     method: z.enum(PAYMENT_METHODS).optional(),
-    reference: optionalText(120, "Payment reference"),
+    reference: optionalLine("Payment reference", 120),
   }),
 
-  notes: optionalText(1000, "Order notes"),
+  notes: optionalLines("Order notes", 1000),
 });
 
 export const updateOrderStatusSchema = z.object({
@@ -74,14 +82,14 @@ export const orderFormSchema = z.object({
       z.object({
         productId: z.string().min(1, VALIDATION_MESSAGES.chooseOne("product")),
         quantity: quantity(),
-        notes: optionalText(500, "Item notes"),
+        notes: optionalLine("Item notes", 500),
       }),
     )
     .min(1, VALIDATION_MESSAGES.chooseAtLeastOne("item")),
   adjustments: z.array(
     z.object({
       type: z.enum(ADJUSTMENT_TYPES),
-      name: requiredText("Name", 120),
+      name: requiredLine("Name", { max: 120 }),
       amount: paiseText("Amount"),
     }),
   ),
@@ -98,15 +106,15 @@ export const orderFormSchema = z.object({
         }
         return when.toISOString();
       }),
-    address: optionalText(500, "Delivery address"),
+    address: optionalLines("Delivery address", 500),
     googleMapsLink: optionalUrl("Google Maps link"),
   }),
   payment: z.object({
     status: z.enum(PAYMENT_STATUSES),
     method: z.enum(PAYMENT_METHODS).optional(),
-    reference: optionalText(120, "Payment reference"),
+    reference: optionalLine("Payment reference", 120),
   }),
-  notes: optionalText(1000, "Order notes"),
+  notes: optionalLines("Order notes", 1000),
 });
 
 export type OrderFormValues = z.input<typeof orderFormSchema>;

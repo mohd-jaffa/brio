@@ -8549,7 +8549,7 @@ the row needs; without an answer it is built on that question's default
 | R1.8 | The component kit | §139.5 | — | TODO |
 | R1.9 | Sheets and dialogs trap focus, make the page `inert` and return focus. A form stays mounted while its sheet is closed, and every change is checked in the browser — a form mounted only while open lost its typed value under the React Compiler, which jsdom does not run (changelog, R0.3) | BUG-25 | — | TODO |
 | R1.10 | The response card and provider; action outcomes moved onto it | §139.6 | Q13 | TODO |
-| R1.11 | Input-hygiene primitives and the text-hygiene migration | §139.7 | — | TODO |
+| R1.11 | Input-hygiene primitives and the text-hygiene migration | §139.7 | — | DONE (2026-09-24) |
 | R1.12 | Search field contrast | BUG-24 | — | DONE (2026-09-24) |
 | R1.13 | Photographic plates from the supplied photographs, WebP ≤ 200 KB | §139.11.12 | Q6 (answered) | TODO |
 | R1.14 | Shared copy for the wider audience — tagline, empty states, errors | §139.1 #2 | Q8 | TODO |

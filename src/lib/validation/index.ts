@@ -13,12 +13,15 @@ export {
   indianMobile,
   optionalEmail,
   optionalNumberText,
-  optionalText,
+  optionalLine,
+  optionalLines,
   optionalUrl,
   optionalUuid,
   paiseText,
   positiveWholeText,
   requiredEmail,
+  requiredLine,
+  requiredLines,
   wholeNumberText,
 } from "./primitives";
 

@@ -1,17 +1,17 @@
 import { z } from "zod";
 
-import { indianMobile, optionalEmail, optionalText, optionalUrl, requiredText } from "../primitives";
+import { indianMobile, optionalEmail, optionalLines, optionalUrl, requiredLine } from "../primitives";
 
 /** A customer as the form holds it, parsed into what is stored. */
 export const createCustomerSchema = z.object({
-  name: requiredText("Name", 100),
+  name: requiredLine("Name", { max: 100 }),
   // Stored in one shape whichever way it was typed, so the same customer is
   // one row and a search on a number finds them (src/lib/validation/primitives.ts).
   phone: indianMobile("Phone"),
   email: optionalEmail("Email"),
-  address: optionalText(500, "Address"),
+  address: optionalLines("Address", 500),
   googleMapsLink: optionalUrl("Google Maps link"),
-  notes: optionalText(1000, "Notes"),
+  notes: optionalLines("Notes", 1000),
 });
 
 export const updateCustomerSchema = createCustomerSchema.partial();

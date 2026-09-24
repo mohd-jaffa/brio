@@ -8,7 +8,8 @@ import {
   firstIssue,
   optionalEmail,
   optionalNumberText,
-  optionalText,
+  optionalLine,
+  optionalLines,
   optionalUrl,
   optionalUuid,
   paiseAmount,
@@ -16,7 +17,8 @@ import {
   positiveWholeText,
   quantity,
   requiredEmail,
-  requiredText,
+  requiredLine,
+  requiredLines,
   wholeNumberText,
 } from "@/lib/validation/primitives";
 
@@ -27,27 +29,43 @@ function messageOf(schema: z.ZodType, value: unknown): string | null {
   return result.success ? null : firstIssue(result.error);
 }
 
-describe("optionalText", () => {
-  const schema = optionalText(10, "Notes");
+describe("optionalLine", () => {
+  const schema = optionalLine("Reference", 10);
 
   it("treats missing, blank and null as nothing", () => {
     expect(schema.parse(undefined)).toBeNull();
     expect(schema.parse("")).toBeNull();
     expect(schema.parse("   ")).toBeNull();
+    expect(schema.parse("\u200B")).toBeNull();
     expect(schema.parse(null)).toBeNull();
   });
 
-  it("trims what it keeps", () => {
-    expect(schema.parse("  hi  ")).toBe("hi");
+  it("keeps one tidy line of what it is given", () => {
+    expect(schema.parse("  UPI\t 3248 ")).toBe("UPI 3248");
   });
 
-  it("refuses more than its column holds", () => {
-    expect(messageOf(schema, "x".repeat(11))).toBe(VALIDATION_MESSAGES.tooLong("Notes", 10));
+  it("refuses more than its column holds, counted after tidying", () => {
+    expect(messageOf(schema, "x".repeat(11))).toBe(VALIDATION_MESSAGES.tooLong("Reference", 10));
+    expect(schema.parse("  " + "x".repeat(10) + "  ")).toBe("x".repeat(10));
   });
 
   it("can parse its own output again, as the server does after the client", () => {
     expect(schema.parse(schema.parse("hello"))).toBe("hello");
     expect(schema.parse(schema.parse(""))).toBeNull();
+  });
+});
+
+describe("optionalLines", () => {
+  const schema = optionalLines("Address", 100);
+
+  it("keeps the line breaks an address needs", () => {
+    expect(schema.parse("Flat 302\r\nSunrise Apartments  \r\nM.G. Road")).toBe(
+      "Flat 302\nSunrise Apartments\nM.G. Road",
+    );
+  });
+
+  it("leaves a blank one null", () => {
+    expect(schema.parse(" \n \n ")).toBeNull();
   });
 });
 
@@ -173,14 +191,29 @@ describe("quantity", () => {
   });
 });
 
-describe("requiredText", () => {
-  const schema = requiredText("Name", 5);
+describe("requiredLine", () => {
+  const schema = requiredLine("Name", { min: 2, max: 5 });
 
-  it("trims what it keeps and names the field in each refusal", () => {
+  it("keeps one tidy line and names the field in each refusal", () => {
     expect(schema.parse("  Anu ")).toBe("Anu");
     expect(messageOf(schema, "   ")).toBe(VALIDATION_MESSAGES.required("Name"));
+    expect(messageOf(schema, "A")).toBe(VALIDATION_MESSAGES.tooShort("Name", 2));
     expect(messageOf(schema, "Priyanka")).toBe(VALIDATION_MESSAGES.tooLong("Name", 5));
     expect(messageOf(schema, undefined)).toBe(VALIDATION_MESSAGES.required("Name"));
+  });
+
+  it("makes a name pasted from a chat app the same as one typed by hand", () => {
+    expect(schema.parse("A\u200Bnu")).toBe("Anu");
+    expect(schema.parse("Anu\u00A0")).toBe("Anu");
+  });
+});
+
+describe("requiredLines", () => {
+  const schema = requiredLines("Address", { max: 50 });
+
+  it("needs something besides blank lines", () => {
+    expect(messageOf(schema, "\n\n")).toBe(VALIDATION_MESSAGES.required("Address"));
+    expect(schema.parse("12 Rose Street\nKochi")).toBe("12 Rose Street\nKochi");
   });
 });
 

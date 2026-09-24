@@ -763,3 +763,9 @@ entry grows with them.
     - checkout bar 50 px (16 + 34);
     - form sheet 34 px, with a `90dvh` ceiling.
 - **R1.12 · BUG-24 — the search box's placeholder and icon failed contrast.** They were muted at 60 %: 2.71 : 1 in Golden and 2.64 : 1 in Peach. At full strength they measure 6.67 and 6.24. The remaining `text-muted/40` uses are decorative, `aria-hidden` icons, and the rewrite into `search-field` comes with the component kit (R1.8).
+- **R1.11 — input hygiene: one set of text rules** (plan §139.7).
+  - **The normaliser** (`src/lib/text/normalise.ts`). `normaliseLine` composes Unicode (NFC), drops the zero-width characters that text pasted from chat apps carries, and the control characters, then turns every run of whitespace into one space and trims. `normaliseLines` does the same but keeps the line breaks: Windows breaks become plain, each line's end is trimmed, and more than one blank line in a row becomes one.
+  - **The primitives.** `requiredLine`, `optionalLine`, `requiredLines` and `optionalLines` replace `requiredText` and `optionalText`. Each is bounded after tidying, and each refusal names the field. **Every schema now uses them**: names, units, descriptions, references and adjustment names are lines; addresses and notes are lines with breaks.
+  - **Registration.** Its two names moved onto `requiredLine`. The error now says "Business name" rather than "Bakery name". **Passwords are still never altered.**
+  - **Migration `0006_text_hygiene.sql`.** Customer, product and category names must be 1–100, 1–200 and 1–60 characters once trimmed, and category names are unique per business whatever their case or spacing. Proved on the local database: a blank or over-long name was refused (23514), and " cakes " was refused beside "Cakes" (23505).
+  - **End to end.** Posting `"  Priya​   Menon  "` stored `Priya Menon`. An address with three blank lines kept one, a blank note stored `null`, and "98765 11111" stored `+919876511111`.

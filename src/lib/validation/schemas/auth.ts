@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { VALIDATION_MESSAGES } from "@/constants/messages";
 import { USER_ROLES } from "@/constants/roles";
-import { indianMobile, requiredEmail } from "@/lib/validation/primitives";
+import { indianMobile, requiredEmail, requiredLine } from "@/lib/validation/primitives";
 
 /**
  * What the app accepts when someone signs up, signs in or changes a password
@@ -35,20 +35,12 @@ const matching = <T extends { confirmPassword: string }>(
 
 export const registerSchema = z
   .object({
-    name: z
-      .string()
-      .trim()
-      .min(2, VALIDATION_MESSAGES.tooShort("Your name", 2))
-      .max(120, VALIDATION_MESSAGES.tooLong("Your name", 120)),
-    businessName: z
-      .string()
-      .trim()
-      .min(2, VALIDATION_MESSAGES.tooShort("Bakery name", 2))
-      .max(160, VALIDATION_MESSAGES.tooLong("Bakery name", 160)),
+    name: requiredLine("Your name", { min: 2, max: 120 }),
+    businessName: requiredLine("Business name", { min: 2, max: 160 }),
     phone: phoneSchema,
     email: emailSchema,
     password: passwordSchema,
-    confirmPassword: z.string(),
+    confirmPassword: z.string({ error: VALIDATION_MESSAGES.required("Confirm password") }),
   })
   .refine(...matching<{ password: string; confirmPassword: string }>("password"));
 

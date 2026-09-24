@@ -3,7 +3,7 @@ import { z } from "zod";
 import { VALIDATION_MESSAGES } from "@/constants/messages";
 import { PAYMENT_METHODS } from "@/constants/statuses";
 
-import { optionalText, paiseAmount, paiseText } from "../primitives";
+import { optionalLine, paiseAmount, paiseText } from "../primitives";
 
 /**
  * A payment collected against an order. Money crosses the wire as whole paise,
@@ -14,7 +14,7 @@ export const createPaymentSchema = z.object({
   order_id: z.string().uuid(VALIDATION_MESSAGES.invalid),
   amount: paiseAmount("Amount"),
   payment_method: z.enum(PAYMENT_METHODS),
-  reference: optionalText(120, "Reference"),
+  reference: optionalLine("Reference", 120),
 });
 
 export type CreatePaymentInput = z.input<typeof createPaymentSchema>;
@@ -24,7 +24,7 @@ export type CreatePaymentPayload = z.output<typeof createPaymentSchema>;
 export const paymentFormSchema = z.object({
   amount: paiseText("Amount"),
   payment_method: z.enum(PAYMENT_METHODS),
-  reference: optionalText(120, "Reference"),
+  reference: optionalLine("Reference", 120),
 });
 
 export type PaymentFormValues = z.input<typeof paymentFormSchema>;
