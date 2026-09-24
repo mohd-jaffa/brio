@@ -9,7 +9,7 @@ import { UI_TEXT } from "@/constants/messages";
 import { BrandMark } from "./BrandMark";
 
 /**
- * The frame the sign-in and register screens share (plan §137). Daylight on a
+ * The frame every authentication screen shares (plan §137). Daylight on a
  * warm wall, the bakery's mark and promise set over it, and a cream sheet that
  * rises from the bottom carrying the form.
  *
@@ -29,18 +29,19 @@ export function AuthScene({
   /** Two or three words per line; the line breaks are the composition. */
   headline: readonly string[];
   intro: string;
-  counterpart: { question: string; label: string; href: string };
+  /** The other front door. The screens behind it have none. */
+  counterpart?: { question: string; label: string; href: string };
   backHref?: string;
   children: ReactNode;
   footer?: ReactNode;
 }) {
   return (
     <div className="auth-canvas flex min-h-dvh flex-col text-ink">
-      <header className="safe-top mx-auto flex w-full max-w-xl items-start justify-between gap-4 px-6 pt-5">
+      <header className="safe-top [--safe-pt:1.25rem] mx-auto flex w-full max-w-xl items-start justify-between gap-4 px-6">
         {backHref ? (
           <Link
             href={backHref}
-            aria-label="Go back"
+            aria-label={UI_TEXT.actions.back}
             className="touch-target -ml-2 flex items-center justify-center rounded-full text-ink/80 transition-colors hover:text-ink"
           >
             <ArrowLeft size={22} strokeWidth={2} aria-hidden="true" />
@@ -49,15 +50,17 @@ export function AuthScene({
           <span aria-hidden="true" />
         )}
 
-        <p className="pt-1 text-right text-sm font-medium text-ink-muted">
-          {counterpart.question}{" "}
-          <Link
-            href={counterpart.href}
-            className="font-semibold text-ink underline decoration-primary/60 decoration-2 underline-offset-4 transition-colors hover:decoration-primary"
-          >
-            {counterpart.label}
-          </Link>
-        </p>
+        {counterpart && (
+          <p className="pt-1 text-right text-sm font-medium text-ink-muted">
+            {counterpart.question}{" "}
+            <Link
+              href={counterpart.href}
+              className="font-semibold text-ink underline decoration-primary/60 decoration-2 underline-offset-4 transition-colors hover:decoration-primary"
+            >
+              {counterpart.label}
+            </Link>
+          </p>
+        )}
       </header>
 
       <div className="mx-auto w-full max-w-xl flex-1 px-6 pb-10 pt-6">
@@ -89,7 +92,7 @@ export function AuthScene({
 
       {/* The sheet keeps the phone's full-bleed edge and becomes a contained
           card from tablet up. The composed wide layout is plan §137.9. */}
-      <div className="auth-sheet animate-rise safe-bottom mx-auto mt-auto w-full max-w-xl rounded-t-[2rem] px-6 pb-8 pt-7 sm:mb-8 sm:rounded-[2rem]">
+      <div className="auth-sheet animate-rise safe-bottom [--safe-pb:2rem] mx-auto mt-auto w-full max-w-xl rounded-t-[2rem] px-6 pt-7 sm:mb-8 sm:rounded-[2rem]">
         <div className="mx-auto w-full max-w-md">
           {children}
           {footer && <div className="mt-7">{footer}</div>}

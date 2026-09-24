@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { KeyRound } from "lucide-react";
+import { ArrowRight, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
@@ -51,7 +51,7 @@ export function ChangePasswordForm() {
   );
 
   return (
-    <form onSubmit={handleSubmit((values) => submit(values))} className="space-y-5" noValidate>
+    <form onSubmit={handleSubmit((values) => submit(values))} className="space-y-4" noValidate>
       {requiresPasswordChange && !error && (
         <ScreenNotice tone="info">{UI_TEXT.auth.temporaryPasswordNotice}</ScreenNotice>
       )}
@@ -59,26 +59,36 @@ export function ChangePasswordForm() {
 
       <PasswordField
         label={UI_TEXT.auth.newPasswordLabel}
+        labelCase="sentence"
         autoComplete="new-password"
+        placeholder="Create a password"
         hint={UI_TEXT.auth.passwordHint}
         required
+        leading={<Lock size={18} strokeWidth={1.8} />}
         error={errors.newPassword?.message}
         {...register("newPassword")}
       />
 
       <PasswordField
         label={UI_TEXT.auth.confirmPasswordLabel}
+        labelCase="sentence"
         autoComplete="new-password"
+        placeholder="Repeat your password"
         required
+        leading={<Lock size={18} strokeWidth={1.8} />}
         error={errors.confirmPassword?.message}
         {...register("confirmPassword")}
       />
 
       <Button
         type="submit"
+        variant="action"
+        size="lg"
+        shape="pill"
         fullWidth
         loading={submitting}
-        icon={KeyRound}
+        icon={ArrowRight}
+        iconPosition="end"
         label={submitting ? UI_TEXT.actions.saving : UI_TEXT.auth.setNewPassword}
       />
     </form>

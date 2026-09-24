@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
 
 import { UI_TEXT } from "@/constants/messages";
-import { AuthCard } from "@/features/auth/components/AuthCard";
+import { AuthScene } from "@/features/auth/components/AuthScene";
 import { ConfirmEmailPanel } from "@/features/auth/components/ConfirmEmailPanel";
 
 export const metadata: Metadata = {
-  title: `Confirm your email — ${UI_TEXT.appName}`,
+  title: `${UI_TEXT.auth.confirmEmail} — ${UI_TEXT.appName}`,
 };
 
 export default function ConfirmEmailPage() {
   return (
-    <AuthCard title="Confirming your email" subtitle="This only takes a moment.">
+    <AuthScene headline={UI_TEXT.auth.confirmHeadline} intro={UI_TEXT.auth.confirmIntro}>
       <ConfirmEmailPanel />
-    </AuthCard>
+    </AuthScene>
   );
 }

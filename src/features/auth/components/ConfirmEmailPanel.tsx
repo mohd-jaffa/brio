@@ -87,14 +87,21 @@ export function ConfirmEmailPanel() {
     };
   }, [adopt, router]);
 
-  if (state === "working") return <AuthPending message={UI_TEXT.auth.confirming} />;
+  if (state === "working") return <AuthPending message={UI_TEXT.auth.confirming} inline />;
 
   if (state === "done") return <ScreenNotice tone="info">{UI_TEXT.auth.confirmed}</ScreenNotice>;
 
   return (
     <div className="space-y-5">
       <ScreenNotice>{message}</ScreenNotice>
-      <LinkButton href={AUTH_ROUTES.signIn} label={UI_TEXT.auth.backToSignIn} />
+      <LinkButton
+        href={AUTH_ROUTES.signIn}
+        variant="action"
+        size="lg"
+        shape="pill"
+        fullWidth
+        label={UI_TEXT.auth.backToSignIn}
+      />
     </div>
   );
 }

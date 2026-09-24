@@ -1,14 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail } from "lucide-react";
+import { ArrowRight, Mail } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { Button } from "@/components/ui/button";
+import { Button, LinkButton } from "@/components/ui/button";
 import { ScreenNotice } from "@/components/ui/screen-notice";
 import { TextField } from "@/components/ui/text-field";
 import { UI_TEXT } from "@/constants/messages";
+import { AUTH_ROUTES } from "@/constants/routes";
 import { useApiMutation } from "@/lib/query/useApiMutation";
 import {
   passwordResetRequestSchema,
@@ -43,8 +44,23 @@ export function ForgotPasswordForm() {
     onSuccess: () => setSent(true),
   });
 
+  // Once it has been sent there is nothing left to do here, so the screen
+  // says so and offers the one step that follows rather than leaving the
+  // baker on a dead form.
   if (sent) {
-    return <ScreenNotice tone="info">{UI_TEXT.auth.resetSent}</ScreenNotice>;
+    return (
+      <div className="space-y-5">
+        <ScreenNotice tone="info">{UI_TEXT.auth.resetSent}</ScreenNotice>
+        <LinkButton
+          href={AUTH_ROUTES.signIn}
+          variant="action"
+          size="lg"
+          shape="pill"
+          fullWidth
+          label={UI_TEXT.auth.backToSignIn}
+        />
+      </div>
+    );
   }
 
   return (
@@ -53,20 +69,26 @@ export function ForgotPasswordForm() {
 
       <TextField
         label={UI_TEXT.auth.emailLabel}
+        labelCase="sentence"
         type="email"
         inputMode="email"
         autoComplete="email"
         placeholder="priya@example.com"
         required
+        leading={<Mail size={18} strokeWidth={1.8} />}
         error={errors.email?.message}
         {...register("email")}
       />
 
       <Button
         type="submit"
+        variant="action"
+        size="lg"
+        shape="pill"
         fullWidth
         loading={submitting}
-        icon={Mail}
+        icon={ArrowRight}
+        iconPosition="end"
         label={submitting ? UI_TEXT.actions.saving : UI_TEXT.auth.sendResetEmail}
       />
     </form>

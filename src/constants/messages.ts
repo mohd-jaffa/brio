@@ -128,6 +128,18 @@ export const UI_TEXT = {
     registerHeadline: ["Join a", "sweeter", "journey."],
     registerIntro: "Create your account and start baking happiness",
     promise: "Baking a sweeter tomorrow.",
+
+    // The three screens behind the front door (plan §138.6). Same voice: a
+    // serif line that says where you are, then one sentence of why.
+    forgotHeadline: ["Let's get", "you back in."],
+    forgotIntro: "Tell us the email your bakery is registered with",
+    changePasswordHeadline: ["A fresh", "password."],
+    changePasswordIntro: "Choose the one you will sign in with from now on",
+    confirmEmail: "Confirm your email",
+    // Neutral on purpose: this screen may be confirming, done, or looking at a
+    // link that expired, and one headline has to be true in all three.
+    confirmHeadline: ["Nearly", "there."],
+    confirmIntro: "The link in your confirmation email finishes setting up your account",
     confirming: "Confirming your email address…",
     confirmed: "Your email address is confirmed. Taking you to your dashboard…",
     confirmLinkMissing: "This page opens from the link in your confirmation email.",
@@ -138,6 +150,7 @@ export const UI_TEXT = {
     saving: "Saving…",
     cancel: "Cancel",
     close: "Close",
+    back: "Go back",
     retry: "Try again",
     delete: "Delete",
     edit: "Edit",
