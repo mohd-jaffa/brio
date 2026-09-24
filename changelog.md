@@ -762,3 +762,4 @@ entry grows with them.
     - main content 126 px (68 + 34 + 24);
     - checkout bar 50 px (16 + 34);
     - form sheet 34 px, with a `90dvh` ceiling.
+- **R1.12 · BUG-24 — the search box's placeholder and icon failed contrast.** They were muted at 60 %: 2.71 : 1 in Golden and 2.64 : 1 in Peach. At full strength they measure 6.67 and 6.24. The remaining `text-muted/40` uses are decorative, `aria-hidden` icons, and the rewrite into `search-field` comes with the component kit (R1.8).
