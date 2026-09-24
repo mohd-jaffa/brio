@@ -5,7 +5,7 @@
  */
 export const EDITABLE_COLUMNS = {
   customers: ['name', 'phone', 'email', 'address', 'google_maps_link', 'notes'],
-  products: ['category_id', 'name', 'description', 'default_price', 'unit', 'image', 'is_active'],
+  products: ['category_id', 'name', 'description', 'default_price', 'unit', 'icon_key', 'is_active'],
   expenses: ['category', 'description', 'amount', 'expense_date', 'payment_method', 'receipt_url'],
   orders: ['status', 'payment_status'],
 } as const;

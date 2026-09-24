@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { AlertTriangle, ArrowRightLeft, Package } from "lucide-react";
 
 import { AppShell } from "@/components/nav/AppShell";
+import { ProductTile } from "@/components/ui/product-tile";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -16,6 +17,7 @@ import { InventoryAdjustmentSheet } from "@/features/inventory/components/Invent
 import type { InventoryBalance } from "@/features/inventory/types";
 import type { Product } from "@/features/products/types";
 import { useDisclosure } from "@/hooks/useDisclosure";
+import { formatQuantity } from "@/lib/format/quantity";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiQuery } from "@/lib/query/useApiQuery";
 
@@ -96,21 +98,14 @@ export default function InventoryPage() {
                 low ? "border-danger/30" : "border-border",
               )}
             >
-              <div className="flex min-w-0 flex-1 items-center gap-4">
-                <div
-                  className={cn(
-                    "flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl border",
-                    low
-                      ? "border-danger/20 bg-danger/10 text-danger"
-                      : "border-primary/20 bg-primary/10 text-primary",
-                  )}
-                >
-                  <span className="font-heading text-lg font-bold leading-none">{line.currentStock}</span>
-                  <span className="mt-0.5 text-[9px] font-bold uppercase tracking-wider">{line.unit}</span>
-                </div>
+              <div className="flex min-w-0 flex-1 items-center gap-3">
+                <ProductTile iconKey={line.iconKey} size="md" />
 
                 <div className="min-w-0 pr-2">
                   <h2 className="mb-1 truncate text-base font-bold leading-tight text-text">{line.name}</h2>
+                  <p className={cn("tabular text-sm font-semibold", low ? "text-danger" : "text-text-muted")}>
+                    {formatQuantity(line.currentStock, line.unit)} in stock
+                  </p>
                   {low && (
                     <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-danger">
                       <AlertTriangle size={10} strokeWidth={3} aria-hidden="true" /> Low stock

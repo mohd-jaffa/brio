@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ListScreen } from "@/components/ui/list-screen";
 import { PageHeader } from "@/components/ui/page-header";
 import { SearchInput } from "@/components/ui/search-input";
+import { ProductTile } from "@/components/ui/product-tile";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { UI_TEXT } from "@/constants/messages";
 import { ProductFormSheet } from "@/features/products/components/ProductFormSheet";
@@ -64,11 +65,14 @@ export default function ProductsPage() {
             }`}
           >
             <div className="mb-3 flex items-start justify-between gap-4">
-              <div>
-                <h2 className="mb-1 text-base font-bold leading-tight text-text">{product.name}</h2>
-                {product.description && (
-                  <p className="line-clamp-2 text-xs font-medium text-text-muted">{product.description}</p>
-                )}
+              <div className="flex min-w-0 items-start gap-3">
+                <ProductTile iconKey={product.iconKey} size="md" />
+                <div className="min-w-0">
+                  <h2 className="mb-1 text-base font-bold leading-tight text-text">{product.name}</h2>
+                  {product.description && (
+                    <p className="line-clamp-2 text-xs font-medium text-text-muted">{product.description}</p>
+                  )}
+                </div>
               </div>
               <StatusBadge
                 label={product.isActive ? "Active" : "Inactive"}

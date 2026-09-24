@@ -19,7 +19,7 @@ export function toProduct(row: ProductRow): Product {
     description: row.description ?? undefined,
     defaultPrice: row.default_price,
     unit: row.unit,
-    image: row.image ?? undefined,
+    iconKey: row.icon_key ?? undefined,
     isActive: row.is_active,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -33,6 +33,7 @@ function toColumns(input: UpdateProductPayload) {
     description: blankToNull(input.description),
     default_price: input.defaultPrice,
     unit: input.unit,
+    icon_key: input.iconKey,
     is_active: input.isActive,
   });
 }

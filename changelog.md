@@ -769,3 +769,20 @@ entry grows with them.
   - **Registration.** Its two names moved onto `requiredLine`. The error now says "Business name" rather than "Bakery name". **Passwords are still never altered.**
   - **Migration `0006_text_hygiene.sql`.** Customer, product and category names must be 1–100, 1–200 and 1–60 characters once trimmed, and category names are unique per business whatever their case or spacing. Proved on the local database: a blank or over-long name was refused (23514), and " cakes " was refused beside "Cakes" (23505).
   - **End to end.** Posting `"  Priya​   Menon  "` stored `Priya Menon`. An address with three blank lines kept one, a blank note stored `null`, and "98765 11111" stored `+919876511111`.
+- **R1.15 — the illustration library ships** (plan §139.11.10).
+  - **`scripts/illustrations.mjs`** (`npm run illustrations`, using `sharp` 0.35.4, now pinned as a devDependency) builds `artwork/illustrations/*.jpg` into `src/assets/illustrations/*.webp`.
+    - It first refuses a file name that is not a key, and a master that duplicates another, by content hash or by perceptual hash (distance ≤ 10 of 256).
+    - The white ground that reaches the border becomes transparent through colour-to-alpha, so ground shadows turn translucent while white inside an outline stays: the cup, the receipt, the icing.
+    - Each drawing is then trimmed and centred with 8 % room, as a 480 px WebP.
+    - **The library is 725 KB, 14–34 KB each**, inside the plan's 1 MB and 40 KB.
+  - **A bug caught on the way:** `sharp` resizes before it extends, however the calls are ordered, so the first build cropped every drawing to a square before padding it. `rose-bunch` came out at 755 × 628 and cut off. Padding is now its own pass, and every file is checked to be 480 × 480 with a margin.
+  - **The registry is split in two.** `src/constants/illustrations.ts` holds the 28 keys, labels, groups and defaults, which server validation can import. `src/assets/illustrations/index.ts` maps them to the static images, so a missing file fails the build.
+  - **Components:** `Illustration` (decorative beside a name, labelled where it stands alone, and the fallback for an unknown key) and `ProductTile` (the illustration on a sunken well, 40, 48 or 64 px), which replaces the §137.3 monogram.
+  - **Every product shows an illustration** on Products, Inventory and the dashboard's low-stock list. The Inventory row now reads "5 pieces in stock" through a new `formatQuantity`, since the tile took the stock box's place. That plural is also used in the low-stock line.
+  - **Tests:** the catalogue matches the masters and the built files one for one, and every key has the database's shape.
+  - **Q16 (the Vecteezy licence) is still open.** It is on its default, a credit in Settings → About, which comes with R5.11.
+- **R1.16 — migration `0007_illustrations.sql`.**
+  - **Products.** `products.image`, reserved for a photo upload the plan never allowed and never written, becomes `products.icon_key`. Stray values are cleared, and a CHECK allows only a key's shape (≤ 64).
+  - **Expense categories.** `bakeries.expense_category_icons` is a `jsonb` object, defaulting to `{}`, for R5.16.
+  - **Validation.** The product schema takes `iconKey` through `optionalIllustration`: a library key or null, refused otherwise with "Choose a picture.". It is a nullable enum rather than a union, because a union buried the enum's message under the catch-all.
+  - **Seed:** four products have illustrations, and the sourdough keeps the default, so both are on screen.

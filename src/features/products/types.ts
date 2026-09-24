@@ -6,7 +6,7 @@ export interface ProductRow {
   description: string | null;
   default_price: number;
   unit: string;
-  image: string | null;
+  icon_key: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -19,7 +19,8 @@ export interface Product {
   description?: string;
   defaultPrice: number; // in paise
   unit: string;
-  image?: string;
+  /** An illustration key (src/constants/illustrations.ts); none means the default. */
+  iconKey?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

@@ -110,13 +110,15 @@ begin
   -- ----------------------------------------------------------
   -- 4. Products — prices in whole paise (AGENTS.md §13)
   -- ----------------------------------------------------------
-  insert into public.products (id, bakery_id, name, description, default_price, unit, is_active)
+  -- Each with an illustration from the library (plan §139.11.10), except the
+  -- sourdough, which shows the default — both cases are on screen.
+  insert into public.products (id, bakery_id, name, description, default_price, unit, icon_key, is_active)
   values
-    (v_prod_cake,   v_bakery_id, 'Chocolate Truffle Cake (1 kg)',   'Belgian chocolate sponge layered with dark ganache.',  120000, 'kg',    true),
-    (v_prod_cup,    v_bakery_id, 'Red Velvet Cupcakes (Box of 6)',  'Soft red velvet topped with cream cheese frosting.',    45000, 'box',   true),
-    (v_prod_bread,  v_bakery_id, 'Sourdough Bread Loaf',            'Naturally fermented, 24-hour proof, crisp crust.',      25000, 'piece', true),
-    (v_prod_brown,  v_bakery_id, 'Fudgy Brownie Box (4 pcs)',       'Dark chocolate brownies with walnuts.',                 38000, 'box',   true),
-    (v_prod_cheese, v_bakery_id, 'Blueberry Cheesecake (500 g)',    'Baked cheesecake with a fresh blueberry compote.',      95000, 'piece', true)
+    (v_prod_cake,   v_bakery_id, 'Chocolate Truffle Cake (1 kg)',   'Belgian chocolate sponge layered with dark ganache.',  120000, 'kg',    'chocolate-cake-slice', true),
+    (v_prod_cup,    v_bakery_id, 'Red Velvet Cupcakes (Box of 6)',  'Soft red velvet topped with cream cheese frosting.',    45000, 'box',   'cupcake',              true),
+    (v_prod_bread,  v_bakery_id, 'Sourdough Bread Loaf',            'Naturally fermented, 24-hour proof, crisp crust.',      25000, 'piece', null,                   true),
+    (v_prod_brown,  v_bakery_id, 'Fudgy Brownie Box (4 pcs)',       'Dark chocolate brownies with walnuts.',                 38000, 'box',   'cake-squares',         true),
+    (v_prod_cheese, v_bakery_id, 'Blueberry Cheesecake (500 g)',    'Baked cheesecake with a fresh blueberry compote.',      95000, 'piece', 'glazed-cake',          true)
   on conflict (id) do nothing;
 
   -- ----------------------------------------------------------

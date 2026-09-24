@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { ILLUSTRATION_KEYS } from "@/constants/illustrations";
 import { MAX_AMOUNT_PAISE, MAX_QUANTITY } from "@/constants/limits";
 import { VALIDATION_MESSAGES } from "@/constants/messages";
 import { formatPaise } from "@/lib/format/currency";
@@ -160,6 +161,15 @@ function isWebLink(value: string): boolean {
   if (!URL.canParse(value)) return false;
   const { protocol } = new URL(value);
   return protocol === "https:" || protocol === "http:";
+}
+
+/**
+ * An illustration from the library, or null for the default (plan
+ * §139.11.10). Only keys the library has are accepted; the database checks
+ * the shape alone, so a new illustration needs no migration.
+ */
+export function optionalIllustration(label: string) {
+  return z.enum(ILLUSTRATION_KEYS, { error: VALIDATION_MESSAGES.chooseOne(label) }).nullable().optional();
 }
 
 /** A reference to another record that may be left unset; blank is null. */

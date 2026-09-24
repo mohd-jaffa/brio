@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { AppShell } from "@/components/nav/AppShell";
+import { ProductTile } from "@/components/ui/product-tile";
 import { cn } from "@/components/ui/cn";
 import { ScreenNotice } from "@/components/ui/screen-notice";
 import { SkeletonRows } from "@/components/ui/skeleton";
@@ -27,6 +28,7 @@ import { statusBadge } from "@/features/orders/view";
 import type { Product } from "@/features/products/types";
 import { DUE_BUCKET_LABELS } from "@/lib/dates/calendar";
 import { formatPaise } from "@/lib/format/currency";
+import { formatQuantity } from "@/lib/format/quantity";
 import { formatDateTime } from "@/lib/format/date";
 import { errorMessage } from "@/lib/errors/errorMessage";
 import { apiRoutes } from "@/lib/query/keys";
@@ -215,13 +217,14 @@ export default function DashboardPage() {
                 className="rounded-2xl border border-border border-l-4 border-l-danger bg-surface p-4 shadow-card"
               >
                 <div className="flex items-center justify-between gap-4">
-                  <div className="min-w-0">
+                  <ProductTile iconKey={product.iconKey} />
+                  <div className="min-w-0 flex-1">
                     <span className="mb-1 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-danger">
                       <AlertTriangle size={12} strokeWidth={3} aria-hidden="true" /> Reorder soon
                     </span>
                     <h3 className="truncate text-sm font-bold">{product.name}</h3>
                     <p className="mt-0.5 text-xs font-medium text-text-muted">
-                      {balance} {product.unit} left • alerts below {LOW_STOCK_THRESHOLD}
+                      {formatQuantity(balance, product.unit)} left • alerts below {LOW_STOCK_THRESHOLD}
                     </p>
                   </div>
                   <Link
