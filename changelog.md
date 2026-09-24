@@ -586,3 +586,29 @@ references supplied for sign-in and register. Plan §138 records the build and
 
 ### Blockers
 - None new.
+
+## 2026-09-24 — Ovenly v2 Planned: Redesign, Wider Audience, Android (plan §139)
+
+**Planning only — no code, schema or configuration changed.** Eleven new
+references were reviewed; they are in `design-references/` (gitignored, not
+committed).
+
+### Added
+- **Plan §139** — the redesign in two themes (Golden and Peach), the product changes in this brief, a code audit, a phased roadmap (Phases 0–8, Android last), and a **tracker of 99 work items** (§139.19) mapped to every open item in §133–§138.
+
+### Scope changes approved by the user (recorded under AGENTS §31)
+- Roles become **USER and DEV** (was BAKER and DEV); the product serves home businesses generally — bakers, hamper makers, florists.
+- Registration adds a **catch phrase** (optional), **city** and **business address**. Sign-in stays by mobile number.
+- The visual directions become **Golden and Peach**; Clean is retired.
+- **Guest orders** — an order no longer needs a customer — reported as Guest sales.
+- **Customers created from the order screen**; picking a customer fills the delivery address and map link, which stay editable.
+- **View and share the bill before the order is saved** (an estimate); the bill carries the business's name, catch phrase and address, with the app's name and web link in the footer. Nothing is stored (§15 unchanged).
+- A **response card** replaces toast-style feedback app-wide; **every input is trimmed and normalised**; **every screen is responsive**.
+- Tests move into **`/tests`**, mirroring `src/` (recommended in §139.16; AGENTS §26 changes when R1.1 lands).
+
+### Found, not fixed (plan §139.14)
+- **BUG-01 — every payment is recorded at 100 times its amount.** `processPayment` converts an amount that is already in paise, so ₹500 is stored as ₹50,000 and, in practice, any payment above 1 % of the order total is refused. Collect payment does not work today.
+- 29 further findings, including: stock never released on cancel; any status allowed to follow any other; dates taken in UTC; order numbers that can collide; safe areas inert on iPhone; RLS gaps on payments, audit logs and notifications; foreign keys that can point into another business.
+
+### Blockers
+- **Open questions Q1–Q15** (§139.2). Each blocks only the tracker rows that name it; unanswered rows proceed on the stated default.

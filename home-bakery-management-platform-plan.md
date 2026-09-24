@@ -6662,6 +6662,9 @@ The queue table and the claim/complete/fail helpers exist. Nothing runs them.
 
 ## 133.12 Suggested order of work
 
+> **Superseded 2026-09-24** by the phased roadmap in **§139.18**. Every open
+> item in this register is mapped to a row of the **§139.19** tracker.
+
 ```text
 1. Authentication end to end        (133.1)  — DONE 2026-09-23
 2. Order transaction + idempotency  (133.3)  — money and stock correctness
@@ -7280,6 +7283,9 @@ offers, instead of centring the phone layout.
 
 ## 137.10 Build order
 
+> **Superseded 2026-09-24** by **§139.18** (phases) and **§139.19** (tracker).
+> §139.20 lists what of §137 is kept and what is replaced.
+
 1. **Tokens, fonts, ground inversion** (§137.4, §137.5). One commit, and every existing screen immediately improves: card contrast (§134 P3-2) and type floor (§134 P3-3) are fixed before a single screen is rebuilt.
 2. **`bake-tile`, `row`, `status-dot`, `stat-tile`, `fab`, `segmented`, `tab-bar`, `quote-block`.** Shared kit first, per AGENTS.md §5.
 3. **`AppShell`** — 5-item nav, FAB slot, theme control out of the header.
@@ -7426,3 +7432,1064 @@ Shared work rather than per-screen work:
 - **The theme switch is gone from the signed-out screens.** It lived only in `AuthCard`. A stored preference is still honoured — a baker who chose Peach still sees Peach here — but it cannot be *changed* before signing in, and §137.6 moves the app's pill to Settings, which a signed-out visitor cannot reach. Decide whether the auth scene carries one; the references show none.
 - **C2 is fixed in the helper but not at five call sites.** `AppShell`'s bottom nav (`py-2`), the checkout bar in `orders/new` (`p-4`), `form-sheet`, `MoreSheet` and `AppShell`'s mobile header all still pair a `safe-*` class with a padding utility, so their bottom or top padding is currently `0`. Each is a one-class edit — `p-4` → `[--safe-pb:1rem]`. Not done here because it moves the layout of app screens this pass did not verify; **do it in §137.10, which rewrites all four components anyway.**
 - **Desktop remains contained, not composed** (unchanged from §138.5). The wide treatment is §137.9.
+
+---
+
+# 139. Ovenly v2 — Redesign, Product Expansion and the Android App (planned 2026-09-24)
+
+> **Status: planned only. Nothing in this section is implemented.** It is the
+> plan of record for the next body of work, and **§139.19 is its tracker** —
+> update a row's Status as the work lands, and never delete a row.
+
+## The brief (2026-09-24)
+
+- Redesign **every screen** from the new references, in **two colour themes — Golden and Peach** — and make every screen **responsive**.
+- **Check for bugs and improvements.** Use **safe areas** properly, so the Android app behaves.
+- **Registration** asks for: business name (**required**), a catch phrase such as "your friendly baker" (**optional**), city, address, email (**required**) and mobile number (**required**). **Sign-in stays by mobile number.**
+- **Trim every form input**, and take care of the other small things of that kind.
+- Replace toast-style feedback with a **response card**, used the same way across the web app and the Android app.
+- The product widens from home bakers to **home businesses** — hampers, gift flowers and the like. The **BAKER role becomes USER**; the roles are **USER and DEV**.
+- **An order no longer needs a customer.** It can be a **Guest** order, and those roll up as **Guest sales**.
+- A customer can be **created on the fly from the order screen**: name, phone, address, map link (optional). Picking a saved customer **fills the delivery address and map link**, which stay **editable** for that order.
+- A **View bill** button **before the order is saved**, with **Share** available from there.
+- **A proper bill:** the business's name, catch phrase and address; the contents; and the app's name and web link at the bottom.
+- A **phase-wise implementation plan**, and after it the **Capacitor Android app**.
+- Evaluate moving **tests into `/tests`** instead of beside the code.
+
+**References:** eleven images in `design-references/`, prefixed `v2-`. That
+folder is gitignored and the images are **not committed**.
+
+---
+
+## 139.1 Scope changes this brief approves (§31)
+
+Each row replaces what the plan said before. Rows marked *Q#* have an open
+detail in §139.2 but the change itself is approved.
+
+| # | Area | The plan said | From now on | Supersedes |
+|---|---|---|---|---|
+| 1 | **Roles** | `BAKER`, `DEV` | **`USER`, `DEV`.** USER is the business owner and keeps every right BAKER had. DEV is unchanged and still does not inherit business data. | §5, §6, AGENTS §8 |
+| 2 | **Audience** | Home bakers | **Home businesses** — bakers, hamper makers, florists, gift makers. User-facing copy says *business*, not *bakery*. Internal names (`bakeries`, `bakery_id`, `bakeryId`) **stay** — §139.11.1. | §1; copy everywhere |
+| 3 | **Registration** | Name, bakery name, phone, email, password | Adds **catch phrase** (optional), **city** and **business address**. *Q2* | §7, §92 (registration) |
+| 4 | **Visual directions** | Clean Bakery, Peach Bakery | **Golden** and **Peach** — still exactly two. Clean is retired, and a stored `clean` choice becomes Golden. | §42, §137.5, AGENTS §21 |
+| 5 | **Order customer** | Required (`orders.customer_id NOT NULL`) | **Optional.** An order is for a saved customer or for a **Guest**. Guest orders are reported as **Guest sales**. *Q12* | §15, §16, §86, §100 |
+| 6 | **Creating a customer** | Customers screen only | Also **inline from the order screen**. | §11, §16 |
+| 7 | **Customer fields** | name, phone, email, address, maps link, notes | **Name, phone and address required** (as listed in the brief); **map link optional**; email and notes stay optional. *Q1* | §92 |
+| 8 | **When a bill exists** | After the order is created (§70, §72) | A **draft bill (estimate)** can be viewed and shared **before the order is saved**; the confirmed bill follows creation. **Neither is stored** — §15 and §132 are unchanged. | §70, §72 |
+| 9 | **What a bill shows** | Business name, lines, totals, payment | Adds the **catch phrase, address and phone**, delivery details and **balance due**; the footer credits the app by **name and web link**. The business leads and the credit is a small footer — this settles §134's "bill branded with the vendor" finding in the brief's favour. | §72, §99, §133.2 B4 |
+| 10 | **Feedback** | Inline banners; success mostly silent | A **response card** for every action's outcome, app-wide (§139.6). | §101, §102 |
+| 11 | **Input hygiene** | Most schemas trim | **Every** text input is normalised by one set of primitives (§139.7). | §33 |
+| 12 | **Responsive** | Mobile now; desktop specified but not scheduled (§137.9) | **Every screen ships phone, tablet and desktop together.** | §41, §137.9 |
+| 13 | **Mobile navigation** | Home · Orders · Products · Customers · More (§137.1) | **Unchanged** — the references confirm it. | — |
+| 14 | **Where tests live** | Beside the code (AGENTS §26) | **`/tests`, mirroring `src/`** — recommended in §139.16. | AGENTS §26 |
+| 15 | **Android** | Phase 7 (§60) | **Phase 8 of this roadmap**, after the web app is redesigned and hardened (§139.17). | §60 |
+
+---
+
+## 139.2 Open questions
+
+Each question blocks **only** the tracker rows that name it (§139.19). Everything
+else proceeds, and a question left unanswered is built on its **default**.
+
+| # | Question | Default if unanswered | Recommendation | Waits on it |
+|---|---|---|---|---|
+| **Q1** | **Is a customer's address required?** The brief lists it as required; the reference form marks it "(Optional)". Required means a pickup-only regular customer needs an address too — Guest covers true walk-ins. | Required, as the brief says | Required, as the brief says | R3.7 |
+| **Q2** | **Are city and address required at registration?** They are listed without "optional". | Required — the bill prints them | Required | R2.4 |
+| **Q3** | **Order statuses.** The references show Pending · Preparing · Ready · Out for delivery · Delivered · Completed · Cancelled. The product has Pending · Baking · Out for delivery · Delivered · Cancelled. | Rename "Baking" → **"Preparing"** only (a label, not data) | Rename, **add `READY`**, and keep `DELIVERED` as the single finished state, labelled **"Completed"** for pickup orders and **"Delivered"** for delivery. Adding `READY` changes a CHECK constraint and the transition table. | R3.11 |
+| **Q4** | **Tax.** The references show "Tax (GST 5%)"; `totals.ts` charges none, and most home businesses sit below the GST threshold. | No tax; the tax row is hidden when it is 0 | Not in v2. If wanted later: a per-business setting (registered, GSTIN, rate). | — |
+| **Q5** | **Custom items.** The desktop reference has "Add custom item — for special requests or non-listed items". This matters a lot for hampers and flowers. The schema already allows it (`order_items.product_id` is nullable and keeps a name and price snapshot). | Not built | **Build it.** A custom line moves no stock. | R3.10 |
+| **Q6** | **Photography.** The references are photo-led. §16/§118 allow **only** the logo upload, and for §137 you chose no photos — but you have now supplied a clean plate (`v2-plate-cake-clean.png`). | Monogram tiles everywhere; no hero plate | Use **app-owned hero plates** on the auth screens and Home (optimised to WebP ≤ 200 KB and committed as assets only when built). Products keep the monogram tile (§137.3). **Product photo uploads only if §16 is changed.** | R1.13, R2.8 |
+| **Q7** | **Reference features outside the plan:** Messages/chat, Staff/team, Suppliers, a Wholesale customer type, Language and Currency settings, Payment-methods settings, a barcode scanner, a dark-mode toggle, a multi-business switcher, "Today's special", and the copy "the customer will be notified". | Omitted | **Omit all of them.** Keep the **Regular / New** customer tabs, which are derived from order history and need no new data. Help & Support can be a static contact screen (optional). | R5.11 |
+| **Q8** | **Wording for the wider audience.** The tagline "Home Bakery", the auth headlines ("Good bakes start here.") and the product units (piece, kg, gram, box, dozen) are bakery-only. | Tagline "Home Business"; neutral auth headlines; units add **set, bunch, pack** | Same as the default | R1.14, R2.8, R5.6 |
+| **Q9** | **How the Android app ships:** the hosted app inside a native shell, or a static export bundled into the APK (§139.17.1). | Hosted app in a native shell | Hosted app in a native shell | R8.1 |
+| **Q10** | **Android identity and Play requirements:** the application id (e.g. `app.ovenly`), the Play developer account, a **Privacy Policy page**, and **account deletion** (in the app and via the web). Play requires both for an app that creates accounts and stores personal data — here, the customers' names, phones and addresses. **Neither exists** (§138.2 F). | — | Build both pages in Phase 8 | R8.2, R8.10 |
+| **Q11** | **Order-flow sequence.** The references put items first and the customer second; AGENTS §12 puts the customer first. | Items first | **Items first** — a Guest walk-in never needs a customer step | R3.9 |
+| **Q12** | **Guest orders:** anonymous, or with an optional name for the bill? | Anonymous; the bill reads "Guest" | Anonymous | R3.5 |
+| **Q13** | **Success cards:** close on their own after about 3 seconds when they offer no next step, or always need a tap? | Close on their own | Close on their own (errors and confirmations never do) | R1.10 |
+| **Q14** | **Theme choice:** remembered per device (today, `localStorage`), or saved on the account so it follows the user into the Android app (one column on `profiles`)? | Per device | Per account | R1.4 |
+| **Q15** | **A theme switch on the signed-out screens** (§138.6.3 left this open). | None — the stored choice is honoured | None | R2.9 |
+
+---
+
+## 139.3 What the references establish
+
+| File | Screens | Theme |
+|---|---|---|
+| `v2-home-mobile-peach.png` | Home: the **business's own** name and catch phrase in the header, a greeting, a hero plate, search, four stat tiles with deltas, a promo card, recent orders, and the five-item bottom nav | Peach |
+| `v2-analytics-expenses-mobile-golden.png` | **Analytics** (range picker, tabs, four KPIs, sales-trend line, top products, sales-by-category donut, quote) and **Expenses** (tabs, two KPIs, category donut, daily bars, recent expenses) | Golden |
+| `v2-board-home-customers-more-analytics-expenses.png` | A Home variant with category chips and featured products; **Customers** with segment tabs; **More**, with the reasoning for putting Analytics and Expenses there; wide Analytics and Expenses | Golden |
+| `v2-board-customer-profile-notifications-settings.png` | Customers, **Customer detail** (stats; Orders / Notes / Addresses tabs; Create order), Messages, **Profile**, Analytics, Expenses, **Notifications** (tabs, mark all read), **Settings** | Golden |
+| `v2-plate-cake-clean.png` | A **clean photographic plate** with no type on it — usable as a hero asset | — |
+| `v2-hero-cake-with-type.png`, `v2-hero-brownie-with-type.png` | The hero composition: a two-line serif, a short rule and a tracked line on the left, the subject on the right | — |
+| `v2-tablet-desktop-layouts.png` | The **tablet and desktop shell**: sidebar, a top bar with global search, a greeting row, KPI tiles with sparklines, charts, orders as a table; desktop Orders, a Products grid, Analytics | Golden |
+| `v2-order-flow-mobile.png` | **Create order** (product grid, category chips, cart bar), **Order details** (customer, items with steppers, note, summary), the **Select customer** sheet and the **New customer** form | Peach |
+| `v2-order-create-desktop.png` | **Two-pane create order**; Select customer and Add new customer as dialogs | Peach |
+| `v2-order-create-desktop-success.png` | Grouped sidebar, **"Add custom item"**, and **"Order placed successfully"** — the model for the response card | Peach |
+
+**What we take from them**
+
+- **Cream ground, white cards,** a serif for display and a sans for everything you operate (confirms §137.2 rules 1 and 2).
+- **The business's identity in the header** — its name and catch phrase, not the app's.
+- **Stat tiles:** a tinted icon medallion, the value, the label, and a delta against the previous period.
+- **Status as a tinted pill with a dot.** This supersedes §137.2 rule 4 ("a dot and a word").
+- **Lists as hairline rows inside one card** (§137.6 `row.tsx`).
+- **Create order as two panes on wide screens,** and as a grid with a cart bar on phones.
+- **Tabs:** underlined for sections, and a filled pill for a segmented range.
+- **Charts:** a line for the sales trend, bars for daily expenses, a donut for category share — each with a tooltip.
+- **A result card:** an illustrated medallion, a strip of key facts, and two actions.
+- **A grouped sidebar:** the daily work, then the business, then the rest.
+
+**What we do not take** — product truth wins (§139.2 Q6, Q7):
+
+- **Customer and profile photos** become **initials avatars**. Photo uploads are outside §16.
+- The **"Admin" and "Baker" role labels** become **"Owner"**.
+- **"The customer will be notified"** — customers receive nothing from this product, so the copy must not promise it.
+- **The mock's own inconsistencies** are not specifications: an average order value of "4.8", and a cart that says ₹1,410 over a summary of ₹1,570.
+
+---
+
+## 139.4 Themes — Golden and Peach
+
+One vocabulary for the whole app. The separate Flour Room tokens from §138
+(`canvas`, `sheet`, `field`, `ink`, `ink-muted`, `rule`) **merge into the
+semantic names** the components already use, so the auth screens and the app
+stop having two palettes:
+
+| Retired | Becomes |
+|---|---|
+| `canvas` | `background` |
+| `sheet` | `surface` |
+| `field` | `sunken` (new) |
+| `ink`, `ink-muted` | `text`, `text-muted` |
+| `rule` | `border` |
+| `action`, `action-hover`, `action-text` | kept — the one dark control |
+
+**Every value below was checked for contrast** — the ratios are measured
+against the ground the token is used on.
+
+### Golden (replaces Clean)
+
+| Token | Value | Used for | Contrast |
+|---|---|---|---|
+| `background` | `#F6EFE5` | Page ground | — |
+| `surface` | `#FFFCF8` | Cards, sheets, the response card | — |
+| `sunken` | `#F1E8DB` | Fields, tile wells, the quote block | — |
+| `border` | `#E6DACB` | Hairlines | decorative |
+| `text` | `#2B1D14` | Body and headings | 14.3 : 1 on background |
+| `text-muted` | `#6B5747` | Secondary text, placeholders, hints | 5.97 on background · 6.67 on surface · 5.62 on sunken |
+| `primary` | `#7A4A25` | Caramel — active tab, links, icons, filled buttons | 7.25 as text on surface; `#FFF8F0` on it 7.04 |
+| `primary-soft` | `#F3E6D6` | Tinted medallions, the active nav pill | — |
+| `accent` | `#A67628` | Gold — highlights and chart accent. **Not for text.** | 3.30 on sunken, 3.92 on surface (≥ 3 : 1 for UI marks) |
+| `action` | `#2A1B12` | The one dark control per screen | `#FFF8F0` on it 15.8 |
+
+### Peach
+
+| Token | Value | Used for | Contrast |
+|---|---|---|---|
+| `background` | `#FBEEE6` | Page ground | — |
+| `surface` | `#FFFAF6` | Cards, sheets | — |
+| `sunken` | `#F7E6DA` | Fields, wells | — |
+| `border` | `#F0DBCD` | Hairlines | decorative |
+| `text` | `#33201A` | Body and headings | 13.6 on background |
+| `text-muted` | `#77574A` | Secondary text | 5.69 on background · 6.24 on surface · 5.32 on sunken |
+| `primary` | `#A94A26` | Terracotta | 5.48 as text on surface; `#FFF8F3` on it 5.41 |
+| `primary-soft` | `#FADFD0` | Medallions, the active nav pill | — |
+| `accent` | `#C46A3C` | Highlights and chart accent. **Not for text.** | 3.70 on surface |
+| `action` | `#3A2119` | The one dark control | `#FFF8F3` on it 14.2 |
+
+### Status and payment colours (both themes)
+
+A status pill is its colour at **12 % over `surface`**, with a 6 px dot and the
+word in the full colour. **Every pair is at least 4.5 : 1** in both themes.
+
+| Status | Colour | Label |
+|---|---|---|
+| `PENDING` | `#8A5208` | Pending |
+| `IN_PROGRESS` | `#944616` | **Preparing** (was "Baking" — Q3) |
+| `READY` *(if Q3)* | `#2F6F5E` | Ready |
+| `IN_TRANSIT` | `#355F9A` | Out for delivery |
+| `DELIVERED` | `#2E7048` | Delivered · **Completed** for pickup (Q3) |
+| `CANCELLED` | `#A63A34` | Cancelled |
+| neutral | `#5E5550` | Inactive, archived |
+
+Payment: `UNPAID` uses the cancelled red, `PARTIALLY_PAID` the pending amber,
+`PAID` the delivered green.
+
+**Chart colours are not chosen here.** They are derived and validated with the
+dataviz method at build time (R5.8, R5.9), from each theme's primary and accent.
+
+### Theme mechanics
+
+- **No flash on load** (BUG-15): a small inline script in `<head>` sets `data-theme` before first paint, so a Peach user never sees Golden flash first.
+- **`theme-color`** follows the theme — the browser toolbar, and the Android status bar through the native layer.
+- **The picker lives in Settings → Appearance**, as two swatches. The signed-out screens honour the stored choice (Q15).
+- **A stored `clean` value is read as `golden`,** so nobody loses their choice in the rename.
+- **Type follows §137.4:** Fraunces for display, Inter for the interface. Fredoka and Plus Jakarta Sans are retired.
+- **Icons:** lucide at a 1.75 stroke, set inside tinted medallions where the references use them.
+
+---
+
+## 139.5 The component system
+
+Everything lives in `src/components/ui` (kebab-case files). **No screen restyles
+a shared component** (AGENTS §5).
+
+| Component | New / rewrite | What it is |
+|---|---|---|
+| `AppShell` | Rewrite | **Phone:** a top bar with the business mark, name and catch phrase, a bell and an initials avatar; a five-item bottom nav with a tinted active pill. **Tablet:** an icon rail. **Desktop:** a grouped sidebar — *Home, Orders, Products, Customers* · *Analytics, Expenses* · *Inventory, Notifications, Business details, Settings* — and a top bar with global search, the bell and the account menu. Safe areas on every edge. |
+| `page-header` | Rewrite | Back, a serif title, a sans subtitle, and a trailing action (a range picker or a `+`). |
+| `hero` | New | An optional plate, a two-line serif, a rule and a tracked line. **Home only on phones**; Analytics and Expenses get a compact band, so their numbers stay above the fold. |
+| `stat-tile` | Rewrite | Medallion icon, value (serif when it is a headline amount), label, a delta against the previous period (up green, down rose), and an optional sparkline on desktop. |
+| `tabs` | New | Underlined, scrollable, with optional counts. |
+| `segmented`, `range-picker` | New | Today / Week / Month, and "Last 30 days". |
+| `row`, `row-list` | New | Tile or avatar · title block · trailing block (amount, pill) · chevron, with hairline dividers inside **one** card. |
+| `status-pill` | Rewrite of `status-badge` | A tinted pill with a dot (§139.4). |
+| `avatar` | New | Initials on a tint picked deterministically from the name, within the theme's palette. |
+| `product-tile` | New (the §137.3 bake tile, renamed for the wider audience) | Initials in the serif on the category tint. |
+| `product-card` | New | Tile, name, price and a `+`, for grids. |
+| `cart-bar` | New | A count badge, the running total and a go-on button. Sticky, clear of the safe area. |
+| `quantity-stepper` | New | − / value / + with 44 px targets, long-press repeat and keyboard support. |
+| `search-field` | Rewrite of `search-input` | Fixes placeholder contrast (BUG-24). Optional filter button; a global variant with ⌘K on desktop. |
+| `sheet` / `dialog` | Rewrite of `form-sheet` | A bottom sheet on phones and a dialog from tablet up. Focus trap, `inert` background, `dvh` height, a footer that rides above the keyboard, safe areas (BUG-25). |
+| `response-card` + `ResponseProvider` | New | §139.6. |
+| `charts` | New | `line-trend`, `bar-trend`, `donut` with legend — each with a data-table fallback for screen readers. |
+| `quote-block` | New | The centred serif panel. |
+| `fab` | New | The one dark circular `+` on a phone screen; on desktop it becomes a header button. |
+| `choice-chips` | New | Category filters. |
+| `customer-picker` | New | Search by name or phone, radio rows, **Guest pinned first**, and "Add new customer". |
+| `bill` | New | §139.11.6. |
+| Field kit | Update | **Sentence-case labels become the default** (the references use them everywhere); optional fields say "(Optional)" as the references do; the required asterisk stays (§138.5); a phone field gets a `+91` prefix adornment. |
+| `empty-state`, skeletons | Keep and restyle | — |
+
+---
+
+## 139.6 The response card — one way to report an outcome, app-wide
+
+**What it replaces.** The app has no toast library. Today an action's result is
+either an inline `ScreenNotice` banner or nothing at all — most saves close their
+sheet and say nothing. The response card is the single answer to "what just
+happened?", on the web and in the Android app. The model is the reference's
+**"Order placed successfully"** screen.
+
+**Anatomy**
+
+```text
+┌──────────────────────────────────────┐
+│              ( ✓ )                   │  medallion: tinted circle + drawn icon
+│         Order placed                 │  serif title — short, says the outcome
+│   ORD-1028 is saved and ready to     │  one or two lines of plain text
+│   share.                             │
+│ ┌──────────┬───────────┬──────────┐  │  facts strip — up to three key/values
+│ │ Order    │ Customer  │ Total    │  │
+│ │ ORD-1028 │ Priya M.  │ ₹1,817   │  │
+│ └──────────┴───────────┴──────────┘  │
+│ [ View bill ]        [ New order ]   │  primary + secondary
+└──────────────────────────────────────┘
+```
+
+**Kinds**
+
+| Kind | Medallion | Role | Closes |
+|---|---|---|---|
+| `success` | primary-soft, check | `dialog`, announced politely | On its own after ~3 s **when it offers no next step** (Q13); otherwise by an action or ✕ |
+| `info` | sunken, info | `dialog` | As success |
+| `warning` | amber tint | `alertdialog` | Only by a choice |
+| `error` | red tint | `alertdialog` | Only by a choice — **never on its own** |
+| `confirm` | amber or red tint | `alertdialog` | Resolves a promise: `await respond.confirm(…)` returns `true` or `false` |
+
+**Behaviour**
+
+- **Placement:** a bottom sheet on phones (thumb reach, clear of the safe area), a centred card (max 420 px) from tablet up.
+- **Focus** moves to the primary action, is **trapped** inside the card and **returns** to the control that caused it. The rest of the app is `inert`. Escape closes success, info and error cards and means *No* for a confirmation.
+- **Auto-close** shows a hairline progress bar and **pauses** on hover, focus or touch (WCAG 2.2.1).
+- **One at a time.** A newer card replaces an older one of lower severity, and identical cards are not stacked.
+- **Motion:** rises in 240 ms with an exponential ease-out; under reduced motion it only fades.
+- **Android:** a haptic tick for success, warning and error, through the native layer (§139.17.2).
+- **Words come from `messages.ts`.** An error shows the API envelope's message — never raw text — and the `requestId` in small type, so a user can quote it.
+
+**API** — `src/components/ui/response-card.tsx` plus a provider mounted once in the root layout:
+
+```ts
+const respond = useResponse();
+respond.success({ title, message, facts?, primary?, secondary?, autoClose? });
+respond.error({ title, message, requestId?, retry? });
+if (await respond.confirm({ title, message, confirmLabel, tone: "danger" })) { … }
+```
+
+**What stays inline — and why**
+
+| Stays inline | Why |
+|---|---|
+| **Field validation**, next to the field | The problem belongs where it can be fixed, and is announced by the field (§21). |
+| **A screen that could not load** (`ScreenNotice` with Retry) | Nothing was attempted; there is no outcome to report. |
+
+Everything that reports **the outcome of an action** — saved, created, recorded,
+refused, failed — is a response card. A server refusal on a form (a duplicate
+phone, say) is a card **over the form, which stays open** beneath it.
+
+**Examples**
+
+| Action | Card |
+|---|---|
+| Order placed | success · facts: Order, Customer or Guest, Total · **[View bill] [New order]** · no auto-close |
+| Payment recorded | success · facts: Amount, Balance due · auto-close |
+| Customer saved from the order screen | success · auto-close · the new customer is selected |
+| Phone already belongs to a customer | error · **[Use that customer] [Edit]** |
+| Network down | error · **[Try again]** |
+| Cancel an order | confirm (danger): "Cancel ORD-1028? Its stock is released." |
+| Delete an expense | confirm (danger) |
+| Not enough stock | error: "Only 2 left of Red Velvet Cake." (C4 blocks oversell) |
+| Session expired | info: "You were signed out. Sign in again to continue." |
+
+---
+
+## 139.7 Input hygiene — trim and normalise everything
+
+One set of primitives in `src/lib/validation/primitives.ts` does this. Forms and
+routes parse the **same** schema, so the server is authoritative and the client
+simply agrees with it. The database repeats the important rules as CHECK
+constraints.
+
+| Kind of input | Rule | Primitive |
+|---|---|---|
+| **Single-line text** — names, business name, city, catch phrase, product, category, adjustment name | Unicode NFC; strip zero-width characters (U+200B–U+200D, U+FEFF — they arrive when text is pasted from WhatsApp) and control characters; collapse runs of whitespace into one space; trim; then check min/max | `requiredLine(label, {min, max})`, `optionalLine(label, max)` |
+| **Multi-line text** — address, notes, description | NFC; strip zero-width and control characters except newlines; CRLF → LF; trim each line's end; collapse three or more blank lines into one; trim | `requiredLines(…)`, `optionalLines(…)` |
+| **Email** | Trim and lower-case (exists) | `requiredEmail`, `optionalEmail` |
+| **Mobile number** | Digits → `+91` E.164 (exists) | `indianMobile` |
+| **Link** (map link) | Trim; **`http:` and `https:` only** (BUG-13); max 1000 | `optionalLink` |
+| **Money** | Trim; **accept `₹`, commas and spaces** ("₹1,500"); at most 2 decimals; bounded (0 – ₹10,00,000 per field) so the `integer` columns cannot overflow (BUG-10, BUG-12) | `paiseText` |
+| **Whole numbers** | Trim; accept commas; bounded (quantity 1 – 9,999) | `wholeNumberText`, `quantity` |
+| **Search** | Trim and collapse; match phone numbers on digits (BUG-23) | client helper |
+| **Password** | **Never altered — not even trimmed.** A password is a secret, not text to tidy; only its length is checked. The one documented exception. | `password` |
+
+**Every message comes from `VALIDATION_MESSAGES`.** A schema may not fall back
+to Zod's defaults (BUG-11). A test feeds boundary values to every schema and
+fails if any message reads like Zod's ("Invalid input…", "Too big…").
+
+**The small things, in the field kit:** `autoComplete`, `inputMode` and
+`enterKeyHint` on every field; `autoCapitalize="words"` on names;
+`spellCheck={false}` and `autoCorrect="off"` on emails, links and codes; the
+submit button is busy while a request is in flight, and critical mutations carry
+an idempotency key (C2).
+
+**Database** (R1.11): `char_length(trim(x)) between 1 and N` on customer,
+product and category names, the city and the catch phrase; categories unique per
+business on `lower(name)`.
+
+---
+
+## 139.8 Safe areas, the viewport and the device
+
+**Today the safe-area helpers do nothing on an iPhone** (BUG-14): the root
+`viewport` export has no `viewportFit: "cover"`, so `env(safe-area-inset-*)` is
+always 0 there. On Android the insets matter even more: recent target SDKs draw
+the app edge to edge, behind the status and navigation bars.
+
+1. **Viewport:** `viewportFit: "cover"`, plus `interactiveWidget: "resizes-content"` so the on-screen keyboard resizes the layout rather than covering it.
+2. **One set of variables:** `--safe-top/right/bottom/left: env(safe-area-inset-*, 0px)` on `:root`. **Every inset flows through them**, so the native layer can override them if a WebView under-reports (§139.17.3), and tests can set them to fake a notch.
+3. **The additive helpers from §138.6** (`safe-bottom [--safe-pb:…]`), applied at **all five call sites** still pairing a helper with a padding utility (§138.6.3).
+4. **Who pays which inset:**
+
+| Element | Insets |
+|---|---|
+| Phone top bar; full-bleed heroes (content padded, image behind the status bar) | top, left, right |
+| Bottom nav | bottom, left, right |
+| FAB | bottom = nav height + bottom inset + 16 px |
+| Sheets, dialogs, the response card | bottom |
+| Sticky action bars (cart bar, checkout, customer "Create order") | bottom |
+| Sidebar and icon rail | left (landscape notch) |
+| Main content | bottom padding = nav height + bottom inset (replaces the fixed `pb-24`) |
+
+5. **Heights:** `dvh` and `svh`, never `vh` (sheets use `max-h-[90vh]` today).
+6. **Keyboard:** a sheet's footer rides above the keyboard (`visualViewport`); the focused field scrolls into view; on Android, the Capacitor Keyboard plugin's resize mode is set to match.
+7. **Status bar:** colour and icon style follow the theme — `theme-color` on the web, the StatusBar plugin on Android. The PWA uses `black-translucent`, which is why the top inset matters.
+8. **Touch:** 44 × 44 px minimum targets; primary actions in the bottom third on phones.
+9. **Verification:** every screen at 360, 390, 414, 768, 1024 and 1440 px wide, with the inset variables set to 47 px top / 34 px bottom, and in landscape. No horizontal scroll, and nothing under the notch or the home indicator.
+
+---
+
+## 139.9 Responsive layout
+
+| Width | Navigation | Content |
+|---|---|---|
+| **< 768 px** — phones (360, 390, 414 are the targets) | Top bar + five-item bottom nav + FAB | One column. Lists are rows; KPI tiles 2 × 2; product grid in 2 columns. |
+| **768 – 1023 px** — tablets | 72 px icon rail, labels in tooltips; top bar with search | KPI tiles 4 across; product grid in 3 columns; lists can open detail beside them. |
+| **≥ 1024 px** — laptop and desktop | 248 px grouped sidebar; top bar with global search (⌘K), bell, account | Max width 1200 px. Orders and customers become **tables**; create order is **two panes**; charts sit side by side; product grid in 4–5 columns. |
+
+Text stays readable at 200 % zoom, and the layout never scrolls sideways.
+
+---
+
+## 139.10 Screens
+
+Every screen ships **phone, tablet and desktop together**, in **both themes**,
+with **loading, empty, error and populated** states, and with its strings in
+`messages.ts` (BUG-30). What each one shows follows the plan; how it looks
+follows the references.
+
+### Authentication (built in §138)
+
+Re-tokened to Golden and Peach, the hero plate behind the scene (Q6), neutral
+headlines (Q8). **Register becomes two short steps** in one request, so a
+half-finished sign-up never creates an account:
+
+1. **You** — your name, mobile number, email, password, confirm password.
+2. **Your business** — business name, catch phrase (optional), city, address.
+
+A step indicator reads "Step 1 of 2". Validation runs per step; the server parses
+the whole payload once.
+
+### Home
+
+- **Phone:** the header band (business mark, name and catch phrase; bell; avatar); **"Good morning, {first name}"** with the time of day taken from the business's clock (§134 P2-1); the catch phrase or a neutral line beneath; the hero plate at the right. Then **search** (orders, customers, products); **four stat tiles** laid out as in the reference but **carrying the §20 priorities** — *orders due today*, *sales* (for the chosen period), *to collect* (balance due) and *low stock* — with a Today / Week / Month switch; **Orders due**, grouped Overdue / Today / Tomorrow and sorted by due date (§20, AGENTS §20), with "View all"; **Low stock**; the quote block; and the FAB for a new order.
+- **Desktop:** a greeting row with the date and the quote; four tiles with sparklines; a sales bar chart for the period; top products; an order-status donut; recent customers.
+
+### Orders
+
+Tabs with counts: All · Pending · Preparing · (Ready) · Out for delivery ·
+Delivered · Cancelled. Search, and a filter for dates, payment status and Guest.
+
+- **Phone rows:** the first item's tile (or the Guest mark) · `ORD-1028` · the first item "+2 more" · the customer or "Guest" · due date · status pill · amount · chevron.
+- **Desktop:** a table — Order, Customer, Items, Amount, Status, Due — with **New order** in the header.
+
+### Create order (§139.11.3 – §139.11.5)
+
+1. **Items** — search, category chips, the product grid with `+` on each card; **Add custom item** (Q5); the cart bar shows the count and total.
+2. **Order details** — **Customer** (a saved customer or **Guest**, plus **+ New customer**); **Delivery** (pickup or delivery, date and time; the address and map link **filled from the customer** and editable); the items with steppers; a **note** printed on the bill (a cake message, for example) kept separate from **internal notes**, which never are; discounts and charges; the summary. Buttons: **[View bill]** and **[Proceed to payment]**.
+3. **Payment** — Unpaid / Paid in full / Part paid (**asks for the amount**) · method · reference. Buttons: **[View bill]** and **[Place order]**.
+4. → **Response card:** "Order placed", with the facts, **[View bill] [New order]**.
+
+**Desktop:** two panes — the product grid on the left, and a sticky Order
+details panel on the right holding customer, items, summary and payment, with
+**Clear all**. Select customer and New customer open as dialogs.
+
+**The draft survives** a refresh or a back navigation (§110) until it is placed
+or cleared.
+
+### Order detail
+
+A header with the number, status pill and due date. The customer (or Guest) with
+Call, WhatsApp and Map. Items, totals, **payments** with **Collect payment**, and
+the **balance due**. **One next-step button** (Pending → Preparing → …), with the
+remaining transitions in a menu; **Cancel** asks through a confirm card.
+**Bill:** view, share, download.
+
+### Customers
+
+Tabs: **All · Regular · New**, derived from order history — *Regular* is three
+or more orders; *New* is created in the last 30 days. **A pinned "Guest sales"
+row** at the top — its count and total for the period — opens Guest sales. Rows:
+initials avatar · name · "12 orders · last order 2 days ago" · segment pill ·
+chevron. Search by name, or by phone in **any** format (BUG-23). The `+` button
+creates a customer.
+
+### Customer detail
+
+Initials avatar, name, segment; phone (tap to call), email, city and address
+with the map link. Actions: Call · WhatsApp · Map · Edit. Stats: orders, total
+spent, customer since, **balance due**. Tabs: **Orders · Notes · Addresses** —
+Addresses are **the distinct delivery addresses from this customer's orders**,
+so no new table is needed. A sticky **Create order** with this customer already
+selected.
+
+### Guest sales
+
+The period's count and total, then guest orders as order rows. Also reachable
+from Orders' Guest filter and from Analytics.
+
+### Products
+
+Search, category chips, and **Manage categories** (a sheet to add, rename,
+reorder and deactivate — §133.4 D1).
+
+- **Phone rows:** tile · name · category · price · Active pill · overflow menu (edit, deactivate, stock).
+- **Desktop:** a grid of product cards with **+ Add product**.
+
+Units add set, bunch and pack (Q8).
+
+### Inventory
+
+Stock per product with a low-stock pill; **Adjust** opens a sheet (and no longer
+crashes — §134 P0-1); each product's ledger.
+
+### Expenses
+
+A range picker and **+ Add**. Tabs: **Overview · Categories · Transactions**
+(Suppliers omitted — Q7). The Overview has total, daily average and the change
+on the previous period; a category donut; daily bars; recent expenses. The
+Transactions tab groups by month.
+
+### Analytics
+
+A range picker. Tabs: **Overview · Sales · Orders · Customers · Products**.
+KPIs: sales, orders, new customers, and **average order value in rupees**. A
+sales-trend line (daily or weekly), top products, sales by category, and **guest
+against customer** sales. **Aggregated on the server** (§133.9 I3), with the
+previous period for the deltas; Top Customers (§133.9 I1) sits in the Customers
+tab.
+
+### Notifications
+
+A bell with an unread dot, in the top bar. The screen has **Mark all as read**
+and tabs **All · Orders · Customers · System** — which needs a `kind` column on
+the existing `notifications` table. Tapping a row follows its `action_url`
+(§133.5 E1).
+
+### More (phone)
+
+Analytics · Expenses · Inventory · Business details · Settings · Help (Q7) ·
+Sign out — each with a medallion icon and a chevron.
+
+### Settings
+
+A profile card (initials, name, "Owner · {business}", the catch phrase as a
+quote). Then **Business details**; **Account** (name, email, the sign-in number,
+change password); **Appearance** (Golden or Peach); **Notifications** (the
+Android permission); **About** (version, the privacy policy); **Sign out**.
+The reference's separate Profile screen is folded in here.
+
+### Business details
+
+Business name, catch phrase, city, address, the business phone (printed on the
+bill; it starts as the sign-in number), and the logo (§133.2 B2). A **live
+preview of the bill header** sits beside the form.
+
+### System screens
+
+`not-found`, an error boundary, route loading states (§134 P0-2, P1-1, P1-2),
+and an offline screen (PWA and Android).
+
+---
+
+## 139.11 Product changes — specifications
+
+### 139.11.1 Roles: USER and DEV, and the wider audience
+
+- **Database:** `alter type public.user_role rename value 'BAKER' to 'USER'`, and the `profiles.role` default becomes `'USER'`. Existing rows follow the rename with no rewrite.
+- **Code:** `USER_ROLES = ["USER", "DEV"]`; `ROLE_LABELS.USER = "Owner"`; `BAKERY_ROLES` becomes `BUSINESS_ROLES = ["USER"]`; guards, seed and tests follow. **DEV still gets no business data** (§5).
+- **Stop writing `role` into Supabase `user_metadata`** (BUG-17). Users can edit their own metadata, so a role stored there must never be trusted — and today nothing needs it.
+- **Names:** the table `bakeries`, the column `bakery_id` and the identifier `bakeryId` **stay**. Renaming them would touch every table, policy and module, for no user-visible gain. **User-facing copy says "business".** AGENTS.md records the rule, so new code does not mix the two words.
+
+### 139.11.2 Registration and the business profile
+
+| Field | Stored in | Rule |
+|---|---|---|
+| Your name | `profiles.name` | Required, 2–120 (the greeting and the profile use it) |
+| Mobile number | `profiles.phone`, `bakeries.phone` | Required, unique; `+91` E.164; **the sign-in credential** |
+| Email | `profiles.email` | Required, unique, lower-cased |
+| Password, Confirm | Supabase Auth | Required, 8–72, must match; never trimmed |
+| **Business name** | `bakeries.business_name` | Required, 2–160 |
+| **Catch phrase** | `bakeries.tagline` (new) | Optional, up to 80 — "Your friendly home baker" |
+| **City** | `bakeries.city` (new) | Required (Q2), 2–80 |
+| **Address** | `bakeries.address` | Required (Q2), up to 300, multi-line |
+
+- **The confirmation email is queued, not sent inline** (BUG-16). Registration no longer fails, and rolls the new account back, just because mail is down. Settings offers **Resend confirmation**.
+- **Business details are editable** in Settings. This needs the `/api/business` endpoint and an update rule (§133.2 B1, B3). Updates run on the server with the owner check, because `bakeries` stays SELECT-only for the API role.
+- **The catch phrase appears** under the business name in the app's top bar, on the bill, and as the quote on the profile card.
+
+### 139.11.3 Guest orders and Guest sales
+
+- **Database:** `orders.customer_id` drops `NOT NULL`. `NULL` means Guest.
+- **API:** the order's customer is **explicit**, never an accidental `null`:
+  `customer: { kind: "GUEST" } | { kind: "CUSTOMER", id }`.
+- **The picker** pins **Guest** first, and it is one tap.
+- **A guest order** can be pickup or delivery. A delivery still needs an address or a map link (§96).
+- **The bill** reads "Billed to: Guest".
+- **Reporting:** `GET /api/orders?customer=guest`; the **Guest sales** screen; a **guest against customer** split in Analytics; and guest orders are **left out of Top Customers**.
+- **Orders detail** handles the missing customer instead of asking for `customers/null` (today it builds that URL from `order.customerId`).
+
+### 139.11.4 Customers on the fly, and the delivery address
+
+- **New customer from the order screen:** the sheet (phone) or dialog (desktop) posts to `/api/customers` as it does today, and **the new customer is selected** in the draft. A **phone that already exists** answers with a card: **[Use that customer]** or **[Edit]**.
+- **Fields:** name*, phone*, address* (Q1), map link (optional), email (optional), notes (optional). The column is `customers.google_maps_link`, and the label becomes **"Map link"** because any maps service will do.
+- **Autofill:** choosing a customer for a **delivery** fills the order's delivery address and map link **only if those fields are empty or still hold the previous autofill**. A value the user typed is kept, and a **"Use {name}'s address"** link offers the swap. The values are a **snapshot on the order** (§93), and editing them **never** changes the customer's record.
+- **Rule:** a delivery order needs an **address or a map link** (§96). Today that is not enforced (BUG-22).
+
+### 139.11.5 View bill before saving — the estimate
+
+- **[View bill]** on the Order details and Payment steps opens the bill sheet **in estimate mode**: the ribbon reads **ESTIMATE · not yet confirmed**, there is **no order number**, it is dated today, and payment shows as selected so far.
+- **The numbers come from the server:** `POST /api/orders/preview` takes the draft, validates it with the **same** schema as creation, re-reads the products, runs the **same** `orderTotals`, checks stock, and **writes nothing**. The estimate is therefore exactly what Place order will create (AGENTS §13).
+- **[Share]** from the estimate works as for any bill (§139.11.6). **[Place order]** is available in the sheet too.
+- **Nothing is stored** — not the estimate, and not the image or PDF (§15, §132).
+
+### 139.11.6 The bill
+
+```text
+┌────────────────────────────────────┐
+│ [logo or monogram]                  │
+│ The Flour Room                      │  business name — serif
+│ Homemade happiness                  │  catch phrase — italic, if set
+│ 12 Rose Street, Kochi · 98765 43210 │  address, city, phone
+│─────────────────────────────────────│
+│ BILL   ORD-1028         24 Sep 2026 │  ESTIMATE: no number, ribbon
+│ Billed to   Priya Menon · 98765 43… │  or "Guest"
+│ Delivery    Fri 26 Sep · Delivery   │  address; "Map link" if one is set
+│─────────────────────────────────────│
+│ Chocolate Truffle Cake              │
+│ 1 × ₹1,250                  ₹1,250  │
+│   "Happy birthday, Anu"             │  the customer-facing note
+│ Vanilla Cupcake                     │
+│ 2 × ₹160                      ₹320  │
+│─────────────────────────────────────│
+│ Subtotal                    ₹1,570  │
+│ Festive discount             −₹100  │
+│ Delivery                      +₹80  │
+│ Total                       ₹1,550  │  serif, large
+│ Paid · UPI · ref 3248…        ₹500  │
+│ Balance due                 ₹1,050  │
+│─────────────────────────────────────│
+│ Thank you for your order!           │
+│ Made with Ovenly · ovenly.app       │  app name + web root link, small
+└─────────────────────────────────────┘
+```
+
+- **Content:** the **business profile** (not the hard-coded "Ovenly Bakery" — §133.2 B4); the order number and date **in the business's timezone** (BUG-07); the customer or Guest; delivery; items with quantity × unit price and the line total; each adjustment by name; tax **only if it is not 0**; total; paid; **balance due**; payment method by its **label** (BUG-27). Internal order notes **never** appear on a bill.
+- **Footer:** "Made with Ovenly" and the host of `NEXT_PUBLIC_APP_URL`, linked in the PDF.
+- **Look:** a white sheet with near-black text for print and legibility; the theme shows only in the header rule and the total; the serif for the name and total; **tabular numerals** for money; no monospace (it reads as a costume). Designed at receipt width, and scaling cleanly to A5 for the PDF.
+- **Output — every one generated on demand, none stored:**
+  - **Share as an image (PNG)** — WhatsApp shows an image inline, and it is the common case. Web Share with files where it is supported; download plus copied text where it is not; the native share sheet on Android (§139.17).
+  - **Download PDF** — an on-demand route, never stored (§133.8 H1).
+  - **Print** — a print stylesheet.
+- **Accessibility:** the preview is a real dialog with a heading, and the bill reads in order to a screen reader.
+
+### 139.11.7 Custom items (if Q5)
+
+The draft's item is a union: `{ productId, quantity, note }` **or**
+`{ custom: { name, unitPrice }, quantity, note }`. A custom line is stored with
+`product_id = NULL` and its name and price snapshot. **It posts no inventory
+line** — the ledger code must skip it, where today it would fail on
+`item.product_id!` (`status.ts:40`, `checkout.ts:90`).
+
+### 139.11.8 Order statuses and transitions
+
+| From | Allowed next |
+|---|---|
+| Pending | Preparing, Cancelled |
+| Preparing | Ready *(if Q3)*, Out for delivery *(delivery only)*, Delivered/Completed, Cancelled |
+| Ready | Out for delivery *(delivery only)*, Delivered/Completed, Cancelled |
+| Out for delivery | Delivered, Cancelled |
+| Delivered / Completed | — (final) |
+| Cancelled | — (final) |
+
+The server refuses anything else (BUG-05). **Stock follows the transitions:**
+
+- **Created:** reserved (−q).
+- **Delivered or Completed:** the reservation is released (+q) and consumption posted (−q), so the balance does not move again (§133.3 C5).
+- **Cancelled:** the reservation is released (+q) (BUG-04).
+
+A status change is **one transaction** (§133.3 C6).
+
+### 139.11.9 Payment when the order is placed
+
+**Paid in full** or **Part paid** at creation **records a `payments` row** —
+part paid asks for the amount — and `payment_status` is **derived** from the
+payments, never chosen. The hand-set payment-status control on the order
+detail is removed (BUG-02, BUG-06). This supersedes §68's "no payments table in
+V1": the table exists and is the source of truth.
+
+---
+
+## 139.12 Data model and migrations
+
+Numbers are indicative; each is the next free sequential number when it is
+built (AGENTS §23). Tests in `tests/db` cover each one.
+
+| Migration | Contents | Phase |
+|---|---|---|
+| `…_tenant_integrity` | `unique (bakery_id, id)` on customers, products, categories, orders; **composite foreign keys** — `orders(bakery_id, customer_id)`, `payments(bakery_id, order_id)`, `inventory_transactions(bakery_id, product_id)`, `products(bakery_id, category_id)` — so no row can point into another business (BUG-19). The **payments, audit_logs and notifications** policies use `current_profile_bakery_id()` and `to authenticated` (BUG-18). `payments.amount > 0`, and a check on `payments.payment_method` (BUG-21). | 0 |
+| `…_roles_user` | Rename `BAKER` → `USER`; default `USER`. | 2 |
+| `…_business_profile` | `bakeries.tagline` (≤ 80), `bakeries.city`, trimmed-length checks; `bakeries.next_order_number` (int, default 1001). | 2 |
+| `…_guest_orders` | `orders.customer_id` drops NOT NULL; a partial index on `(bakery_id, created_at) where customer_id is null`. | 3 |
+| `…_order_rpc` | **`create_order(payload jsonb, idempotency_key uuid)`** and **`change_order_status(order_id, status)`** as `security invoker` functions, so RLS still applies and each is **one transaction** (C1, C6); the order number is taken from `next_order_number` inside it (BUG-08); stock is checked before it is reserved (C4). `orders.idempotency_key uuid` with `unique (bakery_id, idempotency_key)` — no new table (C2); the same on `payments`. | 3 |
+| `…_status_ready` *(if Q3)* | Add `READY` to the status CHECK. | 3 |
+| `…_text_hygiene` | Trimmed-length checks on customer, product and category names; categories unique per business on `lower(name)`. | 1 |
+| `…_notification_kind` | `notifications.kind` (`ORDER`, `PAYMENT`, `STOCK`, `CUSTOMER`, `SYSTEM`); index `(bakery_id, is_read, created_at desc)`. | 5 |
+| `…_audit_writes` | Revoke `INSERT` on `audit_logs` from `authenticated`; audit is written by the server with the acting user (§133.7 G1, BUG-20). | 2 |
+| `…_device_tokens` | The push-token registry (§133.5 E2). | 8 |
+| `…_profile_theme` *(if Q14)* | `profiles.theme`. | 1 |
+
+---
+
+## 139.13 API changes
+
+| Endpoint | Change |
+|---|---|
+| `POST /api/auth/register` | Adds tagline, city and address; the confirmation is queued. |
+| `GET, PATCH /api/business` | New — the business profile (§133.2 B1). |
+| `POST /api/business/logo` | New — the logo upload, under §56 rules (§133.2 B2). |
+| `GET /api/orders` | `?customer=guest\|{id}&status=&from=&to=&cursor=` — filters and pagination (§133.9 I4). |
+| `POST /api/orders` | Calls `create_order`; takes an `Idempotency-Key` header, the customer union, and custom items. |
+| `POST /api/orders/preview` | New — the estimate. Validates, prices and checks stock; **writes nothing**. |
+| `PATCH /api/orders/{id}/status` | The transition table; `paymentStatus` is **no longer accepted**. |
+| `GET /api/orders/{id}/bill` | Replaces `/receipt`: the bill view-model, including the business profile. |
+| `GET /api/orders/{id}/bill.pdf` | New — generated on demand, never stored. |
+| `POST /api/orders/{id}/payments` | Fixed amount handling (BUG-01); `Idempotency-Key`. |
+| `GET /api/customers` | `?search=` matches phone numbers on digits; pagination. |
+| `GET /api/customers/{id}/summary` | New — stats, and the delivery addresses taken from orders. |
+| `GET /api/guest-sales` | New — `?from&to`. |
+| `GET /api/analytics/overview` | `?from&to` with the previous period for deltas; the Guest split (§133.9 I3). |
+| `GET /api/search?q=` | New — global search across orders, customers and products. |
+| `GET, POST, PATCH /api/categories` | New (§133.4 D1). |
+| `GET /api/notifications`, `POST /api/notifications/read-all` | New (§133.5 E1). |
+
+**OpenAPI** is updated with every change (§133.11 K1).
+
+---
+
+## 139.14 Bugs found in this pass
+
+Verified against the code on 2026-09-24. **None of them is fixed here.** Severity:
+**S1** corrupts money, stock or data · **S2** a feature does not work · **S3**
+wrong but survivable · **S4** polish.
+
+| # | Sev | Finding | Where | Fix | Row |
+|---|---|---|---|---|---|
+| **BUG-01** | **S1** | **Every payment is recorded at 100 times its amount.** The form parses rupees to paise and the schema carries paise, then `processPayment` runs `rupeesToPaise` on it **again**: a ₹500 payment arrives as 50,000 paise and is stored as 5,000,000 — ₹50,000. In practice, **any payment above 1 % of the order total is refused** with "payment exceeds order total", so Collect payment does not work. No test covers `processPayment`. | `src/features/payments/api.ts:43` | The amount is already paise — drop the conversion; add tests | R0.1 |
+| **BUG-02** | **S1** | **An order placed as Paid or Part paid records no payment, and Part paid never asks how much.** The payments table, the balance due and the dashboard disagree from the first minute. | `src/app/orders/new/page.tsx:51`, `checkout.ts:59–61` | §139.11.9 | R3.12 |
+| **BUG-03** | **S1** | **"Pending payments" counts the full total of part-paid orders**, ignoring what has been paid. | `src/features/dashboard/summary.ts:37` | Total minus payments | R0.2 |
+| **BUG-04** | **S1** | **Cancelling an order never releases its stock.** The reservation stays, so every cancelled order lowers stock permanently. §133.3 C5 covers the double count on delivery; this is the other half. | `src/features/orders/status.ts` (no cancel branch) | §139.11.8 | R0.7 |
+| **BUG-05** | **S2** | **Any status can follow any other.** A free select fires on change, with no confirmation, and the server has no transition rules. Delivered → Pending → Delivered consumes stock twice; Cancelled → Delivered is allowed. | `src/app/orders/[id]/page.tsx:145`, `status.ts:20` | §139.11.8 | R0.6 |
+| **BUG-06** | **S2** | **Payment status can be set by hand** to Paid with nothing recorded. | `src/app/orders/[id]/page.tsx:156` | Derive it; remove the control | R3.12 |
+| **BUG-07** | **S3** | **Dates are taken in UTC.** Between midnight and 05:30 IST, a bill and the customer's order list show **yesterday's date**, and a new expense **defaults to yesterday**. | `ReceiptPrintView.tsx:72`, `CustomerProfileClient.tsx:235` (`createdAt.slice(0, 10)`); `ExpenseFormSheet.tsx:28` | `dayKey()` / `todayKey()` | R0.5 |
+| **BUG-08** | **S3** | **Order numbers read like `#13-482`:** a count plus one, and a random suffix. They are not sequential; a number is **reused** after a rollback deletes an order; and two can collide on the unique key and answer 500. | `src/features/orders/api.ts:136–147` | A per-business counter inside the transaction → `ORD-1001` | R3.2 |
+| **BUG-09** | **S2** | **A failed order leaves stock reserved.** The compensation deletes the order but not the ledger lines already posted. (One instance of §133.3 C1.) | `src/features/orders/checkout.ts:101–107` | The `create_order` transaction | R3.1 |
+| **BUG-10** | **S3** | **The running total shows "₹NaN"** once a charge contains a comma ("1,000"), and "1,000" or "₹500" is refused as an amount. | `src/app/orders/new/page.tsx:126`; `primitives.ts` `paiseText` | Tolerant money parsing (§139.7) | R0.8 |
+| **BUG-11** | **S3** | **Zod's own English reaches the screen:** "Too big: expected string to have <=100 characters"; an empty quantity gives "Invalid input: expected number, received NaN". | `customer.ts:9`, `product.ts:10`, `expense.ts:14`, `order.ts:16, 82` | Every message from `VALIDATION_MESSAGES` (§139.7) | R0.14 |
+| **BUG-12** | **S2** | **Unbounded numbers overflow the database.** Money and quantities have no maximum; the `integer` columns overflow, and the user gets a 500 instead of a message. | `primitives.ts` (`paiseText`, `wholeNumberText`), `order.ts:16, 82` | Bounds (§139.7) | R0.9 |
+| **BUG-13** | **S3** | **Map links accept any scheme.** `URL.canParse` accepts `javascript:` and `data:`. React 19.2 blocks `javascript:` in `href` when it renders, so the two links on screen today are safe — but the link now goes onto **shared bills and native share text**, where nothing blocks it. | `src/lib/validation/primitives.ts:94` | `http:`/`https:` only | R0.10 |
+| **BUG-14** | **S2** | **Safe areas are inert on iPhone** — no `viewportFit: "cover"`. Also: the five call sites of §138.6.3; the main content's fixed `pb-24` ignores the inset; sheets use `90vh`. | `src/app/layout.tsx:38–42`, `AppShell.tsx:120`, `form-sheet.tsx:89` | §139.8 | R1.6 |
+| **BUG-15** | **S3** | **The theme flashes on every load.** The server renders `data-theme="clean"`, and the stored theme is applied only after hydration; the client's first render also differs from the server's. The `theme-color` never changes. | `src/app/layout.tsx:41, 52`; `ThemeProvider.tsx:44–54` | An inline pre-paint script; `theme-color` per theme | R1.4 |
+| **BUG-16** | **S2** | **Registration fails whenever mail does.** The confirmation is sent inline, and a send failure rolls the whole account back. AGENTS §17 puts mail on the queue. | `src/features/auth/api.ts:314, 328` | Queue it; Resend confirmation | R2.5 |
+| **BUG-17** | **S3** | **The role is written into `user_metadata`**, which users can edit themselves. Nothing reads it today — a future read would be a privilege escalation. | `src/features/auth/api.ts:289–292` | Stop writing it | R2.3 |
+| **BUG-18** | **S2** | **The payments, audit-log and notifications policies skip the `is_active` check** the rest of the schema uses, and are not `to authenticated`. Once deactivation exists (§64), a deactivated user would keep reading those three tables. | `supabase/migrations/0003_payments_and_jobs.sql` | Use `current_profile_bakery_id()` | R0.11 |
+| **BUG-19** | **S3** | **Nothing stops a row pointing into another business.** Foreign keys are checked without RLS, so an order can reference another business's customer — `createOrder` never checks — and the same holds for a payment's order, a ledger line's product and a product's category. RLS hides them on read, but the rows are corrupt. | `checkout.ts:56`; FKs in `0002`, `0003` | Composite FKs; check at the route | R0.12 |
+| **BUG-20** | **S3** | **The audit trail can be forged:** `authenticated` may INSERT into `audit_logs`, so any signed-in user can write audit rows for their business directly. | `supabase/migrations/0004_api_role_grants.sql:34` | The server writes audit (G1) | R2.10 |
+| **BUG-21** | **S3** | **`payments` has no amount check and no method check**, unlike `orders` and `expenses`. | `0003` | Constraints | R0.13 |
+| **BUG-22** | **S3** | **A delivery order is accepted with neither an address nor a map link**, against §96. | `src/lib/validation/schemas/order.ts:43–48` | A refinement on the delivery type | R3.8 |
+| **BUG-23** | **S3** | **Customer search misses numbers as they are written.** Phones are stored as `+919876543210`, so typing "98765 43210" finds nothing. | `src/app/customers/page.tsx:23` | Match on digits | R5.3 |
+| **BUG-24** | **S3** | **The search box's placeholder and icon fail contrast** (`text-muted/60`) — §138.6 C3 fixed the text field but not this one. | `src/components/ui/search-input.tsx:28, 36` | Full-strength muted | R1.12 |
+| **BUG-25** | **S3** | **Dialogs do not keep focus.** Tab walks out of the form sheet and the More sheet into the page behind, which is not `inert`. The receipt view is **not a dialog at all** — no role, no Escape, no focus handling. | `form-sheet.tsx`, `MoreSheet.tsx`, `ReceiptPrintView.tsx` | §139.5 sheet/dialog | R1.9 |
+| **BUG-26** | **S4** | **Notifications print raw values:** "Order #13-482 is now IN_PROGRESS"; "Payment of 50000 received" — paise, in inline English. | `status.ts:66`, `payments/api.ts:81` | Labels, `formatPaise`, `messages.ts` | R3.4 |
+| **BUG-27** | **S4** | **The receipt prints raw enums** (`CASH`, `BANK_TRANSFER`) and "Tax ₹0.00" on every bill, and restores `body.style.overflow` to `'unset'` instead of its previous value. | `ReceiptPrintView.tsx:135, 27` | The new bill (§139.11.6) | R4.6 |
+| **BUG-28** | **S4** | **The new-order default date is fixed when the module loads,** so a tab left open overnight offers yesterday's "tomorrow". | `src/app/orders/new/page.tsx:47–51` | Compute it on mount | R3.16 |
+| **BUG-29** | **S4** | **`console.error` in the order compensation** bypasses the structured logger and loses the request id (§11). | `src/features/orders/checkout.ts:104` | The logger | R3.16 |
+| **BUG-30** | **S4** | **136 hard-coded UI strings** in JSX attributes alone (`label=`, `title=`, `placeholder=`) — AGENTS §5. | `src/app`, `src/components`, `src/features` | Swept screen by screen as each is rebuilt | R5.14 |
+
+**Still open from earlier passes, and confirmed again today:** §134 **P0-1** (the
+`/inventory` crash is still there — `InventoryAdjustmentSheet.tsx:58`) and **P0-2**
+(there is still no `error.tsx`, `global-error.tsx`, `not-found.tsx` or
+`loading.tsx`). Every other open item in §133–§138 is mapped to a tracker row in
+§139.19 rather than repeated here.
+
+---
+
+## 139.15 Improvements (not bugs)
+
+| # | Improvement | Row |
+|---|---|---|
+| IMP-01 | **Global search** — the Home search and ⌘K on desktop, across orders, customers and products. | R5.12 |
+| IMP-02 | **WhatsApp, with no integration:** tap to chat with a customer (a `wa.me` link to their number), and share a bill to WhatsApp through the share sheet. | R3.15, R4.4 |
+| IMP-03 | **Order again** from a customer's past order — the draft is prefilled. | R5.4 |
+| IMP-04 | **Create order from a customer** with the customer already selected (in the reference). | R5.4 |
+| IMP-05 | **"Today" stays today** until the day ends, instead of turning overdue at the due minute (§134 P2-2). | R5.1 |
+| IMP-06 | **A next-step status button** — one tap moves an order on. | R3.15 |
+| IMP-07 | **Balance due shown wherever money is owed** — order rows, order detail, customer detail and the bill. | R3.15, R5.2 |
+| IMP-08 | **An offline banner with retry** (PWA and Android). | R7.2, R8.9 |
+| IMP-09 | **Haptics** for success and error on Android. | R8.3 |
+| IMP-10 | **Deltas against the previous period** on every KPI. | R5.9 |
+| IMP-11 | **Pagination** or infinite scroll on every list (§133.9 I4). | R5.13 |
+| IMP-12 | **Money typed the way people write it** — "₹1,500" and "1,500" are both accepted. | R0.8 |
+
+---
+
+## 139.16 Tests — moving them into `/tests`
+
+**Today:** 60 test files sit beside their subjects in `src/`, and 59 of them import
+or mock by relative path. `tests/` holds only `tests/db` and a route-shape
+contract test that is named `e2e` but runs no browser.
+
+| For `/tests` | Against |
+|---|---|
+| `src/` holds only code that ships, which makes it easier to read — and the redesign is about to rewrite most of `src/components` and `src/features` anyway. | A test no longer moves when its subject moves; the mirrored path has to be kept up. A check script fails the build when a test's subject no longer exists. |
+| One root for SonarQube (`sonar.sources=src`, `sonar.tests=tests`) and for coverage, with no `*.test.*` exclusions scattered through `src`. | Imports become `@/…` aliases instead of `./…` — longer, but they survive moves. |
+| Setup, auth stubs and fixtures live in one support folder instead of `src/test-utils` inside the app. | A missing test is less visible than a gap beside the component — the 100 % UI coverage gate (AGENTS §26) catches it instead. |
+| It matches how `tests/db` and the end-to-end suite already work. | |
+
+**Recommendation: do it — first thing in Phase 1 (R1.1), before the redesign.**
+Moving 60 files later means moving files that are being rewritten at the same time.
+
+**Layout**
+
+```text
+tests/
+├── unit/        mirrors src/ exactly:
+│                src/lib/money.ts                         → tests/unit/lib/money.test.ts
+│                src/features/customers/components/X.tsx  → tests/unit/features/customers/components/X.test.tsx
+├── db/          database contracts; later, real integration tests against local Supabase (§133.11 K5)
+├── contract/    route-shape contracts (today's tests/e2e/auth-flow-contract.test.ts moves here)
+├── e2e/         Playwright browser journeys (§133.11 K4)
+└── support/     setup (from vitest.setup.ts), auth stubs (from src/test-utils), fixtures
+```
+
+**Rules:** a test's path is its subject's path with `src/` replaced by
+`tests/unit/` and `.test` before the extension. Imports and `vi.mock` use `@/`
+paths only. Vitest resolves a mock to the module's file, so
+`vi.mock("@/features/auth/api.client")` still intercepts a component that
+imports `../api.client` — **confirm this on the first moved file before scripting
+the rest.**
+
+**Steps:**
+
+1. `git mv` each file, so git keeps the history.
+2. Codemod the relative imports and mocks to `@/`.
+3. Move `src/test-utils` and `vitest.setup.ts` into `tests/support`.
+4. Update `vitest.config.mts` (`include`, `setupFiles`, coverage), `tsconfig` and the ESLint globs.
+5. Add the path-check script.
+6. Rewrite AGENTS.md §26.
+7. The suite passes with the **same test count** (490 today).
+
+---
+
+## 139.17 The Android app (Capacitor)
+
+### 139.17.1 How it ships (Q9)
+
+| | **A. The hosted app in a native shell** (recommended) | **B. A static export bundled into the APK** |
+|---|---|---|
+| **How** | The WebView loads the deployed HTTPS app. The native bridge is available to it. A small bundled page covers offline and error states. | `next build` exports static files into the APK; the API stays on the server. |
+| **Fits today's code?** | **Yes.** Route handlers, `proxy.ts`, server rendering and the HttpOnly `SameSite=Lax` session cookies are all first-party, exactly as on the web. | **No.** A static export drops route handlers and the proxy; dynamic routes need rework; and the API becomes **cross-site** — the cookies would need `SameSite=None` plus credentialed CORS, or bearer tokens held in JavaScript, which AGENTS §9 forbids. |
+| **Updates** | A web deploy updates the app. | Every UI change needs a Play release. |
+| **Offline** | Needs the network — the product is online-first (§51) — plus a bundled offline screen. | The shell opens offline, but data still needs the network. |
+| **Store policy** | The app must add native value — push, native share, haptics, deep links — which this plan does. | Fine. |
+| **Risk** | Capacitor describes `server.url` mainly for live reload. **Re-check the current Capacitor guidance and Play policy when this phase starts,** and record the decision. | A rework of authentication and routing. |
+
+### 139.17.2 The native capability layer
+
+`src/lib/native/` — the only place that knows whether the app is running inside
+Capacitor (AGENTS §18, §19). Every capability has a **web implementation** and a
+**native one**, chosen at runtime; screens import `@/lib/native` and nothing
+else. The existing mock `features/notifications/capacitor-push.service.ts` folds
+into it.
+
+| Capability | Web | Android |
+|---|---|---|
+| `share(file, text)` | Web Share with files; else download plus copied text | Filesystem (cache) + Share |
+| `saveFile(blob, name)` | `<a download>` | Filesystem + Share — **a WebView cannot download a blob URL**, so the bill PDF has to go through here |
+| `haptic(kind)` | no-op | Haptics |
+| `statusBar(theme)` | `theme-color` | StatusBar: colour and icon style |
+| `keyboard` | `visualViewport` | Keyboard plugin (resize mode) |
+| `app` | — | Back button, resume, deep links |
+| `network` | `online`/`offline` events | Network |
+| `push` | Web Push later, if at all | Push Notifications (FCM) |
+
+### 139.17.3 Behaviour on the device
+
+- **Edge to edge:** the safe-area system (§139.8). **Verify on real devices that the WebView reports the insets;** if one does not, the native layer writes them into `--safe-*`.
+- **Status bar** colours follow the theme.
+- **The back button** closes the response card, then any sheet, then goes back a screen; on Home it leaves the app.
+- **Links:** map links, `tel:` and `wa.me` open **outside** the app (only the app's own domain is navigable inside the WebView).
+- **Deep links:** Android App Links (`/.well-known/assetlinks.json`) open the confirmation and password-reset links **in the app**; the Supabase redirect URLs are updated to match.
+- **Splash screen and adaptive icon** are drawn from `BrandMark`.
+- **Offline:** a bundled screen with Retry.
+
+### 139.17.4 Push notifications (§133.5 E2, E3)
+
+A `device_tokens` table (business, profile, token, platform, last seen). Tokens
+are registered on sign-in and removed on sign-out. The NotificationWorker sends
+through FCM HTTP v1, with its service-account key as a secret. The mock token is
+removed (E3).
+
+### 139.17.5 Release
+
+- **Before anything else (Q10):** the application id, the Play developer account, a **Privacy Policy page**, and **account deletion** both in the app and through a web link. Play requires both for an app that creates accounts and stores personal data.
+- **Signing:** an upload keystore held as a CI secret, never in the repository. `versionCode` comes from the CI build number.
+- **Target SDK:** whatever Play requires at the time.
+- **Play Console:** the data-safety form — the app stores the business's customers' names, phone numbers and addresses, and sells nothing. Release to internal testing → closed testing → production.
+- **Device matrix:** Android 10–15; a small 360 dp phone, a large phone and a tablet; gesture and three-button navigation; a display cutout; both themes.
+
+---
+
+## 139.18 The phases
+
+Each phase ends **shippable**: typecheck, lint, the full suite and the build are
+green; the screens it touched are captured at every width in both themes;
+`changelog.md` is updated; and its tracker rows read DONE.
+
+| Phase | Goal | Depends on | Done when |
+|---|---|---|---|
+| **0 — Correctness and security** | Stop the bugs that corrupt money, stock or tenant data, and the crash. **No redesign.** | — | Payments record their real amount; cancelling releases stock; status changes follow the table; dates are local; RLS and foreign keys are tenant-tight; every screen has an error boundary. |
+| **1 — Foundation** | Tests in `/tests`; AGENTS.md updated; Golden and Peach tokens; the safe-area system; the new shell and component kit; the response card; input hygiene. | 0 | Every existing screen runs inside the new shell with the new tokens, and nothing sits under a notch. |
+| **2 — Accounts and the business** | USER/DEV; the new registration; the business profile and logo; the queue actually running; audit that records who. | 1 | A new user registers with every field, edits their business, and the confirmation arrives through the queue. |
+| **3 — Orders** | One-transaction creation with idempotency; order numbers; the oversell guard; Guest; customers on the fly; delivery autofill; custom items; statuses; payment at creation; the estimate endpoint. | 2 | A guest order and a new-customer order can each be placed twice by a double tap and produce **one** order; stock and payments reconcile. |
+| **4 — The bill** | The bill component; the estimate before saving; share as an image; the PDF; print. | 3 | A bill and an estimate share to WhatsApp from a phone, and nothing is stored. |
+| **5 — Screens** | Home, Orders, Customers and Guest sales, Customer detail, Products and categories, Inventory, Expenses, Analytics, Notifications, More, Settings, Business details, search — responsive, both themes. | 1, 3 (for order screens), 4 | Every screen matches §139.10 at 360 – 1440 px in both themes, and no hard-coded strings remain. |
+| **6 — Hardening** | The worker system completed, rate limiting, OpenAPI, CI with SonarQube, Playwright journeys, database integration tests, BugSnag, an accessibility pass. | 5 | CI runs the full §125 pipeline, and the E2E journey in AGENTS §26 passes, tenant isolation included. |
+| **7 — PWA** | Manifest, icons, the service worker, the offline page, install. | 6 | Installable on Android Chrome and iOS Safari; opens offline to the offline page. |
+| **8 — Android** | The Capacitor app (§139.17). | 7, Q9, Q10 | A signed build on the Play internal track passes the device matrix. |
+
+**The menu builder** (§45–§49) stays a later product phase and is not part of this
+roadmap.
+
+---
+
+## 139.19 Tracker
+
+**How to use it.** Status is one of **TODO**, **DOING**, **DONE (date · commit)**
+or **BLOCKED (reason)**. When a row is done, also close whatever its *Source*
+names (§133, §134 and so on). *Waits on* names the open question whose answer
+the row needs; without an answer it is built on that question's default
+(§139.2). Rows are never deleted.
+
+### Phase 0 — Correctness and security
+
+| ID | Work | Source | Waits on | Status |
+|---|---|---|---|---|
+| R0.1 | Payments store their real amount; tests for `processPayment` | BUG-01 | — | TODO |
+| R0.2 | "Pending payments" counts total minus paid | BUG-03 | — | TODO |
+| R0.3 | Fix the `/inventory` crash | §134 P0-1 | — | TODO |
+| R0.4 | Error boundary, not-found and loading states; remove the dead Receipts nav entry | §134 P0-2, P1-1, P1-2; §133.8 H2 | — | TODO |
+| R0.5 | Dates in the business's timezone | BUG-07 | — | TODO |
+| R0.6 | A status transition table on the server; confirm before Cancel | BUG-05 | — | TODO |
+| R0.7 | Stock follows status — cancel releases, delivery converts | BUG-04; §133.3 C5 | — | TODO |
+| R0.8 | Tolerant money parsing; no "₹NaN" | BUG-10; IMP-12 | — | TODO |
+| R0.9 | Bounds on money and quantities | BUG-12 | — | TODO |
+| R0.10 | Links accept `http:`/`https:` only | BUG-13 | — | TODO |
+| R0.11 | RLS: `is_active` and `to authenticated` on payments, audit logs, notifications | BUG-18 | — | TODO |
+| R0.12 | Tenant-integrity foreign keys; the customer checked at order creation | BUG-19 | — | TODO |
+| R0.13 | Payment amount and method constraints | BUG-21 | — | TODO |
+| R0.14 | Every validation message from the catalogue | BUG-11 | — | TODO |
+
+### Phase 1 — Foundation
+
+| ID | Work | Source | Waits on | Status |
+|---|---|---|---|---|
+| R1.1 | Tests into `/tests`, mirroring `src/` | §139.16 | — | TODO |
+| R1.2 | AGENTS.md updated: roles, themes, response card, input hygiene, tests, "business" wording | §139.1 | — | TODO |
+| R1.3 | Golden and Peach tokens; the Flour Room tokens merged; Clean retired; stored `clean` → `golden` | §139.4 | — | TODO |
+| R1.4 | No theme flash; `theme-color` per theme; the theme on the account if chosen | BUG-15 | Q14 | TODO |
+| R1.5 | Type: Fraunces and Inter; Fredoka and Plus Jakarta Sans retired | §137.4 | — | TODO |
+| R1.6 | The safe-area system: `viewport-fit`, `--safe-*`, `dvh`, keyboard, the five call sites | BUG-14; §138.6.3 | — | TODO |
+| R1.7 | AppShell: business header, five-item bottom nav, icon rail, grouped sidebar, top bar | §139.5 | — | TODO |
+| R1.8 | The component kit | §139.5 | — | TODO |
+| R1.9 | Sheets and dialogs trap focus, make the page `inert` and return focus | BUG-25 | — | TODO |
+| R1.10 | The response card and provider; action outcomes moved onto it | §139.6 | Q13 | TODO |
+| R1.11 | Input-hygiene primitives and the text-hygiene migration | §139.7 | — | TODO |
+| R1.12 | Search field contrast | BUG-24 | — | TODO |
+| R1.13 | Hero plate asset, WebP ≤ 200 KB | §139.3 | Q6 | TODO |
+| R1.14 | Shared copy for the wider audience — tagline, empty states, errors | §139.1 #2 | Q8 | TODO |
+
+### Phase 2 — Accounts and the business
+
+| ID | Work | Source | Waits on | Status |
+|---|---|---|---|---|
+| R2.1 | The worker system runs: runner, atomic claim, attempts, stale-job recovery | §133.6 F1–F5 | — | TODO |
+| R2.2 | `BAKER` → `USER`: migration, constants, guards, seed, tests | §139.11.1 | — | TODO |
+| R2.3 | Stop writing the role into `user_metadata` | BUG-17 | — | TODO |
+| R2.4 | Registration: catch phrase, city, address; two steps | §139.11.2 | Q2 | TODO |
+| R2.5 | The confirmation mail through the queue; Resend confirmation | BUG-16 | — | TODO |
+| R2.6 | The business profile endpoint and the Business details screen | §133.2 B1, B3 | — | TODO |
+| R2.7 | Logo upload | §133.2 B2; §56 | — | TODO |
+| R2.8 | Auth screens re-tokened; neutral headlines; the hero plate | §138 | Q6, Q8 | TODO |
+| R2.9 | A theme switch on the signed-out screens | §138.6.3 | Q15 | TODO |
+| R2.10 | Audit records the acting user and is written by the server only | §133.7 G1; BUG-20 | — | TODO |
+
+### Phase 3 — Orders
+
+| ID | Work | Source | Waits on | Status |
+|---|---|---|---|---|
+| R3.1 | `create_order` as one transaction, with an idempotency key | §133.3 C1, C2; BUG-09 | — | TODO |
+| R3.2 | Order numbers `ORD-1001` from a per-business counter | BUG-08 | — | TODO |
+| R3.3 | The oversell guard | §133.3 C4 | — | TODO |
+| R3.4 | `change_order_status` as one transaction; readable notification text | §133.3 C6; BUG-26 | — | TODO |
+| R3.5 | Guest orders; `?customer=guest` | §139.11.3 | Q12 | TODO |
+| R3.6 | The customer picker: Guest pinned, search, add new inline, the duplicate-phone card | §139.11.4 | — | TODO |
+| R3.7 | Customer fields: address required, map link optional | §139.11.4 | Q1 | TODO |
+| R3.8 | Delivery address and map link filled from the customer; the address-or-link rule | §95, §96; BUG-22 | — | TODO |
+| R3.9 | Items-first flow: grid, chips, cart bar → details → payment; the draft survives a refresh | §139.10; §110 | Q11 | TODO |
+| R3.10 | Custom items | §139.11.7 | Q5 | TODO |
+| R3.11 | Statuses: Preparing; `READY`; Completed for pickup | §139.11.8 | Q3 | TODO |
+| R3.12 | Payment at creation records a payment; part paid asks the amount; the manual status control removed | BUG-02, BUG-06 | — | TODO |
+| R3.13 | `POST /api/orders/preview` | §139.11.5 | — | TODO |
+| R3.14 | Place order → a response card with the facts and actions | §139.6 | — | TODO |
+| R3.15 | Order detail: next-step button, confirm on cancel, payments, balance due, bill actions, WhatsApp | IMP-02, IMP-06, IMP-07 | — | TODO |
+| R3.16 | The new-order date computed on mount; structured logging in checkout | BUG-28, BUG-29 | — | TODO |
+
+### Phase 4 — The bill
+
+| ID | Work | Source | Waits on | Status |
+|---|---|---|---|---|
+| R4.1 | The bill view-model, with the business profile | §133.2 B4 | — | TODO |
+| R4.2 | The bill component — estimate and confirmed | §139.11.6 | — | TODO |
+| R4.3 | View bill before saving, with Share | §139.11.5 | — | TODO |
+| R4.4 | Share as a PNG — Web Share with files, else download | IMP-02 | — | TODO |
+| R4.5 | The PDF on demand, never stored | §133.8 H1; §15 | — | TODO |
+| R4.6 | Print stylesheet; dialog semantics; labels, not enums | BUG-27 | — | TODO |
+| R4.7 | The footer: app name and web link | §139.1 #9 | — | TODO |
+
+### Phase 5 — Screens
+
+| ID | Work | Source | Waits on | Status |
+|---|---|---|---|---|
+| R5.1 | Home | §139.10; IMP-05 | — | TODO |
+| R5.2 | Orders list | §139.10; IMP-07 | — | TODO |
+| R5.3 | Customers: segments, the pinned Guest sales row, search on digits | §139.10; BUG-23 | — | TODO |
+| R5.4 | Customer detail: stats, orders, notes, addresses, create order, order again | IMP-03, IMP-04 | — | TODO |
+| R5.5 | Guest sales | §139.11.3 | — | TODO |
+| R5.6 | Products; managing categories; neutral units | §133.4 D1 | Q8 | TODO |
+| R5.7 | Inventory | §139.10 | — | TODO |
+| R5.8 | Expenses, with charts | §139.10 | — | TODO |
+| R5.9 | Analytics: server aggregation, deltas, Top Customers, the guest split | §133.9 I1, I3; IMP-10 | — | TODO |
+| R5.10 | Notifications inbox and bell; the `kind` column | §133.5 E1 | — | TODO |
+| R5.11 | More and Settings (Appearance, Account, About); Help if wanted | §139.10 | Q7 | TODO |
+| R5.12 | Global search | IMP-01 | — | TODO |
+| R5.13 | Pagination on every list | §133.9 I4; IMP-11 | — | TODO |
+| R5.14 | Hard-coded strings swept, screen by screen | BUG-30 | — | TODO |
+| R5.15 | Dashboard filters | §133.9 I2 | — | TODO |
+
+### Phase 6 — Hardening
+
+| ID | Work | Source | Waits on | Status |
+|---|---|---|---|---|
+| R6.1 | Jobs enqueued with the service role; exponential backoff; the Menu and Cleanup workers | §133.6 F6–F8 | — | TODO |
+| R6.2 | Rate limiting | §133.11 K6 | — | BLOCKED (the counter store needs a decision — changelog, 2026-09-23) |
+| R6.3 | OpenAPI and Swagger | §133.11 K1 | — | TODO |
+| R6.4 | CI pipeline with SonarQube | §133.11 K3 | — | TODO |
+| R6.5 | Playwright journeys, tenant isolation included | §133.11 K4 | — | TODO |
+| R6.6 | Database integration tests against local Supabase | §133.11 K5 | — | TODO |
+| R6.7 | BugSnag | §133.11 K2 | — | TODO |
+| R6.8 | An accessibility and responsive pass across every screen | §139.8, §139.9 | — | TODO |
+
+### Phase 7 — PWA
+
+| ID | Work | Source | Waits on | Status |
+|---|---|---|---|---|
+| R7.1 | Manifest, maskable icons, theme colours | §133.10 J1 | — | TODO |
+| R7.2 | Service worker: shell cache and the offline page | §133.10 J1, J3; IMP-08 | — | TODO |
+| R7.3 | Install prompt; iOS standalone meta and status-bar style | §139.8 | — | TODO |
+
+### Phase 8 — Android
+
+| ID | Work | Source | Waits on | Status |
+|---|---|---|---|---|
+| R8.1 | Record the delivery-model decision | §139.17.1 | Q9 | TODO |
+| R8.2 | Capacitor project, application id, config | §139.17 | Q10 | TODO |
+| R8.3 | The native capability layer | §139.17.2; IMP-09 | — | TODO |
+| R8.4 | Insets and edge-to-edge verified on devices | §139.17.3 | — | TODO |
+| R8.5 | The back button and App Links | §139.17.3 | — | TODO |
+| R8.6 | Push: device tokens, FCM, the worker | §133.5 E2, E3 | — | TODO |
+| R8.7 | Native bill sharing, PNG and PDF | §139.17.2 | — | TODO |
+| R8.8 | Splash screen and adaptive icon | §139.17.3 | — | TODO |
+| R8.9 | The offline screen | IMP-08 | — | TODO |
+| R8.10 | A Privacy Policy page and account deletion | §139.17.5 | Q10 | TODO |
+| R8.11 | Signing, versioning, the CI build, Play internal testing, data safety | §139.17.5 | — | TODO |
+| R8.12 | The device matrix | §139.17.5 | — | TODO |
+
+---
+
+## 139.20 How this section relates to the ones before it
+
+- **§137 (the Flour Room mobile direction) is superseded where the two differ:** status rendering (a pill with a dot, not a dot and a word); photography (Q6); theme values (§137.5 → §139.4); desktop, now in scope (§137.9 → §139.9, §139.10); and the build order (§137.10 → §139.18). **Kept from §137:** the navigation (§137.1), the type (§137.4), the tile (§137.3, now `product-tile`), hairline rows, and one dark action per screen.
+- **§133 (the gap register):** every open item is mapped to a tracker row through its *Source* column. Close both when the work is done.
+- **§134 – §136:** folded into Phases 0, 1 and 5. Those sections remain as the record of what was found.
+- **§138:** the authentication screens are built; R2.8 re-tokens them, and §138.6.3's two open items become R1.6 and Q15.
+- **Superseded in the earlier plan:** §68 ("no payments table in V1") by §139.11.9; the bill timing in §70 and §72 by §139.1 #8; the customer-first order flow in AGENTS §12 by Q11.
