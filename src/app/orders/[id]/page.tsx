@@ -23,7 +23,7 @@ import type { Customer } from "@/features/customers/types";
 import { OrdersClient } from "@/features/orders/api.client";
 import type { Order } from "@/features/orders/types";
 import { nextStatuses } from "@/features/orders/lifecycle";
-import { isOverdue, paymentPill, statusPill } from "@/features/orders/view";
+import { deliveryLabel, isOverdue, paymentPill, statusPill } from "@/features/orders/view";
 import { PaymentCollectionForm } from "@/features/payments/components/PaymentCollectionForm";
 import type { Payment } from "@/features/payments/types";
 import { ReceiptPrintView } from "@/features/receipts/components/ReceiptPrintView";
@@ -210,7 +210,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                   Type &amp; time
                 </dt>
                 <dd className={late ? "font-bold text-danger" : "font-medium text-text"}>
-                  {current.delivery.type} on {formatDateTime(current.delivery.date)}
+                  {deliveryLabel(current)} on {formatDateTime(current.delivery.date)}
                 </dd>
               </div>
               {current.delivery.address && (

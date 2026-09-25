@@ -1,5 +1,6 @@
 import { UI_TEXT } from "@/constants/messages";
 import {
+  DELIVERY_TYPE_LABELS,
   ORDER_STATUS_LABELS,
   ORDER_STATUS_TONES,
   PAYMENT_STATUS_LABELS,
@@ -37,6 +38,22 @@ export function paymentPill(order: Order): { label: string; tone: StatusTone } {
     label: PAYMENT_STATUS_LABELS[order.payment.status],
     tone: PAYMENT_STATUS_TONES[order.payment.status],
   };
+}
+
+/** "SAME_DAY" → "Same day": a stored code put into words. */
+function codeAsWords(code: string): string {
+  const words = code.toLowerCase().replace(/_+/g, " ").trim();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+/**
+ * How an order is handed over — "Pickup" or "Delivery" — never the stored
+ * code. A code this build does not know (a newer server answering an app
+ * still cached on a phone) is still put into words rather than shown raw.
+ */
+export function deliveryLabel(order: Order): string {
+  const labels: Partial<Record<string, string>> = DELIVERY_TYPE_LABELS;
+  return labels[order.delivery.type] ?? codeAsWords(order.delivery.type);
 }
 
 /** Open orders soonest first; finished ones most recent first (plan §20). */

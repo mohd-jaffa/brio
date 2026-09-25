@@ -995,3 +995,7 @@ Each lands on its own commit; this entry grows with them.
   - An amount is rounded to the paisa first, so -0.001 reads "₹0", never "-₹0".
   - Every screen already formats money through `formatPaise`, so Analytics, Expenses, Orders, Home and the receipt all follow; a search found no screen formatting rupees itself.
   - **Tests:** a loss in whole rupees, in paise and in crores; no negative zero; `NaN`.
+- **Order detail said "PICKUP on 26 Sep".** It printed the stored code. It now reads "Pickup" or "Delivery" through `deliveryLabel` (`features/orders/view.ts`), which looks the code up in the existing `DELIVERY_TYPE_LABELS`.
+  - A code this build does not know, such as a newer server answering an app still cached on a phone, is put into words ("SAME_DAY" → "Same day") rather than shown raw.
+  - **No `DINE_IN`.** The proposal named it, but a home business has no tables: the database allows only `DELIVERY` and `PICKUP` (§139.12), and the plan adds no third.
+  - **Tests:** both labels, and an unknown code.

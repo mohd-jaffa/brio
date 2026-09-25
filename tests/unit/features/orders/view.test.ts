@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
 
 import type { Order, OrderStatus, PaymentStatus } from "@/features/orders/types";
-import { balanceDue, byDueDate, isOpen, isOverdue, paymentPill, statusPill } from "@/features/orders/view";
+import {
+  balanceDue,
+  byDueDate,
+  deliveryLabel,
+  isOpen,
+  isOverdue,
+  paymentPill,
+  statusPill,
+} from "@/features/orders/view";
 
 function order(
   id: string,
@@ -120,5 +128,19 @@ describe("balanceDue", () => {
 
   it("never goes below nothing", () => {
     expect(balanceDue(owing("PENDING", "PARTIALLY_PAID", 30000, 40000))).toBe(0);
+  });
+});
+
+describe("deliveryLabel", () => {
+  it("says how the order is handed over in words, never the stored code", () => {
+    const pickup = order("1", "PENDING", now.toISOString());
+    expect(deliveryLabel(pickup)).toBe("Pickup");
+    expect(deliveryLabel({ ...pickup, delivery: { ...pickup.delivery, type: "DELIVERY" } })).toBe("Delivery");
+  });
+
+  it("puts a code this build does not know into words rather than showing it raw", () => {
+    const pickup = order("1", "PENDING", now.toISOString());
+    const unknown = { ...pickup, delivery: { ...pickup.delivery, type: "SAME_DAY" } } as unknown as Order;
+    expect(deliveryLabel(unknown)).toBe("Same day");
   });
 });
