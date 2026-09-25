@@ -25,7 +25,7 @@ const session: AuthenticatedSession = {
     phone: "+919876543210",
     email: "asha@example.com",
     name: "Asha",
-    role: "BAKER",
+    role: "USER",
     bakeryId: "b-1",
     isActive: true,
     mustChangePassword: false,

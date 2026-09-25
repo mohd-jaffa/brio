@@ -236,10 +236,10 @@ USER   the business owner — every right BAKER had
 DEV    unchanged; never inherits business data
 ```
 
-`BAKER` becomes `USER` in Phase 2 (tracker R2.2, plan §139.11.1). Until that
-lands, the code and the database still say `BAKER`; do not rename it piecemeal.
-A role is never read from, or written to, Supabase `user_metadata` — users can
-edit their own metadata (BUG-17).
+`BAKER` became `USER` in Phase 2 (tracker R2.2, plan §139.11.1,
+`0010_roles_user.sql`); a screen calls it "Owner". A role is never read from,
+or written to, Supabase `user_metadata` — users can edit their own metadata
+(BUG-17, `0009_role_out_of_metadata.sql`).
 
 Do not introduce additional roles unless explicitly requested.
 
@@ -277,7 +277,7 @@ The session lives in **HttpOnly cookies** set by the server, never in `localStor
 
 ## Authorization
 
-- `assertRole` has no default. A route names the roles it serves, and `withBakeryRoute` serves `BAKERY_ROLES` (`BAKER` only) unless told otherwise — DEV does not inherit access to business data (plan §5).
+- `assertRole` has no default. A route names the roles it serves, and `withBakeryRoute` serves `BUSINESS_ROLES` (`USER` only) unless told otherwise — DEV does not inherit access to business data (plan §5).
 - A baker owing a password change is refused everywhere but the screen that replaces it, on the server (`assertPasswordChanged`) as well as in the browser (`RequireAuth`).
 
 Never:

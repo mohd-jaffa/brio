@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { BAKERY_ROLES, type UserRole } from "@/constants/roles";
+import { BUSINESS_ROLES, type UserRole } from "@/constants/roles";
 import { withApiHandler, type ApiContext } from "@/lib/api/handler";
 import { authenticationError, authorizationError } from "@/lib/errors";
 import { createSupabaseAnonClient, createSupabaseServiceRoleClient } from "@/lib/supabase/server";
@@ -53,7 +53,7 @@ export function assertPasswordChanged(session: AuthenticatedSession) {
 /** The session behind a request, refused when there is none or the role may not act. */
 export async function requireAuth(
   request: Request,
-  allowedRoles: readonly UserRole[] = BAKERY_ROLES,
+  allowedRoles: readonly UserRole[] = BUSINESS_ROLES,
 ): Promise<AuthenticatedSession> {
   const session = await getSession(createSupabaseServiceRoleClient(), readAccessToken(request));
   assertRole(session.profile, allowedRoles);
@@ -84,7 +84,7 @@ export function withBakeryRoute<TData>(
   return withApiHandler(
     request,
     async ({ requestId }) => {
-      const session = await requireAuth(request, options.roles ?? BAKERY_ROLES);
+      const session = await requireAuth(request, options.roles ?? BUSINESS_ROLES);
       assertPasswordChanged(session);
       return handler({
         requestId,

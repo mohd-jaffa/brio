@@ -20,7 +20,7 @@ describe("the account menu", () => {
     render(<AccountMenu />);
 
     expect(screen.getByText("Asha Baker")).toBeInTheDocument();
-    expect(screen.getByText("Baker")).toBeInTheDocument();
+    expect(screen.getByText("Owner")).toBeInTheDocument();
   });
 
   it("signs the baker out", async () => {

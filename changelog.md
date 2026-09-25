@@ -1121,3 +1121,8 @@ Each row is committed on its own; this entry grows with them.
   - Registration now writes only the name there. The role lives on `profiles`, which only the server writes.
   - **Migration `0009_role_out_of_metadata.sql`** strips `role` from every account's metadata. The seed no longer writes it back. On the local database no account carries a role in its metadata any more.
   - **Tests:** `register` had no unit test. Three now cover what reaches `user_metadata` (only the name), where the role goes, and taking the new user away again when the rest of the account cannot be made. A contract covers 0009 and the seed.
+- **R2.2 — `BAKER` became `USER`** (plan §139.11.1). The product serves home businesses of every kind, so the owner's role no longer names one.
+  - **Migration `0010_roles_user.sql`** renames the enum value in place, so every existing profile follows with no rewrite, and makes `USER` the default.
+  - **Code:** `USER_ROLES` is `["USER", "DEV"]`. A screen calls the role "Owner". `BAKERY_ROLES` became `BUSINESS_ROLES` (`["USER"]`), the plan's name. The guards, registration, the seed, the test stubs and AGENTS.md §8–§9 follow. **DEV still gets no business data** (§5).
+  - **Checked against the running app:** signing in answers `"role":"USER"`, and `/api/business`, `/api/customers` and `/api/orders` answer 200. The same account set to DEV is refused with `AUTH_ROLE_FORBIDDEN`, and it was set back afterwards.
+  - **Tests:** the role list, the "Owner" label, `BUSINESS_ROLES` without DEV, the account card and menu showing "Owner", and a contract for 0010.

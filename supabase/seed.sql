@@ -91,7 +91,7 @@ begin
 
   insert into public.profiles (id, phone, email, name, role, bakery_id, is_active, must_change_password, email_confirmed_at, created_at)
   values (
-    v_user_id, v_phone, v_email, 'Priya Baker', 'BAKER', v_bakery_id, true, false,
+    v_user_id, v_phone, v_email, 'Priya Baker', 'USER', v_bakery_id, true, false,
     now(), now() - interval '90 days'
   )
   on conflict (id) do nothing;

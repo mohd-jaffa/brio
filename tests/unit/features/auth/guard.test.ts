@@ -74,15 +74,15 @@ describe("the token behind a request", () => {
 
 describe("what a role may do", () => {
   it("lets through a role the route serves", () => {
-    expect(() => assertRole(profile("BAKER"), ["BAKER"])).not.toThrow();
+    expect(() => assertRole(profile("USER"), ["USER"])).not.toThrow();
   });
 
   it("refuses a role the route does not serve, so DEV does not inherit business data", () => {
-    expect(codeOf(() => assertRole(profile("DEV"), ["BAKER"]))).toBe("AUTH_ROLE_FORBIDDEN");
+    expect(codeOf(() => assertRole(profile("DEV"), ["USER"]))).toBe("AUTH_ROLE_FORBIDDEN");
   });
 
   it("has no default that would let everyone through", () => {
-    expect(codeOf(() => assertRole(profile("BAKER"), []))).toBe("AUTH_ROLE_FORBIDDEN");
+    expect(codeOf(() => assertRole(profile("USER"), []))).toBe("AUTH_ROLE_FORBIDDEN");
   });
 });
 
@@ -91,7 +91,7 @@ describe("a temporary password still in use", () => {
     accessToken: "t",
     refreshToken: "",
     expiresAt: null,
-    profile: profile("BAKER"),
+    profile: profile("USER"),
     requiresPasswordChange,
   });
 

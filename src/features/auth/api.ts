@@ -113,7 +113,7 @@ export async function createBakeryAndProfile(
       phone: input.phone,
       email: input.email,
       name: input.name,
-      role: "BAKER",
+      role: "USER",
       bakery_id: bakeryId,
       is_active: true,
       must_change_password: false,

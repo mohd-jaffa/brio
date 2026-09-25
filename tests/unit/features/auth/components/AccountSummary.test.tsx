@@ -13,13 +13,13 @@ beforeEach(() => {
 });
 
 describe("the account on the settings screen", () => {
-  it("shows how the baker signs in", () => {
+  it("shows how the owner signs in", () => {
     render(<AccountSummary />);
 
     expect(screen.getByText(TEST_PROFILE.name)).toBeInTheDocument();
     expect(screen.getByText(TEST_PROFILE.phone)).toBeInTheDocument();
     expect(screen.getByText(TEST_PROFILE.email)).toBeInTheDocument();
-    expect(screen.getByText("Baker")).toBeInTheDocument();
+    expect(screen.getByText("Owner")).toBeInTheDocument();
   });
 
   it("offers the way to change a password without waiting for a reset", () => {
