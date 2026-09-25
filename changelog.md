@@ -1196,3 +1196,25 @@ Each row is committed on its own; this entry grows with them.
     - The link is made at send time. Confirmed and missing accounts are skipped, and a failed send throws.
     - Resend queues, or is refused when the address is confirmed.
     - The worker's handler, the client call, and the Settings button with its outcome and refusal cards.
+- **R2.4 — registration asks for the business, in two steps** (plan §139.10, §139.11.2; Q2 on its default).
+  - **Step 1, You:** your name, mobile number, email, password and confirm password.
+  - **Step 2, Your business:** business name, catch phrase (optional), city and address.
+  - **One request.** Nothing is sent until the second step, so a half-finished sign-up never creates an account. The server parses the whole payload once.
+  - **City and address are required** (Q2's default): the bill prints them.
+  - **The business fields are declared once** (`businessFields` in `schemas/business.ts`) and shared by registration and Business details, so the two cannot disagree. Registration writes them onto the business, whose phone starts as the sign-in number.
+  - **The form.**
+    - Both steps stay mounted and the other is hidden, so nothing typed is lost going back and forth, and no field is registered twice.
+    - "Next" checks only the first step's fields, and Enter on the first step means Next, not Create account.
+    - A step indicator reads "Step 1 of 2" and is announced. Moving between steps takes focus to the step's heading.
+    - A number or email already taken sends the person back to step 1 with that field marked; any other refusal stays on step 2. Either way the refusal is a response card.
+  - **Fixed on the way: two different passwords got past the first step.** The match was an object-level check, and Zod skips those while any other field has an issue, which the empty business fields always did. It now runs as soon as the two passwords are themselves valid (Zod's `when`), whatever else is unfinished, and the same helper serves change-password.
+  - **Checked in a browser at 390 and 1280 px:**
+    - Enter on step 1 moved to step 2 with focus on "Your business".
+    - Back kept what was typed.
+    - Two accounts were created with every field saved, "Kavya's Hampers · Gifts wrapped with care · Mysuru" and the two-line address, and each queued its confirmation.
+    - No sideways scroll and no errors.
+    - The test accounts were removed afterwards.
+  - **Tests:** 11 new.
+    - The schema (tidying, required city and address, the shared limits, the password match on an empty business, no comparing invalid passwords).
+    - The form: the steps, per-step checking, Enter, focus, going back, one request, a taken number returning to step 1, and other refusals staying.
+    - The business written at registration.

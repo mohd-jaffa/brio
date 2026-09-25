@@ -50,6 +50,8 @@ describe("AuthClient", () => {
         email: "asha@example.com",
         password: "hunter22",
         confirmPassword: "hunter22",
+        city: "Pune",
+        address: "12 MG Road",
       }),
     ).resolves.toEqual({ userId: "u-1", bakeryId: "b-1" });
     expect(mockFetch).toHaveBeenCalledWith(

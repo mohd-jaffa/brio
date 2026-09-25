@@ -85,6 +85,9 @@ export async function createBakeryAndProfile(
   input: {
     userId: string;
     businessName: string;
+    tagline: string | null;
+    city: string;
+    address: string;
     phone: string;
     email: string;
     name: string;
@@ -95,6 +98,10 @@ export async function createBakeryAndProfile(
     .insert({
       owner_id: input.userId,
       business_name: input.businessName,
+      tagline: input.tagline,
+      city: input.city,
+      address: input.address,
+      // The business phone printed on the bill starts as the sign-in number.
       phone: input.phone,
       currency: "INR",
       timezone: "Asia/Kolkata",
@@ -306,6 +313,9 @@ export async function register(client: SupabaseClient, registration: RegisterPay
     created = await createBakeryAndProfile(client, {
       userId: user.id,
       businessName: registration.businessName,
+      tagline: registration.tagline,
+      city: registration.city,
+      address: registration.address,
       phone: registration.phone,
       email: registration.email,
       name: registration.name,

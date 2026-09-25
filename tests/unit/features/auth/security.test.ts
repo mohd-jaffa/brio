@@ -38,6 +38,8 @@ describe("auth validation", () => {
       email: "ASHA@example.com",
       password: "super-secret",
       confirmPassword: "super-secret",
+      city: "Pune",
+      address: "12 MG Road",
     });
 
     expect(parsed.email).toBe("asha@example.com");

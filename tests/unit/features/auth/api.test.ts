@@ -24,6 +24,9 @@ const registration = {
   email: "priya@example.com",
   password: "Password123!",
   confirmPassword: "Password123!",
+  tagline: "Baked fresh",
+  city: "Pune",
+  address: "12 MG Road",
 };
 
 const profileRow = (overrides: Record<string, unknown> = {}) => ({
@@ -120,6 +123,20 @@ describe("register", () => {
     expect(createdUsers).toHaveLength(1);
     expect(createdUsers[0].user_metadata).toEqual({ name: "Priya Menon" });
     expect(JSON.stringify(createdUsers[0])).not.toMatch(/role/i);
+  });
+
+  it("makes the business from the second step: name, catch phrase, city, address, and the sign-in number (§139.11.2)", async () => {
+    const { client, inserted } = fakeAdmin();
+    await register(client, registration);
+
+    expect(inserted.find(([table]) => table === "bakeries")?.[1]).toMatchObject({
+      owner_id: "u-1",
+      business_name: "Sweet Delights",
+      tagline: "Baked fresh",
+      city: "Pune",
+      address: "12 MG Road",
+      phone: "+919876543210",
+    });
   });
 
   it("gives the role to the profile only, which only the server writes", async () => {
