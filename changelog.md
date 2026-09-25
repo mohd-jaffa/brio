@@ -999,3 +999,13 @@ Each lands on its own commit; this entry grows with them.
   - A code this build does not know, such as a newer server answering an app still cached on a phone, is put into words ("SAME_DAY" → "Same day") rather than shown raw.
   - **No `DINE_IN`.** The proposal named it, but a home business has no tables: the database allows only `DELIVERY` and `PICKUP` (§139.12), and the plan adds no third.
   - **Tests:** both labels, and an unknown code.
+- **On a phone, Create order's checkout bar covered the bottom navigation.** Both were fixed to `bottom: 0`, and the bar, drawn later, sat on top: Home, Orders, Products, Customers and More could not be reached from the screen.
+  - **Two regions, one above the other.** On a phone the bar rests on the navigation, at `--nav-height` + `--safe-bottom`, and pays no inset of its own: the navigation pays the home indicator. From 768 px there is no bottom navigation, so the bar meets the edge and pays the inset itself.
+  - **`--nav-height` is now the navigation's real height.** The bar measured 2 px short of the navigation, because the navigation drew at 66 px while the variable said 68 px. The navigation's height is now set from the variable (plus the inset), so anything resting on it, this bar and the kit's cart bar, meets its edge.
+  - **Measured in a browser:**
+    - 360 px: the bar is at 595–672 and the navigation at 672–740.
+    - 390 px with a 34 px home indicator: the bar is at 665–742 and the navigation at 742–844.
+    - 820 px with a 20 px inset: the bar ends at the bottom edge and pays 36 px (16 + 20).
+    - 1280 px: the bar ends at the bottom edge.
+    - At every width, the last field ends above the bar once the page is scrolled to the end. Nothing scrolls sideways and there are no console errors.
+  - R3.9 still replaces this bar with the cart bar.

@@ -366,7 +366,11 @@ export default function NewOrderPage() {
         </Step>
       </form>
 
-      <div className="safe-bottom [--safe-pb:1rem] safe-x [--safe-px:1rem] fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/80 pt-4 shadow-elevated backdrop-blur-md md:left-[calc(72px+var(--safe-left))] lg:left-[calc(248px+var(--safe-left))]">
+      {/* Its own region, never on top of another: on a phone it rests on the
+          bottom navigation, which pays the home-indicator inset; from 768 px
+          there is no bottom navigation, so it meets the edge and pays the inset
+          itself, and starts where the rail or the sidebar ends. */}
+      <div className="safe-x [--safe-px:1rem] fixed inset-x-0 bottom-[calc(var(--nav-height)+var(--safe-bottom))] z-40 border-t border-border bg-surface/80 py-4 shadow-elevated backdrop-blur-md md:bottom-0 md:left-[calc(72px+var(--safe-left))] md:pb-[calc(1rem+var(--safe-bottom))] lg:left-[calc(248px+var(--safe-left))]">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Total</span>

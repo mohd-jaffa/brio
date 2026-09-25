@@ -114,9 +114,11 @@ function AppFrame({ children }: { children: ReactNode }) {
         </main>
       </div>
 
+      {/* Exactly --nav-height above the inset, so whatever rests on it (the
+          checkout bar, the cart bar) meets its edge rather than a guess at it. */}
       <nav
         aria-label={UI_TEXT.nav.main}
-        className="safe-bottom [--safe-pb:0.5rem] safe-x [--safe-px:0.5rem] fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface/90 pt-2 backdrop-blur-md md:hidden"
+        className="safe-bottom [--safe-pb:0.5rem] safe-x [--safe-px:0.5rem] fixed inset-x-0 bottom-0 z-30 h-[calc(var(--nav-height)+var(--safe-bottom))] border-t border-border bg-surface/90 pt-2 backdrop-blur-md md:hidden"
       >
         <ul role="list" className="flex items-center justify-around">
           {BOTTOM_NAV.map(({ id, label, icon: Icon, href }) => {
