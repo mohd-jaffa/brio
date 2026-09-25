@@ -1,3 +1,4 @@
+import { UI_TEXT } from "@/constants/messages";
 import {
   ORDER_STATUS_LABELS,
   ORDER_STATUS_TONES,
@@ -25,13 +26,13 @@ export function isOverdue(order: Order, now: Date = new Date()): boolean {
   return isOpen(order) && new Date(order.delivery.date).getTime() < now.getTime();
 }
 
-/** What the badge beside an order says, and in what tone — "Overdue" outranks the status. */
-export function statusBadge(order: Order, now?: Date): { label: string; tone: StatusTone } {
-  if (isOverdue(order, now)) return { label: "Overdue", tone: "danger" };
+/** What the pill beside an order says, and in what tone — "Overdue" outranks the status. */
+export function statusPill(order: Order, now?: Date): { label: string; tone: StatusTone } {
+  if (isOverdue(order, now)) return { label: UI_TEXT.orders.overdue, tone: "cancelled" };
   return { label: ORDER_STATUS_LABELS[order.status], tone: ORDER_STATUS_TONES[order.status] };
 }
 
-export function paymentBadge(order: Order): { label: string; tone: StatusTone } {
+export function paymentPill(order: Order): { label: string; tone: StatusTone } {
   return {
     label: PAYMENT_STATUS_LABELS[order.payment.status],
     tone: PAYMENT_STATUS_TONES[order.payment.status],

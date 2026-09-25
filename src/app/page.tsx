@@ -19,12 +19,12 @@ import { cn } from "@/components/ui/cn";
 import { ScreenNotice } from "@/components/ui/screen-notice";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { StatTile } from "@/components/ui/stat-tile";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { StatusPill } from "@/components/ui/status-pill";
 import { LOW_STOCK_THRESHOLD } from "@/constants/inventory";
 import { lowStock, ordersByDue, summarise } from "@/features/dashboard/summary";
 import type { InventoryBalance } from "@/features/inventory/types";
 import type { Order } from "@/features/orders/types";
-import { statusBadge } from "@/features/orders/view";
+import { statusPill } from "@/features/orders/view";
 import type { Product } from "@/features/products/types";
 import { DUE_BUCKET_LABELS } from "@/lib/dates/calendar";
 import { formatPaise } from "@/lib/format/currency";
@@ -137,7 +137,7 @@ export default function DashboardPage() {
                 </h3>
                 <ul role="list" className="space-y-2.5">
                   {group.orders.map((order) => {
-                    const badge = statusBadge(order);
+                    const badge = statusPill(order);
                     return (
                       <li key={order.id}>
                         <Link href={`/orders/${order.id}`} className="group block">
@@ -162,7 +162,7 @@ export default function DashboardPage() {
                               <span className="mb-1 block text-sm font-bold text-text">
                                 {formatPaise(order.pricing.total)}
                               </span>
-                              <StatusBadge label={badge.label} tone={badge.tone} />
+                              <StatusPill label={badge.label} tone={badge.tone} />
                             </div>
                           </article>
                         </Link>

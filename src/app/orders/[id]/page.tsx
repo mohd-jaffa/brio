@@ -8,7 +8,7 @@ import { AppShell } from "@/components/nav/AppShell";
 import { Button } from "@/components/ui/button";
 import { ScreenNotice } from "@/components/ui/screen-notice";
 import { SkeletonRows } from "@/components/ui/skeleton";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { StatusPill } from "@/components/ui/status-pill";
 import { optionsFrom, SelectField } from "@/components/ui/text-field";
 import { FormSheet } from "@/components/ui/form-sheet";
 import { UI_TEXT } from "@/constants/messages";
@@ -23,7 +23,7 @@ import type { Customer } from "@/features/customers/types";
 import { OrdersClient } from "@/features/orders/api.client";
 import type { Order } from "@/features/orders/types";
 import { nextStatuses } from "@/features/orders/lifecycle";
-import { isOverdue, paymentBadge, statusBadge } from "@/features/orders/view";
+import { isOverdue, paymentPill, statusPill } from "@/features/orders/view";
 import { PaymentCollectionForm } from "@/features/payments/components/PaymentCollectionForm";
 import type { Payment } from "@/features/payments/types";
 import { ReceiptPrintView } from "@/features/receipts/components/ReceiptPrintView";
@@ -97,8 +97,8 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
   }
 
   const current = order.data;
-  const status = statusBadge(current);
-  const payment = paymentBadge(current);
+  const status = statusPill(current);
+  const payment = paymentPill(current);
   const late = isOverdue(current);
   const paid = sumPaise((payments.data ?? []).map((line) => line.amount));
   // Only where this order may go from here (plan §139.11.8); a finished order goes nowhere.
@@ -131,7 +131,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
               <span className="text-xs font-bold uppercase tracking-wider text-text-muted">
                 Order {current.orderNumber}
               </span>
-              <StatusBadge label={status.label} tone={status.tone} />
+              <StatusPill label={status.label} tone={status.tone} />
             </div>
             <h1 className="mb-2 font-heading text-2xl font-bold text-text">
               {customer.data?.name ?? "—"}
@@ -147,7 +147,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
             <span className="mb-1 block font-heading text-3xl font-bold text-text">
               {formatPaise(current.pricing.total)}
             </span>
-            <StatusBadge label={payment.label} tone={payment.tone} />
+            <StatusPill label={payment.label} tone={payment.tone} />
           </div>
         </section>
 

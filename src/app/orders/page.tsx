@@ -11,11 +11,11 @@ import { ListScreen } from "@/components/ui/list-screen";
 import { PageHeader } from "@/components/ui/page-header";
 import { SearchInput } from "@/components/ui/search-input";
 import { SegmentedControl } from "@/components/ui/segmented-control";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { StatusPill } from "@/components/ui/status-pill";
 import { UI_TEXT } from "@/constants/messages";
 import type { Customer } from "@/features/customers/types";
 import type { Order } from "@/features/orders/types";
-import { byDueDate, isOpen, isOverdue, paymentBadge, statusBadge } from "@/features/orders/view";
+import { byDueDate, isOpen, isOverdue, paymentPill, statusPill } from "@/features/orders/view";
 import { formatPaise } from "@/lib/format/currency";
 import { formatDateTime } from "@/lib/format/date";
 import { apiRoutes } from "@/lib/query/keys";
@@ -110,8 +110,8 @@ export default function OrdersPage() {
           />
         }
         renderItem={(order) => {
-          const status = statusBadge(order);
-          const payment = paymentBadge(order);
+          const status = statusPill(order);
+          const payment = paymentPill(order);
           const late = isOverdue(order);
 
           return (
@@ -135,7 +135,7 @@ export default function OrdersPage() {
                       Due {formatDateTime(order.delivery.date)}
                     </span>
                   </div>
-                  <StatusBadge label={status.label} tone={status.tone} />
+                  <StatusPill label={status.label} tone={status.tone} />
                 </div>
 
                 <div className="flex items-end justify-between border-t border-border/50 pt-3">
@@ -143,7 +143,7 @@ export default function OrdersPage() {
                     <span className="block text-xs font-medium text-text-muted">
                       {order.items.length} item{order.items.length === 1 ? "" : "s"}
                     </span>
-                    <StatusBadge label={payment.label} tone={payment.tone} />
+                    <StatusPill label={payment.label} tone={payment.tone} />
                   </div>
                   <span className="font-heading text-lg font-bold text-text">
                     {formatPaise(order.pricing.total)}

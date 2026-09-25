@@ -114,19 +114,26 @@ export const EXPENSE_CATEGORIES = [
 ] as const;
 export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
 
-/** How a badge for each status should read. Used by StatusBadge; no screen picks colours itself. */
-export type StatusTone = "neutral" | "info" | "success" | "warning" | "danger";
+/**
+ * The colours a status pill can take (plan §139.4), one per status colour
+ * token. They are named after the order statuses that own them; anything else
+ * borrows the one whose meaning it shares — an unpaid order is red like a
+ * cancelled one, an active product green like a delivered order. Used by
+ * StatusPill; no screen picks colours itself.
+ */
+export const STATUS_TONES = ["pending", "preparing", "ready", "transit", "delivered", "cancelled", "neutral"] as const;
+export type StatusTone = (typeof STATUS_TONES)[number];
 
 export const ORDER_STATUS_TONES: Record<OrderStatus, StatusTone> = {
-  PENDING: "warning",
-  IN_PROGRESS: "info",
-  IN_TRANSIT: "info",
-  DELIVERED: "success",
-  CANCELLED: "danger",
+  PENDING: "pending",
+  IN_PROGRESS: "preparing",
+  IN_TRANSIT: "transit",
+  DELIVERED: "delivered",
+  CANCELLED: "cancelled",
 };
 
 export const PAYMENT_STATUS_TONES: Record<PaymentStatus, StatusTone> = {
-  UNPAID: "danger",
-  PARTIALLY_PAID: "warning",
-  PAID: "success",
+  UNPAID: "cancelled",
+  PARTIALLY_PAID: "pending",
+  PAID: "delivered",
 };

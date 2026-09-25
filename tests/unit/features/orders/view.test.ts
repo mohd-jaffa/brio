@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { Order, OrderStatus, PaymentStatus } from "@/features/orders/types";
-import { balanceDue, byDueDate, isOpen, isOverdue, paymentBadge, statusBadge } from "@/features/orders/view";
+import { balanceDue, byDueDate, isOpen, isOverdue, paymentPill, statusPill } from "@/features/orders/view";
 
 function order(
   id: string,
@@ -53,27 +53,27 @@ describe("isOverdue", () => {
   });
 });
 
-describe("statusBadge", () => {
+describe("statusPill", () => {
   it("says Overdue rather than the status, because that is what needs attention", () => {
-    expect(statusBadge(order("1", "PENDING", "2026-09-21T10:00:00Z"), now)).toEqual({
+    expect(statusPill(order("1", "PENDING", "2026-09-21T10:00:00Z"), now)).toEqual({
       label: "Overdue",
-      tone: "danger",
+      tone: "cancelled",
     });
   });
 
   it("otherwise reads the status in the words and tone the constants chose", () => {
-    expect(statusBadge(order("2", "DELIVERED", "2026-09-21T10:00:00Z"), now)).toEqual({
+    expect(statusPill(order("2", "DELIVERED", "2026-09-21T10:00:00Z"), now)).toEqual({
       label: "Delivered",
-      tone: "success",
+      tone: "delivered",
     });
   });
 });
 
-describe("paymentBadge", () => {
+describe("paymentPill", () => {
   it("reads the payment status in the same one place", () => {
-    expect(paymentBadge(order("1", "PENDING", now.toISOString(), "PARTIALLY_PAID"))).toEqual({
+    expect(paymentPill(order("1", "PENDING", now.toISOString(), "PARTIALLY_PAID"))).toEqual({
       label: "Part paid",
-      tone: "warning",
+      tone: "pending",
     });
   });
 });

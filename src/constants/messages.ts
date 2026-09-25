@@ -182,6 +182,7 @@ export const UI_TEXT = {
 
   /** Moving an order along (plan §139.11.8). */
   orders: {
+    overdue: "Overdue",
     cancelTitle: (orderNumber: string) => `Cancel order ${orderNumber}?`,
     cancelBody: "Its reserved stock goes back on the shelf. A cancelled order can’t be reopened.",
     cancelConfirm: "Cancel order",

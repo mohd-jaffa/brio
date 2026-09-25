@@ -10,7 +10,7 @@ import { ListScreen } from "@/components/ui/list-screen";
 import { PageHeader } from "@/components/ui/page-header";
 import { SearchInput } from "@/components/ui/search-input";
 import { ProductTile } from "@/components/ui/product-tile";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { StatusPill } from "@/components/ui/status-pill";
 import { UI_TEXT } from "@/constants/messages";
 import { ProductFormSheet } from "@/features/products/components/ProductFormSheet";
 import type { Product } from "@/features/products/types";
@@ -74,9 +74,9 @@ export default function ProductsPage() {
                   )}
                 </div>
               </div>
-              <StatusBadge
+              <StatusPill
                 label={product.isActive ? "Active" : "Inactive"}
-                tone={product.isActive ? "success" : "neutral"}
+                tone={product.isActive ? "delivered" : "neutral"}
               />
             </div>
 

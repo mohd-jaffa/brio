@@ -21,11 +21,11 @@ import { Button } from "@/components/ui/button";
 import { ScreenNotice } from "@/components/ui/screen-notice";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { StatTile } from "@/components/ui/stat-tile";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { StatusPill } from "@/components/ui/status-pill";
 import { CustomerFormSheet } from "@/features/customers/components/CustomerFormSheet";
 import type { Customer } from "@/features/customers/types";
 import type { Order } from "@/features/orders/types";
-import { balanceDue, statusBadge } from "@/features/orders/view";
+import { balanceDue, statusPill } from "@/features/orders/view";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { dayKey } from "@/lib/dates/calendar";
 import { formatPaise } from "@/lib/format/currency";
@@ -222,7 +222,7 @@ export function CustomerProfileClient({ id }: { id: string }) {
         ) : (
           <ul role="list" className="space-y-3">
             {theirs.slice(0, RECENT_ORDER_COUNT).map((order) => {
-              const badge = statusBadge(order);
+              const badge = statusPill(order);
               return (
                 <li key={order.id}>
                   <Link href={`/orders/${order.id}`} className="group block">
@@ -237,7 +237,7 @@ export function CustomerProfileClient({ id }: { id: string }) {
                       </div>
                       <div className="space-y-1 text-right">
                         <span className="block text-sm font-bold">{formatPaise(order.pricing.total)}</span>
-                        <StatusBadge label={badge.label} tone={badge.tone} />
+                        <StatusPill label={badge.label} tone={badge.tone} />
                       </div>
                     </article>
                   </Link>

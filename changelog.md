@@ -822,3 +822,13 @@ entry grows with them.
     - A seven-day chart skipped its peak's date.
     - The donut's container threshold missed the card's 1 px borders, so 360 px stacked.
   - **Tests.** Geometry (ticks, the monotone curve, bars, shares, the ring), the axes, the frame's four states, the plot's pointer, touch, keys and bubble placement, each chart, `useElementSize` and `formatPaiseCompact`: 81 new (711 in all), 100 % of the kit. `tests/support/charts.ts` gives jsdom a measured size and a `PointerEvent`.
+- **R1.8 — the component kit** (plan §139.5), landing piece by piece. Three kit entries are left to the rows that first use them: `customer-picker` (R3.6), `bill` (R4.2) and `illustration-picker` (R5.6, R5.16). `sheet`/`dialog` is R1.9 and the response card R1.10.
+  - **`status-pill` replaces `status-badge`.** It is a tinted pill with a dot: the status colour at 12 % over the surface, the word and a 6 px dot in the full colour, all ≥ 4.5 : 1 (§139.4). It is sentence case, where the badge was upper case.
+    - **Tones.** `StatusTone` is now the seven status colours, `STATUS_TONES` in `src/constants/statuses.ts`: pending, preparing, ready, transit, delivered, cancelled, neutral. It replaces the generic info/success/warning/danger.
+    - **The mapping.** Out for delivery now reads blue instead of sharing Preparing's tone, as the plan asks. An unpaid order is the cancelled red, part paid the pending amber, paid the delivered green, and an active product is green too.
+    - **Code.** `statusBadge`/`paymentBadge` are now `statusPill`/`paymentPill`, and "Overdue" moved from `view.ts` into `UI_TEXT.orders`. Every screen that showed a badge shows the pill.
+  - **`avatar`** shows up to two initials, from the first and last words, on a tint picked from the name by FNV-1a. It works on whole graphemes, so "क्षमा शर्मा" is "क्षश".
+    - The tint is a chart colour at 20 % over the surface, and the letters are 40 % of it into the text colour.
+    - All 12 pairs across both themes were computed in OKLab, as `color-mix` mixes: the lowest is 5.38 : 1, Peach's blush.
+  - **`medallion`** is a lucide icon at a 1.75 stroke in a tinted circle: primary, neutral, success, warning or danger; 36, 44 or 56 px. The stat tile, rows and the response card set their icons in it.
+  - Checked in a browser: the pills on Orders in both themes, no console errors. 728 tests.
