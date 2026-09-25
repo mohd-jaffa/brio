@@ -6565,12 +6565,12 @@ Every gap recorded here has been implemented. The entry is kept rather than dele
 
 | # | Gap | Why it matters |
 |---|-----|----------------|
-| C1 | Order creation is **not transactional**. It inserts the order, then items, then adjustments, then ledger lines, and on failure compensates with a hard delete. A crash between steps leaves a partial order. §114 asks for one transaction — a Postgres function called over RPC. | Data integrity |
-| C2 | **No idempotency** anywhere. A double-tapped Place Order creates two orders; a retried payment records twice. §24 of AGENTS.md requires critical mutations to be safe against duplicate submission. | Money |
-| C3 | No cart/draft state and **no bill-preview step** before Confirm. The plan's flow is Cart → Bill → Confirm (§110–§112); the screen is one long form with a running total. | Approved UX |
-| C4 | **Stock can be oversold.** Nothing reads the balance before an `ORDER_RESERVATION` is posted, so an order can reserve stock that is not there (§21). | Inventory truth |
-| C5 | **A delivered order deducts its stock twice.** `checkout.ts` posts `ORDER_RESERVATION` at `-quantity` and `status.ts` posts `ORDER_CONSUMPTION` at `-quantity` on first delivery, and nothing ever releases the reservation. Every balance in the app is therefore short by the quantity of every delivered order. Consumption should release the reservation, not repeat it. | Inventory truth **Closed 2026-09-24 by R0.7.** |
-| C6 | **`updateOrderStatus` is not transactional either.** It persists the status, then the ledger line, then the audit row, then enqueues the notification. Observed on 2026-09-23: a failure at the last step left the status changed, the stock consumed and the audit written, and the retry then saw `before.status === 'DELIVERED'` and silently skipped the notification. Same fix as C1. | Data integrity |
+| C1 | **Closed 2026-09-25 by R3.1 (`create_order`, a691c58).** Order creation is **not transactional**. It inserts the order, then items, then adjustments, then ledger lines, and on failure compensates with a hard delete. A crash between steps leaves a partial order. §114 asks for one transaction — a Postgres function called over RPC. | Data integrity |
+| C2 | **Closed 2026-09-25 by R3.1 and R3.12 (an idempotency key on placing and on a payment, a691c58); the screen keeps its key through a refresh (R3.9, 2026-09-26).** **No idempotency** anywhere. A double-tapped Place Order creates two orders; a retried payment records twice. §24 of AGENTS.md requires critical mutations to be safe against duplicate submission. | Money |
+| C3 | **Partly closed 2026-09-26: the draft by R3.9 and the estimate by R3.13; the bill before saving is R4.3.** No cart/draft state and **no bill-preview step** before Confirm. The plan's flow is Cart → Bill → Confirm (§110–§112); the screen is one long form with a running total. | Approved UX |
+| C4 | **Closed 2026-09-25 by R3.3 (stocked products only, a691c58).** **Stock can be oversold.** Nothing reads the balance before an `ORDER_RESERVATION` is posted, so an order can reserve stock that is not there (§21). | Inventory truth |
+| C5 | **Closed 2026-09-24 by R0.7 (218d78d), and kept inside `change_order_status` by R3.4.** **A delivered order deducts its stock twice.** `checkout.ts` posts `ORDER_RESERVATION` at `-quantity` and `status.ts` posts `ORDER_CONSUMPTION` at `-quantity` on first delivery, and nothing ever releases the reservation. Every balance in the app is therefore short by the quantity of every delivered order. Consumption should release the reservation, not repeat it. | Inventory truth **Closed 2026-09-24 by R0.7.** |
+| C6 | **Closed 2026-09-25 by R3.4 (`change_order_status`, ca826b9).** **`updateOrderStatus` is not transactional either.** It persists the status, then the ledger line, then the audit row, then enqueues the notification. Observed on 2026-09-23: a failure at the last step left the status changed, the stock consumed and the audit written, and the retry then saw `before.status === 'DELIVERED'` and silently skipped the notification. Same fix as C1. | Data integrity |
 
 ---
 
@@ -8325,22 +8325,22 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 ## 139.14 Bugs found in this pass
 
 Verified against the code on 2026-09-24. **Phase 0 fixed twelve of them the same day,
-Phase 1 four more, and Phase 2 three more** (marked in the Row column; changelog,
-"Phase 0", "Phase 1" and "Phase 2"). Severity:
+Phase 1 four more, Phase 2 three more, and Phase 3 eight more** (marked in the Row
+column; changelog, "Phase 0" to "Phase 3"). Severity:
 **S1** corrupts money, stock or data · **S2** a feature does not work · **S3**
 wrong but survivable · **S4** polish.
 
 | # | Sev | Finding | Where | Fix | Row |
 |---|---|---|---|---|---|
 | **BUG-01** | **S1** | **Every payment is recorded at 100 times its amount.** The form parses rupees to paise and the schema carries paise, then `processPayment` runs `rupeesToPaise` on it **again**: a ₹500 payment arrives as 50,000 paise and is stored as 5,000,000 — ₹50,000. In practice, **any payment above 1 % of the order total is refused** with "payment exceeds order total", so Collect payment does not work. No test covers `processPayment`. | `src/features/payments/api.ts:43` | The amount is already paise — drop the conversion; add tests | R0.1 · **fixed 2026-09-24** |
-| **BUG-02** | **S1** | **An order placed as Paid or Part paid records no payment, and Part paid never asks how much.** The payments table, the balance due and the dashboard disagree from the first minute. | `src/app/orders/new/page.tsx:51`, `checkout.ts:59–61` | §139.11.9 | R3.12 |
+| **BUG-02** | **S1** | **An order placed as Paid or Part paid records no payment, and Part paid never asks how much.** The payments table, the balance due and the dashboard disagree from the first minute. | `src/app/orders/new/page.tsx:51`, `checkout.ts:59–61` | §139.11.9 | R3.12 · **fixed 2026-09-26** |
 | **BUG-03** | **S1** | **"Pending payments" counts the full total of part-paid orders**, ignoring what has been paid. | `src/features/dashboard/summary.ts:37` | Total minus payments | R0.2 · **fixed 2026-09-24** |
 | **BUG-04** | **S1** | **Cancelling an order never releases its stock.** The reservation stays, so every cancelled order lowers stock permanently. §133.3 C5 covers the double count on delivery; this is the other half. | `src/features/orders/status.ts` (no cancel branch) | §139.11.8 | R0.7 · **fixed 2026-09-24** |
 | **BUG-05** | **S2** | **Any status can follow any other.** A free select fires on change, with no confirmation, and the server has no transition rules. Delivered → Pending → Delivered consumes stock twice; Cancelled → Delivered is allowed. | `src/app/orders/[id]/page.tsx:145`, `status.ts:20` | §139.11.8 | R0.6 · **fixed 2026-09-24** |
-| **BUG-06** | **S2** | **Payment status can be set by hand** to Paid with nothing recorded. | `src/app/orders/[id]/page.tsx:156` | Derive it; remove the control | R3.12 |
+| **BUG-06** | **S2** | **Payment status can be set by hand** to Paid with nothing recorded. | `src/app/orders/[id]/page.tsx:156` | Derive it; remove the control | R3.12 · **fixed 2026-09-26** |
 | **BUG-07** | **S3** | **Dates are taken in UTC.** Between midnight and 05:30 IST, a bill and the customer's order list show **yesterday's date**, and a new expense **defaults to yesterday**. | `ReceiptPrintView.tsx:72`, `CustomerProfileClient.tsx:235` (`createdAt.slice(0, 10)`); `ExpenseFormSheet.tsx:28` | `dayKey()` / `todayKey()` | R0.5 · **fixed 2026-09-24** |
-| **BUG-08** | **S3** | **Order numbers read like `#13-482`:** a count plus one, and a random suffix. They are not sequential; a number is **reused** after a rollback deletes an order; and two can collide on the unique key and answer 500. | `src/features/orders/api.ts:136–147` | A per-business counter inside the transaction → `ORD-1001` | R3.2 |
-| **BUG-09** | **S2** | **A failed order leaves stock reserved.** The compensation deletes the order but not the ledger lines already posted. (One instance of §133.3 C1.) | `src/features/orders/checkout.ts:101–107` | The `create_order` transaction | R3.1 |
+| **BUG-08** | **S3** | **Order numbers read like `#13-482`:** a count plus one, and a random suffix. They are not sequential; a number is **reused** after a rollback deletes an order; and two can collide on the unique key and answer 500. | `src/features/orders/api.ts:136–147` | A per-business counter inside the transaction → `ORD-1001` | R3.2 · **fixed 2026-09-26** |
+| **BUG-09** | **S2** | **A failed order leaves stock reserved.** The compensation deletes the order but not the ledger lines already posted. (One instance of §133.3 C1.) | `src/features/orders/checkout.ts:101–107` | The `create_order` transaction | R3.1 · **fixed 2026-09-26** |
 | **BUG-10** | **S3** | **The running total shows "₹NaN"** once a charge contains a comma ("1,000"), and "1,000" or "₹500" is refused as an amount. | `src/app/orders/new/page.tsx:126`; `primitives.ts` `paiseText` | Tolerant money parsing (§139.7) | R0.8 · **fixed 2026-09-24** |
 | **BUG-11** | **S3** | **Zod's own English reaches the screen:** "Too big: expected string to have <=100 characters"; an empty quantity gives "Invalid input: expected number, received NaN". | `customer.ts:9`, `product.ts:10`, `expense.ts:14`, `order.ts:16, 82` | Every message from `VALIDATION_MESSAGES` (§139.7) | R0.14 · **fixed 2026-09-24** |
 | **BUG-12** | **S2** | **Unbounded numbers overflow the database.** Money and quantities have no maximum; the `integer` columns overflow, and the user gets a 500 instead of a message. | `primitives.ts` (`paiseText`, `wholeNumberText`), `order.ts:16, 82` | Bounds (§139.7) | R0.9 · **fixed 2026-09-24** |
@@ -8353,14 +8353,14 @@ wrong but survivable · **S4** polish.
 | **BUG-19** | **S3** | **Nothing stops a row pointing into another business.** Foreign keys are checked without RLS, so an order can reference another business's customer — `createOrder` never checks — and the same holds for a payment's order, a ledger line's product and a product's category. RLS hides them on read, but the rows are corrupt. | `checkout.ts:56`; FKs in `0002`, `0003` | Composite FKs; check at the route | R0.12 · **fixed 2026-09-24** |
 | **BUG-20** | **S3** | **The audit trail can be forged:** `authenticated` may INSERT into `audit_logs`, so any signed-in user can write audit rows for their business directly. | `supabase/migrations/0004_api_role_grants.sql:34` | The server writes audit (G1) | R2.10 · **fixed 2026-09-25** |
 | **BUG-21** | **S3** | **`payments` has no amount check and no method check**, unlike `orders` and `expenses`. | `0003` | Constraints | R0.13 · **fixed 2026-09-24** |
-| **BUG-22** | **S3** | **A delivery order is accepted with neither an address nor a map link**, against §96. | `src/lib/validation/schemas/order.ts:43–48` | A refinement on the delivery type | R3.8 |
+| **BUG-22** | **S3** | **A delivery order is accepted with neither an address nor a map link**, against §96. | `src/lib/validation/schemas/order.ts:43–48` | A refinement on the delivery type | R3.8 · **fixed 2026-09-26** |
 | **BUG-23** | **S3** | **Customer search misses numbers as they are written.** Phones are stored as `+919876543210`, so typing "98765 43210" finds nothing. | `src/app/customers/page.tsx:23` | Match on digits | R5.3 |
 | **BUG-24** | **S3** | **The search box's placeholder and icon fail contrast** (`text-muted/60`) — §138.6 C3 fixed the text field but not this one. | `src/components/ui/search-input.tsx:28, 36` | Full-strength muted | R1.12 · **fixed 2026-09-24** |
 | **BUG-25** | **S3** | **Dialogs do not keep focus.** Tab walks out of the form sheet and the More sheet into the page behind, which is not `inert`. The receipt view is **not a dialog at all** — no role, no Escape, no focus handling. | `form-sheet.tsx`, `MoreSheet.tsx`, `ReceiptPrintView.tsx` | §139.5 sheet/dialog | R1.9 · **fixed 2026-09-25** |
-| **BUG-26** | **S4** | **Notifications print raw values:** "Order #13-482 is now IN_PROGRESS"; "Payment of 50000 received" — paise, in inline English. | `status.ts:66`, `payments/api.ts:81` | Labels, `formatPaise`, `messages.ts` | R3.4 |
+| **BUG-26** | **S4** | **Notifications print raw values:** "Order #13-482 is now IN_PROGRESS"; "Payment of 50000 received" — paise, in inline English. | `status.ts:66`, `payments/api.ts:81` | Labels, `formatPaise`, `messages.ts` | R3.4 · **fixed 2026-09-26** |
 | **BUG-27** | **S4** | **The receipt prints raw enums** (`CASH`, `BANK_TRANSFER`) and "Tax ₹0.00" on every bill, and restores `body.style.overflow` to `'unset'` instead of its previous value. | `ReceiptPrintView.tsx:135, 27` | The new bill (§139.11.6) | R4.6 |
-| **BUG-28** | **S4** | **The new-order default date is fixed when the module loads,** so a tab left open overnight offers yesterday's "tomorrow". | `src/app/orders/new/page.tsx:47–51` | Compute it on mount | R3.16 |
-| **BUG-29** | **S4** | **`console.error` in the order compensation** bypasses the structured logger and loses the request id (§11). | `src/features/orders/checkout.ts:104` | The logger | R3.16 |
+| **BUG-28** | **S4** | **The new-order default date is fixed when the module loads,** so a tab left open overnight offers yesterday's "tomorrow". | `src/app/orders/new/page.tsx:47–51` | Compute it on mount | R3.16 · **fixed 2026-09-26** |
+| **BUG-29** | **S4** | **`console.error` in the order compensation** bypasses the structured logger and loses the request id (§11). | `src/features/orders/checkout.ts:104` | The logger | R3.16 · **fixed 2026-09-26** |
 | **BUG-30** | **S4** | **136 hard-coded UI strings** in JSX attributes alone (`label=`, `title=`, `placeholder=`) — AGENTS §5. | `src/app`, `src/components`, `src/features` | Swept screen by screen as each is rebuilt | R5.14 |
 
 **Still open from earlier passes when this was written, and closed by Phase 0:**
@@ -8587,22 +8587,22 @@ the row needs; without an answer it is built on that question's default
 
 | ID | Work | Source | Waits on | Status |
 |---|---|---|---|---|
-| R3.1 | `create_order` as one transaction, with an idempotency key | §133.3 C1, C2; BUG-09 | — | TODO |
-| R3.2 | Order numbers `ORD-1001` from a per-business counter | BUG-08 | — | TODO |
-| R3.3 | The oversell guard | §133.3 C4 | — | TODO |
-| R3.4 | `change_order_status` as one transaction; readable notification text | §133.3 C6; BUG-26 | — | TODO |
-| R3.5 | Guest orders; `?customer=guest` | §139.11.3 | Q12 | TODO |
-| R3.6 | The customer picker: Guest pinned, search, add new inline, the duplicate-phone card | §139.11.4 | — | TODO |
-| R3.7 | Customer fields: name and phone required; address, map link, email and notes optional (unchanged from §92) | §139.11.4 | Q1 (answered) | TODO |
-| R3.8 | Delivery address and map link filled from the customer; the address-or-link rule | §95, §96; BUG-22 | — | TODO |
-| R3.9 | Items-first flow: grid, cart bar → details → payment; the draft survives a refresh, and a trip to Products to add one (no chips — products need no categories; no New product here — 2026-09-25) | §139.10; §110 | Q11 | TODO |
-| R3.10 | Custom items: a typed name and amount, no stock | §139.11.7 | Q5 (answered) | TODO |
-| R3.11 | Statuses: Preparing; `READY`; Completed for pickup | §139.11.8 | Q3 (answered) | TODO |
-| R3.12 | Payment at creation records a payment; part paid asks the amount; the manual status control removed | BUG-02, BUG-06 | — | TODO |
-| R3.13 | `POST /api/orders/preview` | §139.11.5 | — | TODO |
-| R3.14 | Place order → a response card with the facts and actions | §139.6 | — | TODO |
-| R3.15 | Order detail: next-step button, confirm on cancel, payments, balance due, bill actions, WhatsApp | IMP-02, IMP-06, IMP-07 | — | TODO |
-| R3.16 | The new-order date computed on mount; structured logging in checkout | BUG-28, BUG-29 | — | TODO |
+| R3.1 | `create_order` as one transaction, with an idempotency key | §133.3 C1, C2; BUG-09 | — | DONE (2026-09-25 · a691c58; proved again by the exit test, 2026-09-26) |
+| R3.2 | Order numbers `ORD-1001` from a per-business counter | BUG-08 | — | DONE (2026-09-25 · a691c58) |
+| R3.3 | The oversell guard | §133.3 C4 | — | DONE (2026-09-25 · a691c58; stocked products only — the user, 2026-09-25) |
+| R3.4 | `change_order_status` as one transaction; readable notification text | §133.3 C6; BUG-26 | — | DONE (2026-09-25 · ca826b9) |
+| R3.5 | Guest orders; `?customer=guest` | §139.11.3 | Q12 | DONE (2026-09-25 · 94a5759) |
+| R3.6 | The customer picker: Guest pinned, search, add new inline, the duplicate-phone card | §139.11.4 | — | DONE (2026-09-26 · e670f7f, 2c0e8ef) |
+| R3.7 | Customer fields: name and phone required; address, map link, email and notes optional (unchanged from §92) | §139.11.4 | Q1 (answered) | DONE (2026-09-25 · e670f7f; Q1 answered) |
+| R3.8 | Delivery address and map link filled from the customer; the address-or-link rule | §95, §96; BUG-22 | — | DONE (2026-09-26 · e670f7f, 2c0e8ef) |
+| R3.9 | Items-first flow: grid, cart bar → details → payment; the draft survives a refresh, and a trip to Products to add one (no chips — products need no categories; no New product here — 2026-09-25) | §139.10; §110 | Q11 | DONE (2026-09-26 · 2c0e8ef; View bill on the steps is R4.3) |
+| R3.10 | Custom items: a typed name and amount, no stock | §139.11.7 | Q5 (answered) | DONE (2026-09-26 · 98ddeb3, 2c0e8ef) |
+| R3.11 | Statuses: Preparing; `READY`; Completed for pickup | §139.11.8 | Q3 (answered) | DONE (2026-09-25 · 4097c47) |
+| R3.12 | Payment at creation records a payment; part paid asks the amount; the manual status control removed | BUG-02, BUG-06 | — | DONE (2026-09-26 · a691c58, ca826b9, 2c0e8ef) |
+| R3.13 | `POST /api/orders/preview` | §139.11.5 | — | DONE (2026-09-25 · 93272d6) |
+| R3.14 | Place order → a response card with the facts and actions | §139.6 | — | DONE (2026-09-26 · 2c0e8ef; the card offers View order until the bill lands, R4.3) |
+| R3.15 | Order detail: next-step button, confirm on cancel, payments, balance due, bill actions, WhatsApp | IMP-02, IMP-06, IMP-07 | — | DONE (2026-09-26 · 99bce3c; share and download of the bill are R4.4, R4.5) |
+| R3.16 | The new-order date computed on mount; structured logging in checkout | BUG-28, BUG-29 | — | DONE (2026-09-26 · 2c0e8ef; the compensation and its console.error went with R3.1, a691c58) |
 
 ### Phase 4 — The bill
 

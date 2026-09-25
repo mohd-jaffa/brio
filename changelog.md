@@ -1422,3 +1422,25 @@ this entry grows with them.
   - **Fix:** `src/hooks/useOpeningKey.ts` gives each opening its own key. Each sheet's form is keyed by it, so every opening mounts a fresh form, already filled from the record (or blank), and no reset runs while anyone is typing. A sheet closed half-filled opens blank next time, and one opened for a different record shows that record. The four sheets keep their props; only their insides moved.
   - **Proved in the browser (Pixel 7):** a name typed the moment the sheet opened was still there at 50, 150, 400 and 1000 ms, on Customers and on the order screen. Before the fix it was gone by 50 ms.
   - **Tests:** the hook, one key per opening; and the customer sheet keeping what is typed across re-renders, opening blank after a close, and opening filled for the record being edited.
+
+### Validation
+- `tsc --noEmit` clean; `eslint` clean; `vitest run` **190 files, 1208 tests**, up from 162 and 974 at the start of the phase. `next build` is green on Node 22 with no warnings.
+- Migrations `0013` – `0016` apply with `supabase migration up`, each proved on the local database as its row describes.
+- **Every new component, hook and client service is at 100 %** statements, branches, functions and lines (AGENTS §26): the draft, its storage and hook, the picker, the order screen and its panels, the order detail and its blocks, `useOpeningKey`, and the stepper.
+- **The phase's exit test, end to end on an emulated Pixel 7** (plan §139.18): "a guest order and a new-customer order can each be placed twice by a double tap and produce one order; stock and payments reconcile."
+  - **The Guest order:** two Fudgy Brownie Boxes and a custom "Birthday candle" at ₹30, paid in full by UPI. Place order was pressed twice in the same instant. Two requests went out with one key, and both answered 201 with **ORD-1008**. The database holds one order (₹790, Paid, Guest), one ₹790 UPI payment, one reservation of −2 brownie boxes (none for the candle), and one audit row each for the order and the payment.
+  - **The new-customer order:** Kavya Rao was made from the order screen, and her address filled the delivery. One truffle cake, part paid ₹300 cash, Place order pressed twice at once. Both requests answered 201 with **ORD-1009**. The database holds one customer, one order (₹1,200, Part paid, delivering to her address), one ₹300 cash payment and one reservation of −1.
+  - **Before and after:** orders +2, payments +2, ledger lines +2, customers +1, the counter 1008 → 1010. No errors in the browser.
+  - The first attempt at this test stopped at the new customer's name, which had been wiped as the sheet opened. That was a real fault in four sheets, fixed above.
+- **Captured at 360, 390, 820, 1280 and 1440 px in Golden and Peach:** the new order's steps, and the order detail for a customer's order and a Guest's. No sideways scroll anywhere.
+- **The local test data was removed afterwards:** the nine `ORD-` orders with their lines, payments, ledger lines, jobs and audit rows, and Kavya Rao. The counter is back at 1001. The seed's own orders and customers were not touched.
+
+### Blockers
+- None.
+- **Still open from Phase 2, for whoever hosts the app:** the worker (`npm run worker`) has to run beside the app in production.
+- **Left to their rows:**
+  - View bill on the order steps and on the Order placed card, and the bill in estimate mode (R4.3).
+  - Sharing and downloading the bill (R4.4, R4.5). The bill view as a real dialog (R4.6, BUG-27).
+  - "Custom items" and "Guest sales" in Analytics (R5.x).
+  - Dropping `categories` and `products.category_id`, and illustrations for products and expense categories (R5.6).
+  - The payment sheet's and the customer sheet's own labels, still written inline, move to `messages.ts` with their screens (R5.x).
