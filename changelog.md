@@ -972,3 +972,4 @@ entry grows with them.
     - the receipt's hard-coded "Ovenly Bakery" with the bill's view-model (R4.1);
     - the units with Products (R5.6);
     - moving each screen's own strings into the catalogue (R5.14).
+- **Fixed: Create order's checkout bar sat over the rail.** It meant to clear the old 256 px sidebar with `md:pl-64`, but its `safe-x` helper is unlayered and wins over padding utilities (R1.6), so it never did. On an 820 px tablet its content began at 26 px, over the new 72 px rail. It now starts where the rail or the sidebar ends (`left`, with the safe inset), measured at 88 px on a tablet and 380 px on a desktop. The cart bar replaces it in R3.9.
