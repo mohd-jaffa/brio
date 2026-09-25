@@ -956,3 +956,19 @@ entry grows with them.
     - The account menu opens and closes; the More sheet shows its rows.
     - No console errors.
   - **Tests.** The shell, the More sheet, the account menu, the mark and the theme switch each have their own file. The More sheet's tests moved out of the shell's. 814 tests.
+- **R1.14 — copy for the wider audience** (plan §139.1 #2; Q8 on its default).
+  - **The tagline** is "Home Business", shown in the shell's mark.
+  - **The page's title and description** name home businesses: bakers, hamper makers, florists and gift makers.
+  - **"Business", not "bakery",** wherever the shared and screen copy said it:
+    - the registration label (now "Business name") and the forgot-password line;
+    - the Home subtitle, and the Customers, Orders and Settings subtitles;
+    - the Settings note on business details;
+    - "Baker Notes" on a customer, now "Your notes".
+  - The error and validation catalogues had no bakery-only words.
+  - **Left to their rows:**
+    - the auth headlines and promise ("Good bakes start here.") with the auth screens (R2.8);
+    - the "Baker" role label with the role rename (R2.2);
+    - "Baking" becoming "Preparing" with the statuses (R3.11);
+    - the receipt's hard-coded "Ovenly Bakery" with the bill's view-model (R4.1);
+    - the units with Products (R5.6);
+    - moving each screen's own strings into the catalogue (R5.14).

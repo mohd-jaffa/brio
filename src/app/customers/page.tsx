@@ -33,7 +33,7 @@ export default function CustomersPage() {
 
   return (
     <AppShell>
-      <PageHeader title="Customers" subtitle="Manage your bakery&rsquo;s clients">
+      <PageHeader title="Customers" subtitle="Manage your customers">
         <Button icon={Plus} label="Add Customer" onClick={() => form.open()} />
       </PageHeader>
 

@@ -7,7 +7,7 @@ describe("BusinessMark", () => {
   it("shows the mark, the name and the line", () => {
     const { container } = render(<BusinessMark />);
     expect(screen.getByText("Ovenly")).toBeInTheDocument();
-    expect(screen.getByText("Home Bakery")).toBeInTheDocument();
+    expect(screen.getByText("Home Business")).toBeInTheDocument();
     expect(container.querySelector('[aria-hidden="true"]')).toHaveClass("size-10");
   });
 

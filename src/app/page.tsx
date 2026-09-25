@@ -68,7 +68,7 @@ export default function DashboardPage() {
         <h1 className="font-heading text-2xl font-bold tracking-tight text-text sm:text-3xl">
           Good morning, Baker!
         </h1>
-        <p className="mt-1 text-sm font-medium text-text-muted">Here&rsquo;s your bakery today.</p>
+        <p className="mt-1 text-sm font-medium text-text-muted">Here&rsquo;s your business today.</p>
       </section>
 
       {failed && <ScreenNotice>{errorMessage(orders.error, "DASHBOARD_LOAD_FAILED")}</ScreenNotice>}

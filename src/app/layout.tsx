@@ -28,9 +28,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Ovenly — Home Bakery Management",
+  title: "Ovenly — Home Business Management",
   description:
-    "Mobile-first management platform for home bakers. Manage orders, customers, inventory, expenses, and bills effortlessly.",
+    "Mobile-first management for home businesses — bakers, hamper makers, florists and gift makers. Orders, customers, stock, expenses and bills in one place.",
 };
 
 export const viewport: Viewport = {

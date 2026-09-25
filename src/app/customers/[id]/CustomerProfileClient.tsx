@@ -197,7 +197,7 @@ export function CustomerProfileClient({ id }: { id: string }) {
               </Detail>
             )}
             {person.notes && (
-              <Detail icon={FileText} label="Baker Notes">
+              <Detail icon={FileText} label="Your notes">
                 {person.notes}
               </Detail>
             )}

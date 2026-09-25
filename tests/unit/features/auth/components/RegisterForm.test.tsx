@@ -21,7 +21,7 @@ const { RegisterForm } = await import("@/features/auth/components/RegisterForm")
 
 const VALID = {
   "Your name": "Asha Baker",
-  "Bakery name": "Asha Bakes",
+  "Business name": "Asha Bakes",
   "Mobile number": "9876543210",
   "Email address": "asha@example.com",
 };

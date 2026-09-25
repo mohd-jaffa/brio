@@ -88,7 +88,7 @@ export const VALIDATION_MESSAGES = {
 /** The words on buttons, headings and empty states, so no screen invents its own. */
 export const UI_TEXT = {
   appName: "Ovenly",
-  appTagline: "Home Bakery",
+  appTagline: "Home Business",
 
   /**
    * The words the four authentication screens share. They are the first thing
@@ -114,7 +114,7 @@ export const UI_TEXT = {
     confirmPasswordLabel: "Confirm password",
     emailLabel: "Email address",
     nameLabel: "Your name",
-    businessNameLabel: "Bakery name",
+    businessNameLabel: "Business name",
     haveAccount: "Already have an account?",
     noAccount: "New to Ovenly?",
     sendResetEmail: "Email me a temporary password",
@@ -136,7 +136,7 @@ export const UI_TEXT = {
     // The three screens behind the front door (plan §138.6). Same voice: a
     // serif line that says where you are, then one sentence of why.
     forgotHeadline: ["Let's get", "you back in."],
-    forgotIntro: "Tell us the email your bakery is registered with",
+    forgotIntro: "Tell us the email your business is registered with",
     changePasswordHeadline: ["A fresh", "password."],
     changePasswordIntro: "Choose the one you will sign in with from now on",
     confirmEmail: "Confirm your email",

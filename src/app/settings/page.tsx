@@ -45,7 +45,7 @@ export default function SettingsPage() {
     <AppShell>
       <PageHeader
         title="Settings"
-        subtitle="Manage your bakery profile and preferences"
+        subtitle="Manage your business profile and preferences"
       />
 
       <section className="space-y-6 rounded-3xl border border-border bg-surface p-6 shadow-card">
@@ -94,7 +94,7 @@ export default function SettingsPage() {
           Bakery Profile
         </h2>
         <p className="text-sm font-medium text-text-muted">
-          Editing your bakery&rsquo;s name and business phone is not wired up yet. Until it is,
+          Editing your business&rsquo;s name and business phone is not wired up yet. Until it is,
           this page shows only what can actually be changed.
         </p>
         <Button label="Save Details" disabled />
