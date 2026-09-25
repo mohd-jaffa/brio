@@ -13,7 +13,7 @@ import { optionsFrom, SelectField } from "@/components/ui/text-field";
 import { useResponse } from "@/components/ui/response-card";
 import { UI_TEXT } from "@/constants/messages";
 import {
-  ORDER_STATUS_LABELS,
+  orderStatusLabel,
   PAYMENT_STATUS_LABELS,
   PAYMENT_STATUSES,
   type OrderStatus,
@@ -174,7 +174,10 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
               label="Order Status"
               value={current.status}
               disabled={update.submitting || statusChoices.length === 1}
-              options={optionsFrom(statusChoices, ORDER_STATUS_LABELS)}
+              options={statusChoices.map((choice) => ({
+                value: choice,
+                label: orderStatusLabel(choice, current.delivery.type),
+              }))}
               onChange={(event) => moveTo(event.target.value as OrderStatus)}
             />
           </Panel>

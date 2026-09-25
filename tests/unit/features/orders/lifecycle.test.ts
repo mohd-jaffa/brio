@@ -10,9 +10,11 @@ describe("nextStatuses", () => {
     expect(nextStatuses("PENDING", "DELIVERY")).toEqual(["IN_PROGRESS", "CANCELLED"]);
   });
 
-  it("sends only a delivery order out for delivery", () => {
-    expect(nextStatuses("IN_PROGRESS", "DELIVERY")).toEqual(["IN_TRANSIT", "DELIVERED", "CANCELLED"]);
-    expect(nextStatuses("IN_PROGRESS", "PICKUP")).toEqual(["DELIVERED", "CANCELLED"]);
+  it("offers Ready first, and sends only a delivery order out for delivery (§139.11.8)", () => {
+    expect(nextStatuses("IN_PROGRESS", "DELIVERY")).toEqual(["READY", "IN_TRANSIT", "DELIVERED", "CANCELLED"]);
+    expect(nextStatuses("IN_PROGRESS", "PICKUP")).toEqual(["READY", "DELIVERED", "CANCELLED"]);
+    expect(nextStatuses("READY", "DELIVERY")).toEqual(["IN_TRANSIT", "DELIVERED", "CANCELLED"]);
+    expect(nextStatuses("READY", "PICKUP")).toEqual(["DELIVERED", "CANCELLED"]);
   });
 
   it("lets nothing follow a delivered or cancelled order", () => {
@@ -42,6 +44,12 @@ describe("canMoveTo", () => {
 
   it("refuses out for delivery on a pickup", () => {
     expect(canMoveTo("IN_PROGRESS", "IN_TRANSIT", "PICKUP")).toBe(false);
+    expect(canMoveTo("READY", "IN_TRANSIT", "PICKUP")).toBe(false);
+  });
+
+  it("never goes back to Ready once an order is out", () => {
+    expect(canMoveTo("IN_TRANSIT", "READY", "DELIVERY")).toBe(false);
+    expect(canMoveTo("PENDING", "READY", "PICKUP")).toBe(false);
   });
 });
 

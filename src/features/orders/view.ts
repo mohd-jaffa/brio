@@ -1,8 +1,9 @@
 import { UI_TEXT } from "@/constants/messages";
 import {
   DELIVERY_TYPE_LABELS,
-  ORDER_STATUS_LABELS,
+  FINAL_STATUSES,
   ORDER_STATUS_TONES,
+  orderStatusLabel,
   PAYMENT_STATUS_LABELS,
   PAYMENT_STATUS_TONES,
   type StatusTone,
@@ -15,11 +16,9 @@ import type { Order } from "./types";
  * each worked this out for themselves, and had ended up disagreeing about when
  * an order counts as late and what colour a status is.
  */
-export const OPEN_STATUSES = ["PENDING", "IN_PROGRESS", "IN_TRANSIT"] as const;
-
 /** An order still being worked on, as opposed to one delivered or cancelled. */
 export function isOpen(order: Order): boolean {
-  return (OPEN_STATUSES as readonly string[]).includes(order.status);
+  return !FINAL_STATUSES.includes(order.status);
 }
 
 /** Past its delivery time and still open. A delivered or cancelled order is never late. */
@@ -30,7 +29,7 @@ export function isOverdue(order: Order, now: Date = new Date()): boolean {
 /** What the pill beside an order says, and in what tone — "Overdue" outranks the status. */
 export function statusPill(order: Order, now?: Date): { label: string; tone: StatusTone } {
   if (isOverdue(order, now)) return { label: UI_TEXT.orders.overdue, tone: "cancelled" };
-  return { label: ORDER_STATUS_LABELS[order.status], tone: ORDER_STATUS_TONES[order.status] };
+  return { label: orderStatusLabel(order.status, order.delivery.type), tone: ORDER_STATUS_TONES[order.status] };
 }
 
 export function paymentPill(order: Order): { label: string; tone: StatusTone } {

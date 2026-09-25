@@ -1256,3 +1256,21 @@ Each row is committed on its own; this entry grows with them.
 - None.
 - **Open, for whoever hosts the app:** the worker is a second process (`npm run worker`) that must run beside the app in production. The plan names no host yet, so how it is started and kept running there is undecided. Until it runs, confirmation emails wait in the queue, and registration is unaffected.
 - **Left to their rows:** jobs enqueued with the service role, exponential backoff, and the Menu and Cleanup workers (R6.1); the business header on the bill (R4.1); Appearance in Settings (R5.11); notifications written to the inbox (R3.4, R5.10); OpenAPI (R6.3).
+
+## 2026-09-25 — Phase 3: Orders (plan §139.18, tracker §139.19)
+
+One-transaction creation with idempotency; order numbers; the oversell guard;
+Guest; customers on the fly; delivery autofill; custom items; statuses;
+payment at creation; the estimate endpoint. Each row is committed on its own;
+this entry grows with them.
+
+### Decided (the user, 2026-09-25, recorded under AGENTS §31)
+- **The oversell guard checks stocked products only.** Plan §21 refuses an order when stock is short "unless the made-to-order rule is enabled", but no such rule existed, and many home businesses never record stock for what they make to order. The user chose: a product is checked once any stock has been recorded for it — a stock in, an adjustment, wastage or a return. A product nobody stocks is made to order and is never refused. There is no new setting or column.
+
+### Changed
+- **R3.11 · Q3 — Preparing, Ready, and Completed for a pickup** (plan §139.11.8).
+  - **Migration `0013_status_ready.sql`** adds `READY` to the status check. No stored value changes.
+  - **Labels:** `IN_PROGRESS` reads "Preparing", not "Baking", because not every business bakes. `READY` reads "Ready". `DELIVERED` reads "Completed" for a pickup and "Delivered" for a delivery, through `orderStatusLabel(status, deliveryType)`, which the status pill and the order screen use.
+  - **Transitions:** Preparing may go to Ready, Out for delivery (delivery only), Delivered or Cancelled. Ready may go to Out for delivery (delivery only), Delivered or Cancelled. The usual next step comes first in each list, for the next-step button (R3.15).
+  - `FINAL_STATUSES` replaces the list of open statuses in `view.ts`, so a new open status is open without being added anywhere else.
+  - **Tests:** the new transitions both ways, Ready never reached from Pending or after Out for delivery, the labels, and a contract that the stored check holds exactly the statuses the app knows.

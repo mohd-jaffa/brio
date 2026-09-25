@@ -38,6 +38,7 @@ describe("isOpen", () => {
   it("counts an order still being worked on", () => {
     expect(isOpen(order("1", "PENDING", now.toISOString()))).toBe(true);
     expect(isOpen(order("2", "IN_TRANSIT", now.toISOString()))).toBe(true);
+    expect(isOpen(order("5", "READY", now.toISOString()))).toBe(true);
   });
 
   it("does not count one that is finished either way", () => {
@@ -69,11 +70,14 @@ describe("statusPill", () => {
     });
   });
 
-  it("otherwise reads the status in the words and tone the constants chose", () => {
+  it("otherwise reads the status in the words and tone the constants chose — Completed for a pickup", () => {
     expect(statusPill(order("2", "DELIVERED", "2026-09-21T10:00:00Z"), now)).toEqual({
-      label: "Delivered",
+      label: "Completed",
       tone: "delivered",
     });
+    const delivered = order("3", "DELIVERED", "2026-09-21T10:00:00Z");
+    delivered.delivery.type = "DELIVERY";
+    expect(statusPill(delivered, now).label).toBe("Delivered");
   });
 });
 

@@ -8,6 +8,7 @@ import {
   ORDER_STATUS_LABELS,
   ORDER_STATUS_TONES,
   ORDER_STATUSES,
+  orderStatusLabel,
   PAYMENT_METHOD_LABELS,
   PAYMENT_METHODS,
   PAYMENT_STATUS_LABELS,
@@ -23,6 +24,18 @@ describe("the shared vocabularies", () => {
       expect(ORDER_STATUS_LABELS[status]).toBeTruthy();
       expect(ORDER_STATUS_TONES[status]).toBeTruthy();
     }
+  });
+
+  it("reads IN_PROGRESS as Preparing, and adds Ready (Q3)", () => {
+    expect(ORDER_STATUS_LABELS.IN_PROGRESS).toBe("Preparing");
+    expect(ORDER_STATUS_LABELS.READY).toBe("Ready");
+    expect(ORDER_STATUS_TONES.READY).toBe("ready");
+  });
+
+  it("calls a finished pickup Completed and a finished delivery Delivered (§139.11.8)", () => {
+    expect(orderStatusLabel("DELIVERED", "PICKUP")).toBe("Completed");
+    expect(orderStatusLabel("DELIVERED", "DELIVERY")).toBe("Delivered");
+    expect(orderStatusLabel("READY", "PICKUP")).toBe("Ready");
   });
 
   it("gives every payment status a label and a tone", () => {

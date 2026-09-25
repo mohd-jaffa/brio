@@ -9,18 +9,21 @@
  */
 
 /** How far along an order is (AGENTS.md §12). */
-export const ORDER_STATUSES = ["PENDING", "IN_PROGRESS", "IN_TRANSIT", "DELIVERED", "CANCELLED"] as const;
+export const ORDER_STATUSES = ["PENDING", "IN_PROGRESS", "READY", "IN_TRANSIT", "DELIVERED", "CANCELLED"] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 /**
- * Where an order may go next (plan §139.11.8). Anything else is refused by the
- * server. Out for delivery exists only for a delivery order, and a delivered
- * or cancelled order is final: stock has already followed it, and moving it
- * again would move stock again.
+ * Where an order may go next (plan §139.11.8), the usual next step first.
+ * Anything else is refused by the server — by the database itself, whose
+ * `order_status_next` repeats this table (0016_change_order_status.sql, kept
+ * equal by its test). Out for delivery exists only for a delivery order, and a
+ * delivered or cancelled order is final: stock has already followed it, and
+ * moving it again would move stock again.
  */
 export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
   PENDING: ["IN_PROGRESS", "CANCELLED"],
-  IN_PROGRESS: ["IN_TRANSIT", "DELIVERED", "CANCELLED"],
+  IN_PROGRESS: ["READY", "IN_TRANSIT", "DELIVERED", "CANCELLED"],
+  READY: ["IN_TRANSIT", "DELIVERED", "CANCELLED"],
   IN_TRANSIT: ["DELIVERED", "CANCELLED"],
   DELIVERED: [],
   CANCELLED: [],
@@ -29,13 +32,30 @@ export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[
 /** The statuses only a delivery order can pass through. */
 export const DELIVERY_ONLY_STATUSES: readonly OrderStatus[] = ["IN_TRANSIT"];
 
+/** The finished statuses: nothing moves an order on from either (plan §139.11.8). */
+export const FINAL_STATUSES: readonly OrderStatus[] = ["DELIVERED", "CANCELLED"];
+
+/**
+ * How a status reads. "Preparing" rather than "Baking", since not every
+ * business bakes (Q3, §139.1); DELIVERED reads "Completed" for a pickup — use
+ * `orderStatusLabel`, which knows how the order is handed over.
+ */
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   PENDING: "Pending",
-  IN_PROGRESS: "Baking",
+  IN_PROGRESS: "Preparing",
+  READY: "Ready",
   IN_TRANSIT: "Out for delivery",
   DELIVERED: "Delivered",
   CANCELLED: "Cancelled",
 };
+
+/** DELIVERED for an order collected in person. */
+export const PICKUP_DELIVERED_LABEL = "Completed";
+
+/** A status as it reads for this order: a pickup is Completed, a delivery Delivered. */
+export function orderStatusLabel(status: OrderStatus, deliveryType: DeliveryType): string {
+  return status === "DELIVERED" && deliveryType === "PICKUP" ? PICKUP_DELIVERED_LABEL : ORDER_STATUS_LABELS[status];
+}
 
 export const PAYMENT_STATUSES = ["UNPAID", "PARTIALLY_PAID", "PAID"] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
@@ -127,6 +147,7 @@ export type StatusTone = (typeof STATUS_TONES)[number];
 export const ORDER_STATUS_TONES: Record<OrderStatus, StatusTone> = {
   PENDING: "pending",
   IN_PROGRESS: "preparing",
+  READY: "ready",
   IN_TRANSIT: "transit",
   DELIVERED: "delivered",
   CANCELLED: "cancelled",
