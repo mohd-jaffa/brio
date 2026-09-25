@@ -7477,6 +7477,7 @@ masters are the exception: they are app artwork, and they are committed under
   - There are **no category chips** on the create-order grid or on Products, **no Manage categories**, and **no `/api/categories`**. §133.4 D1 is closed as dropped.
   - R5.6 drops what is left of them: the unused `categories` table and `products.category_id`, so no dead schema stays behind (§2.2).
   - **Sales by category** leaves Analytics with them. Custom items, which it used to show, appear as one **"Custom items"** row in the Products tab's ranking, so their sales are still counted.
+  - **Expenses keep their categories** — the eight in §22 — each with an illustration the owner picks from the library (R5.16). Each side starts on its own default: a product on `default-product`, an expense category on `default-expense` (§139.11.10), and either can be changed to any illustration in the library.
 - **The oversell guard checks stocked products only.** A product is checked once any stock has been recorded for it by hand — a stock in, adjustment, wastage or return. A product nobody stocks is made to order and is never refused (§21's "made-to-order rule", R3.3).
 
 ---
