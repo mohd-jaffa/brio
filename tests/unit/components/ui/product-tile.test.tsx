@@ -25,4 +25,10 @@ describe("ProductTile", () => {
     rerender(<ProductTile size="lg" />);
     expect(container.firstElementChild).toHaveStyle({ width: "64px", height: "64px" });
   });
+
+  it("fills a card's width, asking for a picture big enough", () => {
+    const { container } = render(<ProductTile iconKey="donut" size="fill" />);
+    expect(container.firstElementChild).toHaveClass("w-full", "aspect-[4/3]");
+    expect(container.querySelector("img")).toHaveAttribute("width", "144");
+  });
 });

@@ -852,3 +852,14 @@ entry grows with them.
   - **`row` and `row-list`**: a tile or an avatar, a title with up to two lines under it, a trailing block (an amount, a pill) and a chevron, with hairline dividers inside one card.
     - A row is a link with `href`, a button with `onClick`, and plain otherwise. The whole row is the target.
     - A new `focus-inset` class draws a row's focus ring just inside it, where the card's rounded clipping would otherwise cut it off. The global `:focus-visible` rule is unlayered, so it beats a utility class.
+  - **The order-flow pieces: `product-card`, `quantity-stepper`, `cart-bar` and `fab`.**
+    - **`product-card`**: the illustration across the card (`ProductTile` gains a `fill` size), the name in two lines at most, the price and a + named "Add …".
+    - **`quantity-stepper`**: − / value / +.
+      - The value is a WAI-ARIA spinbutton: it can be typed and is kept within bounds; the arrows step by one and Page Up/Down by ten; Home and End go to the bounds.
+      - The buttons are for fingers and pointers and stay out of the Tab order. They repeat while held (after 400 ms, every 80 ms) and stop at a bound.
+      - A screen reader's click, with no press behind it, still steps once. A press that slides off leaves nothing to swallow the next click.
+      - Checked in the browser under the React Compiler: holding + for a second went 1 → 10 and stopped on release, a click after that stepped once, and End, typing and Enter worked.
+    - **`hit-area`**: a 32 px control still takes a 44 px tap, through an invisible halo (WCAG 2.5.8). The browser confirmed a tap 5 px outside the + lands.
+    - **`cart-bar`**: the cart with its count (spoken in words), the running total, and the dark go-on button. It is `sticky` in the content column, so it never needs a sidebar's width as the current checkout bar does. Measured 80 px up on a phone, just above the nav.
+    - **`fab`**: the one dark round + on a phone, above the nav and clear of the home indicator, and a worded button from 768 px. It is written in the page header's action slot, and follows a link or opens a sheet.
+  - **Fixed:** Create order showed two back controls once its header gained one; the old "Back" button is gone.

@@ -196,6 +196,19 @@
   min-width: 44px;
 }
 
+/* A control drawn smaller than 44 px — the + on a product card, a stepper's
+   buttons — still takes a 44 px tap: an invisible halo around it catches it.
+   For controls drawn at 32 px or more, and spaced so no two halos overlap. */
+.hit-area {
+  position: relative;
+}
+
+.hit-area::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}
+
 /* ============================================================
    Accessibility: Focus Visible
    Two-tone outline visible on both light and primary backgrounds.

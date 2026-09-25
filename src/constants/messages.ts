@@ -166,6 +166,12 @@ export const UI_TEXT = {
     noResults: (term: string) => `Nothing matches “${term}”.`,
   },
 
+  /** The quantity stepper (plan §139.5). */
+  quantity: {
+    decrease: "Decrease",
+    increase: "Increase",
+  },
+
   /** The range picker (plan §139.5). */
   range: {
     label: "Period",

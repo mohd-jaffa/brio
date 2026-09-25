@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, CreditCard, Plus, ShoppingBag, Trash2, Truck, User } from "lucide-react";
+import { CreditCard, Plus, ShoppingBag, Trash2, Truck, User } from "lucide-react";
 
 import { AppShell } from "@/components/nav/AppShell";
 import { Button, IconButton } from "@/components/ui/button";
@@ -150,8 +150,6 @@ export default function NewOrderPage() {
 
   return (
     <AppShell>
-      <Button label="Back" icon={ArrowLeft} variant="ghost" onClick={() => router.back()} />
-
       <PageHeader title="Create Order" back="/orders" />
 
       {create.error && <ScreenNotice>{create.error}</ScreenNotice>}
