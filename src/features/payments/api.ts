@@ -4,6 +4,7 @@ import { type CreatePaymentPayload } from "@/lib/validation";
 import { logActionSafe } from "@/lib/audit/auditLog";
 import { JOB_TYPES } from "@/constants/jobs";
 import { createJob } from "@/lib/jobs/queue";
+import { logger } from "@/lib/logger";
 import { findOrderById } from "@/features/orders/api";
 import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
 import { conflictError } from "@/lib/errors";
@@ -97,19 +98,28 @@ export async function processPayment(
     new_data: payment as unknown as Record<string, unknown>,
   });
 
-  await createJob(tenant.supabase, {
-    type: JOB_TYPES.pushNotification,
-    // No device token: the token registry comes with push (R8.6), and until it
-    // does the worker completes the job as having no device to reach.
-    payload: {
-      payload: {
-        title: "Payment Received",
-        body: `Payment of ${input.amount} received for order ${order.order_number}`
-      }
-    }
-  });
-
+  await notifyPayment(tenant, order.order_number, payment.amount);
   return payment;
+}
+
+/**
+ * Queues "₹500 received for ORD-1028." as facts; the worker writes the words
+ * (BUG-26). The payment is recorded already, so a queue that cannot take the
+ * notification is logged, never reported as a failed payment.
+ */
+async function notifyPayment(tenant: Tenant, orderNumber: string, amount: number) {
+  try {
+    await createJob(tenant.supabase, {
+      type: JOB_TYPES.pushNotification,
+      payload: { bakeryId: tenant.bakeryId, message: { kind: "PAYMENT_RECEIVED", orderNumber, amount } },
+    });
+  } catch (error) {
+    logger.error("Could not queue the payment notification", {
+      bakeryId: tenant.bakeryId,
+      orderNumber,
+      reason: error instanceof Error ? error.message : String(error),
+    });
+  }
 }
 
 /** A key names one payment on one order; reused for another order, it is refused. */

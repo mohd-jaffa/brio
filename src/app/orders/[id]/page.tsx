@@ -9,15 +9,12 @@ import { Button } from "@/components/ui/button";
 import { ScreenNotice } from "@/components/ui/screen-notice";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { StatusPill } from "@/components/ui/status-pill";
-import { optionsFrom, SelectField } from "@/components/ui/text-field";
+import { SelectField } from "@/components/ui/text-field";
 import { useResponse } from "@/components/ui/response-card";
 import { UI_TEXT } from "@/constants/messages";
 import {
   orderStatusLabel,
-  PAYMENT_STATUS_LABELS,
-  PAYMENT_STATUSES,
   type OrderStatus,
-  type PaymentStatus,
 } from "@/constants/statuses";
 import type { Customer } from "@/features/customers/types";
 import { OrdersClient } from "@/features/orders/api.client";
@@ -72,7 +69,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
   const receipt = useApiQuery<ReceiptData>(showReceipt ? apiRoutes.orders.receipt(id) : null);
 
   const respond = useResponse();
-  const update = useApiMutation<{ status?: OrderStatus; paymentStatus?: PaymentStatus }, Order>(
+  const update = useApiMutation<{ status: OrderStatus }, Order>(
     (patch) => OrdersClient.updateStatus(id, patch),
     {
       revalidate: [apiRoutes.orders.detail(id), apiRoutes.orders.list],
@@ -184,15 +181,8 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
 
           <Panel title="Payment Status" icon={CreditCard}>
             <div className="space-y-3">
-              <SelectField
-                label="Payment Status"
-                value={current.payment.status}
-                disabled={update.submitting}
-                options={optionsFrom(PAYMENT_STATUSES, PAYMENT_STATUS_LABELS)}
-                onChange={(event) =>
-                  update.submit({ paymentStatus: event.target.value as PaymentStatus })
-                }
-              />
+              {/* Derived from the payments, never set by hand (BUG-06). */}
+              <StatusPill label={payment.label} tone={payment.tone} />
               {current.payment.status !== "PAID" && (
                 <Button
                   label="Collect Payment"

@@ -2,9 +2,6 @@ import type { Tenant } from "@/lib/supabase/tenant";
 import { type OrderRow, type OrderItemRow, type OrderAdjustmentRow } from "./types";
 import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
 import { requireRow } from "@/lib/supabase/writes";
-import { pickColumns } from "@/lib/supabase/columns";
-import { EDITABLE_COLUMNS } from "@/constants/editableColumns";
-import { conflictError } from "@/lib/errors";
 import type { OrderListQuery } from "@/lib/validation";
 
 /**
@@ -50,56 +47,6 @@ export async function findOrderById(tenant: Tenant, id: string): Promise<{
     items: itemsResponse.data as OrderItemRow[],
     adjustments: adjustmentsResponse.data as OrderAdjustmentRow[],
   };
-}
-
-/**
- * Updates an order status / payment status safely using pickColumns and requireRow.
- */
-export async function updateOrder(
-  tenant: Tenant,
-  id: string,
-  payload: Partial<Pick<OrderRow, "status" | "payment_status">>
-): Promise<OrderRow> {
-  const { supabase: client, bakeryId } = tenant;
-  const patch = pickColumns(payload, EDITABLE_COLUMNS.orders);
-
-  return requireRow<OrderRow>(
-    client
-      .from("orders")
-      .update(patch)
-      .eq("bakery_id", bakeryId)
-      .eq("id", id)
-      .select()
-      .maybeSingle(),
-    "RECORD_NOT_FOUND"
-  );
-}
-
-/**
- * Moves an order to a new status only if it is still where it was read. Two
- * taps, or two devices, cannot both apply the same move — the second finds the
- * order already moved, changes nothing, and is told so — so the stock that
- * follows a move is never posted twice.
- */
-export async function moveOrderStatus(
-  tenant: Tenant,
-  id: string,
-  from: OrderRow["status"],
-  to: OrderRow["status"],
-): Promise<OrderRow> {
-  const { supabase: client, bakeryId } = tenant;
-  const { data, error } = await client
-    .from("orders")
-    .update({ status: to })
-    .eq("bakery_id", bakeryId)
-    .eq("id", id)
-    .eq("status", from)
-    .select()
-    .maybeSingle();
-
-  if (error) throw fromPostgrestError(error);
-  if (data === null) throw conflictError("ORDER_STATUS_CHANGED", { from, to });
-  return data as OrderRow;
 }
 
 /**

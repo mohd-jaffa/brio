@@ -11,6 +11,8 @@ const { findOrderById, logActionSafe, createJob } = vi.hoisted(() => ({
 vi.mock("@/features/orders/api", () => ({ findOrderById }));
 vi.mock("@/lib/audit/auditLog", () => ({ logActionSafe }));
 vi.mock("@/lib/jobs/queue", () => ({ createJob }));
+const logger = vi.hoisted(() => ({ info: vi.fn(), warn: vi.fn(), error: vi.fn() }));
+vi.mock("@/lib/logger", () => ({ logger }));
 
 import { processPayment } from "@/features/payments/api";
 import { tenantOf } from "@tests/support/tenant";
@@ -148,5 +150,25 @@ describe("processPayment", () => {
     const tenant = tenantOf(client, { actorId: "u-7" });
     await processPayment(tenant, payment, KEY);
     expect(logActionSafe).toHaveBeenCalledWith(tenant, expect.objectContaining({ action: "CREATE", entity_type: "payments", entity_id: "p-1" }));
+  });
+
+  it("queues the notification as facts, so the worker writes it in rupees (BUG-26)", async () => {
+    const { client } = fakeClient();
+    await processPayment(tenantOf(client), payment, KEY);
+    expect(createJob).toHaveBeenCalledWith(client, {
+      type: "SEND_PUSH_NOTIFICATION",
+      payload: { bakeryId: "b-1", message: { kind: "PAYMENT_RECEIVED", orderNumber: "ORD-1001", amount: 50000 } },
+    });
+  });
+
+  it("keeps the payment when the queue cannot take its notification, and logs it", async () => {
+    createJob.mockRejectedValue(new Error("queue down"));
+    const { client } = fakeClient();
+    await expect(processPayment(tenantOf(client), payment, KEY)).resolves.toMatchObject({ id: "p-1" });
+    expect(logger.error).toHaveBeenCalledWith("Could not queue the payment notification", {
+      bakeryId: "b-1",
+      orderNumber: "ORD-1001",
+      reason: "queue down",
+    });
   });
 });

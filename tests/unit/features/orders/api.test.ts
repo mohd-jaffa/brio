@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it } from "vitest";
 
-import { findAllOrders, findPaidByOrder, moveOrderStatus } from "@/features/orders/api";
+import { findAllOrders, findPaidByOrder } from "@/features/orders/api";
 import { tenantOf } from "@tests/support/tenant";
 
 /**
@@ -47,25 +47,6 @@ describe("findAllOrders", () => {
     const { client, filters } = recordingClient({ data: [], error: null });
     await findAllOrders(tenantOf(client), { customer: "c-1" });
     expect(filters).toEqual([["bakery_id", "b-1"], ["customer_id", "c-1"]]);
-  });
-});
-
-describe("moveOrderStatus", () => {
-  it("changes the order only if it is still in the status it was read in", async () => {
-    const { client, filters } = recordingClient({ data: { id: "o-1", status: "DELIVERED" }, error: null });
-    await expect(moveOrderStatus(tenantOf(client), "o-1", "IN_TRANSIT", "DELIVERED")).resolves.toMatchObject({
-      status: "DELIVERED",
-    });
-    expect(filters).toContainEqual(["status", "IN_TRANSIT"]);
-    expect(filters).toContainEqual(["bakery_id", "b-1"]);
-  });
-
-  it("reports a conflict when the order had already moved", async () => {
-    const { client } = recordingClient({ data: null, error: null });
-    await expect(moveOrderStatus(tenantOf(client), "o-1", "IN_TRANSIT", "DELIVERED")).rejects.toMatchObject({
-      code: "ORDER_STATUS_CHANGED",
-      kind: "CONFLICT",
-    });
   });
 });
 

@@ -171,9 +171,12 @@ export const createOrderSchema = z.object({
   notes: optionalLines("Order notes", 1000),
 });
 
+/**
+ * Where to move an order. The payment status is not accepted: the payments
+ * decide it (BUG-06, §139.11.9).
+ */
 export const updateOrderStatusSchema = z.object({
-  status: z.enum(ORDER_STATUSES).optional(),
-  paymentStatus: z.enum(PAYMENT_STATUSES).optional(),
+  status: z.enum(ORDER_STATUSES, { error: VALIDATION_MESSAGES.chooseOne("status") }),
 });
 
 export type CreateOrderInput = z.input<typeof createOrderSchema>;

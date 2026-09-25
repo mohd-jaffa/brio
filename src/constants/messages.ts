@@ -288,6 +288,14 @@ export const UI_TEXT = {
     cancelConfirm: "Cancel order",
   },
 
+  /** What a notification says, written when it is sent (BUG-26). */
+  notifications: {
+    orderStatusTitle: "Order updated",
+    orderStatusBody: (orderNumber: string, status: string) => `${orderNumber} is now ${status}.`,
+    paymentTitle: "Payment received",
+    paymentBody: (amount: string, orderNumber: string) => `${amount} received for ${orderNumber}.`,
+  },
+
   /** Business details (plan §139.10, §139.11.2). */
   business: {
     title: "Business details",

@@ -1332,3 +1332,27 @@ this entry grows with them.
     - `processPayment`: the key stored, a repeat, a race, a key reused for another order, the database's refusal, and the audit.
     - The sheet sending Try again with the same key.
     - Also the error mapping and detail, the client's `postOnce` and details, the key reader, the keys and the hook, the payment schemas, and a contract for 0015.
+- **R3.4 · §133.3 C6 · BUG-26 — a status change is one transaction, and notifications read in words.** R3.12's other server half (BUG-06) lands with it.
+  - **Migration `0016_change_order_status.sql`.**
+    - `order_status_next(status, delivery_type)` is the transition table in the database. A contract test reads it out of the migration and checks it against `nextStatuses` for every status and both delivery types.
+    - **`change_order_status(order, from, to)`** is `security invoker`, and does all of this or none of it:
+      - locks the order;
+      - refuses a move from a status it has already left, as `ORDER_STATUS_CHANGED` — a double tap, or another device;
+      - refuses a move the table does not allow, as `ORDER_STATUS_TRANSITION_INVALID`;
+      - moves it, and posts the stock that follows: Delivered or Completed releases the reservation and consumes, Cancelled releases, and custom lines are skipped;
+      - queues the notification in the same transaction, so a move never goes without its notification. That is the failure C6 recorded on 2026-09-23.
+  - **`updateOrderStatus`** reads the order, makes one call from where it read it, and audits the move as the user who made it. The multi-step path (`moveOrderStatus`, `stockMovements`, `updateOrder`) is gone. `EDITABLE_COLUMNS.orders` went with it, because nothing updates an order directly any more. `lifecycle.ts` keeps `nextStatuses` and `canMoveTo` for the screen.
+  - **BUG-06:** `PATCH /api/orders/{id}` takes `{ status }` only ("Choose a status." without one). The order screen's payment-status select is gone, and its panel shows the derived pill and Collect payment.
+  - **BUG-26 — notifications are written from messages.ts when they are sent.**
+    - A job carries what happened: `{ kind: "ORDER_STATUS", orderNumber, status, deliveryType }` or `{ kind: "PAYMENT_RECEIVED", orderNumber, amount }`, with the business.
+    - `notificationText` writes the words: "ORD-1028 is now Preparing." (or "Completed" for a pickup), and "₹500 received for ORD-1028." A job queued before this, with its words ready-made, is still sent as it is.
+    - A payment's notification that the queue cannot take is logged and no longer fails a payment that was recorded.
+  - **Proved.**
+    - **On the local database, signed in as the owner:** a move from a status the order had left was refused as changed elsewhere. Out for delivery on a pickup was refused. Preparing → Ready → Completed released the reservation (+1) and consumed (−1). Each move queued one notification, and the refused ones none.
+    - **Against the running app:** `PATCH {status: "IN_PROGRESS"}` moved ORD-1001. Out for delivery on that pickup answered 422 in the app's words. `{paymentStatus: "PAID"}` answered 400, "Choose a status.", and left the status Part paid. `npm run worker` completed the queued status notification on its first attempt.
+  - **Tests:**
+    - `updateOrderStatus`: one call from where it was read, the audit, no call when nothing changes, a refused move, a move made elsewhere, and another business's order.
+    - The notification's words for a status, a pickup and an amount, and every shape it will not read.
+    - The worker writing them.
+    - The payment's notification as facts, and a queue failure kept from failing the payment.
+    - A contract for 0016, with the transition table checked against the app's for all 12 cases.

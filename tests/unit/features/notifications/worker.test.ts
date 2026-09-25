@@ -40,11 +40,24 @@ describe("the notification worker", () => {
     expect(sendPush).toHaveBeenCalledWith("device-1", { title: "t", body: "b" });
   });
 
+  it("writes what happened into words as it sends it (BUG-26)", async () => {
+    sendPush.mockResolvedValue(true);
+    await handler()(
+      job({
+        token: "device-1",
+        bakeryId: "b-1",
+        message: { kind: "ORDER_STATUS", orderNumber: "ORD-1028", status: "READY", deliveryType: "PICKUP" },
+      }),
+    );
+    expect(sendPush).toHaveBeenCalledWith("device-1", { title: "Order updated", body: "ORD-1028 is now Ready." });
+  });
+
   it("fails the attempt when the push is refused, or there is nothing to send", async () => {
     sendPush.mockResolvedValue(false);
     const handle = handler();
     await expect(handle(job({ token: "device-1", payload: { title: "t", body: "b" } }))).rejects.toThrow();
     await expect(handle(job({}))).rejects.toThrow();
+    await expect(handle(job({ message: { kind: "UNKNOWN" } }))).rejects.toThrow();
   });
 
   it("sends the confirmation email a registration queued, as the server", async () => {

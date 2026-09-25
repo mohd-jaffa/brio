@@ -2,6 +2,7 @@ import { JOB_TYPES } from "@/constants/jobs";
 import { registerJobHandler } from "@/lib/jobs/queue";
 import { CapacitorPushProvider } from "./capacitor-push.service";
 import { type Job } from "@/lib/jobs/types";
+import { notificationText, readNotificationMessage } from "./text";
 import { type NotificationPayload } from "./types";
 import { logger } from "@/lib/logger";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server";
@@ -22,12 +23,20 @@ async function handleAccountConfirmation(job: Job): Promise<void> {
   await sendAccountConfirmation(createSupabaseServiceRoleClient(), userId);
 }
 
+/**
+ * A push. The job says what happened (`message`, src/features/notifications/text.ts)
+ * and the words are written now, from messages.ts (BUG-26). A job queued
+ * before that carries its words ready-made (`payload`) and is sent as it is.
+ */
 async function handlePushNotification(job: Job): Promise<void> {
-  const { token, payload } = job.payload as {
+  const { token, payload: written, message } = job.payload as {
     token?: string;
     payload?: NotificationPayload;
+    message?: unknown;
   };
 
+  const known = readNotificationMessage(message);
+  const payload = known ? notificationText(known) : written;
   if (!payload) {
     throw new Error("Push notification job has no message");
   }

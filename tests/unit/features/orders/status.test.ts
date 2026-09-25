@@ -1,149 +1,95 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { OrderItemRow, OrderRow } from "@/features/orders/types";
+import type { OrderRow } from "@/features/orders/types";
 
-const api = {
+const { findOrderById, getOrderById, logActionSafe } = vi.hoisted(() => ({
   findOrderById: vi.fn(),
-  findPaidByOrder: vi.fn(),
-  moveOrderStatus: vi.fn(),
-  updateOrder: vi.fn(),
-};
-vi.mock("@/features/orders/api", () => ({
-  findOrderById: (...args: unknown[]) => api.findOrderById(...args),
-  findPaidByOrder: (...args: unknown[]) => api.findPaidByOrder(...args),
-  moveOrderStatus: (...args: unknown[]) => api.moveOrderStatus(...args),
-  updateOrder: (...args: unknown[]) => api.updateOrder(...args),
+  getOrderById: vi.fn(),
+  logActionSafe: vi.fn(),
 }));
-const logInventoryTransaction = vi.fn();
-vi.mock("@/features/inventory/api", () => ({
-  logInventoryTransaction: (...args: unknown[]) => logInventoryTransaction(...args),
-}));
-const createJob = vi.fn();
-vi.mock("@/lib/jobs/queue", () => ({ createJob: (...args: unknown[]) => createJob(...args) }));
-vi.mock("@/lib/audit/auditLog", () => ({ logActionSafe: vi.fn() }));
+vi.mock("@/features/orders/api", () => ({ findOrderById }));
+vi.mock("@/features/orders/queries", () => ({ getOrderById }));
+vi.mock("@/lib/audit/auditLog", () => ({ logActionSafe }));
 
 import { updateOrderStatus } from "@/features/orders/status";
 import { tenantOf } from "@tests/support/tenant";
 
-const client = {} as SupabaseClient;
+const before = { id: "o-1", order_number: "ORD-1001", status: "PENDING" } as OrderRow;
+const after = { ...before, status: "IN_PROGRESS" } as OrderRow;
 
-function row(status: OrderRow["status"], delivery_type: OrderRow["delivery_type"] = "DELIVERY"): OrderRow {
-  return {
-    id: "o-1",
-    bakery_id: "b-1",
-    customer_id: "c-1",
-    order_number: "#1-001",
-    status,
-    payment_status: "UNPAID",
-    payment_method: null,
-    payment_reference: null,
-    subtotal: 50000,
-    discount: 0,
-    delivery_charge: 0,
-    tax: 0,
-    total: 50000,
-    delivery_type,
-    delivery_date: "2026-09-25T10:00:00Z",
-    delivery_address: null,
-    delivery_google_maps_link: null,
-    notes: null,
-    created_at: "2026-09-24T10:00:00Z",
-    updated_at: "2026-09-24T10:00:00Z",
+function rpcClient(answer: { data: unknown; error: unknown }) {
+  const calls: unknown[][] = [];
+  const client = {
+    rpc: (...args: unknown[]) => {
+      calls.push(args);
+      return { single: () => Promise.resolve(answer) };
+    },
   };
-}
-
-const items: OrderItemRow[] = [
-  {
-    id: "i-1",
-    order_id: "o-1",
-    product_id: "p-cake",
-    product_name: "Cake",
-    unit_price: 25000,
-    quantity: 2,
-    subtotal: 50000,
-    notes: null,
-    created_at: "2026-09-24T10:00:00Z",
-  },
-];
-
-function orderAt(status: OrderRow["status"], deliveryType?: OrderRow["delivery_type"]) {
-  api.findOrderById.mockResolvedValue({ order: row(status, deliveryType), items, adjustments: [] });
+  return { client, calls };
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
-  api.findPaidByOrder.mockResolvedValue(new Map());
-  api.moveOrderStatus.mockImplementation((_c, _b, _id, _from, to) => Promise.resolve(row(to)));
+  findOrderById.mockResolvedValue({ order: before, items: [], adjustments: [] });
+  getOrderById.mockResolvedValue({ id: "o-1", status: "IN_PROGRESS" });
 });
 
 describe("updateOrderStatus", () => {
-  it("refuses a move the table does not allow, and writes nothing", async () => {
-    orderAt("DELIVERED");
-
-    await expect(updateOrderStatus(tenantOf(client), "o-1", { status: "PENDING" })).rejects.toMatchObject({
-      code: "ORDER_STATUS_TRANSITION_INVALID",
-      kind: "BUSINESS_RULE",
+  it("moves the order in one call, from where it was read (§133.3 C6)", async () => {
+    const { client, calls } = rpcClient({ data: after, error: null });
+    await expect(updateOrderStatus(tenantOf(client), "o-1", { status: "IN_PROGRESS" })).resolves.toEqual({
+      id: "o-1",
+      status: "IN_PROGRESS",
     });
-    expect(api.moveOrderStatus).not.toHaveBeenCalled();
-    expect(logInventoryTransaction).not.toHaveBeenCalled();
-    expect(createJob).not.toHaveBeenCalled();
+    expect(calls).toEqual([["change_order_status", { p_order_id: "o-1", p_from: "PENDING", p_to: "IN_PROGRESS" }]]);
   });
 
-  it("refuses out for delivery on a pickup order", async () => {
-    orderAt("IN_PROGRESS", "PICKUP");
-    await expect(updateOrderStatus(tenantOf(client), "o-1", { status: "IN_TRANSIT" })).rejects.toMatchObject({
-      code: "ORDER_STATUS_TRANSITION_INVALID",
-    });
-  });
-
-  it("moves the order only from where it was read", async () => {
-    orderAt("PENDING");
-    await updateOrderStatus(tenantOf(client), "o-1", { status: "IN_PROGRESS" });
-    expect(api.moveOrderStatus).toHaveBeenCalledWith(tenantOf(client), "o-1", "PENDING", "IN_PROGRESS");
-    expect(logInventoryTransaction).not.toHaveBeenCalled();
-    expect(createJob).toHaveBeenCalledOnce();
-  });
-
-  it("gives the stock back when an order is cancelled", async () => {
-    orderAt("IN_PROGRESS");
-    await updateOrderStatus(tenantOf(client), "o-1", { status: "CANCELLED" });
-
-    expect(logInventoryTransaction).toHaveBeenCalledTimes(1);
-    expect(logInventoryTransaction).toHaveBeenCalledWith(tenantOf(client), {
-      productId: "p-cake",
-      type: "ORDER_RESERVATION",
-      quantity: 2,
-      referenceType: "ORDER",
-      referenceId: "o-1",
+  it("audits the move, before and after, as the user who made it", async () => {
+    const { client } = rpcClient({ data: after, error: null });
+    const tenant = tenantOf(client, { actorId: "u-7" });
+    await updateOrderStatus(tenant, "o-1", { status: "IN_PROGRESS" });
+    expect(logActionSafe).toHaveBeenCalledWith(tenant, {
+      action: "STATUS_CHANGE",
+      entity_type: "orders",
+      entity_id: "o-1",
+      previous_data: before,
+      new_data: after,
     });
   });
 
-  it("releases the reservation and posts consumption on delivery, in that order", async () => {
-    orderAt("IN_TRANSIT");
-    await updateOrderStatus(tenantOf(client), "o-1", { status: "DELIVERED" });
-
-    expect(logInventoryTransaction.mock.calls.map(([, line]) => [line.type, line.quantity])).toEqual([
-      ["ORDER_RESERVATION", 2],
-      ["ORDER_CONSUMPTION", -2],
-    ]);
-  });
-
-  it("does not post stock when the order was moved by someone else first", async () => {
-    orderAt("IN_TRANSIT");
-    api.moveOrderStatus.mockRejectedValue(Object.assign(new Error("moved"), { code: "ORDER_STATUS_CHANGED" }));
-
-    await expect(updateOrderStatus(tenantOf(client), "o-1", { status: "DELIVERED" })).rejects.toMatchObject({
-      code: "ORDER_STATUS_CHANGED",
-    });
-    expect(logInventoryTransaction).not.toHaveBeenCalled();
-  });
-
-  it("treats asking for the status it already has as nothing to do", async () => {
-    orderAt("PENDING");
+  it("changes nothing when the order is already there", async () => {
+    const { client, calls } = rpcClient({ data: null, error: null });
     await updateOrderStatus(tenantOf(client), "o-1", { status: "PENDING" });
-    expect(api.moveOrderStatus).not.toHaveBeenCalled();
-    expect(logInventoryTransaction).not.toHaveBeenCalled();
-    expect(createJob).not.toHaveBeenCalled();
+    expect(calls).toEqual([]);
+    expect(logActionSafe).not.toHaveBeenCalled();
+  });
+
+  it("passes on a move the table refuses, in the app's words, and audits nothing (BUG-05)", async () => {
+    const { client } = rpcClient({
+      data: null,
+      error: { code: "P0001", hint: "ORDER_STATUS_TRANSITION_INVALID", message: "transition not allowed" },
+    });
+    await expect(updateOrderStatus(tenantOf(client), "o-1", { status: "DELIVERED" })).rejects.toMatchObject({
+      code: "ORDER_STATUS_TRANSITION_INVALID",
+      httpStatus: 422,
+    });
+    expect(logActionSafe).not.toHaveBeenCalled();
+  });
+
+  it("says so when another tap or device moved the order first", async () => {
+    const { client } = rpcClient({ data: null, error: { code: "P0001", hint: "ORDER_STATUS_CHANGED", message: "moved" } });
+    await expect(updateOrderStatus(tenantOf(client), "o-1", { status: "IN_PROGRESS" })).rejects.toMatchObject({
+      code: "ORDER_STATUS_CHANGED",
+      httpStatus: 409,
+    });
+  });
+
+  it("refuses an order this business does not have", async () => {
+    findOrderById.mockRejectedValue(Object.assign(new Error("x"), { code: "RECORD_NOT_FOUND" }));
+    const { client, calls } = rpcClient({ data: null, error: null });
+    await expect(updateOrderStatus(tenantOf(client), "o-1", { status: "IN_PROGRESS" })).rejects.toMatchObject({
+      code: "RECORD_NOT_FOUND",
+    });
+    expect(calls).toEqual([]);
   });
 });
