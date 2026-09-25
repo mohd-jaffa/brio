@@ -832,3 +832,9 @@ entry grows with them.
     - All 12 pairs across both themes were computed in OKLab, as `color-mix` mixes: the lowest is 5.38 : 1, Peach's blush.
   - **`medallion`** is a lucide icon at a 1.75 stroke in a tinted circle: primary, neutral, success, warning or danger; 36, 44 or 56 px. The stat tile, rows and the response card set their icons in it.
   - Checked in a browser: the pills on Orders in both themes, no console errors. 728 tests.
+  - **`page-header`, rewritten.** A back link (`back="/orders"`, named "Go back"), the serif title as the screen's one `h1`, a sans subtitle, and the control beside it. The title icon is gone, as the references have none. Every screen's header moved over, and Create order gained its way back.
+  - **`hero`** is the picture band: serif lines as the composition breaks them, a subtitle, a short rule, a tracked line, and a plate on the right (§139.11.12). `hero` is the Home greeting (it can be the `h1`); `band` is the compact strip for Analytics and Expenses. The plate that is the largest paint is `priority`.
+    - **Text is never on the photograph.** The plate takes the right three-fifths and fades in (a CSS mask) between 15 % and 70 % of its width.
+    - **Measured in the browser.** I hid the words and screenshotted what was behind them. Taking each line's glyph box at 360, 390, 768 and 1280 px in both themes, every word meets 5.62 : 1 (Golden) and 5.32 : 1 (Peach) against the darkest pixel behind it, which is muted text on plain sunken. The first mask put Peach's tracked line at 4.35, which is why the fade starts at 15 %.
+    - **Wide screens.** The plate stops growing (`max-w-2xl`, and `max-w-md` for a band), so a portrait plate is not cropped to a sliver. `PLATE_FOCUS` gives each plate a focal point for any crop.
+  - **`quote-block`**: the centred serif line on the sunken ground, a wheat sprig, and a small plate from 380 px.

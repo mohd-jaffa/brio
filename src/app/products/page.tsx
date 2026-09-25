@@ -30,7 +30,7 @@ export default function ProductsPage() {
 
   return (
     <AppShell>
-      <PageHeader icon={Package} title="Menu / Products" subtitle="Manage what you sell">
+      <PageHeader title="Menu / Products" subtitle="Manage what you sell">
         <Button icon={Plus} label="Add Product" onClick={() => form.open()} />
       </PageHeader>
 

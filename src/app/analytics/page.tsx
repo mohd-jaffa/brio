@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { ArrowDownRight, ArrowUpRight, Award, BarChart3, CircleDollarSign } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Award, CircleDollarSign } from "lucide-react";
 
 import { AppShell } from "@/components/nav/AppShell";
 import { PageHeader } from "@/components/ui/page-header";
@@ -99,7 +99,6 @@ export default function AnalyticsPage() {
   return (
     <AppShell>
       <PageHeader
-        icon={BarChart3}
         title="Analytics"
         subtitle="Financial overview and performance"
       />

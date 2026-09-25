@@ -152,7 +152,7 @@ export default function NewOrderPage() {
     <AppShell>
       <Button label="Back" icon={ArrowLeft} variant="ghost" onClick={() => router.back()} />
 
-      <PageHeader icon={ShoppingBag} title="Create Order" />
+      <PageHeader title="Create Order" back="/orders" />
 
       {create.error && <ScreenNotice>{create.error}</ScreenNotice>}
 

@@ -40,7 +40,7 @@ export default function ExpensesPage() {
 
   return (
     <AppShell>
-      <PageHeader icon={CircleDollarSign} title="Expenses" subtitle="Track your outgoing costs">
+      <PageHeader title="Expenses" subtitle="Track your outgoing costs">
         <Button icon={Plus} label="Add Expense" onClick={() => form.open()} />
       </PageHeader>
 

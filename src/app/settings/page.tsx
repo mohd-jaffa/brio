@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Image as ImageIcon, Settings as SettingsIcon, UploadCloud } from "lucide-react";
+import { Image as ImageIcon, UploadCloud } from "lucide-react";
 
 import { AppShell } from "@/components/nav/AppShell";
 import { Button } from "@/components/ui/button";
@@ -41,7 +41,6 @@ export default function SettingsPage() {
   return (
     <AppShell>
       <PageHeader
-        icon={SettingsIcon}
         title="Settings"
         subtitle="Manage your bakery profile and preferences"
       />

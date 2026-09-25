@@ -16,3 +16,10 @@ export const PLATES = {
 } as const satisfies Record<string, StaticImageData>;
 
 export type PlateName = keyof typeof PLATES;
+
+/** Where each plate's subject sits, so a crop to any shape keeps it in view. */
+export const PLATE_FOCUS: Record<PlateName, string> = {
+  "cake-table": "68% 55%",
+  "drip-cake": "50% 45%",
+  "brownies": "40% 55%",
+};

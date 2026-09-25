@@ -69,7 +69,7 @@ export default function OrdersPage() {
 
   return (
     <AppShell>
-      <PageHeader icon={ShoppingBag} title="Orders" subtitle="Manage your bakery orders">
+      <PageHeader title="Orders" subtitle="Manage your bakery orders">
         <LinkButton href="/orders/new" icon={Plus} label="Create Order" />
       </PageHeader>
 

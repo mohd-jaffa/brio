@@ -72,7 +72,7 @@ export default function InventoryPage() {
 
   return (
     <AppShell>
-      <PageHeader icon={Package} title="Inventory" subtitle="Manage your stock and ingredients" />
+      <PageHeader title="Inventory" subtitle="Manage your stock and ingredients" />
 
       <SearchInput value={search} onChange={setSearch} placeholder="Search active products" />
 
