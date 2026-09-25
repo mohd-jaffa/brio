@@ -517,6 +517,12 @@ created_at
 completed_at
 ```
 
+The worker is its own Node.js process (`src/worker.ts`, `npm run worker`), run
+beside the app; it registers every worker's handlers and drains the queue
+through `claim_next_job` (FOR UPDATE SKIP LOCKED) and `recover_stale_jobs`
+(`0012_job_claiming.sql`). A job type is named in `JOB_TYPES`
+(`src/constants/jobs.ts`), never as a string at the call site.
+
 Workers must support:
 
 - atomic job claiming

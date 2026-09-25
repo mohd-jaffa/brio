@@ -1,9 +1,10 @@
+import { JOB_TYPES } from "@/constants/jobs";
 import { registerJobHandler } from "@/lib/jobs/queue";
 import { type Job } from "@/lib/jobs/types";
 import { logger } from "@/lib/logger";
 
 export function registerAnalyticsWorker() {
-  registerJobHandler("REFRESH_ANALYTICS", handleRefreshAnalytics);
+  registerJobHandler(JOB_TYPES.refreshAnalytics, handleRefreshAnalytics);
   logger.info("AnalyticsWorker registered handlers");
 }
 

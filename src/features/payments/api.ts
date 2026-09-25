@@ -2,6 +2,7 @@ import type { Tenant } from "@/lib/supabase/tenant";
 import { type Payment, type CreatePaymentDTO } from "./types";
 import { type CreatePaymentPayload } from "@/lib/validation";
 import { logActionSafe } from "@/lib/audit/auditLog";
+import { JOB_TYPES } from "@/constants/jobs";
 import { createJob } from "@/lib/jobs/queue";
 import { findOrderById, updateOrder } from "@/features/orders/api";
 import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
@@ -75,9 +76,10 @@ export async function processPayment(tenant: Tenant, input: CreatePaymentPayload
   });
 
   await createJob(tenant.supabase, {
-    type: "SEND_PUSH_NOTIFICATION",
+    type: JOB_TYPES.pushNotification,
+    // No device token: the token registry comes with push (R8.6), and until it
+    // does the worker completes the job as having no device to reach.
     payload: {
-      token: "mock-token", 
       payload: {
         title: "Payment Received",
         body: `Payment of ${input.amount} received for order ${order.order_number}`

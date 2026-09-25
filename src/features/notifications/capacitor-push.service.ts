@@ -10,7 +10,8 @@ export class CapacitorPushProvider implements PushNotificationProvider {
   }
 
   async sendPush(token: string, payload: NotificationPayload): Promise<boolean> {
-    logger.info("Sending push notification via Capacitor (mock)", { token, payload });
+    // Never the token itself: it addresses one person's device.
+    logger.info("Sending push notification via Capacitor (mock)", { title: payload.title, hasToken: token.length > 0 });
     // In actual implementation, we would interface with Firebase Cloud Messaging 
     // or APNs through the backend or locally if it's local notification.
     return true;

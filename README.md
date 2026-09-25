@@ -32,6 +32,18 @@ npm run dev
 
 Then open <http://localhost:3000>.
 
+### The job worker
+
+Work the app queues — notifications now, the confirmation email with R2.5 —
+is run by a separate process, not by the app:
+
+```bash
+npm run worker          # in a second terminal; Ctrl-C stops it after the job in hand
+```
+
+Without it, queued jobs simply wait. Several can run at once: each job is
+claimed by exactly one.
+
 ### Signing in
 
 The demo bakery is created by `supabase/seed.sql`:

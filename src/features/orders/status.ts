@@ -1,5 +1,6 @@
 import type { Tenant } from "@/lib/supabase/tenant";
 
+import { JOB_TYPES } from "@/constants/jobs";
 import { logInventoryTransaction } from "@/features/inventory/api";
 import { logActionSafe } from "@/lib/audit/auditLog";
 import { businessRuleError } from "@/lib/errors";
@@ -66,7 +67,7 @@ export async function updateOrderStatus(
 
   if (after.status !== before.status) {
     await createJob(tenant.supabase, {
-      type: "SEND_PUSH_NOTIFICATION",
+      type: JOB_TYPES.pushNotification,
       payload: {
         payload: {
           title: "Order Status Updated",

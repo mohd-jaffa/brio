@@ -1,5 +1,7 @@
+import type { JobStatus } from "@/constants/jobs";
+
 /** The PostgreSQL-backed job queue (AGENTS.md §17). No Redis; the table is the queue. */
-export type JobStatus = "pending" | "processing" | "completed" | "failed";
+export type { JobStatus };
 
 export interface CreateJobDTO {
   type: string;

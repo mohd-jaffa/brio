@@ -1142,3 +1142,31 @@ Each row is committed on its own; this entry grows with them.
     - The order-creation audit, and a contract for 0011.
     - The data-layer tests now pass a tenant (`tests/support/tenant.ts`).
   - AGENTS.md §5 and §11 record both rules.
+- **R2.1 · §133.6 F1–F5 — the job queue runs.** Every job enqueued so far had stayed `pending`: nothing ran the queue, no handler was registered, the claim was not atomic, a failing job retried for ever, and a job whose worker died stayed `processing` for good.
+  - **F1, F2 — a worker process.** `npm run worker` (`src/worker.ts`, run by `tsx`) is the plan's Node.js worker process (§26). It registers the notification and analytics handlers and drains the queue until SIGINT or SIGTERM, which stop it after the job in hand. `src/lib/jobs/runner.ts` is the loop: hand back abandoned jobs, take the next due one, and when there is none, wait five seconds. A queue it cannot reach is logged and waited out rather than ending it.
+  - **F3, F4 — migration `0012_job_claiming.sql`.**
+    - `claim_next_job(worker)` takes one due job with `FOR UPDATE SKIP LOCKED` and counts the attempt as it takes it.
+    - A job's status is checked to be one of four.
+    - Two partial indexes cover what the worker looks for.
+    - Only the service role may execute it.
+  - **Settling a job.** A job is completed or failed only while its worker still holds it, so a worker whose lease ran out cannot overwrite a job that has since been reclaimed. A failed attempt waits five minutes and goes back on the queue; the third is set aside as `failed` with its reason, where it stays visible.
+  - **F5 — `recover_stale_jobs(lease, max)`.** It hands back a job held past its ten-minute lease, or sets it aside as failed once its attempts are used.
+  - **Job types are constants.** `JOB_TYPES` (`src/constants/jobs.ts`) replaces the strings at the call sites, alongside the attempts, lease, retry delay and idle time.
+  - **Found by running it:**
+    - **A payment's job carried `token: "mock-token"`.** Once the queue ran, every payment would have "sent" a push to a device that does not exist. It now carries no token, and the worker completes it as having no device to reach, until the token registry arrives (R8.6).
+    - **The push stub logged the device token**, which addresses one person's device. It logs whether there was one.
+    - **`createJob` passed the database's error as the response `details`**, so a queue failure would have shown Supabase's own text to the user (AGENTS §10). It is now the logged cause.
+  - **Proved against the local database:**
+    - Five pushes with no device completed, and an analytics refresh ran.
+    - A job left `processing` by a dead worker 20 minutes earlier was handed back and completed on its second attempt.
+    - A job no handler knows failed, waited, and was set aside as `failed` after its third attempt, with "No handler is registered for NO_SUCH_JOB".
+    - **Three workers drained 60 jobs at once: 20 each, every one completed on its first attempt, none taken twice.**
+    - SIGTERM stopped a worker cleanly (exit 0).
+    - The test jobs were removed afterwards.
+  - **Not here:** jobs enqueued with the service role, exponential backoff, and the Menu and Cleanup workers are R6.1 (§133.6 F6–F8). How the worker is started in production (a second process beside the app) belongs to whatever hosts it; the plan names no host yet.
+  - **Tests:** 31 new.
+    - The queue: enqueue, the atomic claim, recovery, settling only while held, the retry wait, setting aside at three, truncating the reason, and processing a job to completion or failure.
+    - The runner: it keeps going while there is work, waits when there is none, recovers first, survives an unreachable queue, and stops.
+    - The process: it registers every handler and stops on SIGTERM.
+    - The notification and analytics handlers, and a contract for 0012.
+  - README and AGENTS.md §17 say how to run it.

@@ -1,3 +1,4 @@
+import { JOB_TYPES } from "@/constants/jobs";
 import { registerJobHandler } from "@/lib/jobs/queue";
 import { CapacitorPushProvider } from "./capacitor-push.service";
 import { type Job } from "@/lib/jobs/types";
@@ -7,7 +8,7 @@ import { logger } from "@/lib/logger";
 const pushProvider = new CapacitorPushProvider();
 
 export function registerNotificationWorker() {
-  registerJobHandler("SEND_PUSH_NOTIFICATION", handlePushNotification);
+  registerJobHandler(JOB_TYPES.pushNotification, handlePushNotification);
   logger.info("NotificationWorker registered handlers");
 }
 
