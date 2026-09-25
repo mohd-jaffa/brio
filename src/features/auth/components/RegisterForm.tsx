@@ -60,7 +60,6 @@ export function RegisterForm() {
 
       <TextField
         label={UI_TEXT.auth.nameLabel}
-        labelCase="sentence"
         autoComplete="name"
         placeholder="Enter your full name"
         required
@@ -71,7 +70,6 @@ export function RegisterForm() {
 
       <TextField
         label={UI_TEXT.auth.businessNameLabel}
-        labelCase="sentence"
         autoComplete="organization"
         placeholder="Sweet Delights"
         required
@@ -82,7 +80,6 @@ export function RegisterForm() {
 
       <TextField
         label={UI_TEXT.auth.emailLabel}
-        labelCase="sentence"
         type="email"
         inputMode="email"
         autoComplete="email"
@@ -96,7 +93,6 @@ export function RegisterForm() {
 
       <TextField
         label={UI_TEXT.auth.phoneLabel}
-        labelCase="sentence"
         type="tel"
         inputMode="tel"
         autoComplete="tel"
@@ -104,13 +100,13 @@ export function RegisterForm() {
         hint="You will sign in with this number."
         required
         leading={<Smartphone size={18} strokeWidth={1.8} />}
+        prefix={UI_TEXT.fields.phonePrefix}
         error={errors.phone?.message}
         {...register("phone")}
       />
 
       <PasswordField
         label={UI_TEXT.auth.passwordLabel}
-        labelCase="sentence"
         autoComplete="new-password"
         placeholder="Create a password"
         hint={UI_TEXT.auth.passwordHint}
@@ -122,7 +118,6 @@ export function RegisterForm() {
 
       <PasswordField
         label={UI_TEXT.auth.confirmPasswordLabel}
-        labelCase="sentence"
         autoComplete="new-password"
         placeholder="Repeat your password"
         required

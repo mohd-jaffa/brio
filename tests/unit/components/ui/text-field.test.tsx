@@ -56,6 +56,42 @@ describe("TextField", () => {
   });
 });
 
+describe("the field kit's labels and adornments", () => {
+  it("sets labels in sentence case, with the required mark hidden from a screen reader", () => {
+    render(<TextField label="Full name" required />);
+    const label = screen.getByText("Full name");
+    expect(label).toHaveClass("text-sm", "font-medium");
+    expect(label).not.toHaveClass("uppercase");
+    expect(label.querySelector('[aria-hidden="true"]')).toHaveTextContent("*");
+  });
+
+  it("says a field is optional, in the label a screen reader reads", () => {
+    render(
+      <>
+        <TextField label="Email" optional />
+        <TextAreaField label="Notes" optional />
+        <SelectField label="Category" optional options={[]} />
+      </>,
+    );
+    expect(screen.getByLabelText("Email (Optional)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Notes (Optional)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Category (Optional)")).toBeInTheDocument();
+  });
+
+  it("puts +91 before a phone number, and reads it out with the field and any message", () => {
+    render(<TextField label="Mobile number" prefix="+91" error="Enter a valid mobile number." />);
+    const field = screen.getByLabelText("Mobile number");
+    expect(field).toHaveClass("pl-16");
+    expect(field).toHaveAccessibleDescription("+91 Enter a valid mobile number.");
+  });
+
+  it("makes room for both an icon and the prefix", () => {
+    render(<TextField label="Mobile number" prefix="+91" leading={<svg />} />);
+    expect(screen.getByLabelText("Mobile number")).toHaveClass("pl-[5.75rem]");
+    expect(screen.getByText("+91")).toHaveClass("left-12");
+  });
+});
+
 describe("TextAreaField", () => {
   it("is a labelled multi-line field that reports its own errors", () => {
     render(<TextAreaField label="Address" error="Address can be at most 500 characters." />);

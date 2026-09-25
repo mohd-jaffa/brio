@@ -8,6 +8,8 @@ import type {
   TextareaHTMLAttributes,
 } from "react";
 
+import { UI_TEXT } from "@/constants/messages";
+
 import { cn } from "./cn";
 import { FieldError } from "./field-error";
 
@@ -23,26 +25,20 @@ const CONTROL_CLASSES =
   "placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary " +
   "aria-[invalid=true]:border-danger aria-[invalid=true]:focus:ring-danger";
 
-const LABEL_CLASSES = "mb-1.5 block text-xs font-bold uppercase tracking-wider text-text-muted";
-
-/** Sentence case, sized to sit beside its control rather than above a table. */
-const LABEL_PLAIN_CLASSES = "mb-2 block text-sm font-semibold text-text";
-
 /**
- * Most of the app labels a field in small caps, which reads well in a dense
- * sheet of them. The authentication screens set their labels in sentence case
- * (plan §137), so the option lives here rather than being restyled from a
- * parent.
+ * Labels are sentence case, as the references set them everywhere (plan
+ * §139.5): the small capitals the app used before are gone.
  */
-export type LabelCase = "caps" | "sentence";
+const LABEL_CLASSES = "mb-2 block text-sm font-medium text-text";
 
 interface FieldShell {
   label: string;
   error?: string;
   /** Marks the field required, both visually and to assistive technology. */
   required?: boolean;
+  /** Says "(Optional)" after the label, as the references do. */
+  optional?: boolean;
   hint?: string;
-  labelCase?: LabelCase;
 }
 
 function useFieldIds(error?: string) {
@@ -54,21 +50,22 @@ function Label({
   htmlFor,
   label,
   required,
-  labelCase = "caps",
+  optional,
 }: {
   htmlFor: string;
   label: string;
   required?: boolean;
-  labelCase?: LabelCase;
+  optional?: boolean;
 }) {
   return (
-    <label htmlFor={htmlFor} className={labelCase === "sentence" ? LABEL_PLAIN_CLASSES : LABEL_CLASSES}>
+    <label htmlFor={htmlFor} className={LABEL_CLASSES}>
       {label}
       {required && (
         <span className="text-danger" aria-hidden="true">
           {" *"}
         </span>
       )}
+      {optional && <span className="font-normal text-text-muted">{` ${UI_TEXT.fields.optional}`}</span>}
     </label>
   );
 }
@@ -80,12 +77,16 @@ export const TextField = forwardRef<
     trailing?: ReactNode;
     /** A mark that sits inside the field before the text — an icon naming the field. */
     leading?: ReactNode;
-  } & Omit<InputHTMLAttributes<HTMLInputElement>, "className" | "id">
->(function TextField({ label, error, required, hint, trailing, leading, labelCase, ...rest }, ref) {
+    /** Fixed text before what is typed — "+91" on a mobile number. Read out with the field. */
+    prefix?: string;
+  } & Omit<InputHTMLAttributes<HTMLInputElement>, "className" | "id" | "prefix">
+>(function TextField({ label, error, required, optional, hint, trailing, leading, prefix, ...rest }, ref) {
   const { id, errorId } = useFieldIds(error);
+  const prefixId = prefix ? `${id}-prefix` : undefined;
+  const describedBy = [prefixId, errorId].filter(Boolean).join(" ") || undefined;
   return (
     <div>
-      <Label htmlFor={id} label={label} required={required} labelCase={labelCase} />
+      <Label htmlFor={id} label={label} required={required} optional={optional} />
       <div className="relative">
         {leading && (
           <span
@@ -95,15 +96,27 @@ export const TextField = forwardRef<
             {leading}
           </span>
         )}
+        {prefix && (
+          <span
+            id={prefixId}
+            className={cn(
+              "pointer-events-none absolute inset-y-2 flex items-center border-r border-border pr-3 text-sm font-medium text-text",
+              leading ? "left-12" : "left-4",
+            )}
+          >
+            {prefix}
+          </span>
+        )}
         <input
           id={id}
           ref={ref}
           aria-required={required || undefined}
           aria-invalid={error ? true : undefined}
-          aria-describedby={errorId}
+          aria-describedby={describedBy}
           className={cn(
             CONTROL_CLASSES,
             Boolean(leading) && "pl-12",
+            Boolean(prefix) && (leading ? "pl-[5.75rem]" : "pl-16"),
             Boolean(trailing) && "pr-12",
           )}
           {...rest}
@@ -121,11 +134,11 @@ export const TextField = forwardRef<
 export const TextAreaField = forwardRef<
   HTMLTextAreaElement,
   FieldShell & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "className" | "id">
->(function TextAreaField({ label, error, required, hint, rows = 3, ...rest }, ref) {
+>(function TextAreaField({ label, error, required, optional, hint, rows = 3, ...rest }, ref) {
   const { id, errorId } = useFieldIds(error);
   return (
     <div>
-      <Label htmlFor={id} label={label} required={required} />
+      <Label htmlFor={id} label={label} required={required} optional={optional} />
       <textarea
         id={id}
         ref={ref}
@@ -153,11 +166,11 @@ export const SelectField = forwardRef<
       SelectHTMLAttributes<HTMLSelectElement>,
       "className" | "id"
     >
->(function SelectField({ label, error, required, hint, options, placeholder, ...rest }, ref) {
+>(function SelectField({ label, error, required, optional, hint, options, placeholder, ...rest }, ref) {
   const { id, errorId } = useFieldIds(error);
   return (
     <div>
-      <Label htmlFor={id} label={label} required={required} />
+      <Label htmlFor={id} label={label} required={required} optional={optional} />
       <select
         id={id}
         ref={ref}

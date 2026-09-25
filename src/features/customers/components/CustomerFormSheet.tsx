@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form";
 
 import { FormSheet } from "@/components/ui/form-sheet";
 import { TextAreaField, TextField } from "@/components/ui/text-field";
+import { UI_TEXT } from "@/constants/messages";
+import { formatPhoneDigits } from "@/lib/phone";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiMutation } from "@/lib/query/useApiMutation";
 import {
@@ -31,7 +33,8 @@ function valuesOf(customer?: Customer): CreateCustomerInput {
   if (!customer) return EMPTY;
   return {
     name: customer.name,
-    phone: customer.phone,
+    // The field carries +91 itself, so it shows only the ten digits.
+    phone: formatPhoneDigits(customer.phone),
     email: customer.email ?? "",
     address: customer.address ?? "",
     googleMapsLink: customer.googleMapsLink ?? "",
@@ -101,12 +104,15 @@ export function CustomerFormSheet({
         label="Phone Number"
         required
         type="tel"
-        placeholder="e.g. +91 9876543210"
+        inputMode="tel"
+        placeholder="98765 43210"
+        prefix={UI_TEXT.fields.phonePrefix}
         error={errors.phone?.message}
         {...register("phone")}
       />
       <TextField
         label="Email"
+        optional
         type="email"
         placeholder="meena@example.com"
         error={errors.email?.message}
@@ -114,12 +120,14 @@ export function CustomerFormSheet({
       />
       <TextAreaField
         label="Address"
+        optional
         placeholder="Delivery address..."
         error={errors.address?.message}
         {...register("address")}
       />
       <TextField
         label="Google Maps Link"
+        optional
         type="url"
         placeholder="https://maps.app.goo.gl/..."
         error={errors.googleMapsLink?.message}
@@ -127,6 +135,7 @@ export function CustomerFormSheet({
       />
       <TextAreaField
         label="Notes"
+        optional
         placeholder="Preferences, allergies..."
         error={errors.notes?.message}
         {...register("notes")}

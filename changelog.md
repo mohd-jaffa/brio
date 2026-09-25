@@ -867,3 +867,10 @@ entry grows with them.
     - **`filter`** adds the square filter button beside it, pressed and dotted when filters are on.
     - **`global`** is the top bar's search. ⌘K, or Ctrl K off Apple, reaches it from anywhere (`aria-keyshortcuts`), and a desktop shows the shortcut in the field. The key's name is read after hydration, so the server and the first paint agree.
     - The four list screens moved to it, and AGENTS.md's tree names `status-pill`.
+  - **The field kit.**
+    - **Sentence-case labels** are now the only kind; the small capitals are gone, and so is `labelCase`, which the auth screens had to pass. The required asterisk stays, hidden from screen readers (§138.5).
+    - **`optional`** says "(Optional)" after the label, inside the label a screen reader reads.
+    - **`prefix`** is fixed text before the typed value, with or without a leading icon. It is read out with the field through `aria-describedby`.
+    - **Phone fields.** Sign in, registration and the customer sheet carry `+91`. The customer sheet shows a stored number as its ten digits ("98765 43210"), and the server still normalises it to `+919876543210`.
+    - The customer sheet marks email, address, map link and notes optional.
+    - Checked in the browser: the sign-in field and the customer sheet match the reference's Customer details form.

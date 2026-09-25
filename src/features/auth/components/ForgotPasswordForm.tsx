@@ -69,7 +69,6 @@ export function ForgotPasswordForm() {
 
       <TextField
         label={UI_TEXT.auth.emailLabel}
-        labelCase="sentence"
         type="email"
         inputMode="email"
         autoComplete="email"

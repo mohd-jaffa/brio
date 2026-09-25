@@ -20,7 +20,6 @@ export const PasswordField = forwardRef<
     hint?: string;
     required?: boolean;
     leading?: ReactNode;
-    labelCase?: "caps" | "sentence";
   } & Omit<InputHTMLAttributes<HTMLInputElement>, "className" | "id" | "type">
 >(function PasswordField(props, ref) {
   const [visible, setVisible] = useState(false);

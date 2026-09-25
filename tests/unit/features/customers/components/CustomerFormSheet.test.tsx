@@ -56,7 +56,11 @@ describe("CustomerFormSheet", () => {
 
     expect(screen.getByRole("heading", { name: "Edit Customer" })).toBeInTheDocument();
     expect(screen.getByLabelText(/Full Name/)).toHaveValue("Meena Gupta");
-    expect(screen.getByLabelText("Email")).toHaveValue("meena@example.com");
+    expect(screen.getByLabelText("Email (Optional)")).toHaveValue("meena@example.com");
+    // The field carries +91 itself, and is read out with it.
+    const phone = screen.getByLabelText(/Phone Number/);
+    expect(phone).toHaveValue("98765 43210");
+    expect(phone).toHaveAccessibleDescription("+91");
   });
 
   it("refuses to save without the fields the database requires", async () => {

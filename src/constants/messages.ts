@@ -166,6 +166,12 @@ export const UI_TEXT = {
     noResults: (term: string) => `Nothing matches “${term}”.`,
   },
 
+  /** The field kit (plan §139.5). */
+  fields: {
+    optional: "(Optional)",
+    phonePrefix: "+91",
+  },
+
   /** The quantity stepper (plan §139.5). */
   quantity: {
     decrease: "Decrease",

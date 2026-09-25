@@ -60,20 +60,19 @@ export function SignInForm() {
 
       <TextField
         label={UI_TEXT.auth.phoneLabel}
-        labelCase="sentence"
         type="tel"
         inputMode="tel"
         autoComplete="tel"
         placeholder="98765 43210"
         required
         leading={<Smartphone size={18} strokeWidth={1.8} />}
+        prefix={UI_TEXT.fields.phonePrefix}
         error={errors.phone?.message}
         {...register("phone")}
       />
 
       <PasswordField
         label={UI_TEXT.auth.passwordLabel}
-        labelCase="sentence"
         autoComplete="current-password"
         placeholder="Enter your password"
         required
