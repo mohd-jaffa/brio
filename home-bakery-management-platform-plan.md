@@ -7478,7 +7478,7 @@ masters are the exception: they are app artwork, and they are committed under
   - R5.6 drops what is left of them: the unused `categories` table and `products.category_id`, so no dead schema stays behind (§2.2).
   - **Sales by category** leaves Analytics with them. Custom items, which it used to show, appear as one **"Custom items"** row in the Products tab's ranking, so their sales are still counted.
   - **Expenses keep their categories** — the eight in §22 — each with an illustration the owner picks from the library (R5.16). Each side starts on its own default: a product on `default-product`, an expense category on `default-expense` (§139.11.10), and either can be changed to any illustration in the library.
-- **Something not on the menu yet** (the user): the order screen offers both ways. **Add custom item** takes a name, a **description if one is needed** — printed under it on the bill, as the line's note — and the amount (§139.11.7). **New product** saves it to the menu from the order screen, in the product sheet, and adds it to the order, with the draft kept as it was (R3.9). In Analytics every custom line counts under **one "Custom items"** row; every Guest order counts under **Guest sales** (§139.11.3).
+- **Something not on the menu yet** (the user): **Add custom item** takes a name, a **description if one is needed** — printed under it on the bill, as the line's note — and the amount (§139.11.7). Or the owner adds the product on the **Products** screen and comes back: the draft is kept on the device (R3.9). Products are made only on Products; there is **no New product on the order screen**. A **new customer**, by contrast, is made on the fly from the order screen (§139.11.4). In Analytics every custom line counts under **one "Custom items"** row; every Guest order counts under **Guest sales** (§139.11.3).
 - **The oversell guard checks stocked products only.** A product is checked once any stock has been recorded for it by hand — a stock in, adjustment, wastage or return. A product nobody stocks is made to order and is never refused (§21's "made-to-order rule", R3.3).
 
 ---
@@ -8595,7 +8595,7 @@ the row needs; without an answer it is built on that question's default
 | R3.6 | The customer picker: Guest pinned, search, add new inline, the duplicate-phone card | §139.11.4 | — | TODO |
 | R3.7 | Customer fields: name and phone required; address, map link, email and notes optional (unchanged from §92) | §139.11.4 | Q1 (answered) | TODO |
 | R3.8 | Delivery address and map link filled from the customer; the address-or-link rule | §95, §96; BUG-22 | — | TODO |
-| R3.9 | Items-first flow: grid, cart bar → details → payment; the draft survives a refresh; **New product** from the order screen (2026-09-25; no chips — products need no categories) | §139.10; §110 | Q11 | TODO |
+| R3.9 | Items-first flow: grid, cart bar → details → payment; the draft survives a refresh, and a trip to Products to add one (no chips — products need no categories; no New product here — 2026-09-25) | §139.10; §110 | Q11 | TODO |
 | R3.10 | Custom items: a typed name and amount, no stock | §139.11.7 | Q5 (answered) | TODO |
 | R3.11 | Statuses: Preparing; `READY`; Completed for pickup | §139.11.8 | Q3 (answered) | TODO |
 | R3.12 | Payment at creation records a payment; part paid asks the amount; the manual status control removed | BUG-02, BUG-06 | — | TODO |
