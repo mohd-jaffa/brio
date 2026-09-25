@@ -105,7 +105,6 @@ export {
   customItemFormSchema,
   customItemSchema,
   customLineSchema,
-  GUEST_CHOICE,
   orderAdjustmentSchema,
   orderCustomerSchema,
   orderFormSchema,

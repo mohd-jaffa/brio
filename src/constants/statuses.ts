@@ -60,6 +60,9 @@ export function orderStatusLabel(status: OrderStatus, deliveryType: DeliveryType
 export const PAYMENT_STATUSES = ["UNPAID", "PARTIALLY_PAID", "PAID"] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
+/** What the order screen offers at placing, in the order a person reaches for them (plan §139.10). */
+export const PAYMENT_CHOICES_AT_PLACING: readonly PaymentStatus[] = ["UNPAID", "PAID", "PARTIALLY_PAID"];
+
 export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
   UNPAID: "Unpaid",
   PARTIALLY_PAID: "Part paid",

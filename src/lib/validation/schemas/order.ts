@@ -2,8 +2,6 @@ import { z } from "zod";
 
 import { VALIDATION_MESSAGES } from "@/constants/messages";
 
-/** The picker's value for a walk-in (plan §139.11.3). */
-export const GUEST_CHOICE = "GUEST";
 import {
   ADJUSTMENT_TYPES,
   DELIVERY_TYPES,
@@ -65,9 +63,14 @@ export const orderItemSchema = z.unknown().transform((line, ctx): CatalogueLine 
   return z.NEVER;
 });
 
-/** The sheet's own fields: the amount typed in rupees. */
+/**
+ * The sheet's own fields: the amount typed in rupees, and a description if
+ * one is needed, which becomes the line's note on the bill (the user,
+ * 2026-09-25).
+ */
 export const customItemFormSchema = z.object({
   name: requiredLine("Item name", { min: 2, max: 120 }),
+  description: optionalLine("Description", 500),
   unitPrice: paiseText("Amount").pipe(
     z.number().refine((paise) => paise > 0, VALIDATION_MESSAGES.moreThanZero("Amount")),
   ),
@@ -202,22 +205,22 @@ export type CustomItemFormPayload = z.output<typeof customItemFormSchema>;
 export type CreateOrderAdjustmentInput = z.input<typeof orderAdjustmentSchema>;
 
 /**
- * A new order as the checkout screen holds it. Money is typed in rupees and
- * parsed to paise here; the datetime-local field gives a local wall-clock
- * string, which is turned into the instant that is stored.
+ * A new order as the order screen holds it (src/features/orders/draft.ts),
+ * read into what `POST /api/orders` takes. Money is typed in rupees and read
+ * to paise here; the datetime-local field gives the business's wall clock,
+ * which is turned into the instant that is stored. The screen checks each
+ * step against the issues under its own paths, and the server parses the
+ * result again with `createOrderSchema`.
  */
 export const orderFormSchema = z.object({
-  // A customer's id, or GUEST_CHOICE for a walk-in; sent as the customer union.
-  customerId: z.string().min(1, VALIDATION_MESSAGES.chooseOne("customer")),
-  items: z
-    .array(
-      z.object({
-        productId: z.string().min(1, VALIDATION_MESSAGES.chooseOne("product")),
-        quantity: quantity(),
-        notes: optionalLine("Item notes", 500),
-      }),
-    )
-    .min(1, VALIDATION_MESSAGES.chooseAtLeastOne("item")),
+  customer: orderCustomerSchema.nullable().transform((customer, ctx) => {
+    if (customer === null) {
+      ctx.addIssue({ code: "custom", message: VALIDATION_MESSAGES.chooseOne("customer") });
+      return z.NEVER;
+    }
+    return customer;
+  }),
+  items: z.array(orderItemSchema).min(1, VALIDATION_MESSAGES.chooseAtLeastOne("item")),
   adjustments: z.array(
     z.object({
       type: z.enum(ADJUSTMENT_TYPES),
@@ -225,28 +228,27 @@ export const orderFormSchema = z.object({
       amount: paiseText("Amount"),
     }),
   ),
-  delivery: z.object({
-    type: z.enum(DELIVERY_TYPES),
-    date: z
-      .string()
-      .min(1, VALIDATION_MESSAGES.required("Delivery date"))
-      .transform((local, ctx) => {
-        const when = new Date(local);
-        if (Number.isNaN(when.getTime())) {
-          ctx.addIssue({ code: "custom", message: VALIDATION_MESSAGES.invalid });
-          return z.NEVER;
-        }
-        return when.toISOString();
-      }),
-    address: optionalLines("Delivery address", 500),
-    googleMapsLink: optionalUrl("Map link"),
-  }).refine(hasPlace, DELIVERY_PLACE),
+  delivery: z
+    .object({
+      type: z.enum(DELIVERY_TYPES),
+      date: z
+        .string()
+        .min(1, VALIDATION_MESSAGES.required("Date and time"))
+        .transform((local, ctx) => {
+          const when = new Date(local);
+          if (Number.isNaN(when.getTime())) {
+            ctx.addIssue({ code: "custom", message: VALIDATION_MESSAGES.invalid });
+            return z.NEVER;
+          }
+          return when.toISOString();
+        }),
+      address: optionalLines("Delivery address", 500),
+      googleMapsLink: optionalUrl("Map link"),
+    })
+    .refine(hasPlace, DELIVERY_PLACE),
   payment: orderPaymentFormSchema,
   notes: optionalLines("Order notes", 1000),
-}).transform(({ customerId, ...order }) => ({
-  ...order,
-  customer: customerId === GUEST_CHOICE ? { kind: "GUEST" as const } : { kind: "CUSTOMER" as const, id: customerId },
-}));
+});
 
 export type OrderFormValues = z.input<typeof orderFormSchema>;
 export type OrderFormPayload = z.output<typeof orderFormSchema>;

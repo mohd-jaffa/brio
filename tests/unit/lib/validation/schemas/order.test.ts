@@ -4,7 +4,6 @@ import { VALIDATION_MESSAGES } from "@/constants/messages";
 import {
   createOrderSchema,
   customItemFormSchema,
-  GUEST_CHOICE,
   orderFormSchema,
   orderListQuerySchema,
   orderPaymentFormSchema,
@@ -55,6 +54,19 @@ describe("payment when the order is placed (§139.11.9)", () => {
 
 const UUID = "3f2504e0-4f89-11d3-9a0c-0305e82c3301";
 const OTHER_UUID = "9f1c8a52-3d66-4a1e-8b0a-6d1f0f3a2b77";
+
+/** What the order screen's draft reads into (src/features/orders/draft.ts): a whole valid form. */
+function form(changes: Record<string, unknown> = {}) {
+  return {
+    customer: { kind: "CUSTOMER", id: UUID },
+    items: [{ productId: OTHER_UUID, quantity: 1, notes: "" }],
+    adjustments: [],
+    delivery: { type: "PICKUP", date: "2026-09-23T10:00", address: "", googleMapsLink: "" },
+    payment: { status: "UNPAID", method: "CASH", reference: "" },
+    notes: "",
+    ...changes,
+  };
+}
 
 describe("order", () => {
   const validOrder = {
@@ -112,8 +124,13 @@ describe("order", () => {
     ]);
   });
 
-  it("the custom-item sheet reads the amount as it is written, above ₹0", () => {
-    expect(customItemFormSchema.parse({ name: "Cake topper", unitPrice: "₹1,250" })).toEqual({ name: "Cake topper", unitPrice: 125000 });
+  it("the custom-item sheet reads the amount as it is written, above ₹0, with a description if there is one", () => {
+    expect(customItemFormSchema.parse({ name: "Cake topper", unitPrice: "₹1,250" })).toEqual({
+      name: "Cake topper",
+      description: null,
+      unitPrice: 125000,
+    });
+    expect(customItemFormSchema.parse({ name: "Cake topper", description: "  Gold ", unitPrice: "10" }).description).toBe("Gold");
     expect(customItemFormSchema.safeParse({ name: "Cake topper", unitPrice: "0" }).error?.issues[0].message).toBe(
       VALIDATION_MESSAGES.moreThanZero("Amount"),
     );
@@ -140,14 +157,9 @@ describe("order", () => {
   });
 
   it("the form holds a delivery to the same rule", () => {
-    const result = orderFormSchema.safeParse({
-      customerId: UUID,
-      items: [{ productId: OTHER_UUID, quantity: 1, notes: "" }],
-      adjustments: [],
-      delivery: { type: "DELIVERY", date: "2026-09-23T10:00", address: "", googleMapsLink: "" },
-      payment: { status: "UNPAID", method: "CASH", reference: "" },
-      notes: "",
-    });
+    const result = orderFormSchema.safeParse(
+      form({ delivery: { type: "DELIVERY", date: "2026-09-23T10:00", address: "", googleMapsLink: "" } }),
+    );
     expect(result.error?.issues[0]).toMatchObject({ path: ["delivery", "address"], message: VALIDATION_MESSAGES.deliveryNeedsPlace });
   });
 
@@ -177,31 +189,50 @@ describe("order", () => {
   });
 
   it("the form turns a local date and time into the instant that is stored", () => {
-    const parsed = orderFormSchema.parse({
-      customerId: UUID,
-      items: [{ productId: OTHER_UUID, quantity: 1, notes: "" }],
-      adjustments: [{ type: "CHARGE", name: "Delivery", amount: "40" }],
-      delivery: { type: "DELIVERY", date: "2026-09-23T10:00", address: "12 Lane", googleMapsLink: "" },
-      payment: { status: "UNPAID", method: "CASH", reference: "" },
-      notes: "",
-    });
+    const parsed = orderFormSchema.parse(
+      form({
+        adjustments: [{ type: "CHARGE", name: "Delivery", amount: "40" }],
+        delivery: { type: "DELIVERY", date: "2026-09-23T10:00", address: "12 Lane", googleMapsLink: "" },
+      }),
+    );
 
     expect(parsed.delivery.date).toBe(new Date("2026-09-23T10:00").toISOString());
     expect(parsed.adjustments[0].amount).toBe(4000);
     expect(parsed.customer).toEqual({ kind: "CUSTOMER", id: UUID });
-    expect(parsed).not.toHaveProperty("customerId");
   });
 
-  it("the form sends its Guest choice as a Guest", () => {
-    const parsed = orderFormSchema.parse({
-      customerId: GUEST_CHOICE,
-      items: [{ productId: OTHER_UUID, quantity: 1, notes: "" }],
-      adjustments: [],
-      delivery: { type: "PICKUP", date: "2026-09-23T10:00", address: "", googleMapsLink: "" },
-      payment: { status: "UNPAID", method: "CASH", reference: "" },
-      notes: "",
-    });
-    expect(parsed.customer).toEqual({ kind: "GUEST" });
+  it("the form asks for the date and time, and refuses one that is no date", () => {
+    for (const [date, message] of [
+      ["", VALIDATION_MESSAGES.required("Date and time")],
+      ["someday", VALIDATION_MESSAGES.invalid],
+    ]) {
+      const result = orderFormSchema.safeParse(form({ delivery: { type: "PICKUP", date, address: "", googleMapsLink: "" } }));
+      expect(result.error?.issues[0]).toMatchObject({ path: ["delivery", "date"], message });
+    }
+  });
+
+  it("the form sends a Guest as a Guest, and asks for a choice when there is none (§139.11.3)", () => {
+    expect(orderFormSchema.parse(form({ customer: { kind: "GUEST" } })).customer).toEqual({ kind: "GUEST" });
+    const result = orderFormSchema.safeParse(form({ customer: null }));
+    expect(result.error?.issues).toEqual([
+      expect.objectContaining({ path: ["customer"], message: VALIDATION_MESSAGES.chooseOne("customer") }),
+    ]);
+  });
+
+  it("the form reports each step's mistakes under that step's own paths", () => {
+    const result = orderFormSchema.safeParse(
+      form({
+        items: [],
+        adjustments: [{ type: "DISCOUNT", name: "", amount: "lots" }],
+        payment: { status: "PARTIALLY_PAID", method: "UPI", reference: "", amount: "" },
+      }),
+    );
+    expect(result.error?.issues.map((issue) => issue.path.join("."))).toEqual([
+      "items",
+      "adjustments.0.name",
+      "adjustments.0.amount",
+      "payment.amount",
+    ]);
   });
 
   it("a status change may name either status, or both", () => {

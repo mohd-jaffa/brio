@@ -7,6 +7,7 @@ import { useSWRConfig } from "swr";
 import { AUTH_ROUTES } from "@/constants/routes";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiQuery } from "@/lib/query/useApiQuery";
+import { clearUserItems } from "@/lib/storage/userStorage";
 import type { LoginInput } from "@/lib/validation";
 
 import { AuthClient } from "./api.client";
@@ -71,6 +72,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // to the account that just left and must not be shown to the next one.
       await mutate(undefined, { revalidate: false });
       await mutateAll(() => true, undefined, { revalidate: false });
+      // So is anything kept on the device for it — an order half built.
+      clearUserItems();
       router.replace(AUTH_ROUTES.signIn);
     }
   }, [mutate, mutateAll, router]);
