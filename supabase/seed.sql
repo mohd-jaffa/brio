@@ -60,7 +60,7 @@ begin
     v_email, extensions.crypt(v_password, extensions.gen_salt('bf')), now(),
     v_auth_phone, now(),
     '{"provider":"phone","providers":["phone","email"]}'::jsonb,
-    jsonb_build_object('name', 'Priya Baker', 'role', 'BAKER'),
+    jsonb_build_object('name', 'Priya Baker'),
     '', '', '', '',
     now() - interval '90 days', now(), null
   )

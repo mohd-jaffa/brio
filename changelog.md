@@ -1109,3 +1109,15 @@ The proposal was reviewed and left to its row. A bell built today would have not
   - the catch phrase and city at registration, to R2.4;
   - the business header on the bill, to R4.1;
   - `next_order_number`, to R3.2.
+
+## 2026-09-25 — Phase 2: Accounts and the business (plan §139.18, tracker §139.19)
+
+USER and DEV; the new registration; the business profile and logo (R2.6 and
+R2.7 landed earlier today); the queue actually running; audit that records who.
+Each row is committed on its own; this entry grows with them.
+
+### Changed
+- **R2.3 · BUG-17 — the role left `user_metadata`.** Registration wrote `role` into Supabase's user metadata, which a signed-in user can edit for themselves. Nothing read it, but a future read would have been a privilege escalation.
+  - Registration now writes only the name there. The role lives on `profiles`, which only the server writes.
+  - **Migration `0009_role_out_of_metadata.sql`** strips `role` from every account's metadata. The seed no longer writes it back. On the local database no account carries a role in its metadata any more.
+  - **Tests:** `register` had no unit test. Three now cover what reaches `user_metadata` (only the name), where the role goes, and taking the new user away again when the rest of the account cannot be made. A contract covers 0009 and the seed.

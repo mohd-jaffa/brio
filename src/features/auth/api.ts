@@ -286,9 +286,10 @@ export async function register(client: SupabaseClient, registration: RegisterPay
     password: registration.password,
     email_confirm: false,
     phone_confirm: true,
+    // Only the name. A user can edit their own metadata, so a role kept here
+    // could never be trusted; the role lives on `profiles` (BUG-17).
     user_metadata: {
       name: registration.name,
-      role: "BAKER",
     },
   });
 
