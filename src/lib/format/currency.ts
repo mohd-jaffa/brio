@@ -2,15 +2,26 @@ import { paiseToRupees, roundToPaise } from "@/lib/money";
 
 export const CURRENCY_SYMBOL = "₹";
 
-/** A rupee amount as a baker reads it: "₹1,500", "₹1,500.50", or "—" for nothing. */
+// Built once: a formatter is costly to make, and every list row calls these.
+const WHOLE_RUPEES = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
+const RUPEES_AND_PAISE = new Intl.NumberFormat("en-IN", {
+  style: "currency",
+  currency: "INR",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+/**
+ * A rupee amount as a person reads it: "₹1,500", "₹1,500.50", "-₹4,590", or
+ * "—" for nothing. The locale places the sign, so a loss reads "-₹4,590" and
+ * never "₹-4,590"; only the text changes, never the value.
+ */
 export function formatCurrency(amount: number | null | undefined): string {
   if (amount === null || amount === undefined || !Number.isFinite(amount)) return "—";
+  // Rounded first, so -0.001 reads "₹0" rather than "-₹0".
   const value = roundToPaise(amount);
   const hasFraction = Math.round(value * 100) % 100 !== 0;
-  return `${CURRENCY_SYMBOL}${value.toLocaleString("en-IN", {
-    minimumFractionDigits: hasFraction ? 2 : 0,
-    maximumFractionDigits: 2,
-  })}`;
+  return (hasFraction ? RUPEES_AND_PAISE : WHOLE_RUPEES).format(value);
 }
 
 /**

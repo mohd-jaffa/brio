@@ -11,7 +11,19 @@ describe('formatCurrency', () => {
     expect(formatCurrency(1500.75)).toBe('₹1,500.75');
   });
 
+  it('puts the sign before the rupee symbol, as a loss is written', () => {
+    expect(formatCurrency(-4590)).toBe('-₹4,590');
+    expect(formatCurrency(-1500.5)).toBe('-₹1,500.50');
+    expect(formatCurrency(-10000000)).toBe('-₹1,00,00,000');
+  });
+
+  it('never writes a negative zero', () => {
+    expect(formatCurrency(-0)).toBe('₹0');
+    expect(formatCurrency(-0.001)).toBe('₹0');
+  });
+
   it('handles null or undefined gracefully', () => {
+    expect(formatCurrency(Number.NaN)).toBe('—');
     expect(formatCurrency(null)).toBe('—');
     expect(formatCurrency(undefined)).toBe('—');
   });
@@ -22,6 +34,11 @@ describe('formatPaise', () => {
     expect(formatPaise(49950)).toBe('₹499.50');
     expect(formatPaise(150000)).toBe('₹1,500');
     expect(formatPaise(0)).toBe('₹0');
+  });
+
+  it('shows a loss as "-₹4,590", never "₹-4,590"', () => {
+    expect(formatPaise(-459000)).toBe('-₹4,590');
+    expect(formatPaise(-50)).toBe('-₹0.50');
   });
 
   it('says nothing rather than zero when there is no figure', () => {

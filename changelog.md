@@ -983,3 +983,15 @@ entry grows with them.
 
 ### Blockers
 - None. Seen during the sweep and left to their own rows: Analytics prints a negative profit as "₹-4,590" (R5.9); order detail shows the raw "PICKUP" (R3, R5); Create order's checkout bar covers the phone's bottom nav (R3.9). The deferrals each row names above stay with their rows: the business's name and logo (R2.6, R2.7), the bell (R5.10), search in the top bar (R5.12), the theme switch until Appearance (R5.11), haptics (R8.3), the receipt as a dialog (R4.6), the customer picker (R3.6), the bill (R4.2) and the illustration picker (R5.6).
+
+## 2026-09-25 — Review: the sweep's three defects, and search kept to its lists
+
+The user asked for six proposals to be reviewed, and only the sound ones built.
+Each lands on its own commit; this entry grows with them.
+
+### Fixed
+- **A loss read "₹-4,590"** (seen on Analytics; every money figure shares the formatter). `formatCurrency` now formats through `Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" })`, so the locale places the sign: "-₹4,590", "-₹1,500.50", "-₹1,00,00,000". The value is untouched; only its text changed.
+  - The two formatters are built once, not on every call.
+  - An amount is rounded to the paisa first, so -0.001 reads "₹0", never "-₹0".
+  - Every screen already formats money through `formatPaise`, so Analytics, Expenses, Orders, Home and the receipt all follow; a search found no screen formatting rupees itself.
+  - **Tests:** a loss in whole rupees, in paise and in crores; no negative zero; `NaN`.
