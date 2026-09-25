@@ -204,8 +204,11 @@ export const UI_TEXT = {
 
   /** The app's navigation (plan §139.5). */
   nav: {
+    main: "Main navigation",
     more: "More",
     secondary: "Secondary navigation",
+    theme: "Theme",
+    account: (name: string) => `Account: ${name}`,
   },
 
   /** The field kit (plan §139.5). */

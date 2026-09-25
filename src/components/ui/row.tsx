@@ -23,8 +23,9 @@ export function RowList({ label, children, className }: { label?: string; childr
 /**
  * One line of a list: a tile or an avatar, a title with a line or two under
  * it, what it amounts to (an amount, a pill), and a chevron when it goes
- * somewhere. It is a link with `href`, a button with `onClick`, and plain
- * otherwise; the whole row is the target, so it is easy to hit.
+ * somewhere. It is a link with `href` (and `onClick` runs as it is followed),
+ * a button with only `onClick`, and plain otherwise; the whole row is the
+ * target, so it is easy to hit.
  */
 export function Row({
   leading,
@@ -63,7 +64,7 @@ export function Row({
   return (
     <li>
       {href !== undefined ? (
-        <Link href={href} className={cn(layout, interactive)}>
+        <Link href={href} onClick={onClick} className={cn(layout, interactive)}>
           {body}
         </Link>
       ) : onClick ? (

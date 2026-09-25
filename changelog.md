@@ -934,3 +934,25 @@ entry grows with them.
     - **Cancel:** the question started on *Keep order*. Escape sent nothing and left the status Pending; confirming sent `CANCELLED`, and the refusal came back as its own card.
     - Golden and Peach, 390 and 1280 px, no console errors.
   - **Tests.** 22 for the card, `Modal` and the busy button: the self-closing clock, pausing, the live region, focus, facts, actions, retry, the request id, confirmations, severity and the queue. The feature and auth tests render inside `tests/support/providers.tsx`, which gives them the SWR cache and the provider together. 804 tests.
+- **R1.7 — the new shell** (plan §139.5, §139.9).
+  - **Phone (< 768 px).** A top bar carries the business's mark, name and line, and the account's initials, which link to Settings. The five-item bottom bar is **Home · Orders · Products · Customers · More**, with a tinted pill on the current place.
+    - More is a sheet of medallion rows with chevrons (Analytics, Expenses, Inventory, Settings), then the theme and the account with Sign out (§139.10).
+  - **Tablet (768–1023 px).** A 72 px icon rail. Each label is a tooltip on hover and focus, and still the link's name.
+  - **Desktop (≥ 1024 px).** A 248 px sidebar in the plan's three groups, split by hairlines: Home, Orders, Products, Customers · Analytics, Expenses · Inventory, Settings. The content is at most 1200 px wide.
+  - **The top bar from 768 px** holds the account: the initials, and the name from 1024 px. It opens a disclosure with who is signed in, the theme and Sign out. Escape or a click elsewhere closes it, and focus goes back to its button. The old desktop header, which repeated the page title, is gone.
+  - **Navigation.** It is one set of items, grouped as `NAV_GROUPS`; the bottom bar, the More sheet (`MORE_NAV`, everything the bottom bar does not hold) and the rail and sidebar all read it. "Dashboard" is now "Home". `isActivePath` no longer lights up `/orders` on `/orders-archive`.
+  - **The theme pill left the header.** A Golden/Peach switch now sits in the More sheet and the account menu, until Settings → Appearance takes it (R5.11).
+  - **Every edge pays its safe area.** Measured with a faked notch:
+    - Phone: header 59 px (12 + 47), bottom nav 42 px (8 + 34), content 126 px.
+    - A landscape tablet with 44 px side insets: the sidebar is 292 px (248 + 44), and the content and top bar pay 44 px on the right.
+  - **Not yet, each with its own row.**
+    - The business's own name and logo, since the profile cannot be read until `/api/business` (R2.6, R2.7). The mark shows the app's name meanwhile.
+    - The bell and Notifications (R5.10), global search in the top bar (R5.12), and Business details in the sidebar and More (R2.6).
+    - These links are left out rather than drawn pointing at screens that do not exist.
+  - **`Row`** takes `onClick` alongside `href`, so a More row closes the sheet as it navigates.
+  - **Checked in a browser:**
+    - Golden and Peach at 390, 820 and 1280 px.
+    - The rail is 72 px and its tooltip shows on hover; the sidebar is 248 px.
+    - The account menu opens and closes; the More sheet shows its rows.
+    - No console errors.
+  - **Tests.** The shell, the More sheet, the account menu, the mark and the theme switch each have their own file. The More sheet's tests moved out of the shell's. 814 tests.

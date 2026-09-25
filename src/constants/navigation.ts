@@ -1,20 +1,20 @@
 import {
   BarChart3,
-  Cake,
   CircleDollarSign,
+  ClipboardList,
+  Cookie,
   Home,
   Menu,
   Package,
   Settings,
-  ShoppingBag,
   Users,
   type LucideIcon,
 } from "lucide-react";
 
 /**
- * Where the app can be navigated to (plan §9). One list, so the phone's bottom
- * bar, the More sheet and the desktop sidebar cannot drift apart — they had,
- * each keeping its own copy of the labels and hrefs.
+ * Where the app can be navigated to (plan §139.5). One set of items, so the
+ * phone's bottom bar, the More sheet, the tablet's rail and the desktop's
+ * sidebar cannot drift apart — they had, each keeping its own copy.
  */
 export interface NavItem {
   id: string;
@@ -23,29 +23,37 @@ export interface NavItem {
   href: string;
 }
 
-export const PRIMARY_NAV: readonly NavItem[] = [
-  { id: "dashboard", label: "Dashboard", icon: Home, href: "/" },
-  { id: "orders", label: "Orders", icon: ShoppingBag, href: "/orders" },
-  { id: "customers", label: "Customers", icon: Users, href: "/customers" },
+const HOME: NavItem = { id: "home", label: "Home", icon: Home, href: "/" };
+const ORDERS: NavItem = { id: "orders", label: "Orders", icon: ClipboardList, href: "/orders" };
+const PRODUCTS: NavItem = { id: "products", label: "Products", icon: Cookie, href: "/products" };
+const CUSTOMERS: NavItem = { id: "customers", label: "Customers", icon: Users, href: "/customers" };
+const ANALYTICS: NavItem = { id: "analytics", label: "Analytics", icon: BarChart3, href: "/analytics" };
+const EXPENSES: NavItem = { id: "expenses", label: "Expenses", icon: CircleDollarSign, href: "/expenses" };
+const INVENTORY: NavItem = { id: "inventory", label: "Inventory", icon: Package, href: "/inventory" };
+const SETTINGS: NavItem = { id: "settings", label: "Settings", icon: Settings, href: "/settings" };
+
+/**
+ * The sidebar and the rail, in the plan's three groups: the daily work, the
+ * numbers, and the rest. Notifications and Business details join the last
+ * group with their screens (R5.10, R2.6).
+ */
+export const NAV_GROUPS: readonly (readonly NavItem[])[] = [
+  [HOME, ORDERS, PRODUCTS, CUSTOMERS],
+  [ANALYTICS, EXPENSES],
+  [INVENTORY, SETTINGS],
 ];
 
-/** What lives behind "More" on a phone, and below the primary items on a desktop. */
-export const SECONDARY_NAV: readonly NavItem[] = [
-  { id: "products", label: "Products", icon: Cake, href: "/products" },
-  { id: "inventory", label: "Inventory", icon: Package, href: "/inventory" },
-  { id: "expenses", label: "Expenses", icon: CircleDollarSign, href: "/expenses" },
-  { id: "analytics", label: "Analytics", icon: BarChart3, href: "/analytics" },
-  { id: "settings", label: "Settings", icon: Settings, href: "/settings" },
-];
+/** Every destination, in order. */
+export const ALL_NAV: readonly NavItem[] = NAV_GROUPS.flat();
 
-/** The sidebar, from tablet up: everything, in order. */
-export const SIDEBAR_NAV: readonly NavItem[] = [...PRIMARY_NAV, ...SECONDARY_NAV];
-
-/** The bottom bar on a phone: three destinations and the way to the rest. */
+/** The phone's bottom bar: the four daily destinations and the way to the rest. */
 export const MORE_NAV_ITEM: NavItem = { id: "more", label: "More", icon: Menu, href: "#more" };
-export const BOTTOM_NAV: readonly NavItem[] = [...PRIMARY_NAV, MORE_NAV_ITEM];
+export const BOTTOM_NAV: readonly NavItem[] = [HOME, ORDERS, PRODUCTS, CUSTOMERS, MORE_NAV_ITEM];
+
+/** What lives behind More on a phone: everything the bottom bar does not hold. */
+export const MORE_NAV: readonly NavItem[] = ALL_NAV.filter((item) => !BOTTOM_NAV.includes(item));
 
 /** Whether a path is the one a nav item points at. "/" only matches itself. */
 export function isActivePath(href: string, pathname: string): boolean {
-  return href === "/" ? pathname === "/" : pathname.startsWith(href);
+  return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 }
