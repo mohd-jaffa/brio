@@ -18,7 +18,8 @@ describe("EmptyState", () => {
       />,
     );
 
-    expect(screen.getByRole("heading", { name: "No customers yet" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "No customers yet" })).toHaveClass("font-heading");
+    expect(document.querySelector('[aria-hidden="true"]')).toHaveClass("bg-primary-soft");
     expect(screen.getByText("Start adding your customers.")).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "Add Your First Customer" }));

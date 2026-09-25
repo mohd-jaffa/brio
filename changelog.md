@@ -874,3 +874,5 @@ entry grows with them.
     - **Phone fields.** Sign in, registration and the customer sheet carry `+91`. The customer sheet shows a stored number as its ten digits ("98765 43210"), and the server still normalises it to `+919876543210`.
     - The customer sheet marks email, address, map link and notes optional.
     - Checked in the browser: the sign-in field and the customer sheet match the reference's Customer details form.
+  - **`empty-state` and the skeletons, restyled.** The empty state's icon sits in the medallion and its title in the serif. A skeleton is now a sunken block rather than a bordered card.
+  - **R1.8 is done.** Its remaining kit entries belong to the rows that use them: `sheet`/`dialog` (R1.9), the response card (R1.10), `customer-picker` (R3.6), `bill` (R4.2) and `illustration-picker` (R5.6).

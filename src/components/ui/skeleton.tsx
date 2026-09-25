@@ -1,6 +1,10 @@
-/** A placeholder while something loads. Hidden from screen readers — the list says it is loading. */
+/**
+ * A placeholder while something loads, in the sunken tone the loaded card's
+ * wells use (plan §139.5). Hidden from screen readers — the list says it is
+ * loading.
+ */
 export function Skeleton({ height = "h-24" }: { height?: string }) {
-  return <div aria-hidden="true" className={`${height} animate-pulse rounded-2xl border border-border bg-surface`} />;
+  return <div aria-hidden="true" className={`${height} animate-pulse rounded-2xl bg-sunken`} />;
 }
 
 export function SkeletonRows({ rows = 3, height }: { rows?: number; height?: string }) {
