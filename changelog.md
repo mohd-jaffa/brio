@@ -1266,6 +1266,10 @@ this entry grows with them.
 
 ### Decided (the user, 2026-09-25, recorded under AGENTS §31)
 - **The oversell guard checks stocked products only.** Plan §21 refuses an order when stock is short "unless the made-to-order rule is enabled", but no such rule existed, and many home businesses never record stock for what they make to order. The user chose: a product is checked once any stock has been recorded for it — a stock in, an adjustment, wastage or a return. A product nobody stocks is made to order and is never refused. There is no new setting or column.
+- **Products need no categories** (the user, 2026-09-25). A product is known by its name and the illustration the owner picks for it from the library (§139.11.10, R5.6); every expense category keeps its own picked illustration (R5.16).
+  - The plan drops the category chips on the create-order grid and on Products, Manage categories, `/api/categories` (§133.4 D1), and Sales by category in Analytics. Custom items, which that chart showed, become one "Custom items" row in the Products ranking.
+  - R5.6 will remove the unused `categories` table and `products.category_id` with a migration.
+  - Both decisions are recorded in the plan under "Answers and additions (2026-09-25)".
 
 ### Changed
 - **R3.11 · Q3 — Preparing, Ready, and Completed for a pickup** (plan §139.11.8).

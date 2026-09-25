@@ -6578,7 +6578,7 @@ Every gap recorded here has been implemented. The entry is kept rather than dele
 
 | # | Gap |
 |---|-----|
-| D1 | The `categories` table exists with RLS, and `products.category_id` is written by the API — but there is no categories endpoint, no categories UI, and no way for a baker to create one. The field can never be set from the app. |
+| D1 | The `categories` table exists with RLS, and `products.category_id` is written by the API — but there is no categories endpoint, no categories UI, and no way for a baker to create one. The field can never be set from the app. **Dropped 2026-09-25 by the user: products need no categories; R5.6 removes the table and the column.** |
 
 ---
 
@@ -7471,6 +7471,14 @@ masters are the exception: they are app artwork, and they are committed under
 - **Expenses and Analytics** carry the **graphs and visual analytics the references show** (§139.11.11).
 - **An illustration library.** 26 files were supplied; after de-duplication and splitting they make 28 illustrations. They are stored in the codebase in their own folder under **constant names**. Every product and every expense category starts on a **default illustration**, and the user can pick **any** illustration from the library instead (§139.11.10).
 
+## Answers and additions (2026-09-25)
+
+- **Products need no categories** (the user, recorded under §31). A product is found by its name and known by its **illustration**, which the owner picks from the library when creating or editing it (§139.11.10, R5.6). Every expense category keeps its own illustration, picked the same way (R5.16). So:
+  - There are **no category chips** on the create-order grid or on Products, **no Manage categories**, and **no `/api/categories`**. §133.4 D1 is closed as dropped.
+  - R5.6 drops what is left of them: the unused `categories` table and `products.category_id`, so no dead schema stays behind (§2.2).
+  - **Sales by category** leaves Analytics with them. Custom items, which it used to show, appear as one **"Custom items"** row in the Products tab's ranking, so their sales are still counted.
+- **The oversell guard checks stocked products only.** A product is checked once any stock has been recorded for it by hand — a stock in, adjustment, wastage or return. A product nobody stocks is made to order and is never refused (§21's "made-to-order rule", R3.3).
+
 ---
 
 ## 139.1 Scope changes this brief approves (§31)
@@ -7679,7 +7687,7 @@ a shared component** (AGENTS §5).
 | `charts` | New | `line-trend`, `bar-trend`, `donut` with legend, and `sparkline`. Authored SVG, each with a data-table fallback for screen readers (§139.11.11). |
 | `quote-block` | New | The centred serif panel. |
 | `fab` | New | The one dark circular `+` on a phone screen; on desktop it becomes a header button. |
-| `choice-chips` | New | Category filters. |
+| `choice-chips` | New | One-of-many filters — a payment method, a range. (Not product categories: dropped 2026-09-25.) |
 | `customer-picker` | New | Search by name or phone, radio rows, **Guest pinned first**, and "Add new customer". |
 | `bill` | New | §139.11.6. |
 | Field kit | Update | **Sentence-case labels become the default** (the references use them everywhere); optional fields say "(Optional)" as the references do; the required asterisk stays (§138.5); a phone field gets a `+91` prefix adornment. |
@@ -7878,7 +7886,7 @@ Delivered · Cancelled. Search, and a filter for dates, payment status and Guest
 
 ### Create order (§139.11.3 – §139.11.5)
 
-1. **Items** — search, category chips, the product grid with `+` on each card; **Add custom item**, a name and an amount (§139.11.7); the cart bar shows the count and total.
+1. **Items** — search, the product grid with `+` on each card (no category chips — products need none, 2026-09-25); **Add custom item**, a name and an amount (§139.11.7); the cart bar shows the count and total.
 2. **Order details** — **Customer** (a saved customer or **Guest**, plus **+ New customer**); **Delivery** (pickup or delivery, date and time; the address and map link **filled from the customer** and editable); the items with steppers; a **note** printed on the bill (a cake message, for example) kept separate from **internal notes**, which never are; discounts and charges; the summary. Buttons: **[View bill]** and **[Proceed to payment]**.
 3. **Payment** — Unpaid / Paid in full / Part paid (**asks for the amount**) · method · reference. Buttons: **[View bill]** and **[Place order]**.
 4. → **Response card:** "Order placed", with the facts, **[View bill] [New order]**.
@@ -7923,10 +7931,10 @@ from Orders' Guest filter and from Analytics.
 
 ### Products
 
-Search, category chips, and **Manage categories** (a sheet to add, rename,
-reorder and deactivate — §133.4 D1).
+Search. There are no categories (the user, 2026-09-25): a product is known by
+its name and its illustration.
 
-- **Phone rows:** tile · name · category · price · Active pill · overflow menu (edit, deactivate, stock).
+- **Phone rows:** tile · name · unit · price · Active pill · overflow menu (edit, deactivate, stock).
 - **Desktop:** a grid of product cards with **+ Add product**.
 
 Units add set, bunch and pack (Q8). The product form has an **Icon** field:
@@ -7957,11 +7965,11 @@ As the references show: a compact photographic band, and a range picker. Tabs:
 **Overview · Sales · Orders · Customers · Products**. The charts follow
 §139.11.11.
 
-- **Overview:** four KPI tiles with deltas: **Total sales**, **Total orders**, **New customers** and **Average order value** (in rupees). Then **Sales trend**, a line with a soft fill, Daily / Weekly and a tooltip, with the previous period as a dashed comparison on desktop; **Top selling products**, with the illustration, name, orders and sales, and **View all**; **Sales by category**, a donut with the total in its centre, where custom items count as "Custom items"; and the quote block.
+- **Overview:** four KPI tiles with deltas: **Total sales**, **Total orders**, **New customers** and **Average order value** (in rupees). Then **Sales trend**, a line with a soft fill, Daily / Weekly and a tooltip, with the previous period as a dashed comparison on desktop; **Top selling products**, with the illustration, name, orders and sales, and **View all**; and the quote block. (Sales by category was dropped with product categories, 2026-09-25.)
 - **Sales:** the trend against the previous period; **Guest and customer** sales as a split; and collected against still to collect.
 - **Orders:** orders per day as bars; orders **by status** as a donut; and pickup against delivery.
 - **Customers:** new against returning; and **Top customers** (§133.9 I1), with guests left out.
-- **Products:** every product ranked by sales and by quantity; and sales by category.
+- **Products:** every product ranked by sales and by quantity, with custom items as one **"Custom items"** row.
 
 Everything is **aggregated on the server** (§133.9 I3), in the business's
 timezone, with the previous period for every delta.
@@ -8100,7 +8108,7 @@ line** — the ledger code must skip it, where today it would fail on
 
 - **Adding one:** **Add custom item** opens a small sheet with **Item name** (required, trimmed, 2–120 characters) and **Amount**, the price of one (required, above ₹0, within the BUG-12 bounds). The quantity starts at 1 and uses the stepper like any other line.
 - **On screen** the line shows the `default-product` illustration and a "Custom" mark. **On the bill** it prints like any other line.
-- **In reports** custom lines count toward sales, and **Sales by category** shows them as "Custom items". **Top products** lists catalogue products only.
+- **In reports** custom lines count toward sales, and the Products tab's ranking shows them as one "Custom items" row (Sales by category was dropped with product categories, 2026-09-25). **Top products** lists catalogue products only.
 
 ### 139.11.8 Order statuses and transitions
 
@@ -8241,7 +8249,7 @@ accessibility gaps (§2.2).
 |---|---|---|
 | `line-trend` | Analytics' sales trend; the Sales tab | A smooth monotone line with a soft fill beneath it, and horizontal gridlines only. Compact rupee ticks on the y axis (₹2K … ₹8K; lakh from ₹1,00,000). Five or six date ticks on the x axis. A tooltip bubble with the value and date on hover, tap or keyboard focus, with the chosen point marked. An optional **previous-period** series, dashed and muted, with a two-item legend. |
 | `bar-trend` | Expense trend; orders per day; the desktop Home sales overview | Round-topped bars. The peak or the chosen bar is in the strong tone and the rest in a lighter tone of it, with the same tooltip. Daily up to 31 days, and weekly beyond that or by the toggle. |
-| `donut` | Expenses by category; Sales by category; orders by status | A ring with the **total in its centre** in the serif, and a legend with a dot, the name and the share. The legend sits beside the ring on phones and beneath it below 360 px. The top five plus **Others**, with a 2 px surface-coloured gap between segments. |
+| `donut` | Expenses by category; orders by status | A ring with the **total in its centre** in the serif, and a legend with a dot, the name and the share. The legend sits beside the ring on phones and beneath it below 360 px. The top five plus **Others**, with a 2 px surface-coloured gap between segments. |
 | `sparkline` | Desktop stat tiles | A 2 px line with no axes and a dot on the last point. `aria-hidden`, because the tile states its delta in words. |
 
 - **Colour:** `--chart-1` to `--chart-6` per theme, taken from the references' browns and oranges. They are validated as §139.4's tokens were, and the line and the strong bar tone must be **≥ 3:1** against the card (WCAG 1.4.11). Donut segments need not be, because the legend carries every value as text.
@@ -8301,11 +8309,11 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `GET /api/customers` | `?search=` matches phone numbers on digits; pagination. |
 | `GET /api/customers/{id}/summary` | New — stats, and the delivery addresses taken from orders. |
 | `GET /api/guest-sales` | New — `?from&to`. |
-| `GET /api/analytics/overview` | `?from&to&interval=day\|week`. Returns the KPIs with their previous-period values, the sales series and the previous period's, top products (with their `iconKey`), sales by category, orders by status, and the Guest split (§133.9 I3, §139.11.11). |
+| `GET /api/analytics/overview` | `?from&to&interval=day\|week`. Returns the KPIs with their previous-period values, the sales series and the previous period's, top products (with their `iconKey`), orders by status, and the Guest split (§133.9 I3, §139.11.11). |
 | `GET /api/expenses/summary` | New — `?from&to&interval=day\|week`. Returns the total and daily average, each with the previous period's; totals by category; the series; and the five most recent (§139.11.11). |
 | `GET /api/expense-categories`, `PATCH /api/expense-categories/{category}` | New — each category's illustration. The PATCH takes `{ iconKey }` and writes `bakeries.expense_category_icons` on the server (§139.11.10). |
 | `POST /api/products`, `PATCH /api/products/{id}` | Accept `iconKey`: a registry key, or null for the default. |
-| `GET, POST, PATCH /api/categories` | New (§133.4 D1). |
+| ~~`GET, POST, PATCH /api/categories`~~ | **Dropped 2026-09-25:** products need no categories. |
 | `GET /api/notifications`, `POST /api/notifications/read-all` | New (§133.5 E1). |
 
 **OpenAPI** is updated with every change (§133.11 K1).
@@ -8615,10 +8623,10 @@ the row needs; without an answer it is built on that question's default
 | R5.3 | Customers: segments, the pinned Guest sales row, search on digits | §139.10; BUG-23 | — | TODO |
 | R5.4 | Customer detail: stats, orders, notes, addresses, create order, order again | IMP-03, IMP-04 | — | TODO |
 | R5.5 | Guest sales | §139.11.3 | — | TODO |
-| R5.6 | Products; managing categories; neutral units; the **Icon** field and picker | §133.4 D1; §139.11.10 | Q8 | TODO |
+| R5.6 | Products; neutral units; the **Icon** field and picker — the owner picks the product's illustration from the library; ~~managing categories~~ dropped (2026-09-25), and a migration removes the unused `categories` table and `products.category_id` | §139.11.10; §133.4 D1 (dropped) | Q8 | TODO |
 | R5.7 | Inventory | §139.10 | — | TODO |
 | R5.8 | Expenses as the reference shows: KPIs, the category donut, daily bars, recent expenses; the Categories and Transactions tabs; `GET /api/expenses/summary` | §139.10; §139.11.11 | — | TODO |
-| R5.9 | Analytics as the reference shows: KPIs with deltas, the sales-trend line, top products, sales by category; the Sales, Orders, Customers and Products tabs; server aggregation; Top Customers; the guest split | §133.9 I1, I3; IMP-10; §139.11.11 | — | TODO |
+| R5.9 | Analytics as the reference shows: KPIs with deltas, the sales-trend line, top products (custom items as one row in the Products tab); ~~sales by category~~ dropped with categories (2026-09-25); the Sales, Orders, Customers and Products tabs; server aggregation; Top Customers; the guest split | §133.9 I1, I3; IMP-10; §139.11.11 | — | TODO |
 | R5.10 | Notifications inbox and bell; the `kind` column | §133.5 E1 | — | TODO |
 | R5.11 | More and Settings (Appearance, Account, About with the illustration credit); no Help | §139.10 | Q7 (answered), Q16 | TODO |
 | R5.12 | ~~Global search~~ | IMP-01 | — | DROPPED (2026-09-25, the user's decision: search stays in each list, R5.13) |
