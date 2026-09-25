@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
-import { ScreenNotice } from "@/components/ui/screen-notice";
+import { useResponse } from "@/components/ui/response-card";
 import { TextField } from "@/components/ui/text-field";
 import { UI_TEXT } from "@/constants/messages";
 import { AUTH_ROUTES } from "@/constants/routes";
@@ -46,17 +46,22 @@ export function RegisterForm() {
     defaultValues: EMPTY,
   });
 
-  const { submit, submitting, error } = useApiMutation<RegisterPayload, RegisteredAccount>(
+  const respond = useResponse();
+  const { submit, submitting } = useApiMutation<RegisterPayload, RegisteredAccount>(
     AuthClient.register,
     {
-      fallback: "AUTH_REGISTRATION_FAILED",
-      onSuccess: () => router.replace(`${AUTH_ROUTES.signIn}?registered=1`),
+      onSuccess: () => {
+        // The card outlives the move: the provider sits above every route.
+        respond.success({ title: UI_TEXT.outcomes.accountCreated, message: UI_TEXT.auth.accountCreated });
+        router.replace(AUTH_ROUTES.signIn);
+      },
+      onError: (failure) =>
+        respond.failure(failure, { title: UI_TEXT.outcomes.accountNotCreated, fallback: "AUTH_REGISTRATION_FAILED" }),
     },
   );
 
   return (
     <form onSubmit={handleSubmit((values) => submit(values))} className="space-y-4" noValidate>
-      {error && <ScreenNotice>{error}</ScreenNotice>}
 
       <TextField
         label={UI_TEXT.auth.nameLabel}

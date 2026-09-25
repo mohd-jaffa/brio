@@ -29,11 +29,38 @@ describe("Button", () => {
     render(<Button label="Save" loading onClick={onClick} />);
 
     const button = screen.getByRole("button");
-    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute("aria-disabled", "true");
     expect(button).toHaveAttribute("aria-busy", "true");
 
     await userEvent.click(button);
     expect(onClick).not.toHaveBeenCalled();
+  });
+
+  it("keeps focus while it is busy, so nothing loses its place", () => {
+    const { rerender } = render(<Button label="Save" />);
+    const button = screen.getByRole("button");
+    button.focus();
+    rerender(<Button label="Save" loading />);
+    expect(button).not.toBeDisabled();
+    expect(button).toHaveFocus();
+  });
+
+  it("does not submit its form while busy", async () => {
+    const onSubmit = vi.fn((event: Event) => event.preventDefault());
+    render(
+      <form onSubmit={(event) => onSubmit(event.nativeEvent)}>
+        <Button type="submit" label="Save" loading />
+      </form>,
+    );
+    await userEvent.click(screen.getByRole("button"));
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("passes a press on when it is not busy", async () => {
+    const onClick = vi.fn();
+    render(<Button label="Save" onClick={onClick} />);
+    await userEvent.click(screen.getByRole("button"));
+    expect(onClick).toHaveBeenCalledOnce();
   });
 
   it("keeps a 44px touch target whatever its size", () => {

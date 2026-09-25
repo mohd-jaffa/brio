@@ -166,6 +166,42 @@ export const UI_TEXT = {
     noResults: (term: string) => `Nothing matches “${term}”.`,
   },
 
+  /** The response card (plan §139.6). */
+  response: {
+    reference: (requestId: string) => `Reference: ${requestId}`,
+  },
+
+  /**
+   * What each action's response card says it came to (plan §139.6): the
+   * title says the outcome, short, in the past tense.
+   */
+  outcomes: {
+    customerSaved: "Customer saved",
+    customerNotSaved: "Customer not saved",
+    productSaved: "Product saved",
+    productNotSaved: "Product not saved",
+    expenseSaved: "Expense saved",
+    expenseNotSaved: "Expense not saved",
+    stockRecorded: "Stock recorded",
+    stockNotRecorded: "Stock not recorded",
+    paymentRecorded: "Payment recorded",
+    paymentNotRecorded: "Payment not recorded",
+    orderUpdated: "Order updated",
+    orderCancelled: "Order cancelled",
+    orderNotUpdated: "Order not updated",
+    orderNotPlaced: "Order not placed",
+    logoNotUploaded: "Logo not uploaded",
+    signInFailed: "Couldn’t sign you in",
+    accountCreated: "Account created",
+    accountNotCreated: "Account not created",
+    resetEmailSent: "Check your email",
+    resetNotSent: "Email not sent",
+    passwordNotChanged: "Password not changed",
+    amount: "Amount",
+    balanceDue: "Balance due",
+    keepOrder: "Keep order",
+  },
+
   /** The app's navigation (plan §139.5). */
   nav: {
     more: "More",

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
+import { ResponseProvider } from "@/components/ui/response-card";
 import { AuthProvider } from "@/features/auth/AuthProvider";
 import { ThemeProvider } from "@/lib/theme/ThemeProvider";
 import { KeyboardInset } from "@/lib/viewport/KeyboardInset";
@@ -62,7 +63,10 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
-          <AuthProvider>{children}</AuthProvider>
+          {/* One place every outcome is reported, signed in or not (plan §139.6). */}
+          <ResponseProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </ResponseProvider>
           <KeyboardInset />
         </ThemeProvider>
       </body>

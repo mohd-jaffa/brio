@@ -5,7 +5,9 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import { FormSheet } from "@/components/ui/form-sheet";
+import { useResponse } from "@/components/ui/response-card";
 import { optionsFrom, optionsOf, SelectField, TextField } from "@/components/ui/text-field";
+import { UI_TEXT } from "@/constants/messages";
 import {
   EXPENSE_CATEGORIES,
   PAYMENT_METHOD_LABELS,
@@ -74,7 +76,8 @@ export function ExpenseFormSheet({
     if (isOpen) reset(valuesOf(initialData));
   }, [isOpen, initialData, reset]);
 
-  const { submit, submitting, error } = useApiMutation<ExpenseFormPayload, Expense>(
+  const respond = useResponse();
+  const { submit, submitting } = useApiMutation<ExpenseFormPayload, Expense>(
     (values) =>
       initialData
         ? ExpensesClient.updateExpense(initialData.id, values)
@@ -84,7 +87,11 @@ export function ExpenseFormSheet({
       onSuccess: () => {
         onSuccess();
         onClose();
+        respond.success({ title: UI_TEXT.outcomes.expenseSaved });
       },
+      // A refusal is a card over the sheet, which stays open to be put right.
+      onError: (failure) =>
+        respond.failure(failure, { title: UI_TEXT.outcomes.expenseNotSaved, fallback: "SAVE_FAILED" }),
     },
   );
 
@@ -96,7 +103,6 @@ export function ExpenseFormSheet({
       onSubmit={handleSubmit((values) => submit(values))}
       submitLabel="Save Expense"
       submitting={submitting}
-      error={error}
     >
       <SelectField
         label="Category"

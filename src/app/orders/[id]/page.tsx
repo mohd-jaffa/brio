@@ -10,7 +10,7 @@ import { ScreenNotice } from "@/components/ui/screen-notice";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { StatusPill } from "@/components/ui/status-pill";
 import { optionsFrom, SelectField } from "@/components/ui/text-field";
-import { FormSheet } from "@/components/ui/form-sheet";
+import { useResponse } from "@/components/ui/response-card";
 import { UI_TEXT } from "@/constants/messages";
 import {
   ORDER_STATUS_LABELS,
@@ -62,7 +62,6 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
 
   const [showReceipt, setShowReceipt] = useState(false);
   const [collecting, setCollecting] = useState(false);
-  const [confirmingCancel, setConfirmingCancel] = useState(false);
 
   const order = useApiQuery<Order>(apiRoutes.orders.detail(id));
   const customer = useApiQuery<Customer>(
@@ -72,9 +71,18 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
   // A receipt is built only when it is asked for, and never stored (AGENTS.md §15).
   const receipt = useApiQuery<ReceiptData>(showReceipt ? apiRoutes.orders.receipt(id) : null);
 
+  const respond = useResponse();
   const update = useApiMutation<{ status?: OrderStatus; paymentStatus?: PaymentStatus }, Order>(
     (patch) => OrdersClient.updateStatus(id, patch),
-    { revalidate: [apiRoutes.orders.detail(id), apiRoutes.orders.list] },
+    {
+      revalidate: [apiRoutes.orders.detail(id), apiRoutes.orders.list],
+      onSuccess: (updated) =>
+        respond.success({
+          title: updated.status === "CANCELLED" ? UI_TEXT.outcomes.orderCancelled : UI_TEXT.outcomes.orderUpdated,
+        }),
+      onError: (failure) =>
+        respond.failure(failure, { title: UI_TEXT.outcomes.orderNotUpdated, fallback: "SAVE_FAILED" }),
+    },
   );
 
   if (order.error) {
@@ -104,10 +112,21 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
   // Only where this order may go from here (plan §139.11.8); a finished order goes nowhere.
   const statusChoices = [current.status, ...nextStatuses(current.status, current.delivery.type)];
 
-  function moveTo(next: OrderStatus) {
+  async function moveTo(next: OrderStatus) {
     // Cancelling cannot be undone and returns stock, so it is asked first.
-    if (next === "CANCELLED") setConfirmingCancel(true);
-    else void update.submit({ status: next });
+    if (
+      next === "CANCELLED" &&
+      !(await respond.confirm({
+        title: UI_TEXT.orders.cancelTitle(current.orderNumber),
+        message: UI_TEXT.orders.cancelBody,
+        confirmLabel: UI_TEXT.orders.cancelConfirm,
+        cancelLabel: UI_TEXT.outcomes.keepOrder,
+        tone: "danger",
+      }))
+    ) {
+      return;
+    }
+    await update.submit({ status: next });
   }
 
   return (
@@ -122,8 +141,6 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
             onClick={() => setShowReceipt(true)}
           />
         </div>
-
-        {update.error && <ScreenNotice>{update.error}</ScreenNotice>}
 
         <section className="flex flex-col justify-between gap-6 rounded-3xl border border-border bg-gradient-to-br from-surface to-surface-hover p-6 shadow-elevated sm:flex-row sm:items-start sm:p-8">
           <div>
@@ -277,21 +294,6 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
           </dl>
         </Panel>
       </AppShell>
-
-      <FormSheet
-        open={confirmingCancel}
-        title={UI_TEXT.orders.cancelTitle(current.orderNumber)}
-        onClose={() => setConfirmingCancel(false)}
-        onSubmit={async () => {
-          if (await update.submit({ status: "CANCELLED" })) setConfirmingCancel(false);
-        }}
-        submitLabel={UI_TEXT.orders.cancelConfirm}
-        submitVariant="danger"
-        submitting={update.submitting}
-        error={update.error}
-      >
-        <p className="text-sm text-text-muted">{UI_TEXT.orders.cancelBody}</p>
-      </FormSheet>
 
       {collecting && (
         <PaymentCollectionForm

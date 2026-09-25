@@ -5,7 +5,9 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import { FormSheet } from "@/components/ui/form-sheet";
+import { useResponse } from "@/components/ui/response-card";
 import { optionsFrom, SelectField, TextField } from "@/components/ui/text-field";
+import { UI_TEXT } from "@/constants/messages";
 import { INVENTORY_TRANSACTION_LABELS, MANUAL_INVENTORY_TYPES } from "@/constants/statuses";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiMutation } from "@/lib/query/useApiMutation";
@@ -62,7 +64,8 @@ export function InventoryAdjustmentSheet({
   // visit while the sheet was closed with no product (plan §134 P0-1). The sheet
   // opens only with a product, so the empty id is never sent.
   const productId = product?.id ?? "";
-  const { submit, submitting, error } = useApiMutation<StockAdjustmentFormPayload, InventoryTransaction>(
+  const respond = useResponse();
+  const { submit, submitting } = useApiMutation<StockAdjustmentFormPayload, InventoryTransaction>(
     (values) =>
       InventoryClient.adjustStock({
         productId,
@@ -75,7 +78,11 @@ export function InventoryAdjustmentSheet({
       onSuccess: () => {
         onSuccess();
         onClose();
+        respond.success({ title: UI_TEXT.outcomes.stockRecorded });
       },
+      // A refusal is a card over the sheet, which stays open to be put right.
+      onError: (failure) =>
+        respond.failure(failure, { title: UI_TEXT.outcomes.stockNotRecorded, fallback: "SAVE_FAILED" }),
     },
   );
 
@@ -89,7 +96,6 @@ export function InventoryAdjustmentSheet({
       onSubmit={handleSubmit((values) => submit(values))}
       submitLabel="Confirm Adjustment"
       submitting={submitting}
-      error={error}
     >
       <SelectField
         label="Adjustment Type"

@@ -1,7 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
-import { SWRConfig } from "swr";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ApiError } from "@/lib/api/client";
@@ -9,6 +8,8 @@ import { ApiError } from "@/lib/api/client";
 import { CustomersClient } from "@/features/customers/api.client";
 import type { Customer } from "@/features/customers/types";
 import { CustomerFormSheet } from "@/features/customers/components/CustomerFormSheet";
+
+import { Providers } from "@tests/support/providers";
 
 vi.mock("@/features/customers/api.client", () => ({
   CustomersClient: { createCustomer: vi.fn(), updateCustomer: vi.fn() },
@@ -25,7 +26,7 @@ const meena: Customer = {
 };
 
 function wrapper({ children }: { children: ReactNode }) {
-  return <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>;
+  return <Providers>{children}</Providers>;
 }
 
 function open(props: Partial<Parameters<typeof CustomerFormSheet>[0]> = {}) {

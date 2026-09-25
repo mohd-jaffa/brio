@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { Image as ImageIcon, UploadCloud } from "lucide-react";
 
 import { AppShell } from "@/components/nav/AppShell";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
-import { ScreenNotice } from "@/components/ui/screen-notice";
+import { useResponse } from "@/components/ui/response-card";
+import { UI_TEXT } from "@/constants/messages";
 import { AccountSummary } from "@/features/auth/components/AccountSummary";
 
 /**
@@ -29,13 +29,16 @@ export function checkLogo(file: File): string | null {
 }
 
 export default function SettingsPage() {
-  const [error, setError] = useState<string | null>(null);
+  const respond = useResponse();
 
   const onPickLogo = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
-    setError(checkLogo(file) ?? "Logo uploads are not available yet.");
+    respond.error({
+      title: UI_TEXT.outcomes.logoNotUploaded,
+      message: checkLogo(file) ?? "Logo uploads are not available yet.",
+    });
   };
 
   return (
@@ -44,8 +47,6 @@ export default function SettingsPage() {
         title="Settings"
         subtitle="Manage your bakery profile and preferences"
       />
-
-      {error && <ScreenNotice>{error}</ScreenNotice>}
 
       <section className="space-y-6 rounded-3xl border border-border bg-surface p-6 shadow-card">
         <div>

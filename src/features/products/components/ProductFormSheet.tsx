@@ -5,7 +5,9 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import { FormSheet } from "@/components/ui/form-sheet";
+import { useResponse } from "@/components/ui/response-card";
 import { optionsFrom, SelectField, TextAreaField, TextField } from "@/components/ui/text-field";
+import { UI_TEXT } from "@/constants/messages";
 import { paiseToRupees } from "@/lib/money";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiMutation } from "@/lib/query/useApiMutation";
@@ -72,7 +74,8 @@ export function ProductFormSheet({
     if (isOpen) reset(valuesOf(initialData));
   }, [isOpen, initialData, reset]);
 
-  const { submit, submitting, error } = useApiMutation<ProductFormPayload, Product>(
+  const respond = useResponse();
+  const { submit, submitting } = useApiMutation<ProductFormPayload, Product>(
     (values) =>
       initialData
         ? ProductsClient.updateProduct(initialData.id, values)
@@ -82,7 +85,11 @@ export function ProductFormSheet({
       onSuccess: () => {
         onSuccess();
         onClose();
+        respond.success({ title: UI_TEXT.outcomes.productSaved });
       },
+      // A refusal is a card over the sheet, which stays open to be put right.
+      onError: (failure) =>
+        respond.failure(failure, { title: UI_TEXT.outcomes.productNotSaved, fallback: "SAVE_FAILED" }),
     },
   );
 
@@ -94,7 +101,6 @@ export function ProductFormSheet({
       onSubmit={handleSubmit((values) => submit(values))}
       submitLabel="Save Product"
       submitting={submitting}
-      error={error}
     >
       <TextField
         label="Product Name"

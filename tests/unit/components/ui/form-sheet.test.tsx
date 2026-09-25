@@ -69,16 +69,11 @@ describe("FormSheet", () => {
     expect(document.body.style.overflow).toBe("hidden");
   });
 
-  it("says what went wrong, where it can be read before trying again", () => {
-    open({ error: "That phone number is already taken." });
-    expect(screen.getByRole("alert")).toHaveTextContent("already taken");
-  });
-
   it("shows that it is saving and refuses a second submit", async () => {
     const props = open({ submitting: true });
     const button = screen.getByRole("button", { name: /Saving/ });
 
-    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute("aria-disabled", "true");
     await userEvent.click(button);
     expect(props.onSubmit).not.toHaveBeenCalled();
   });

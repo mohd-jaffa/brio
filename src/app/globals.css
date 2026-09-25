@@ -336,6 +336,42 @@
   }
 }
 
+/* The response card rises in 240 ms on an exponential ease-out, and under
+   reduced motion only fades (plan §139.6). Its countdown is a hairline that
+   empties over the card's life; it runs whatever the motion setting, since it
+   is the card's clock, and it pauses while the card is held. */
+@keyframes response-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@keyframes response-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes response-countdown {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.animate-response {
+  animation: response-rise 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-response {
+    animation: response-fade 0.24s ease-out;
+  }
+}
+
 /* The charts draw in: the line traces itself, the bars rise and the ring
    fades up (plan §139.11.11). Declared only for those who have not asked for
    less motion, so under reduce a chart is simply there from the start. */

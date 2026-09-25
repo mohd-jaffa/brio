@@ -1,7 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
-import { SWRConfig } from "swr";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ApiError } from "@/lib/api/client";
@@ -9,12 +8,14 @@ import { ApiError } from "@/lib/api/client";
 import { PaymentsClient } from "@/features/payments/api.client";
 import { PaymentCollectionForm } from "@/features/payments/components/PaymentCollectionForm";
 
+import { Providers } from "@tests/support/providers";
+
 vi.mock("@/features/payments/api.client", () => ({
   PaymentsClient: { createPayment: vi.fn() },
 }));
 
 function wrapper({ children }: { children: ReactNode }) {
-  return <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>;
+  return <Providers>{children}</Providers>;
 }
 
 function open(props: Partial<Parameters<typeof PaymentCollectionForm>[0]> = {}) {

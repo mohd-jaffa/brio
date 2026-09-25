@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import { FormSheet } from "@/components/ui/form-sheet";
+import { useResponse } from "@/components/ui/response-card";
 import { TextAreaField, TextField } from "@/components/ui/text-field";
 import { UI_TEXT } from "@/constants/messages";
 import { formatPhoneDigits } from "@/lib/phone";
@@ -74,7 +75,8 @@ export function CustomerFormSheet({
     if (isOpen) reset(valuesOf(initialData));
   }, [isOpen, initialData, reset]);
 
-  const { submit, submitting, error } = useApiMutation<CreateCustomerPayload, Customer>(
+  const respond = useResponse();
+  const { submit, submitting } = useApiMutation<CreateCustomerPayload, Customer>(
     (values) =>
       initialData
         ? CustomersClient.updateCustomer(initialData.id, values)
@@ -84,7 +86,11 @@ export function CustomerFormSheet({
       onSuccess: () => {
         onSuccess();
         onClose();
+        respond.success({ title: UI_TEXT.outcomes.customerSaved });
       },
+      // A refusal is a card over the sheet, which stays open to be put right.
+      onError: (failure) =>
+        respond.failure(failure, { title: UI_TEXT.outcomes.customerNotSaved, fallback: "SAVE_FAILED" }),
     },
   );
 
@@ -96,7 +102,6 @@ export function CustomerFormSheet({
       onSubmit={handleSubmit((values) => submit(values))}
       submitLabel="Save Customer"
       submitting={submitting}
-      error={error}
     >
       <TextField
         label="Full Name"

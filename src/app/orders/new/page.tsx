@@ -9,6 +9,7 @@ import { CreditCard, Plus, ShoppingBag, Trash2, Truck, User } from "lucide-react
 import { AppShell } from "@/components/nav/AppShell";
 import { Button, IconButton } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
+import { useResponse } from "@/components/ui/response-card";
 import { ScreenNotice } from "@/components/ui/screen-notice";
 import {
   optionsFrom,
@@ -17,6 +18,7 @@ import {
   TextField,
   type SelectOption,
 } from "@/components/ui/text-field";
+import { UI_TEXT } from "@/constants/messages";
 import {
   DELIVERY_TYPE_LABELS,
   DELIVERY_TYPES,
@@ -130,11 +132,15 @@ export default function NewOrderPage() {
     );
   }, [watchedItems, watchedAdjustments, active]);
 
+  const respond = useResponse();
   const create = useApiMutation<OrderFormPayload, Order>(
     (values) => OrdersClient.createOrder(values),
     {
       revalidate: [apiRoutes.orders.list],
+      // The placed-order card, with its facts and actions, comes with R3.14.
       onSuccess: (order) => router.push(`/orders/${order.id}`),
+      onError: (failure) =>
+        respond.failure(failure, { title: UI_TEXT.outcomes.orderNotPlaced, fallback: "SAVE_FAILED" }),
     },
   );
 
@@ -151,8 +157,6 @@ export default function NewOrderPage() {
   return (
     <AppShell>
       <PageHeader title="Create Order" back="/orders" />
-
-      {create.error && <ScreenNotice>{create.error}</ScreenNotice>}
 
       <form
         id="new-order-form"

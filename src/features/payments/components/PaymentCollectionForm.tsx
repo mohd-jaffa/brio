@@ -4,7 +4,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import { FormSheet } from "@/components/ui/form-sheet";
+import { useResponse } from "@/components/ui/response-card";
 import { optionsFrom, SelectField, TextField } from "@/components/ui/text-field";
+import { UI_TEXT } from "@/constants/messages";
 import { PAYMENT_METHOD_LABELS, PAYMENT_METHODS } from "@/constants/statuses";
 import { formatPaise } from "@/lib/format/currency";
 import { paiseToRupees } from "@/lib/money";
@@ -54,11 +56,23 @@ export function PaymentCollectionForm({
     defaultValues: defaults,
   });
 
-  const { submit, submitting, error } = useApiMutation<PaymentFormPayload, Payment>(
+  const respond = useResponse();
+  const { submit, submitting } = useApiMutation<PaymentFormPayload, Payment>(
     (values) => PaymentsClient.createPayment(orderId, values),
     {
       revalidate: [apiRoutes.orders.payments(orderId), apiRoutes.orders.detail(orderId)],
-      onSuccess: onPaymentSuccess,
+      onSuccess: (payment) => {
+        onPaymentSuccess();
+        respond.success({
+          title: UI_TEXT.outcomes.paymentRecorded,
+          facts: [
+            { label: UI_TEXT.outcomes.amount, value: formatPaise(payment.amount) },
+            { label: UI_TEXT.outcomes.balanceDue, value: formatPaise(Math.max(remaining - payment.amount, 0)) },
+          ],
+        });
+      },
+      onError: (failure) =>
+        respond.failure(failure, { title: UI_TEXT.outcomes.paymentNotRecorded, fallback: "SAVE_FAILED" }),
     },
   );
 
@@ -70,7 +84,6 @@ export function PaymentCollectionForm({
       onSubmit={handleSubmit((values) => submit(values))}
       submitLabel="Record Payment"
       submitting={submitting}
-      error={error}
     >
       <p className="text-sm text-text-muted">Still owed: {formatPaise(remaining)}</p>
 

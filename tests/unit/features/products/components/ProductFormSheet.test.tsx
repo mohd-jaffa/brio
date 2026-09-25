@@ -1,12 +1,13 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
-import { SWRConfig } from "swr";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProductsClient } from "@/features/products/api.client";
 import type { Product } from "@/features/products/types";
 import { ProductFormSheet } from "@/features/products/components/ProductFormSheet";
+
+import { Providers } from "@tests/support/providers";
 
 vi.mock("@/features/products/api.client", () => ({
   ProductsClient: { createProduct: vi.fn(), updateProduct: vi.fn() },
@@ -24,7 +25,7 @@ const cake: Product = {
 };
 
 function wrapper({ children }: { children: ReactNode }) {
-  return <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>;
+  return <Providers>{children}</Providers>;
 }
 
 function open(props: Partial<Parameters<typeof ProductFormSheet>[0]> = {}) {

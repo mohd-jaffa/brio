@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ERROR_MESSAGES, UI_TEXT } from "@/constants/messages";
 import { authStub } from "@tests/support/auth";
+import { Providers } from "@tests/support/providers";
 
 const { router, query, auth } = vi.hoisted(() => ({
   router: { replace: vi.fn(), push: vi.fn(), back: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() },
@@ -30,14 +31,14 @@ const signIn = () => screen.getByRole("button", { name: UI_TEXT.auth.signIn });
 
 describe("signing in", () => {
   it("asks for the two things an account is identified by", () => {
-    render(<SignInForm />);
+    render(<SignInForm />, { wrapper: Providers });
 
     expect(screen.getByLabelText(/mobile number/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^password/i)).toBeInTheDocument();
   });
 
   it("says what is missing rather than sending an empty form", async () => {
-    render(<SignInForm />);
+    render(<SignInForm />, { wrapper: Providers });
 
     await userEvent.click(signIn());
 
@@ -46,7 +47,7 @@ describe("signing in", () => {
   });
 
   it("sends the number in the form the account is stored under", async () => {
-    render(<SignInForm />);
+    render(<SignInForm />, { wrapper: Providers });
 
     await userEvent.type(screen.getByLabelText(/mobile number/i), "+91 98765-43210");
     await userEvent.type(screen.getByLabelText(/^password/i), "hunter22");
@@ -61,7 +62,7 @@ describe("signing in", () => {
   });
 
   it("goes on to the dashboard once the session exists", async () => {
-    render(<SignInForm />);
+    render(<SignInForm />, { wrapper: Providers });
 
     await userEvent.type(screen.getByLabelText(/mobile number/i), "9876543210");
     await userEvent.type(screen.getByLabelText(/^password/i), "hunter22");
@@ -72,7 +73,7 @@ describe("signing in", () => {
 
   it("returns to the screen the visitor was trying to reach", async () => {
     query.current = new URLSearchParams("next=%2Forders%2Fo-1");
-    render(<SignInForm />);
+    render(<SignInForm />, { wrapper: Providers });
 
     await userEvent.type(screen.getByLabelText(/mobile number/i), "9876543210");
     await userEvent.type(screen.getByLabelText(/^password/i), "hunter22");
@@ -85,7 +86,7 @@ describe("signing in", () => {
     auth.current = authStub({
       signIn: vi.fn().mockResolvedValue({ profile: {}, requiresPasswordChange: true }),
     });
-    render(<SignInForm />);
+    render(<SignInForm />, { wrapper: Providers });
 
     await userEvent.type(screen.getByLabelText(/mobile number/i), "9876543210");
     await userEvent.type(screen.getByLabelText(/^password/i), "temp-pass");
@@ -102,7 +103,7 @@ describe("signing in", () => {
         }),
       ),
     });
-    render(<SignInForm />);
+    render(<SignInForm />, { wrapper: Providers });
 
     await userEvent.type(screen.getByLabelText(/mobile number/i), "9876543210");
     await userEvent.type(screen.getByLabelText(/^password/i), "wrong-pass");
@@ -112,15 +113,8 @@ describe("signing in", () => {
     expect(router.replace).not.toHaveBeenCalled();
   });
 
-  it("welcomes someone who has just registered", () => {
-    query.current = new URLSearchParams("registered=1");
-    render(<SignInForm />);
-
-    expect(screen.getByText(UI_TEXT.auth.accountCreated)).toBeInTheDocument();
-  });
-
   it("offers the way to a forgotten password", () => {
-    render(<SignInForm />);
+    render(<SignInForm />, { wrapper: Providers });
 
     expect(screen.getByRole("link", { name: UI_TEXT.auth.forgotPassword })).toHaveAttribute(
       "href",

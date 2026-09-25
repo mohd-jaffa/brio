@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
-import { ScreenNotice } from "@/components/ui/screen-notice";
+import { useResponse } from "@/components/ui/response-card";
 import { TextField } from "@/components/ui/text-field";
 import { UI_TEXT } from "@/constants/messages";
 import { AUTH_ROUTES, RETURN_TO_PARAM, returnToPath } from "@/constants/routes";
@@ -32,7 +32,6 @@ export function SignInForm() {
   const searchParams = useSearchParams();
   const { signIn } = useAuth();
 
-  const justRegistered = searchParams.get("registered") === "1";
   const returnTo = returnToPath(searchParams.get(RETURN_TO_PARAM));
 
   const {
@@ -44,19 +43,17 @@ export function SignInForm() {
     defaultValues: { phone: "", password: "" },
   });
 
-  const { submit, submitting, error } = useApiMutation<LoginPayload, AuthSessionView>(signIn, {
-    fallback: "AUTH_INVALID_CREDENTIALS",
+  const respond = useResponse();
+  const { submit, submitting } = useApiMutation<LoginPayload, AuthSessionView>(signIn, {
     onSuccess: (session) => {
       router.replace(session.requiresPasswordChange ? AUTH_ROUTES.changePassword : returnTo);
     },
+    onError: (failure) =>
+      respond.failure(failure, { title: UI_TEXT.outcomes.signInFailed, fallback: "AUTH_INVALID_CREDENTIALS" }),
   });
 
   return (
     <form onSubmit={handleSubmit((values) => submit(values))} className="space-y-4" noValidate>
-      {justRegistered && !error && (
-        <ScreenNotice tone="info">{UI_TEXT.auth.accountCreated}</ScreenNotice>
-      )}
-      {error && <ScreenNotice>{error}</ScreenNotice>}
 
       <TextField
         label={UI_TEXT.auth.phoneLabel}

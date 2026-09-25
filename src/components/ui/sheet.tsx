@@ -1,33 +1,19 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useEffect, useId, useRef, type ReactNode, type RefObject } from "react";
+import { useId, useRef, type ReactNode, type RefObject } from "react";
 
 import { UI_TEXT } from "@/constants/messages";
 
 import { cn } from "./cn";
-
-// What can take focus inside the sheet, in the order Tab would reach it.
-const FOCUSABLE = "input, select, textarea, button, a[href], [tabindex]:not([tabindex='-1'])";
+import { Modal } from "./modal";
 
 /**
- * A bottom sheet on a phone and a centred dialog from 768 px (plan §139.5),
- * built on the native modal `<dialog>` (BUG-25):
- *
- * - **The page behind is inert.** `showModal()` puts the sheet in the top
- *   layer and makes everything else unreachable — by Tab, by a screen reader,
- *   by a pointer — and Tab goes round inside it, first to last and back.
- * - **Focus** moves in when it opens — to `initialFocus`, else the first
- *   field, else the first control after the close button — and goes back to
- *   whatever opened it when it closes.
- * - **Escape** and a tap on the backdrop close it, unless it is not
- *   `dismissible` (a card that needs an answer).
- * - **It stays mounted while closed.** A closed `<dialog>` is simply not
- *   drawn, so a form inside it keeps its state: a form mounted only while open
- *   lost what was typed into it under the React Compiler (changelog, R0.3).
- * - **It fits the screen.** Its height is in `dvh`, it rides above the
- *   on-screen keyboard (`--keyboard-inset`) and its foot clears the home
- *   indicator.
+ * A bottom sheet on a phone and a centred dialog from 768 px (plan §139.5):
+ * a grab handle, the title with a close button, a scrolling body and a foot
+ * for its actions, on the kit's `Modal` — which keeps the page behind inert,
+ * moves focus in and back, and stays mounted while closed (BUG-25, R1.9).
+ * Focus goes to the first field of the body, never the close button.
  */
 export function Sheet({
   open,
@@ -44,8 +30,8 @@ export function Sheet({
   onClose: () => void;
   /** Names the dialog. */
   title: string;
-  /** `alertdialog` for something that needs an answer (plan §139.6). */
   role?: "dialog" | "alertdialog";
+  /** Whether Escape, the backdrop and a close button can close it. */
   dismissible?: boolean;
   initialFocus?: RefObject<HTMLElement | null>;
   /** Pinned under the scrolling body — the sheet's actions. */
@@ -54,69 +40,17 @@ export function Sheet({
   className?: string;
 }) {
   const headingId = useId();
-  const dialog = useRef<HTMLDialogElement>(null);
   const body = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const element = dialog.current;
-    if (!element || !open) return;
-
-    const opener = document.activeElement as HTMLElement | null;
-    const { overflow } = document.body.style;
-    if (!element.open) element.showModal();
-    document.body.style.overflow = "hidden";
-
-    const firstField = body.current?.querySelector<HTMLElement>("input, select, textarea");
-    const firstControl = body.current?.querySelector<HTMLElement>(FOCUSABLE);
-    (initialFocus?.current ?? firstField ?? firstControl)?.focus();
-
-    return () => {
-      if (element.open) element.close();
-      document.body.style.overflow = overflow;
-      if (opener?.isConnected) opener.focus();
-    };
-  }, [open, initialFocus]);
-
   return (
-    <dialog
-      ref={dialog}
-      role={role === "alertdialog" ? "alertdialog" : undefined}
-      aria-modal="true"
-      aria-labelledby={headingId}
-      onCancel={(event) => {
-        // Escape. The dialog closes when its owner says so, not on its own.
-        event.preventDefault();
-        if (dismissible) onClose();
-      }}
-      onClick={(event) => {
-        // Only the backdrop is the dialog itself; the panel fills it.
-        if (event.target === event.currentTarget && dismissible) onClose();
-      }}
-      onKeyDown={(event) => {
-        // Tab goes round inside the sheet. A modal dialog already keeps the
-        // page out of reach; this also keeps focus from stepping out to the
-        // browser's own toolbar between the last control and the first.
-        if (event.key !== "Tab") return;
-        const stops = [...event.currentTarget.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
-          (stop) => !stop.hasAttribute("disabled") && stop.getClientRects().length > 0,
-        );
-        const first = stops[0];
-        const last = stops[stops.length - 1];
-        if (event.shiftKey && document.activeElement === first) {
-          event.preventDefault();
-          last?.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
-          event.preventDefault();
-          first?.focus();
-        }
-      }}
-      className={cn(
-        "animate-slide-up m-0 w-full max-w-none border border-border bg-surface p-0 text-text shadow-elevated",
-        "fixed inset-x-0 top-auto bottom-[var(--keyboard-inset)] max-h-[calc(90dvh-var(--keyboard-inset))] rounded-t-3xl",
-        "md:inset-0 md:m-auto md:h-fit md:max-h-[85dvh] md:max-w-md md:rounded-2xl",
-        "backdrop:bg-[rgb(20_12_8/0.45)] backdrop:backdrop-blur-[2px]",
-        className,
-      )}
+    <Modal
+      open={open}
+      onDismiss={dismissible ? onClose : undefined}
+      labelledBy={headingId}
+      role={role}
+      initialFocus={initialFocus}
+      focusScope={body}
+      className={className}
     >
       <div className="flex max-h-[inherit] flex-col">
         <div className="flex justify-center pt-3 md:hidden" aria-hidden="true">
@@ -139,7 +73,10 @@ export function Sheet({
           )}
         </div>
 
-        <div ref={body} className={cn("min-h-0 flex-1 overflow-y-auto px-6", footer ? "pb-4" : "safe-bottom [--safe-pb:1.5rem]")}>
+        <div
+          ref={body}
+          className={cn("min-h-0 flex-1 overflow-y-auto px-6", footer ? "pb-4" : "safe-bottom [--safe-pb:1.5rem]")}
+        >
           {children}
         </div>
 
@@ -149,6 +86,6 @@ export function Sheet({
           </div>
         )}
       </div>
-    </dialog>
+    </Modal>
   );
 }

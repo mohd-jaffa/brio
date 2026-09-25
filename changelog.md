@@ -899,3 +899,38 @@ entry grows with them.
     - Twelve Tabs stayed in the customer sheet; a pointer over the page title hit the backdrop; Escape returned focus to Add customer; the More sheet returned focus to More.
     - One early run's stock-in of 7 reached the local database before its interception was fixed. It is local seed data.
   - **Tests.** jsdom has no modal dialogs, so `tests/support/setup.ts` gives it `showModal`, `close`, Escape as `cancel`, and the rule that a closed dialog is not drawn. The sheet tests cover focus in and back, Escape, the backdrop, the Tab loop, a non-dismissible card, and typed values surviving a close. Sheets that rendered nothing when closed are now tested as mounted and out of sight.
+- **R1.10 — the response card** (plan §139.6), the single answer to "what just happened?".
+  - **`ResponseProvider`** is mounted once in the root layout, around the signed-in and signed-out screens alike. **`useResponse()`** offers `success`, `info`, `warning`, `error`, `failure` and `confirm`.
+    - `failure(caught, { title })` takes the API envelope's own message and request id through `errorMessage`, so a raw failure's text never shows. A dropped connection reads as the catalogue's fallback.
+    - `await respond.confirm(…)` resolves `true` or `false`.
+  - **The card** has a medallion by kind, a serif title, a line of text, up to three facts, the request id in small type, and a primary and a secondary action (a button, or a link).
+    - Error, warning and confirm cards are `alertdialog`s; success and info are `dialog`s.
+    - It is built on a `Modal` extracted from R1.9's sheet, which the sheet now uses too. It is a bottom sheet on phones and a centred card of at most 420 px from 768 px. It rises in 240 ms, and only fades under reduced motion.
+  - **Behaviour.**
+    - **Focus.** It goes to the primary action, stays inside the card, and returns to what caused it. Escape closes success, info and error cards and means No to a confirmation; a warning waits for a choice.
+    - **One card at a time.** A newer card replaces an older one of lower or equal severity; a lighter one waits its turn. Identical cards are not stacked, and a question that is replaced is answered No.
+    - **A destructive confirmation starts on the safe answer.** Enter must not cancel an order by accident; the WAI-ARIA alertdialog pattern advises the same.
+  - **A card with no next step closes itself** after 3 s (Q13's default). A hairline counts down, and the count pauses while a pointer rests on the card, a finger holds it or focus is in it (WCAG 2.2.1).
+    - **An interpretation, recorded here.** §139.6 asks for focus to move into the card *and* for the count to pause while the card has focus. For a card that closes itself, those two cannot both hold: focus arriving on its own would stop the clock for good.
+    - So that card does not take focus or make the page inert. A live region announces it (title, message and facts), and Escape and its ✕ still close it. Every card that has a next step, or needs an answer, is modal as specified.
+  - **Outcomes moved onto it.** `useApiMutation` no longer keeps an error string; it hands the failure to `onError`, and `FormSheet` lost its error line.
+    - **Customer, product, expense and stock sheets:** "… saved" / "Stock recorded" on success. A refusal is a card over the sheet, which stays open with what was typed.
+    - **Payment:** "Payment recorded" with Amount and Balance due.
+    - **Order detail:** a status change reports "Order updated" or "Order cancelled". Cancelling is a danger confirmation ("Keep order" / "Cancel order") in place of its own sheet.
+    - **Create order:** "Order not placed". The placed-order card with its facts is R3.14.
+    - **Settings:** a refused logo is a card.
+    - **Auth screens:**
+      - Sign-in, registration and password-change failures are cards.
+      - "Account created" is a card that follows the move to sign in, since the provider sits above every route, so `?registered=1` is gone.
+      - The forgot-password form's "sent" panel became a card with *Back to sign in*.
+      - The temporary-password note on Change password stays inline, because it says why the screen is there, not what happened on it.
+    - What stays inline, as §139.6 says: field validation, and a screen that could not load (`ScreenNotice`).
+  - **Busy buttons keep focus.** A loading `Button` was `disabled`, and a disabled button drops focus, so a refusal card had nothing to hand focus back to: the browser showed focus landing on the page body. It is now `aria-disabled` and `aria-busy`, stays focusable, and ignores a press or a submit until the work is done.
+  - **Not yet:** the Android haptic tick needs the native layer (R8.3).
+  - **Checked in the browser, with every write intercepted.**
+    - **A refused customer:** a card over the still-open sheet with the API's words and "Reference: req_7f3a". Escape closed it, focus went back to Save, and the name was kept.
+    - **Saved:** the sheet closed and "Customer saved" was announced. Held under the pointer for 3.5 s it stayed; it closed 2.8 s after being let go.
+    - **Payment:** "Amount ₹500 · Balance due ₹450".
+    - **Cancel:** the question started on *Keep order*. Escape sent nothing and left the status Pending; confirming sent `CANCELLED`, and the refusal came back as its own card.
+    - Golden and Peach, 390 and 1280 px, no console errors.
+  - **Tests.** 22 for the card, `Modal` and the busy button: the self-closing clock, pausing, the live region, focus, facts, actions, retry, the request id, confirmations, severity and the queue. The feature and auth tests render inside `tests/support/providers.tsx`, which gives them the SWR cache and the provider together. 804 tests.

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
+import { useResponse } from "@/components/ui/response-card";
 import { ScreenNotice } from "@/components/ui/screen-notice";
 import { UI_TEXT } from "@/constants/messages";
 import { HOME_ROUTE } from "@/constants/routes";
@@ -39,10 +40,15 @@ export function ChangePasswordForm() {
     defaultValues: { newPassword: "", confirmPassword: "" },
   });
 
-  const { submit, submitting, error } = useApiMutation<ChangePasswordPayload, AuthSessionView>(
+  const respond = useResponse();
+  const { submit, submitting } = useApiMutation<ChangePasswordPayload, AuthSessionView>(
     AuthClient.changePassword,
     {
-      fallback: "AUTH_PASSWORD_CHANGE_FAILED",
+      onError: (failure) =>
+        respond.failure(failure, {
+          title: UI_TEXT.outcomes.passwordNotChanged,
+          fallback: "AUTH_PASSWORD_CHANGE_FAILED",
+        }),
       onSuccess: async (session) => {
         await adopt(session);
         router.replace(HOME_ROUTE);
@@ -52,10 +58,10 @@ export function ChangePasswordForm() {
 
   return (
     <form onSubmit={handleSubmit((values) => submit(values))} className="space-y-4" noValidate>
-      {requiresPasswordChange && !error && (
+      {/* Why the screen is here, not the outcome of anything done on it. */}
+      {requiresPasswordChange && (
         <ScreenNotice tone="info">{UI_TEXT.auth.temporaryPasswordNotice}</ScreenNotice>
       )}
-      {error && <ScreenNotice>{error}</ScreenNotice>}
 
       <PasswordField
         label={UI_TEXT.auth.newPasswordLabel}

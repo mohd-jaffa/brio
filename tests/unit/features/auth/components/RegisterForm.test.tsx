@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ERROR_MESSAGES, UI_TEXT, VALIDATION_MESSAGES } from "@/constants/messages";
+import { Providers } from "@tests/support/providers";
 
 const { router, client } = vi.hoisted(() => ({
   router: { replace: vi.fn(), push: vi.fn(), back: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() },
@@ -48,7 +49,7 @@ beforeEach(() => {
 
 describe("creating an account", () => {
   it("asks for everything the plan says an account needs", () => {
-    render(<RegisterForm />);
+    render(<RegisterForm />, { wrapper: Providers });
 
     for (const label of Object.keys(VALID)) {
       expect(screen.getByLabelText(new RegExp(`^${label}`, "i"))).toBeInTheDocument();
@@ -58,7 +59,7 @@ describe("creating an account", () => {
   });
 
   it("sends the details, with the number and email normalised", async () => {
-    render(<RegisterForm />);
+    render(<RegisterForm />, { wrapper: Providers });
 
     await fillIn({ "Mobile number": "+91 98765 43210", "Email address": "ASHA@Example.com" });
     await userEvent.click(create());
@@ -76,7 +77,7 @@ describe("creating an account", () => {
   });
 
   it("will not create an account from two different passwords", async () => {
-    render(<RegisterForm />);
+    render(<RegisterForm />, { wrapper: Providers });
 
     await fillIn({ confirmPassword: "something-else" });
     await userEvent.click(create());
@@ -86,7 +87,7 @@ describe("creating an account", () => {
   });
 
   it("refuses a password too short to be one", async () => {
-    render(<RegisterForm />);
+    render(<RegisterForm />, { wrapper: Providers });
 
     await fillIn({ password: "short", confirmPassword: "short" });
     await userEvent.click(create());
@@ -96,7 +97,7 @@ describe("creating an account", () => {
   });
 
   it("refuses an address that is not one", async () => {
-    render(<RegisterForm />);
+    render(<RegisterForm />, { wrapper: Providers });
 
     await fillIn({ "Email address": "not-an-address" });
     await userEvent.click(create());
@@ -108,12 +109,14 @@ describe("creating an account", () => {
   });
 
   it("sends them to sign in, saying the account is ready", async () => {
-    render(<RegisterForm />);
+    render(<RegisterForm />, { wrapper: Providers });
 
     await fillIn();
     await userEvent.click(create());
 
-    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/login?registered=1"));
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/login"));
+    // The card, from the provider above every route, goes with them.
+    expect(screen.getByRole("status")).toHaveTextContent(UI_TEXT.outcomes.accountCreated);
   });
 
   it("says when the number or address is already taken", async () => {
@@ -122,7 +125,7 @@ describe("creating an account", () => {
         code: "AUTH_PHONE_ALREADY_EXISTS",
       }),
     );
-    render(<RegisterForm />);
+    render(<RegisterForm />, { wrapper: Providers });
 
     await fillIn();
     await userEvent.click(create());

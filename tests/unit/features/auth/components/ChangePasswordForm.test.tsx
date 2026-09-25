@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ERROR_MESSAGES, UI_TEXT, VALIDATION_MESSAGES } from "@/constants/messages";
 import { authStub } from "@tests/support/auth";
+import { Providers } from "@tests/support/providers";
 
 const { router, client, auth } = vi.hoisted(() => ({
   router: { replace: vi.fn(), push: vi.fn(), back: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() },
@@ -36,20 +37,20 @@ async function type(password: string, confirmation = password) {
 
 describe("replacing a password", () => {
   it("says why a baker has been sent here", () => {
-    render(<ChangePasswordForm />);
+    render(<ChangePasswordForm />, { wrapper: Providers });
 
     expect(screen.getByText(UI_TEXT.auth.temporaryPasswordNotice)).toBeInTheDocument();
   });
 
   it("does not nag someone who came here of their own accord", () => {
     auth.current = authStub();
-    render(<ChangePasswordForm />);
+    render(<ChangePasswordForm />, { wrapper: Providers });
 
     expect(screen.queryByText(UI_TEXT.auth.temporaryPasswordNotice)).not.toBeInTheDocument();
   });
 
   it("will not set two different passwords", async () => {
-    render(<ChangePasswordForm />);
+    render(<ChangePasswordForm />, { wrapper: Providers });
 
     await type("hunter22", "hunter33");
     await userEvent.click(save());
@@ -59,7 +60,7 @@ describe("replacing a password", () => {
   });
 
   it("refuses one too short to be a password", async () => {
-    render(<ChangePasswordForm />);
+    render(<ChangePasswordForm />, { wrapper: Providers });
 
     await type("short");
     await userEvent.click(save());
@@ -69,7 +70,7 @@ describe("replacing a password", () => {
   });
 
   it("sends the new password and takes the baker into the app", async () => {
-    render(<ChangePasswordForm />);
+    render(<ChangePasswordForm />, { wrapper: Providers });
 
     await type("hunter22");
     await userEvent.click(save());
@@ -84,7 +85,7 @@ describe("replacing a password", () => {
   });
 
   it("takes up the session the change returned, so the gate is not still closed", async () => {
-    render(<ChangePasswordForm />);
+    render(<ChangePasswordForm />, { wrapper: Providers });
 
     await type("hunter22");
     await userEvent.click(save());
@@ -96,7 +97,7 @@ describe("replacing a password", () => {
 
   it("says when the change did not go through, and stays put", async () => {
     client.changePassword.mockRejectedValue(new TypeError("Network down"));
-    render(<ChangePasswordForm />);
+    render(<ChangePasswordForm />, { wrapper: Providers });
 
     await type("hunter22");
     await userEvent.click(save());

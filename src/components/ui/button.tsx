@@ -62,6 +62,7 @@ export function Button({
   fullWidth = false,
   disabled,
   type = "button",
+  onClick,
   ...rest
 }: ButtonProps) {
   const mark = loading ? (
@@ -73,11 +74,24 @@ export function Button({
   return (
     <button
       type={type}
-      disabled={disabled || loading}
+      disabled={disabled}
+      // Busy is not disabled: a disabled button drops focus, so the response
+      // card that follows would have nothing to give it back to (R1.10). It
+      // stays focusable, says it is busy, and ignores a press — a submit
+      // included — until the work is done.
+      aria-disabled={loading || undefined}
       aria-busy={loading || undefined}
+      onClick={(event) => {
+        if (loading) {
+          event.preventDefault();
+          return;
+        }
+        onClick?.(event);
+      }}
       className={cn(
         "touch-target inline-flex items-center justify-center gap-2 font-bold transition-all",
         "active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none",
+        "aria-disabled:cursor-progress aria-disabled:opacity-70",
         VARIANTS[variant],
         SIZES[size],
         SHAPES[shape],
