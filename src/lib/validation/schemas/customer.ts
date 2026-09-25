@@ -10,7 +10,7 @@ export const createCustomerSchema = z.object({
   phone: indianMobile("Phone"),
   email: optionalEmail("Email"),
   address: optionalLines("Address", 500),
-  googleMapsLink: optionalUrl("Google Maps link"),
+  googleMapsLink: optionalUrl("Map link"),
   notes: optionalLines("Notes", 1000),
 });
 

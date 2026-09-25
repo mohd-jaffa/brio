@@ -18,6 +18,7 @@ export const ERROR_MESSAGES = {
   AUTH_ROLE_FORBIDDEN: "You do not have permission to perform this action.",
   AUTH_EMAIL_ALREADY_EXISTS: "An account with this email address already exists.",
   AUTH_PHONE_ALREADY_EXISTS: "An account with this phone number already exists.",
+  CUSTOMER_PHONE_ALREADY_EXISTS: "A customer with this phone number already exists.",
   AUTH_REGISTRATION_FAILED: "Could not create your account. Please try again.",
   AUTH_PASSWORD_CHANGE_FAILED: "Could not change your password. Please try again.",
   AUTH_RESET_REQUEST_FAILED: "Could not send the reset email. Please try again.",
@@ -92,6 +93,7 @@ export const VALIDATION_MESSAGES = {
   tooLong: (label: string, max: number) => `${label} can be at most ${max} characters.`,
   tooShort: (label: string, min: number) => `${label} must be at least ${min} characters.`,
   passwordsMustMatch: "Both passwords must be the same.",
+  deliveryNeedsPlace: "A delivery needs an address or a map link.",
   invalid: "That value is not valid.",
 } as const;
 
@@ -240,6 +242,8 @@ export const UI_TEXT = {
   /** The field kit (plan §139.5). */
   fields: {
     optional: "(Optional)",
+    /** Any maps service will do, so it is not named (plan §139.11.4). */
+    mapLink: "Map link",
     phonePrefix: "+91",
   },
 

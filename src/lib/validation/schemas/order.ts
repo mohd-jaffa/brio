@@ -8,6 +8,7 @@ import {
   ADJUSTMENT_TYPES,
   DELIVERY_TYPES,
   ORDER_STATUSES,
+  type DeliveryType,
   PAYMENT_METHODS,
   PAYMENT_STATUSES,
 } from "@/constants/statuses";
@@ -95,6 +96,15 @@ export const orderCustomerSchema = z.discriminatedUnion(
   { error: VALIDATION_MESSAGES.chooseOne("customer") },
 );
 
+/**
+ * A delivery has somewhere to go: an address, a map link, or both (plan §96,
+ * BUG-22). A pickup needs neither. Reported against the address field.
+ */
+function hasPlace(delivery: { type: DeliveryType; address: string | null; googleMapsLink: string | null }): boolean {
+  return delivery.type !== "DELIVERY" || delivery.address !== null || delivery.googleMapsLink !== null;
+}
+const DELIVERY_PLACE = { message: VALIDATION_MESSAGES.deliveryNeedsPlace, path: ["address"] };
+
 const paymentMethod = z.enum(PAYMENT_METHODS, { error: VALIDATION_MESSAGES.chooseOne("payment method") });
 
 /**
@@ -159,12 +169,14 @@ export const createOrderSchema = z.object({
   items: z.array(orderItemSchema).min(1, VALIDATION_MESSAGES.chooseAtLeastOne("item")),
   adjustments: z.array(orderAdjustmentSchema).optional().default([]),
 
-  delivery: z.object({
-    type: z.enum(DELIVERY_TYPES),
-    date: z.string().datetime(VALIDATION_MESSAGES.invalid),
-    address: optionalLines("Delivery address", 500),
-    googleMapsLink: optionalUrl("Google Maps link"),
-  }),
+  delivery: z
+    .object({
+      type: z.enum(DELIVERY_TYPES),
+      date: z.string().datetime(VALIDATION_MESSAGES.invalid),
+      address: optionalLines("Delivery address", 500),
+      googleMapsLink: optionalUrl("Map link"),
+    })
+    .refine(hasPlace, DELIVERY_PLACE),
 
   payment: orderPaymentSchema,
 
@@ -227,8 +239,8 @@ export const orderFormSchema = z.object({
         return when.toISOString();
       }),
     address: optionalLines("Delivery address", 500),
-    googleMapsLink: optionalUrl("Google Maps link"),
-  }),
+    googleMapsLink: optionalUrl("Map link"),
+  }).refine(hasPlace, DELIVERY_PLACE),
   payment: orderPaymentFormSchema,
   notes: optionalLines("Order notes", 1000),
 }).transform(({ customerId, ...order }) => ({

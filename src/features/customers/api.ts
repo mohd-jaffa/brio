@@ -1,6 +1,8 @@
 import type { Tenant } from "@/lib/supabase/tenant";
 
 import { EDITABLE_COLUMNS } from "@/constants/editableColumns";
+import { conflictError, isAppError } from "@/lib/errors";
+import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
 import { blankToNull, definedOnly } from "@/lib/supabase/columns";
 import { tenantRecords } from "@/lib/supabase/records";
 import type { CreateCustomerPayload, UpdateCustomerPayload } from "@/lib/validation";
@@ -60,7 +62,7 @@ export async function createCustomer(
   tenant: Tenant,
   input: CreateCustomerPayload,
 ): Promise<Customer> {
-  return toCustomer(await customers(tenant).insert(toColumns(input)));
+  return toCustomer(await namingDuplicate(tenant, input.phone, null, customers(tenant).insert(toColumns(input))));
 }
 
 export async function updateCustomer(
@@ -68,6 +70,40 @@ export async function updateCustomer(
   id: string,
   input: UpdateCustomerPayload,
 ): Promise<Customer> {
-  const row = await customers(tenant).update(id, toColumns(input), EDITABLE_COLUMNS.customers);
+  const row = await namingDuplicate(
+    tenant,
+    input.phone,
+    id,
+    customers(tenant).update(id, toColumns(input), EDITABLE_COLUMNS.customers),
+  );
   return toCustomer(row);
+}
+
+/**
+ * A write refused because another of this business's customers has the phone
+ * number is reported as that, naming them — so the order screen can offer
+ * **Use that customer** (plan §139.6, §139.11.4). Any other refusal is passed
+ * on as it was.
+ */
+async function namingDuplicate<T>(tenant: Tenant, phone: string | undefined, self: string | null, write: Promise<T>): Promise<T> {
+  try {
+    return await write;
+  } catch (error) {
+    const holder = phone && isAppError(error) && error.kind === "CONFLICT" ? await findByPhone(tenant, phone) : null;
+    if (holder && holder.id !== self) {
+      throw conflictError("CUSTOMER_PHONE_ALREADY_EXISTS", { customerId: holder.id, name: holder.name });
+    }
+    throw error;
+  }
+}
+
+async function findByPhone(tenant: Tenant, phone: string): Promise<{ id: string; name: string } | null> {
+  const { data, error } = await tenant.supabase
+    .from("customers")
+    .select("id, name")
+    .eq("bakery_id", tenant.bakeryId)
+    .eq("phone", phone)
+    .maybeSingle();
+  if (error) throw fromPostgrestError(error);
+  return data;
 }

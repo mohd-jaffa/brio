@@ -136,7 +136,7 @@ export function CustomerFormSheet({
         {...register("address")}
       />
       <TextField
-        label="Google Maps Link"
+        label={UI_TEXT.fields.mapLink}
         optional
         type="url"
         placeholder="https://maps.app.goo.gl/..."

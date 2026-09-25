@@ -337,7 +337,7 @@ export default function NewOrderPage() {
                 {...register("delivery.address")}
               />
               <TextField
-                label="Google Maps Link"
+                label={UI_TEXT.fields.mapLink}
                 type="url"
                 placeholder="https://maps.google.com/…"
                 error={errors.delivery?.googleMapsLink?.message}

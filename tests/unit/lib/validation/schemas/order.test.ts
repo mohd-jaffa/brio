@@ -122,6 +122,43 @@ describe("order", () => {
     );
   });
 
+  it("sends a delivery somewhere: an address, a map link, or both (§96, BUG-22)", () => {
+    const delivery = (address?: string, googleMapsLink?: string) =>
+      createOrderSchema.safeParse({ ...validOrder, delivery: { type: "DELIVERY", date: validOrder.delivery.date, address, googleMapsLink } });
+
+    expect(delivery("12 MG Road").success).toBe(true);
+    expect(delivery(undefined, "https://maps.app.goo.gl/xyz").success).toBe(true);
+    for (const result of [delivery(), delivery("   ", "")]) {
+      expect(result.error?.issues).toEqual([
+        expect.objectContaining({ path: ["delivery", "address"], message: VALIDATION_MESSAGES.deliveryNeedsPlace }),
+      ]);
+    }
+  });
+
+  it("lets a pickup go without either", () => {
+    expect(createOrderSchema.safeParse(validOrder).success).toBe(true);
+  });
+
+  it("the form holds a delivery to the same rule", () => {
+    const result = orderFormSchema.safeParse({
+      customerId: UUID,
+      items: [{ productId: OTHER_UUID, quantity: 1, notes: "" }],
+      adjustments: [],
+      delivery: { type: "DELIVERY", date: "2026-09-23T10:00", address: "", googleMapsLink: "" },
+      payment: { status: "UNPAID", method: "CASH", reference: "" },
+      notes: "",
+    });
+    expect(result.error?.issues[0]).toMatchObject({ path: ["delivery", "address"], message: VALIDATION_MESSAGES.deliveryNeedsPlace });
+  });
+
+  it("names the map link as a map link, whichever service it is from", () => {
+    const result = createOrderSchema.safeParse({
+      ...validOrder,
+      delivery: { ...validOrder.delivery, googleMapsLink: "javascript:alert(1)" },
+    });
+    expect(result.error?.issues[0].message).toBe(VALIDATION_MESSAGES.url("Map link"));
+  });
+
   it("needs at least one item", () => {
     expect(createOrderSchema.safeParse({ ...validOrder, items: [] }).success).toBe(false);
   });
