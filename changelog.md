@@ -1444,3 +1444,21 @@ this entry grows with them.
   - "Custom items" and "Guest sales" in Analytics (R5.x).
   - Dropping `categories` and `products.category_id`, and illustrations for products and expense categories (R5.6).
   - The payment sheet's and the customer sheet's own labels, still written inline, move to `messages.ts` with their screens (R5.x).
+
+## 2026-09-26 — A number keyboard for number fields (the user)
+
+### Changed
+- **A field that takes only numbers opens a number-only keyboard on a touch screen.**
+  - **The audit:** every such field was listed from the rendered app on an emulated Pixel 7.
+    - **Amounts** (custom item, discount or charge, amount paid, Collect payment, product price, expense amount) already asked for the digit pad with a decimal point (`inputmode="decimal"`).
+    - **Counts** (the quantity stepper, the stock sheet) already asked for the digit pad (`numeric`).
+    - **Phone numbers** asked for the *phone* pad (`tel`), which carries + * # and, on Android keyboards, ( ) - / , ; and N.
+  - **The change:** the four phone fields now ask for the digit pad (`inputmode="numeric"`): sign in, register, the customer sheet and Business details. The +91 is fixed beside each one and ten digits are all it takes. They stay `type="tel"` with their autocomplete, so autofill and screen readers still know them as phone numbers, and a pasted "+91 98765 43210" is still read.
+  - **Kept as they are:** amounts stay `decimal`, so "₹12.50" can be typed. No field became `type="number"`, which would refuse "₹1,500" and change the value on a scroll.
+  - **Tests** now pin the keyboard on each phone field, on the amount fields of the order screen and on the stepper.
+
+### Validation
+- `tsc` and `eslint` clean. The 43 affected test files, 294 tests, pass. The re-run of the audit shows phones and counts on `numeric` and amounts on `decimal`.
+
+### Blockers
+- None.

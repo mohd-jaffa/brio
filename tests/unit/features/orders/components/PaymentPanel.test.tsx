@@ -45,6 +45,7 @@ describe("PaymentPanel", () => {
   it("asks how much for a part payment, and shows what is wrong with it", async () => {
     render(<Screen errors={{ "payment.amount": "Enter the amount paid." }} />);
     await userEvent.click(choice("Part paid"));
+    expect(screen.getByLabelText(/Amount paid/)).toHaveAttribute("inputmode", "decimal");
     await userEvent.type(screen.getByLabelText(/Amount paid/), "500");
     expect(latest().payment).toMatchObject({ status: "PARTIALLY_PAID", amount: "500" });
     expect(screen.getByText("Enter the amount paid.")).toBeInTheDocument();

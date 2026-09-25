@@ -85,7 +85,7 @@ export function BusinessDetailsForm({ business }: { business: BusinessProfile })
             label={text.phone}
             required
             type="tel"
-            inputMode="tel"
+            inputMode="numeric"
             autoComplete="tel-national"
             prefix={UI_TEXT.fields.phonePrefix}
             hint={text.phoneHint}

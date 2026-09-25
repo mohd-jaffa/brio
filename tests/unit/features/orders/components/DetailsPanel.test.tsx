@@ -195,6 +195,7 @@ describe("DetailsPanel: discounts, charges and notes", () => {
     const [name] = screen.getAllByLabelText("Name");
     await userEvent.clear(name);
     await userEvent.type(name, "Packing");
+    expect(screen.getAllByLabelText("Amount (₹)")[0]).toHaveAttribute("inputmode", "decimal");
     await userEvent.type(screen.getAllByLabelText("Amount (₹)")[0], "40");
     expect(latest().adjustments[0]).toMatchObject({ type: "CHARGE", name: "Packing", amount: "40" });
 

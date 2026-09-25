@@ -75,6 +75,7 @@ describe("creating an account", () => {
     expect(password()).toBeInTheDocument();
     expect(screen.queryByRole("group", { name: "Your business" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: UI_TEXT.auth.createAccount })).not.toBeInTheDocument();
+    expect(field("Mobile number")).toHaveAttribute("inputmode", "numeric");
   });
 
   it("checks the first step before moving on, and sends nothing", async () => {

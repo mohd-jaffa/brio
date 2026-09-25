@@ -157,7 +157,7 @@ export function RegisterForm() {
               <TextField
                 label={UI_TEXT.auth.phoneLabel}
                 type="tel"
-                inputMode="tel"
+                inputMode="numeric"
                 autoComplete="tel"
                 placeholder="98765 43210"
                 hint="You will sign in with this number."

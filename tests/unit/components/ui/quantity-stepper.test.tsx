@@ -26,6 +26,7 @@ describe("QuantityStepper", () => {
     render(<Stepper max={20} />);
     expect(field()).toHaveValue("2");
     expect(field()).toHaveAttribute("aria-valuenow", "2");
+    expect(field()).toHaveAttribute("inputmode", "numeric");
     expect(field()).toHaveAttribute("aria-valuemin", "1");
     expect(field()).toHaveAttribute("aria-valuemax", "20");
     expect(less()).toHaveAttribute("tabindex", "-1");

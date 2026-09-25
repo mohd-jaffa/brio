@@ -62,6 +62,7 @@ describe("CustomerFormSheet", () => {
     // The field carries +91 itself, and is read out with it.
     const phone = screen.getByLabelText(/Phone Number/);
     expect(phone).toHaveValue("98765 43210");
+    expect(phone).toHaveAttribute("inputmode", "numeric");
     expect(phone).toHaveAccessibleDescription("+91");
   });
 

@@ -33,7 +33,8 @@ describe("signing in", () => {
   it("asks for the two things an account is identified by", () => {
     render(<SignInForm />, { wrapper: Providers });
 
-    expect(screen.getByLabelText(/mobile number/i)).toBeInTheDocument();
+    // A touch screen shows the digit pad: +91 is fixed, so + * # are never typed.
+    expect(screen.getByLabelText(/mobile number/i)).toHaveAttribute("inputmode", "numeric");
     expect(screen.getByLabelText(/^password/i)).toBeInTheDocument();
   });
 

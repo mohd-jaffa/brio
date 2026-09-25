@@ -24,6 +24,7 @@ describe("CustomItemSheet", () => {
     const onAdd = vi.fn();
     render(<Screen onAdd={onAdd} />);
     expect(screen.getByRole("dialog", { name: "Custom item" })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Amount/)).toHaveAttribute("inputmode", "decimal");
 
     await userEvent.type(screen.getByLabelText(/Item name/), "Name topper");
     await userEvent.type(screen.getByLabelText(/Description/), "Gold, “Anu”");

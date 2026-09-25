@@ -135,7 +135,7 @@ function CustomerForm({
         label="Phone Number"
         required
         type="tel"
-        inputMode="tel"
+        inputMode="numeric"
         placeholder="98765 43210"
         prefix={UI_TEXT.fields.phonePrefix}
         error={errors.phone?.message}

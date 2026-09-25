@@ -42,6 +42,7 @@ describe("BusinessDetailsForm", () => {
     expect(fields.tagline).toHaveValue("");
     expect(fields.city).toHaveValue("");
     expect(fields.phone).toHaveValue("98765 43210");
+    expect(fields.phone).toHaveAttribute("inputmode", "numeric");
     expect(fields.phone).toHaveAccessibleDescription(/\+91.*Printed on your bills/);
   });
 
