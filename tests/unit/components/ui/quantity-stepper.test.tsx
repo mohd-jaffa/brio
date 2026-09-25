@@ -74,20 +74,49 @@ describe("QuantityStepper", () => {
     expect(field()).toHaveValue("2");
   });
 
-  it("steps on a press, not again for its click, and repeats while held", () => {
+  it("steps once for a tap by a finger, whose pointerleave comes before its click", () => {
+    render(<Stepper />);
+    for (const [button, expected] of [
+      [more, "3"],
+      [more, "4"],
+      [less, "3"],
+    ] as const) {
+      fireEvent.pointerDown(button(), { button: 0, pointerType: "touch" });
+      fireEvent.pointerUp(button(), { pointerType: "touch" });
+      fireEvent.pointerLeave(button(), { pointerType: "touch" });
+      fireEvent.click(button());
+      expect(field()).toHaveValue(expected);
+    }
+  });
+
+  it("steps once for a click of the mouse", async () => {
+    render(<Stepper />);
+    await userEvent.click(more());
+    await userEvent.click(more());
+    expect(field()).toHaveValue("4");
+    await userEvent.click(less());
+    expect(field()).toHaveValue("3");
+  });
+
+  it("repeats while held, and does not step again for the click that ends the hold", () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     sizeCharts();
     render(<Stepper max={9} />);
     fireEvent.pointerDown(more(), { button: 0 });
-    expect(field()).toHaveValue("3");
     act(() => vi.advanceTimersByTime(399));
+    expect(field()).toHaveValue("2");
+    act(() => vi.advanceTimersByTime(1));
     expect(field()).toHaveValue("3");
-    act(() => vi.advanceTimersByTime(1 + 80 * 3));
-    expect(field()).toHaveValue("7");
+    act(() => vi.advanceTimersByTime(80 * 3));
+    expect(field()).toHaveValue("6");
     fireEvent.pointerUp(more());
+    fireEvent.pointerLeave(more());
     fireEvent.click(more());
-    expect(field()).toHaveValue("7");
+    expect(field()).toHaveValue("6");
     act(() => vi.advanceTimersByTime(1000));
+    expect(field()).toHaveValue("6");
+    // The next tap is a tap again.
+    fireEvent.click(more());
     expect(field()).toHaveValue("7");
     vi.useRealTimers();
   });
@@ -102,13 +131,29 @@ describe("QuantityStepper", () => {
     expect(more()).toBeDisabled();
 
     fireEvent.pointerDown(less(), { button: 0 });
+    act(() => vi.advanceTimersByTime(400));
     expect(field()).toHaveValue("4");
     fireEvent.pointerLeave(less());
     act(() => vi.advanceTimersByTime(2000));
     expect(field()).toHaveValue("4");
-    // The slide-off left no press waiting to swallow the next click.
+    // A hold on one button never swallows a click on the other.
+    fireEvent.click(more());
+    expect(field()).toHaveValue("5");
+    vi.useRealTimers();
+  });
+
+  it("forgets a hold that ended with no click, at the next press", () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    sizeCharts();
+    render(<Stepper start={3} />);
+    fireEvent.pointerDown(less(), { button: 0 });
+    act(() => vi.advanceTimersByTime(400));
+    fireEvent.pointerCancel(less());
+    expect(field()).toHaveValue("2");
+    fireEvent.pointerDown(less(), { button: 0 });
+    fireEvent.pointerUp(less());
     fireEvent.click(less());
-    expect(field()).toHaveValue("3");
+    expect(field()).toHaveValue("1");
     vi.useRealTimers();
   });
 

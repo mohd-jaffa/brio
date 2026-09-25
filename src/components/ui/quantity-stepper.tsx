@@ -15,7 +15,7 @@ const PAGE = 10;
  * − / value / + (plan §139.5). The value is a spinbutton: it can be typed,
  * the arrow keys step it, Page Up and Down step by ten, Home and End go to
  * the bounds. The buttons are for a finger or a pointer, 44 px to the touch
- * though drawn smaller, and repeat while held; being out of the Tab order,
+ * though drawn smaller: a tap steps once, and a hold repeats; being out of the Tab order,
  * they leave the keyboard one stop, as the WAI-ARIA spinbutton does.
  */
 export function QuantityStepper({
@@ -35,9 +35,11 @@ export function QuantityStepper({
   const clamp = (next: number) => Math.min(max, Math.max(min, next));
   // What is typed, while it is being typed; the value otherwise.
   const [draft, setDraft] = useState<string | null>(null);
-  const held = useRef<{ timer?: ReturnType<typeof setTimeout>; value: number; pressed: boolean }>({
+  // A hold in progress: where it has counted to, and which button, once it
+  // has repeated, has a click still to come that it already answered.
+  const held = useRef<{ timer?: ReturnType<typeof setTimeout>; value: number; repeated: number }>({
     value,
-    pressed: false,
+    repeated: 0,
   });
 
   const stop = () => {
@@ -45,32 +47,31 @@ export function QuantityStepper({
     held.current.timer = undefined;
   };
   useEffect(() => stop, []);
-  // A press that slides off the button ends with no click to follow it.
-  const release = () => {
-    stop();
-    held.current.pressed = false;
-  };
 
+  // Held down, it starts stepping after a moment and keeps on until let go.
+  // A quick tap never gets that far: its click steps it, below.
   const start = (step: number) => {
-    held.current = { value, pressed: true };
-    const tick = (delay: number) => {
+    stop();
+    held.current = { value, repeated: 0 };
+    const tick = () => {
       const next = clamp(held.current.value + step);
       if (next === held.current.value) return stop();
-      held.current.value = next;
+      held.current = { ...held.current, value: next, repeated: step };
       onChange(next);
-      held.current.timer = setTimeout(() => tick(REPEAT_EVERY), delay);
+      held.current.timer = setTimeout(tick, REPEAT_EVERY);
     };
-    tick(REPEAT_AFTER);
+    held.current.timer = setTimeout(tick, REPEAT_AFTER);
   };
 
-  // A tap already stepped on pointer down; a click with no press behind it —
-  // a screen reader's — steps here.
+  // Every tap steps here, once — a mouse's, a finger's or a screen reader's.
+  // It used to step on pointer down and skip this click, but a touch ends
+  // with pointerleave *before* its click, which cleared the skip, so every
+  // tap on a phone counted twice (1 → 3 → 5). Only the click that ends a
+  // hold is skipped: the hold has already stepped.
   const click = (step: number) => {
-    if (held.current.pressed) {
-      held.current.pressed = false;
-      return;
-    }
-    onChange(clamp(value + step));
+    const answered = held.current.repeated === step;
+    held.current.repeated = 0;
+    if (!answered) onChange(clamp(value + step));
   };
 
   const commit = () => {
@@ -111,8 +112,8 @@ export function QuantityStepper({
           start(step);
         }}
         onPointerUp={stop}
-        onPointerLeave={release}
-        onPointerCancel={release}
+        onPointerLeave={stop}
+        onPointerCancel={stop}
         onClick={() => click(step)}
         className="hit-area inline-flex size-8 items-center justify-center rounded-lg text-text transition-colors hover:bg-surface-hover disabled:text-text-muted disabled:opacity-50"
       >
