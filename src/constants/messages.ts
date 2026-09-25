@@ -274,6 +274,9 @@ export const UI_TEXT = {
   /** Moving an order along (plan §139.11.8). */
   orders: {
     overdue: "Overdue",
+    /** Who a Guest order is for, wherever a customer's name would be (plan §139.11.3). */
+    guest: "Guest",
+    unknownCustomer: "Unknown customer",
     cancelTitle: (orderNumber: string) => `Cancel order ${orderNumber}?`,
     cancelBody: "Its reserved stock goes back on the shelf. A cancelled order can’t be reopened.",
     cancelConfirm: "Cancel order",

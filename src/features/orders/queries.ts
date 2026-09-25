@@ -1,4 +1,5 @@
 import type { Tenant } from "@/lib/supabase/tenant";
+import type { OrderListQuery } from "@/lib/validation";
 
 import { findAllOrders, findOrderById, findOrderLines, findPaidByOrder } from "./api";
 import { mapToOrderModel } from "./mappers";
@@ -22,8 +23,8 @@ export async function getOrderById(
  * order has, the analytics page adds them up, and the dashboard needs what is
  * still owed, all of which read zero when they are left off.
  */
-export async function getAllOrders(tenant: Tenant): Promise<Order[]> {
-  const orders = await findAllOrders(tenant);
+export async function getAllOrders(tenant: Tenant, filter: OrderListQuery = {}): Promise<Order[]> {
+  const orders = await findAllOrders(tenant, filter);
   const ids = orders.map((order) => order.id);
   const [{ items, adjustments }, paid] = await Promise.all([
     findOrderLines(tenant, ids),

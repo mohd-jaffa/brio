@@ -37,7 +37,8 @@ export default function OrdersPage() {
 
   const nameOf = useMemo(() => {
     const names = new Map((customers.data ?? []).map((customer) => [customer.id, customer.name]));
-    return (customerId: string) => names.get(customerId) ?? "Unknown customer";
+    return (customerId: string | null) =>
+      customerId === null ? UI_TEXT.orders.guest : (names.get(customerId) ?? UI_TEXT.orders.unknownCustomer);
   }, [customers.data]);
 
   const shown = useMemo(() => {

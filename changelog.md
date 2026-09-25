@@ -1274,3 +1274,9 @@ this entry grows with them.
   - **Transitions:** Preparing may go to Ready, Out for delivery (delivery only), Delivered or Cancelled. Ready may go to Out for delivery (delivery only), Delivered or Cancelled. The usual next step comes first in each list, for the next-step button (R3.15).
   - `FINAL_STATUSES` replaces the list of open statuses in `view.ts`, so a new open status is open without being added anywhere else.
   - **Tests:** the new transitions both ways, Ready never reached from Pending or after Out for delivery, the labels, and a contract that the stored check holds exactly the statuses the app knows.
+- **R3.5 · Q12 — Guest orders** (plan §139.11.3).
+  - **Migration `0014_guest_orders.sql`:** `orders.customer_id` drops NOT NULL, and NULL means Guest. A partial index on `(bakery_id, created_at) where customer_id is null` serves Guest sales and the Guest filter. The composite reference to the customer is MATCH SIMPLE, so any customer an order does name must still be its own business's.
+  - **The API names the customer out loud:** `customer: { kind: "GUEST" } | { kind: "CUSTOMER", id }`. A missing customer or a bare null is refused ("Choose a customer."), never read as Guest. A Guest order reads no customer; a named one is still read back through the business's own records (BUG-19).
+  - **`GET /api/orders?customer=guest|{id}`** returns the Guest orders or one customer's. Anything else is refused.
+  - **Screens:** Guest is the first choice on the order screen until R3.9 replaces it with the picker. The orders list and the order screen say "Guest" where a name would be, and the order screen no longer asks for `customers/null`. "Unknown customer" moved into `messages.ts`.
+  - **Tests:** the union both ways, and six ways of not naming a customer. Also the list filter three ways, a Guest order created with no customer read, the interim form's Guest choice, and a contract for 0014. On the local database a Guest order inserts.

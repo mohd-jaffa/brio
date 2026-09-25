@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it } from "vitest";
 
-import { findPaidByOrder, moveOrderStatus } from "@/features/orders/api";
+import { findAllOrders, findPaidByOrder, moveOrderStatus } from "@/features/orders/api";
 import { tenantOf } from "@tests/support/tenant";
 
 /**
@@ -12,6 +12,11 @@ function recordingClient(answer: { data: unknown; error: unknown }) {
   const filters: [string, unknown][] = [];
   const builder: Record<string, unknown> = {};
   for (const method of ["update", "select"]) builder[method] = () => builder;
+  builder.is = (column: string, value: unknown) => {
+    filters.push([`${column} is`, value]);
+    return builder;
+  };
+  builder.order = () => Promise.resolve(answer);
   builder.eq = (column: string, value: unknown) => {
     filters.push([column, value]);
     return builder;
@@ -24,6 +29,26 @@ function recordingClient(answer: { data: unknown; error: unknown }) {
   const client = { from: () => builder } as unknown as SupabaseClient;
   return { client, filters };
 }
+
+describe("findAllOrders", () => {
+  it("reads every order of the business when nothing narrows it", async () => {
+    const { client, filters } = recordingClient({ data: [], error: null });
+    await findAllOrders(tenantOf(client));
+    expect(filters).toEqual([["bakery_id", "b-1"]]);
+  });
+
+  it("reads only the Guest orders for customer=guest (§139.11.3)", async () => {
+    const { client, filters } = recordingClient({ data: [], error: null });
+    await findAllOrders(tenantOf(client), { customer: "guest" });
+    expect(filters).toEqual([["bakery_id", "b-1"], ["customer_id is", null]]);
+  });
+
+  it("reads one customer's orders for their id", async () => {
+    const { client, filters } = recordingClient({ data: [], error: null });
+    await findAllOrders(tenantOf(client), { customer: "c-1" });
+    expect(filters).toEqual([["bakery_id", "b-1"], ["customer_id", "c-1"]]);
+  });
+});
 
 describe("moveOrderStatus", () => {
   it("changes the order only if it is still in the status it was read in", async () => {

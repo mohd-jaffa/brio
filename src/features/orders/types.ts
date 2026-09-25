@@ -11,7 +11,8 @@ export type { AdjustmentType, DeliveryType, OrderStatus, PaymentMethod, PaymentS
 export interface OrderRow {
   id: string;
   bakery_id: string;
-  customer_id: string;
+  /** NULL is a Guest order (plan §139.11.3). */
+  customer_id: string | null;
   order_number: string;
   status: OrderStatus;
   payment_status: PaymentStatus;
@@ -71,7 +72,8 @@ export interface OrderAdjustment {
 
 export interface Order {
   id: string;
-  customerId: string;
+  /** null for a Guest order (plan §139.11.3). */
+  customerId: string | null;
   orderNumber: string;
   status: OrderStatus;
   payment: {

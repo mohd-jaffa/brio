@@ -37,7 +37,7 @@ import { parseRupees } from "@/lib/money";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiMutation } from "@/lib/query/useApiMutation";
 import { useApiQuery } from "@/lib/query/useApiQuery";
-import { orderFormSchema, type OrderFormPayload, type OrderFormValues } from "@/lib/validation";
+import { GUEST_CHOICE, orderFormSchema, type OrderFormPayload, type OrderFormValues } from "@/lib/validation";
 
 /** Tomorrow at this hour, as a datetime-local field wants it. */
 function tomorrow(): string {
@@ -144,10 +144,14 @@ export default function NewOrderPage() {
     },
   );
 
-  const customerOptions: SelectOption[] = (customers.data ?? []).map((customer) => ({
-    value: customer.id,
-    label: `${customer.name} (${customer.phone})`,
-  }));
+  // Guest first: a walk-in is one tap (plan §139.11.3).
+  const customerOptions: SelectOption[] = [
+    { value: GUEST_CHOICE, label: UI_TEXT.orders.guest },
+    ...(customers.data ?? []).map((customer) => ({
+      value: customer.id,
+      label: `${customer.name} (${customer.phone})`,
+    })),
+  ];
 
   const productOptions: SelectOption[] = active.map((product) => ({
     value: product.id,

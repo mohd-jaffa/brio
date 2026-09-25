@@ -1,6 +1,9 @@
 import { z } from "zod";
 
 import { VALIDATION_MESSAGES } from "@/constants/messages";
+
+/** The picker's value for a walk-in (plan §139.11.3). */
+export const GUEST_CHOICE = "GUEST";
 import {
   ADJUSTMENT_TYPES,
   DELIVERY_TYPES,
@@ -33,12 +36,33 @@ export const orderAdjustmentSchema = z.object({
 });
 
 /**
+ * Who an order is for, always said out loud (plan §139.11.3): a saved customer
+ * of this business, or Guest — never an accidental missing id.
+ */
+export const orderCustomerSchema = z.discriminatedUnion(
+  "kind",
+  [
+    z.object({ kind: z.literal("GUEST") }),
+    z.object({
+      kind: z.literal("CUSTOMER"),
+      id: z.string({ error: VALIDATION_MESSAGES.chooseOne("customer") }).uuid(VALIDATION_MESSAGES.chooseOne("customer")),
+    }),
+  ],
+  { error: VALIDATION_MESSAGES.chooseOne("customer") },
+);
+
+/** What `GET /api/orders?customer=` accepts: `guest`, or one customer's id. */
+export const orderListQuerySchema = z.object({
+  customer: z.union([z.literal("guest"), z.string().uuid()]).optional(),
+});
+
+/**
  * A whole order as the checkout builds it (AGENTS.md §12). The server recalculates
  * every total from the products it reads back — what arrives here is what was
  * asked for, never what is owed.
  */
 export const createOrderSchema = z.object({
-  customerId: z.string().uuid(VALIDATION_MESSAGES.invalid),
+  customer: orderCustomerSchema,
   items: z.array(orderItemSchema).min(1, VALIDATION_MESSAGES.chooseAtLeastOne("item")),
   adjustments: z.array(orderAdjustmentSchema).optional().default([]),
 
@@ -76,6 +100,7 @@ export type CreateOrderAdjustmentInput = z.input<typeof orderAdjustmentSchema>;
  * string, which is turned into the instant that is stored.
  */
 export const orderFormSchema = z.object({
+  // A customer's id, or GUEST_CHOICE for a walk-in; sent as the customer union.
   customerId: z.string().min(1, VALIDATION_MESSAGES.chooseOne("customer")),
   items: z
     .array(
@@ -115,7 +140,12 @@ export const orderFormSchema = z.object({
     reference: optionalLine("Payment reference", 120),
   }),
   notes: optionalLines("Order notes", 1000),
-});
+}).transform(({ customerId, ...order }) => ({
+  ...order,
+  customer: customerId === GUEST_CHOICE ? { kind: "GUEST" as const } : { kind: "CUSTOMER" as const, id: customerId },
+}));
 
 export type OrderFormValues = z.input<typeof orderFormSchema>;
 export type OrderFormPayload = z.output<typeof orderFormSchema>;
+export type OrderCustomer = z.output<typeof orderCustomerSchema>;
+export type OrderListQuery = z.output<typeof orderListQuerySchema>;

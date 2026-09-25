@@ -5,17 +5,19 @@ import { requireRow } from "@/lib/supabase/writes";
 import { pickColumns } from "@/lib/supabase/columns";
 import { EDITABLE_COLUMNS } from "@/constants/editableColumns";
 import { conflictError } from "@/lib/errors";
+import type { OrderListQuery } from "@/lib/validation";
 
 /**
- * Reads all orders for a tenant sorted by created_at descending.
+ * A business's orders, newest first — every one, a single customer's, or the
+ * Guest orders (`customer: "guest"`, plan §139.11.3).
  */
-export async function findAllOrders(tenant: Tenant): Promise<OrderRow[]> {
+export async function findAllOrders(tenant: Tenant, filter: OrderListQuery = {}): Promise<OrderRow[]> {
   const { supabase: client, bakeryId } = tenant;
-  const { data, error } = await client
-    .from("orders")
-    .select("*")
-    .eq("bakery_id", bakeryId)
-    .order("created_at", { ascending: false });
+  let query = client.from("orders").select("*").eq("bakery_id", bakeryId);
+  if (filter.customer === "guest") query = query.is("customer_id", null);
+  else if (filter.customer) query = query.eq("customer_id", filter.customer);
+
+  const { data, error } = await query.order("created_at", { ascending: false });
 
   if (error) throw fromPostgrestError(error);
   return data as OrderRow[];

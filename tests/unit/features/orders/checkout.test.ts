@@ -21,13 +21,15 @@ vi.mock("@/features/orders/api", () => ({
 }));
 
 import { createOrder } from "@/features/orders/checkout";
+import type { CreateOrderPayload } from "@/lib/validation";
 import { tenantOf } from "@tests/support/tenant";
 
 const PRODUCT_ID = "3f2504e0-4f89-11d3-9a0c-0305e82c3301";
+const CUSTOMER_ID = "3f2504e0-4f89-11d3-9a0c-0305e82c3302";
 
-function orderFor(quantity: number) {
+function orderFor(quantity: number, customer: CreateOrderPayload["customer"] = { kind: "CUSTOMER", id: CUSTOMER_ID }) {
   return {
-    customerId: "3f2504e0-4f89-11d3-9a0c-0305e82c3302",
+    customer,
     items: [{ productId: PRODUCT_ID, quantity, notes: null }],
     adjustments: [],
     delivery: { type: "PICKUP" as const, date: "2026-09-25T10:00:00.000Z", address: null, googleMapsLink: null },
@@ -59,6 +61,13 @@ describe("createOrder", () => {
     });
     expect(getCustomerById).toHaveBeenCalledWith(tenantOf({}), "3f2504e0-4f89-11d3-9a0c-0305e82c3302");
     expect(insertOrder).not.toHaveBeenCalled();
+  });
+
+  it("places a Guest order with no customer, reading none (§139.11.3)", async () => {
+    insertOrder.mockResolvedValue({ id: "o-1" });
+    await createOrder(tenantOf({}), orderFor(1, { kind: "GUEST" }));
+    expect(getCustomerById).not.toHaveBeenCalled();
+    expect(insertOrder.mock.calls[0][1]).toMatchObject({ customer_id: null });
   });
 
   it("accepts a large order that fits", async () => {

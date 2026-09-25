@@ -64,9 +64,9 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
   const [collecting, setCollecting] = useState(false);
 
   const order = useApiQuery<Order>(apiRoutes.orders.detail(id));
-  const customer = useApiQuery<Customer>(
-    order.data ? apiRoutes.customers.detail(order.data.customerId) : null,
-  );
+  // A Guest order has no customer to read, so nothing asks for customers/null.
+  const customerId = order.data?.customerId;
+  const customer = useApiQuery<Customer>(customerId ? apiRoutes.customers.detail(customerId) : null);
   const payments = useApiQuery<Payment[]>(apiRoutes.orders.payments(id));
   // A receipt is built only when it is asked for, and never stored (AGENTS.md §15).
   const receipt = useApiQuery<ReceiptData>(showReceipt ? apiRoutes.orders.receipt(id) : null);
@@ -151,7 +151,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
               <StatusPill label={status.label} tone={status.tone} />
             </div>
             <h1 className="mb-2 font-heading text-2xl font-bold text-text">
-              {customer.data?.name ?? "—"}
+              {current.customerId === null ? UI_TEXT.orders.guest : (customer.data?.name ?? "—")}
             </h1>
             {customer.data && (
               <p className="flex items-center gap-2 text-sm font-medium text-text-muted">

@@ -15,10 +15,11 @@ export async function createOrder(
   tenant: Tenant,
   input: CreateOrderPayload,
 ): Promise<Order> {
-  // The customer is read back through this business's records, so one that
+  // A saved customer is read back through this business's records, so one that
   // belongs to another business is refused here as not found — not left to a
-  // foreign key, and never stored (BUG-19).
-  await getCustomerById(tenant, input.customerId);
+  // foreign key, and never stored (BUG-19). A Guest has nothing to read.
+  const customerId = input.customer.kind === "CUSTOMER" ? input.customer.id : null;
+  if (customerId) await getCustomerById(tenant, customerId);
 
   // Every product is read back: the prices the order is built from are the
   // ones in the database now, never the ones the browser sent (AGENTS.md §13).
@@ -65,7 +66,7 @@ export async function createOrder(
   
   try {
     createdOrder = await insertOrder(tenant, {
-      customer_id: input.customerId,
+      customer_id: customerId,
       order_number: orderNumber,
       status: "PENDING",
       payment_status: input.payment.status,
