@@ -1,6 +1,7 @@
 import type { Tenant } from "@/lib/supabase/tenant";
 
 import { EDITABLE_COLUMNS } from "@/constants/editableColumns";
+import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
 import { blankToNull, definedOnly } from "@/lib/supabase/columns";
 import { tenantRecords } from "@/lib/supabase/records";
 import type { CreateProductPayload, UpdateProductPayload } from "@/lib/validation";
@@ -48,6 +49,22 @@ export async function getProductById(
   id: string,
 ): Promise<Product> {
   return toProduct(await products(tenant).find(id));
+}
+
+/**
+ * Several of this business's products in one query — an order's lines. A
+ * product another business owns, or none owns, is simply not returned.
+ */
+export async function getProductsByIds(tenant: Tenant, ids: readonly string[]): Promise<Product[]> {
+  if (ids.length === 0) return [];
+  const { supabase: client, bakeryId } = tenant;
+  const { data, error } = await client
+    .from("products")
+    .select("*")
+    .eq("bakery_id", bakeryId)
+    .in("id", [...new Set(ids)]);
+  if (error) throw fromPostgrestError(error);
+  return ((data ?? []) as ProductRow[]).map(toProduct);
 }
 
 export async function createProduct(

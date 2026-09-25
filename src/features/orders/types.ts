@@ -56,6 +56,8 @@ export interface OrderAdjustmentRow {
 export interface OrderItem {
   id: string;
   productId?: string;
+  /** A special request typed on the order, with no product and no stock (plan §139.11.7). */
+  custom: boolean;
   productName: string;
   unitPrice: number; // paise
   quantity: number;

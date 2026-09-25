@@ -25,7 +25,7 @@ const receipt: ReceiptData = {
     updatedAt: "2026-09-22T10:00:00Z",
   },
   items: [
-    { id: "i-1", productName: "Chocolate Truffle Cake", unitPrice: 50000, quantity: 2, subtotal: 100000 },
+    { id: "i-1", custom: false, productName: "Chocolate Truffle Cake", unitPrice: 50000, quantity: 2, subtotal: 100000 },
   ],
   payments: [
     {

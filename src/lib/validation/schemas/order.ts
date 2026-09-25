@@ -22,10 +22,54 @@ import {
   requiredLine,
 } from "../primitives";
 
-export const orderItemSchema = z.object({
+/** A line from the catalogue: the server reads its name and price back. */
+export const catalogueItemSchema = z.object({
   productId: z.string().uuid(VALIDATION_MESSAGES.invalid),
   quantity: quantity(),
   notes: optionalLine("Item notes", 500),
+});
+
+/**
+ * What a custom item is (plan §139.11.7, Q5): a name and the price of one,
+ * typed on the order screen. Shared by the order and the sheet that adds one.
+ */
+export const customItemSchema = z.object({
+  name: requiredLine("Item name", { min: 2, max: 120 }),
+  unitPrice: paiseAmount("Amount"),
+});
+
+/** A line nothing in the catalogue covers — a special request. It moves no stock. */
+export const customLineSchema = z.object({
+  custom: customItemSchema,
+  quantity: quantity(),
+  notes: optionalLine("Item notes", 500),
+});
+
+type CatalogueLine = z.output<typeof catalogueItemSchema>;
+type CustomLine = z.output<typeof customLineSchema>;
+
+/**
+ * An order line: from the catalogue, or custom (plan §139.11.7). A line with a
+ * `custom` part is read as custom and anything else as a catalogue line, so a
+ * mistake is reported against the kind of line it was meant to be — a union
+ * would answer only "That value is not valid."
+ */
+export const orderItemSchema = z.unknown().transform((line, ctx): CatalogueLine | CustomLine => {
+  const custom = typeof line === "object" && line !== null && "custom" in line;
+  const result = (custom ? customLineSchema : catalogueItemSchema).safeParse(line);
+  if (result.success) return result.data;
+  for (const issue of result.error.issues) {
+    ctx.addIssue({ code: "custom", message: issue.message, path: issue.path });
+  }
+  return z.NEVER;
+});
+
+/** The sheet's own fields: the amount typed in rupees. */
+export const customItemFormSchema = z.object({
+  name: requiredLine("Item name", { min: 2, max: 120 }),
+  unitPrice: paiseText("Amount").pipe(
+    z.number().refine((paise) => paise > 0, VALIDATION_MESSAGES.moreThanZero("Amount")),
+  ),
 });
 
 export const orderAdjustmentSchema = z.object({
@@ -92,6 +136,9 @@ export type CreateOrderPayload = z.output<typeof createOrderSchema>;
 export type UpdateOrderStatusInput = z.input<typeof updateOrderStatusSchema>;
 export type UpdateOrderStatusPayload = z.output<typeof updateOrderStatusSchema>;
 export type CreateOrderItemInput = z.input<typeof orderItemSchema>;
+export type CreateOrderItemPayload = z.output<typeof orderItemSchema>;
+export type CustomItemFormValues = z.input<typeof customItemFormSchema>;
+export type CustomItemFormPayload = z.output<typeof customItemFormSchema>;
 export type CreateOrderAdjustmentInput = z.input<typeof orderAdjustmentSchema>;
 
 /**

@@ -1280,3 +1280,12 @@ this entry grows with them.
   - **`GET /api/orders?customer=guest|{id}`** returns the Guest orders or one customer's. Anything else is refused.
   - **Screens:** Guest is the first choice on the order screen until R3.9 replaces it with the picker. The orders list and the order screen say "Guest" where a name would be, and the order screen no longer asks for `customers/null`. "Unknown customer" moved into `messages.ts`.
   - **Tests:** the union both ways, and six ways of not naming a customer. Also the list filter three ways, a Guest order created with no customer read, the interim form's Guest choice, and a contract for 0014. On the local database a Guest order inserts.
+- **R3.10 · Q5 — custom items** (plan §139.11.7), on the server; the order screen's sheet comes with R3.9.
+  - **The API's line is a union:** `{ productId, quantity, notes }` or `{ custom: { name, unitPrice }, quantity, notes }`. The name is trimmed, 2–120 characters. The amount is the price of one, above ₹0, within the BUG-12 bounds. A line with a `custom` part is checked as custom and anything else as a catalogue line, so a mistake is reported against its own field. A plain union answered only "That value is not valid." `customItemFormSchema` is the sheet's: the amount typed in rupees ("₹1,250").
+  - **`src/features/orders/pricing.ts` prices a draft** for placing an order now, and for the estimate (R3.13) next.
+    - A catalogue line takes its name and price from the product as it is now. A custom line keeps its typed name and price, with `product_id` NULL.
+    - Every product is read in one query (`getProductsByIds`), where there was one query per line.
+    - A product that is gone, belongs to another business, or is off the menu is refused as `ORDER_PRODUCT_UNAVAILABLE`, where it was a bare `CONFLICT`.
+    - Discounts larger than the order are refused as `ORDER_TOTAL_NEGATIVE`, also formerly a bare `CONFLICT`. Both now have wording in `messages.ts`.
+  - **A custom line posts no stock.** The reservation skips it, where it would have failed on `item.product_id!`; the delivery and cancel movements already skipped it (R0.7). An order's item says `custom: true`, for the "Custom" mark.
+  - **Tests:** pricing (catalogue prices, one read, custom lines, adjustments, Guest, a named customer, another business's customer, an unavailable product, a negative total and one too large). Also the new checkout path, the union's messages and paths both ways, the sheet's schema and the bulk product read.

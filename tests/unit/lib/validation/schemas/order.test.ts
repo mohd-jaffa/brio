@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { VALIDATION_MESSAGES } from "@/constants/messages";
 import {
   createOrderSchema,
+  customItemFormSchema,
   GUEST_CHOICE,
   orderFormSchema,
   orderListQuerySchema,
@@ -38,6 +39,44 @@ describe("order", () => {
     expect(orderListQuerySchema.parse({ customer: UUID })).toEqual({ customer: UUID });
     expect(orderListQuerySchema.parse({})).toEqual({});
     expect(orderListQuerySchema.safeParse({ customer: "everyone" }).success).toBe(false);
+  });
+
+  it("takes a custom line — a name and the price of one — beside catalogue lines (§139.11.7)", () => {
+    const parsed = createOrderSchema.parse({
+      ...validOrder,
+      items: [...validOrder.items, { custom: { name: "  Name   topper ", unitPrice: 15000 }, quantity: 1 }],
+    });
+    expect(parsed.items[1]).toEqual({ custom: { name: "Name topper", unitPrice: 15000 }, quantity: 1, notes: null });
+  });
+
+  it("refuses a custom line with a short name or no price, in its own words", () => {
+    const result = createOrderSchema.safeParse({
+      ...validOrder,
+      items: [{ custom: { name: "x", unitPrice: 0 }, quantity: 1 }],
+    });
+    expect(result.error?.issues.map((issue) => issue.message)).toEqual([
+      VALIDATION_MESSAGES.tooShort("Item name", 2),
+      VALIDATION_MESSAGES.moreThanZero("Amount"),
+    ]);
+    expect(result.error?.issues.map((issue) => issue.path.join("."))).toEqual(["items.0.custom.name", "items.0.custom.unitPrice"]);
+  });
+
+  it("reports a catalogue line's mistake against the catalogue line", () => {
+    const result = createOrderSchema.safeParse({ ...validOrder, items: [{ productId: "nope", quantity: 0 }] });
+    expect(result.error?.issues.map((issue) => [issue.path.join("."), issue.message])).toEqual([
+      ["items.0.productId", VALIDATION_MESSAGES.invalid],
+      ["items.0.quantity", VALIDATION_MESSAGES.moreThanZero("Quantity")],
+    ]);
+  });
+
+  it("the custom-item sheet reads the amount as it is written, above ₹0", () => {
+    expect(customItemFormSchema.parse({ name: "Cake topper", unitPrice: "₹1,250" })).toEqual({ name: "Cake topper", unitPrice: 125000 });
+    expect(customItemFormSchema.safeParse({ name: "Cake topper", unitPrice: "0" }).error?.issues[0].message).toBe(
+      VALIDATION_MESSAGES.moreThanZero("Amount"),
+    );
+    expect(customItemFormSchema.safeParse({ name: "", unitPrice: "10" }).error?.issues[0].message).toBe(
+      VALIDATION_MESSAGES.required("Item name"),
+    );
   });
 
   it("needs at least one item", () => {

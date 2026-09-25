@@ -34,6 +34,7 @@ export function mapToOrderModel(
     items: items.map(i => ({
       id: i.id,
       productId: i.product_id ?? undefined,
+      custom: i.product_id === null,
       productName: i.product_name,
       unitPrice: i.unit_price,
       quantity: i.quantity,

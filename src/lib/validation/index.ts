@@ -100,7 +100,11 @@ export {
 } from "./schemas/inventory";
 
 export {
+  catalogueItemSchema,
   createOrderSchema,
+  customItemFormSchema,
+  customItemSchema,
+  customLineSchema,
   GUEST_CHOICE,
   orderAdjustmentSchema,
   orderCustomerSchema,
@@ -111,6 +115,9 @@ export {
   type CreateOrderAdjustmentInput,
   type CreateOrderInput,
   type CreateOrderItemInput,
+  type CreateOrderItemPayload,
+  type CustomItemFormPayload,
+  type CustomItemFormValues,
   type CreateOrderPayload,
   type OrderCustomer,
   type OrderFormPayload,
