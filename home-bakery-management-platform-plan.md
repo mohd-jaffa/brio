@@ -7658,7 +7658,7 @@ a shared component** (AGENTS §5).
 
 | Component | New / rewrite | What it is |
 |---|---|---|
-| `AppShell` | Rewrite | **Phone:** a top bar with the business mark, name and catch phrase, a bell and an initials avatar; a five-item bottom nav with a tinted active pill. **Tablet:** an icon rail. **Desktop:** a grouped sidebar — *Home, Orders, Products, Customers* · *Analytics, Expenses* · *Inventory, Notifications, Business details, Settings* — and a top bar with global search, the bell and the account menu. Safe areas on every edge. |
+| `AppShell` | Rewrite | **Phone:** a top bar with the business mark, name and catch phrase, a bell and an initials avatar; a five-item bottom nav with a tinted active pill. **Tablet:** an icon rail. **Desktop:** a grouped sidebar — *Home, Orders, Products, Customers* · *Analytics, Expenses* · *Inventory, Notifications, Business details, Settings* — and a top bar with the bell and the account menu (no global search: the user's decision, 2026-09-25). Safe areas on every edge. |
 | `page-header` | Rewrite | Back, a serif title, a sans subtitle, and a trailing action (a range picker or a `+`). |
 | `hero` | New | An optional photographic plate (§139.11.12), a two-line serif, a rule and a tracked line. **Home only on phones**; Analytics and Expenses get a compact band, so their numbers stay above the fold. |
 | `stat-tile` | Rewrite | Medallion icon, value (serif when it is a headline amount), label, a delta against the previous period (up green, down rose), and an optional sparkline on desktop. |
@@ -7673,7 +7673,7 @@ a shared component** (AGENTS §5).
 | `product-card` | New | Tile, name, price and a `+`, for grids. |
 | `cart-bar` | New | A count badge, the running total and a go-on button. Sticky, clear of the safe area. |
 | `quantity-stepper` | New | − / value / + with 44 px targets, long-press repeat and keyboard support. |
-| `search-field` | Rewrite of `search-input` | Fixes placeholder contrast (BUG-24). Optional filter button; a global variant with ⌘K on desktop. |
+| `search-field` | Rewrite of `search-input` | Fixes placeholder contrast (BUG-24). Optional filter button. *(The global variant with ⌘K was dropped with global search, 2026-09-25.)* |
 | `sheet` / `dialog` | Rewrite of `form-sheet` | A bottom sheet on phones and a dialog from tablet up. Focus trap, `inert` background, `dvh` height, a footer that rides above the keyboard, safe areas (BUG-25). |
 | `response-card` + `ResponseProvider` | New | §139.6. |
 | `charts` | New | `line-trend`, `bar-trend`, `donut` with legend, and `sparkline`. Authored SVG, each with a data-table fallback for screen readers (§139.11.11). |
@@ -7837,8 +7837,8 @@ the app edge to edge, behind the status and navigation bars.
 | Width | Navigation | Content |
 |---|---|---|
 | **< 768 px** — phones (360, 390, 414 are the targets) | Top bar + five-item bottom nav + FAB | One column. Lists are rows; KPI tiles 2 × 2; product grid in 2 columns. |
-| **768 – 1023 px** — tablets | 72 px icon rail, labels in tooltips; top bar with search | KPI tiles 4 across; product grid in 3 columns; lists can open detail beside them. |
-| **≥ 1024 px** — laptop and desktop | 248 px grouped sidebar; top bar with global search (⌘K), bell, account | Max width 1200 px. Orders and customers become **tables**; create order is **two panes**; charts sit side by side; product grid in 4–5 columns. |
+| **768 – 1023 px** — tablets | 72 px icon rail, labels in tooltips; top bar with the bell and the account | KPI tiles 4 across; product grid in 3 columns; lists can open detail beside them. |
+| **≥ 1024 px** — laptop and desktop | 248 px grouped sidebar; top bar with the bell and the account | Max width 1200 px. Orders and customers become **tables**; create order is **two panes**; charts sit side by side; product grid in 4–5 columns. |
 
 Text stays readable at 200 % zoom, and the layout never scrolls sideways.
 
@@ -7865,7 +7865,7 @@ the whole payload once.
 
 ### Home
 
-- **Phone:** the header band (business mark, name and catch phrase; bell; avatar); **"Good morning, {first name}"** with the time of day taken from the business's clock (§134 P2-1); the catch phrase or a neutral line beneath; the hero plate at the right. Then **search** (orders, customers, products); **four stat tiles** laid out as in the reference but **carrying the §20 priorities** — *orders due today*, *sales* (for the chosen period), *to collect* (balance due) and *low stock* — with a Today / Week / Month switch; **Orders due**, grouped Overdue / Today / Tomorrow and sorted by due date (§20, AGENTS §20), with "View all"; **Low stock**; the quote block; and the FAB for a new order.
+- **Phone:** the header band (business mark, name and catch phrase; bell; avatar); **"Good morning, {first name}"** with the time of day taken from the business's clock (§134 P2-1); the catch phrase or a neutral line beneath; the hero plate at the right. Then **four stat tiles** laid out as in the reference but **carrying the §20 priorities** — *orders due today*, *sales* (for the chosen period), *to collect* (balance due) and *low stock* — with a Today / Week / Month switch; **Orders due**, grouped Overdue / Today / Tomorrow and sorted by due date (§20, AGENTS §20), with "View all"; **Low stock**; the quote block; and the FAB for a new order.
 - **Desktop:** a greeting row with the date and the quote; four tiles with sparklines; a sales bar chart for the period; top products; an order-status donut; recent customers.
 
 ### Orders
@@ -8305,7 +8305,6 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `GET /api/expenses/summary` | New — `?from&to&interval=day\|week`. Returns the total and daily average, each with the previous period's; totals by category; the series; and the five most recent (§139.11.11). |
 | `GET /api/expense-categories`, `PATCH /api/expense-categories/{category}` | New — each category's illustration. The PATCH takes `{ iconKey }` and writes `bakeries.expense_category_icons` on the server (§139.11.10). |
 | `POST /api/products`, `PATCH /api/products/{id}` | Accept `iconKey`: a registry key, or null for the default. |
-| `GET /api/search?q=` | New — global search across orders, customers and products. |
 | `GET, POST, PATCH /api/categories` | New (§133.4 D1). |
 | `GET /api/notifications`, `POST /api/notifications/read-all` | New (§133.5 E1). |
 
@@ -8365,7 +8364,7 @@ wrong but survivable · **S4** polish.
 
 | # | Improvement | Row |
 |---|---|---|
-| IMP-01 | **Global search** — the Home search and ⌘K on desktop, across orders, customers and products. | R5.12 |
+| IMP-01 | ~~**Global search** — the Home search and ⌘K on desktop, across orders, customers and products.~~ **Dropped by the user, 2026-09-25:** there is no search on Home or in the top bar. Search stays in the lists that need it — Orders, Customers, Products, Inventory, the create-order grid and the customer picker — and moves to the server with each list's pagination. | R5.13 (was R5.12) |
 | IMP-02 | **WhatsApp, with no integration:** tap to chat with a customer (a `wa.me` link to their number), and share a bill to WhatsApp through the share sheet. | R3.15, R4.4 |
 | IMP-03 | **Order again** from a customer's past order — the draft is prefilled. | R5.4 |
 | IMP-04 | **Create order from a customer** with the customer already selected (in the reference). | R5.4 |
@@ -8500,7 +8499,7 @@ green; the screens it touched are captured at every width in both themes;
 | **2 — Accounts and the business** | USER/DEV; the new registration; the business profile and logo; the queue actually running; audit that records who. | 1 | A new user registers with every field, edits their business, and the confirmation arrives through the queue. |
 | **3 — Orders** | One-transaction creation with idempotency; order numbers; the oversell guard; Guest; customers on the fly; delivery autofill; custom items; statuses; payment at creation; the estimate endpoint. | 2 | A guest order and a new-customer order can each be placed twice by a double tap and produce **one** order; stock and payments reconcile. |
 | **4 — The bill** | The bill component; the estimate before saving; share as an image; the PDF; print. | 3 | A bill and an estimate share to WhatsApp from a phone, and nothing is stored. |
-| **5 — Screens** | Home, Orders, Customers and Guest sales, Customer detail, Products and categories (with the icon picker), Inventory, Expenses and Analytics (with their charts and the category illustrations), Notifications, More, Settings, Business details, search — responsive, both themes. | 1, 3 (for order screens), 4 | Every screen matches §139.10 at 360 – 1440 px in both themes, the charts match §139.11.11, and no hard-coded strings remain. |
+| **5 — Screens** | Home, Orders, Customers and Guest sales, Customer detail, Products and categories (with the icon picker), Inventory, Expenses and Analytics (with their charts and the category illustrations), Notifications, More, Settings, Business details — responsive, both themes. | 1, 3 (for order screens), 4 | Every screen matches §139.10 at 360 – 1440 px in both themes, the charts match §139.11.11, and no hard-coded strings remain. |
 | **6 — Hardening** | The worker system completed, rate limiting, OpenAPI, CI with SonarQube, Playwright journeys, database integration tests, BugSnag, an accessibility pass. | 5 | CI runs the full §125 pipeline, and the E2E journey in AGENTS §26 passes, tenant isolation included. |
 | **7 — PWA** | Manifest, icons, the service worker, the offline page, install. | 6 | Installable on Android Chrome and iOS Safari; opens offline to the offline page. |
 | **8 — Android** | The Capacitor app (§139.17). | 7, Q9, Q10 | A signed build on the Play internal track passes the device matrix. |
@@ -8622,8 +8621,8 @@ the row needs; without an answer it is built on that question's default
 | R5.9 | Analytics as the reference shows: KPIs with deltas, the sales-trend line, top products, sales by category; the Sales, Orders, Customers and Products tabs; server aggregation; Top Customers; the guest split | §133.9 I1, I3; IMP-10; §139.11.11 | — | TODO |
 | R5.10 | Notifications inbox and bell; the `kind` column | §133.5 E1 | — | TODO |
 | R5.11 | More and Settings (Appearance, Account, About with the illustration credit); no Help | §139.10 | Q7 (answered), Q16 | TODO |
-| R5.12 | Global search | IMP-01 | — | TODO |
-| R5.13 | Pagination on every list | §133.9 I4; IMP-11 | — | TODO |
+| R5.12 | ~~Global search~~ | IMP-01 | — | DROPPED (2026-09-25, the user's decision: search stays in each list, R5.13) |
+| R5.13 | Pagination on every list; each list's search runs on the server with it — debounced, tenant-scoped, with loading, empty and error states | §133.9 I4; IMP-11; IMP-01 (2026-09-25) | — | TODO |
 | R5.14 | Hard-coded strings swept, screen by screen | BUG-30 | — | TODO |
 | R5.15 | Dashboard filters | §133.9 I2 | — | TODO |
 | R5.16 | Expense category illustrations: the Categories tab, the picker, the expense form's category field, `/api/expense-categories` | §139.11.10 | — | TODO |

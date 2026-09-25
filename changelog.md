@@ -1009,3 +1009,10 @@ Each lands on its own commit; this entry grows with them.
     - 1280 px: the bar ends at the bottom edge.
     - At every width, the last field ends above the bar once the page is scrolled to the end. Nothing scrolls sideways and there are no console errors.
   - R3.9 still replaces this bar with the cart bar.
+
+### Changed (the user's decision, recorded under AGENTS §31)
+- **No global search.** The user decided that search is not needed on Home or in the top bar. It stays in the lists where it is looked for: Orders, Customers, Products, Inventory, the create-order grid and the customer picker.
+  - **Plan:** IMP-01 is struck through and R5.12 is marked DROPPED. `GET /api/search` is gone from §139.13. The Home spec, the tablet and desktop top bars (§139.9) and the Phase 5 scope no longer mention search.
+  - **R5.13 takes the sound half of the proposal:** once a list paginates, a filter in the browser would only search the page it holds, so each list's search moves to the server with it. It is debounced and tenant-scoped, with loading, empty and error states.
+  - **No trigram indexes yet.** The proposal asked for indexed search. Every list is already narrowed by its `bakery_id` index to one business's rows, a few hundred to a few thousand. AGENTS §23 asks for indexes that follow measured query patterns, so one is added when a query plan shows a need.
+  - **Code:** `SearchField` loses its `global` variant (⌘K, the shortcut hint), which only the top bar was to use, along with its three tests. The shell's note no longer promises search.

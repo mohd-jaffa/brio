@@ -26,8 +26,8 @@ import { MoreSheet } from "./MoreSheet";
  * - **Desktop (≥ 1024 px):** the 248 px sidebar in the plan's three groups,
  *   the same top bar, and content up to 1200 px wide.
  *
- * Every edge pays its safe area. The bell (R5.10) and the global search
- * (R5.12) join the top bar with their features.
+ * Every edge pays its safe area. The bell (R5.10) joins the top bar with its
+ * feature; there is no global search (the user's decision, 2026-09-25).
  *
  * Every screen is drawn inside this, so the session gate lives here too: no
  * page has to remember to ask whether anyone is signed in.
