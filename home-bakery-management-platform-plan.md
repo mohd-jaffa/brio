@@ -7430,7 +7430,7 @@ Shared work rather than per-screen work:
 ## 138.6.3 Left open
 
 - **The theme switch is gone from the signed-out screens.** It lived only in `AuthCard`. A stored preference is still honoured — a baker who chose Peach still sees Peach here — but it cannot be *changed* before signing in, and §137.6 moves the app's pill to Settings, which a signed-out visitor cannot reach. Decide whether the auth scene carries one; the references show none.
-- **C2 is fixed in the helper but not at five call sites.** `AppShell`'s bottom nav (`py-2`), the checkout bar in `orders/new` (`p-4`), `form-sheet`, `MoreSheet` and `AppShell`'s mobile header all still pair a `safe-*` class with a padding utility, so their bottom or top padding is currently `0`. Each is a one-class edit — `p-4` → `[--safe-pb:1rem]`. Not done here because it moves the layout of app screens this pass did not verify; **do it in §137.10, which rewrites all four components anyway.**
+- **C2 is fixed in the helper but not at five call sites.** `AppShell`'s bottom nav (`py-2`), the checkout bar in `orders/new` (`p-4`), `form-sheet`, `MoreSheet` and `AppShell`'s mobile header all still pair a `safe-*` class with a padding utility, so their bottom or top padding is currently `0`. Each is a one-class edit — `p-4` → `[--safe-pb:1rem]`. Not done here because it moves the layout of app screens this pass did not verify; **do it in §137.10, which rewrites all four components anyway.** **Closed 2026-09-24 by R1.6** (all five call sites, measured under a faked notch).
 - **Desktop remains contained, not composed** (unchanged from §138.5). The wide treatment is §137.9.
 
 ---
@@ -8315,8 +8315,9 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 
 ## 139.14 Bugs found in this pass
 
-Verified against the code on 2026-09-24. **Phase 0 fixed twelve of them the same day**
-(marked in the Row column; changelog, "Phase 0"). Severity:
+Verified against the code on 2026-09-24. **Phase 0 fixed twelve of them the same day,
+and Phase 1 four more** (marked in the Row column; changelog, "Phase 0" and
+"Phase 1"). Severity:
 **S1** corrupts money, stock or data · **S2** a feature does not work · **S3**
 wrong but survivable · **S4** polish.
 
@@ -8335,8 +8336,8 @@ wrong but survivable · **S4** polish.
 | **BUG-11** | **S3** | **Zod's own English reaches the screen:** "Too big: expected string to have <=100 characters"; an empty quantity gives "Invalid input: expected number, received NaN". | `customer.ts:9`, `product.ts:10`, `expense.ts:14`, `order.ts:16, 82` | Every message from `VALIDATION_MESSAGES` (§139.7) | R0.14 · **fixed 2026-09-24** |
 | **BUG-12** | **S2** | **Unbounded numbers overflow the database.** Money and quantities have no maximum; the `integer` columns overflow, and the user gets a 500 instead of a message. | `primitives.ts` (`paiseText`, `wholeNumberText`), `order.ts:16, 82` | Bounds (§139.7) | R0.9 · **fixed 2026-09-24** |
 | **BUG-13** | **S3** | **Map links accept any scheme.** `URL.canParse` accepts `javascript:` and `data:`. React 19.2 blocks `javascript:` in `href` when it renders, so the two links on screen today are safe — but the link now goes onto **shared bills and native share text**, where nothing blocks it. | `src/lib/validation/primitives.ts:94` | `http:`/`https:` only | R0.10 · **fixed 2026-09-24** |
-| **BUG-14** | **S2** | **Safe areas are inert on iPhone** — no `viewportFit: "cover"`. Also: the five call sites of §138.6.3; the main content's fixed `pb-24` ignores the inset; sheets use `90vh`. | `src/app/layout.tsx:38–42`, `AppShell.tsx:120`, `form-sheet.tsx:89` | §139.8 | R1.6 |
-| **BUG-15** | **S3** | **The theme flashes on every load.** The server renders `data-theme="clean"`, and the stored theme is applied only after hydration; the client's first render also differs from the server's. The `theme-color` never changes. | `src/app/layout.tsx:41, 52`; `ThemeProvider.tsx:44–54` | An inline pre-paint script; `theme-color` per theme | R1.4 |
+| **BUG-14** | **S2** | **Safe areas are inert on iPhone** — no `viewportFit: "cover"`. Also: the five call sites of §138.6.3; the main content's fixed `pb-24` ignores the inset; sheets use `90vh`. | `src/app/layout.tsx:38–42`, `AppShell.tsx:120`, `form-sheet.tsx:89` | §139.8 | R1.6 · **fixed 2026-09-24** |
+| **BUG-15** | **S3** | **The theme flashes on every load.** The server renders `data-theme="clean"`, and the stored theme is applied only after hydration; the client's first render also differs from the server's. The `theme-color` never changes. | `src/app/layout.tsx:41, 52`; `ThemeProvider.tsx:44–54` | An inline pre-paint script; `theme-color` per theme | R1.4 · **fixed 2026-09-24** |
 | **BUG-16** | **S2** | **Registration fails whenever mail does.** The confirmation is sent inline, and a send failure rolls the whole account back. AGENTS §17 puts mail on the queue. | `src/features/auth/api.ts:314, 328` | Queue it; Resend confirmation | R2.5 |
 | **BUG-17** | **S3** | **The role is written into `user_metadata`**, which users can edit themselves. Nothing reads it today — a future read would be a privilege escalation. | `src/features/auth/api.ts:289–292` | Stop writing it | R2.3 |
 | **BUG-18** | **S2** | **The payments, audit-log and notifications policies skip the `is_active` check** the rest of the schema uses, and are not `to authenticated`. Once deactivation exists (§64), a deactivated user would keep reading those three tables. | `supabase/migrations/0003_payments_and_jobs.sql` | Use `current_profile_bakery_id()` | R0.11 · **fixed 2026-09-24** |
@@ -8345,8 +8346,8 @@ wrong but survivable · **S4** polish.
 | **BUG-21** | **S3** | **`payments` has no amount check and no method check**, unlike `orders` and `expenses`. | `0003` | Constraints | R0.13 · **fixed 2026-09-24** |
 | **BUG-22** | **S3** | **A delivery order is accepted with neither an address nor a map link**, against §96. | `src/lib/validation/schemas/order.ts:43–48` | A refinement on the delivery type | R3.8 |
 | **BUG-23** | **S3** | **Customer search misses numbers as they are written.** Phones are stored as `+919876543210`, so typing "98765 43210" finds nothing. | `src/app/customers/page.tsx:23` | Match on digits | R5.3 |
-| **BUG-24** | **S3** | **The search box's placeholder and icon fail contrast** (`text-muted/60`) — §138.6 C3 fixed the text field but not this one. | `src/components/ui/search-input.tsx:28, 36` | Full-strength muted | R1.12 |
-| **BUG-25** | **S3** | **Dialogs do not keep focus.** Tab walks out of the form sheet and the More sheet into the page behind, which is not `inert`. The receipt view is **not a dialog at all** — no role, no Escape, no focus handling. | `form-sheet.tsx`, `MoreSheet.tsx`, `ReceiptPrintView.tsx` | §139.5 sheet/dialog | R1.9 |
+| **BUG-24** | **S3** | **The search box's placeholder and icon fail contrast** (`text-muted/60`) — §138.6 C3 fixed the text field but not this one. | `src/components/ui/search-input.tsx:28, 36` | Full-strength muted | R1.12 · **fixed 2026-09-24** |
+| **BUG-25** | **S3** | **Dialogs do not keep focus.** Tab walks out of the form sheet and the More sheet into the page behind, which is not `inert`. The receipt view is **not a dialog at all** — no role, no Escape, no focus handling. | `form-sheet.tsx`, `MoreSheet.tsx`, `ReceiptPrintView.tsx` | §139.5 sheet/dialog | R1.9 · **fixed 2026-09-25** |
 | **BUG-26** | **S4** | **Notifications print raw values:** "Order #13-482 is now IN_PROGRESS"; "Payment of 50000 received" — paise, in inline English. | `status.ts:66`, `payments/api.ts:81` | Labels, `formatPaise`, `messages.ts` | R3.4 |
 | **BUG-27** | **S4** | **The receipt prints raw enums** (`CASH`, `BANK_TRANSFER`) and "Tax ₹0.00" on every bill, and restores `body.style.overflow` to `'unset'` instead of its previous value. | `ReceiptPrintView.tsx:135, 27` | The new bill (§139.11.6) | R4.6 |
 | **BUG-28** | **S4** | **The new-order default date is fixed when the module loads,** so a tab left open overnight offers yesterday's "tomorrow". | `src/app/orders/new/page.tsx:47–51` | Compute it on mount | R3.16 |
@@ -8540,23 +8541,23 @@ the row needs; without an answer it is built on that question's default
 
 | ID | Work | Source | Waits on | Status |
 |---|---|---|---|---|
-| R1.1 | Tests into `/tests`, mirroring `src/` | §139.16 | — | DONE (2026-09-24) |
-| R1.2 | AGENTS.md updated: roles, themes, response card, input hygiene, tests, "business" wording, and app-owned art (illustrations and plates are not uploads) | §139.1 | — | DONE (2026-09-24) |
-| R1.3 | Golden and Peach tokens; the Flour Room tokens merged; Clean retired; stored `clean` → `golden` | §139.4 | — | DONE (2026-09-24) |
-| R1.4 | No theme flash; `theme-color` per theme; the theme on the account if chosen | BUG-15 | Q14 | DONE (2026-09-24; per device, Q14 default) |
-| R1.5 | Type: Fraunces and Inter; Fredoka and Plus Jakarta Sans retired | §137.4 | — | DONE (2026-09-24) |
-| R1.6 | The safe-area system: `viewport-fit`, `--safe-*`, `dvh`, keyboard, the five call sites | BUG-14; §138.6.3 | — | DONE (2026-09-24) |
-| R1.7 | AppShell: business header, five-item bottom nav, icon rail, grouped sidebar, top bar | §139.5 | — | DONE (2026-09-25; the business name with R2.6, the bell R5.10, search R5.12) |
-| R1.8 | The component kit | §139.5 | — | DONE (2026-09-25; `sheet`/`dialog` with R1.9, the response card R1.10, `customer-picker` R3.6, `bill` R4.2, `illustration-picker` R5.6) |
-| R1.9 | Sheets and dialogs trap focus, make the page `inert` and return focus. A form stays mounted while its sheet is closed, and every change is checked in the browser — a form mounted only while open lost its typed value under the React Compiler, which jsdom does not run (changelog, R0.3) | BUG-25 | — | DONE (2026-09-25; the receipt's dialog semantics with R4.6) |
-| R1.10 | The response card and provider; action outcomes moved onto it | §139.6 | Q13 | DONE (2026-09-25; Q13 default; the haptic tick with R8.3) |
-| R1.11 | Input-hygiene primitives and the text-hygiene migration | §139.7 | — | DONE (2026-09-24) |
-| R1.12 | Search field contrast | BUG-24 | — | DONE (2026-09-24) |
-| R1.13 | Photographic plates from the supplied photographs, WebP ≤ 200 KB | §139.11.12 | Q6 (answered) | DONE (2026-09-25) |
-| R1.14 | Shared copy for the wider audience — tagline, empty states, errors | §139.1 #2 | Q8 | DONE (2026-09-25; Q8 default; auth headlines with R2.8, units R5.6) |
-| R1.15 | The illustration library ships: the build script (transparent WebP, the duplicate check), `src/assets/illustrations`, the registry, the `illustration` component, and the product tile built on it | §139.11.10 | Q16 | DONE (2026-09-24; credit on Q16 default) |
-| R1.16 | The `…_illustrations` migration: `products.icon_key` and `bakeries.expense_category_icons` | §139.12 | — | DONE (2026-09-24) |
-| R1.17 | The chart kit — line, bar, donut, sparkline; the chart palette per theme; compact rupee ticks | §139.11.11 | — | DONE (2026-09-25) |
+| R1.1 | Tests into `/tests`, mirroring `src/` | §139.16 | — | DONE (2026-09-24 · e050735) |
+| R1.2 | AGENTS.md updated: roles, themes, response card, input hygiene, tests, "business" wording, and app-owned art (illustrations and plates are not uploads) | §139.1 | — | DONE (2026-09-24 · 84c4aea) |
+| R1.3 | Golden and Peach tokens; the Flour Room tokens merged; Clean retired; stored `clean` → `golden` | §139.4 | — | DONE (2026-09-24 · 92eb1c5) |
+| R1.4 | No theme flash; `theme-color` per theme; the theme on the account if chosen | BUG-15 | Q14 | DONE (2026-09-24 · 92eb1c5; per device, Q14 default) |
+| R1.5 | Type: Fraunces and Inter; Fredoka and Plus Jakarta Sans retired | §137.4 | — | DONE (2026-09-24 · 92eb1c5) |
+| R1.6 | The safe-area system: `viewport-fit`, `--safe-*`, `dvh`, keyboard, the five call sites | BUG-14; §138.6.3 | — | DONE (2026-09-24 · 86b7f6a) |
+| R1.7 | AppShell: business header, five-item bottom nav, icon rail, grouped sidebar, top bar | §139.5 | — | DONE (2026-09-25 · 4b77d0d, ebe8ea2; the business name with R2.6, the bell R5.10, search R5.12) |
+| R1.8 | The component kit | §139.5 | — | DONE (2026-09-25 · 81de82a…0930e1f; `sheet`/`dialog` with R1.9, the response card R1.10, `customer-picker` R3.6, `bill` R4.2, `illustration-picker` R5.6) |
+| R1.9 | Sheets and dialogs trap focus, make the page `inert` and return focus. A form stays mounted while its sheet is closed, and every change is checked in the browser — a form mounted only while open lost its typed value under the React Compiler, which jsdom does not run (changelog, R0.3) | BUG-25 | — | DONE (2026-09-25 · 4010937; the receipt's dialog semantics with R4.6) |
+| R1.10 | The response card and provider; action outcomes moved onto it | §139.6 | Q13 | DONE (2026-09-25 · f0ce049; Q13 default; the haptic tick with R8.3) |
+| R1.11 | Input-hygiene primitives and the text-hygiene migration | §139.7 | — | DONE (2026-09-24 · edeea38) |
+| R1.12 | Search field contrast | BUG-24 | — | DONE (2026-09-24 · e5b566e) |
+| R1.13 | Photographic plates from the supplied photographs, WebP ≤ 200 KB | §139.11.12 | Q6 (answered) | DONE (2026-09-25 · ede9c36) |
+| R1.14 | Shared copy for the wider audience — tagline, empty states, errors | §139.1 #2 | Q8 | DONE (2026-09-25 · 3b2aa4c; Q8 default; auth headlines with R2.8, units R5.6) |
+| R1.15 | The illustration library ships: the build script (transparent WebP, the duplicate check), `src/assets/illustrations`, the registry, the `illustration` component, and the product tile built on it | §139.11.10 | Q16 | DONE (2026-09-24 · 92cdcb1; credit on Q16 default) |
+| R1.16 | The `…_illustrations` migration: `products.icon_key` and `bakeries.expense_category_icons` | §139.12 | — | DONE (2026-09-24 · 92cdcb1) |
+| R1.17 | The chart kit — line, bar, donut, sparkline; the chart palette per theme; compact rupee ticks | §139.11.11 | — | DONE (2026-09-25 · 96ddd2f) |
 
 ### Phase 2 — Accounts and the business
 

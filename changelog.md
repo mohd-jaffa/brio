@@ -973,3 +973,13 @@ entry grows with them.
     - the units with Products (R5.6);
     - moving each screen's own strings into the catalogue (R5.14).
 - **Fixed: Create order's checkout bar sat over the rail.** It meant to clear the old 256 px sidebar with `md:pl-64`, but its `safe-x` helper is unlayered and wins over padding utilities (R1.6), so it never did. On an 820 px tablet its content began at 26 px, over the new 72 px rail. It now starts where the rail or the sidebar ends (`left`, with the safe inset), measured at 88 px on a tablet and 380 px on a desktop. The cart bar replaces it in R3.9.
+
+### Validation
+- `tsc --noEmit` clean; `eslint` clean; `vitest run` **136 files, 814 tests**, up from 71 and 579 at the start of the phase (94 files once R1.1 split them). `next build` is green on Node 22 with no warnings.
+- `0006` and `0007` are applied on the local database: `0006`'s constraints were proved there (R1.11), and the sweep below shows the seed's `icon_key` values from `0007`.
+- **The phase's goal, checked in a browser** (plan §139.18): 13 screens at 360, 390, 820 and 1280 px, in Golden and Peach — 104 captures. None scrolls sideways and none logs a console error.
+  - **Nothing sits under a notch.** With a faked notch the phone header pays 59 px, the bottom nav 42 px and the content 126 px; on a landscape tablet the sidebar is 292 px and the content pays 44 px on the right.
+  - **Every product shows an illustration:** 5 of 5 on Products and on Inventory.
+
+### Blockers
+- None. Seen during the sweep and left to their own rows: Analytics prints a negative profit as "₹-4,590" (R5.9); order detail shows the raw "PICKUP" (R3, R5); Create order's checkout bar covers the phone's bottom nav (R3.9). The deferrals each row names above stay with their rows: the business's name and logo (R2.6, R2.7), the bell (R5.10), search in the top bar (R5.12), the theme switch until Appearance (R5.11), haptics (R8.3), the receipt as a dialog (R4.6), the customer picker (R3.6), the bill (R4.2) and the illustration picker (R5.6).
