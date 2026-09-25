@@ -7636,8 +7636,9 @@ word in the full colour. **Every pair is at least 4.5 : 1** in both themes.
 Payment: `UNPAID` uses the cancelled red, `PARTIALLY_PAID` the pending amber,
 `PAID` the delivered green.
 
-**Chart colours are not chosen here.** They are derived and validated with the
-dataviz method at build time (R5.8, R5.9), from each theme's primary and accent.
+**Chart colours are not chosen here.** They are §139.11.11's `--color-chart-1`
+to `6` per theme, taken from the references' browns and oranges and validated
+with the chart kit (R1.17); the screens that use them are R5.8 and R5.9.
 
 ### Theme mechanics
 
@@ -8555,7 +8556,7 @@ the row needs; without an answer it is built on that question's default
 | R1.14 | Shared copy for the wider audience — tagline, empty states, errors | §139.1 #2 | Q8 | TODO |
 | R1.15 | The illustration library ships: the build script (transparent WebP, the duplicate check), `src/assets/illustrations`, the registry, the `illustration` component, and the product tile built on it | §139.11.10 | Q16 | DONE (2026-09-24; credit on Q16 default) |
 | R1.16 | The `…_illustrations` migration: `products.icon_key` and `bakeries.expense_category_icons` | §139.12 | — | DONE (2026-09-24) |
-| R1.17 | The chart kit — line, bar, donut, sparkline; the chart palette per theme; compact rupee ticks | §139.11.11 | — | TODO |
+| R1.17 | The chart kit — line, bar, donut, sparkline; the chart palette per theme; compact rupee ticks | §139.11.11 | — | DONE (2026-09-25) |
 
 ### Phase 2 — Accounts and the business
 

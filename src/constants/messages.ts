@@ -166,6 +166,20 @@ export const UI_TEXT = {
     noResults: (term: string) => `Nothing matches “${term}”.`,
   },
 
+  /** The words every chart shares (plan §139.11.11). */
+  charts: {
+    others: "Others",
+    thisPeriod: "This period",
+    previousPeriod: "Previous period",
+    date: "Date",
+    category: "Category",
+    amount: "Amount",
+    count: "Count",
+    share: "Share",
+    percent: (share: number) => `${share}%`,
+    point: (label: string, value: string) => `${label}: ${value}`,
+  },
+
   /** Moving an order along (plan §139.11.8). */
   orders: {
     cancelTitle: (orderNumber: string) => `Cancel order ${orderNumber}?`,

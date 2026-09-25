@@ -792,3 +792,33 @@ entry grows with them.
   - The script steps the quality down from 80 until a plate is within 200 KB; all three fit at 80.
   - **`PLATES`** (`src/assets/plates/index.ts`) imports them statically, like the illustrations. A test checks every name maps to its file, every built file is listed, and each is within 200 KB.
   - Nothing shows them yet: the `hero` component places them (R1.8), and the auth scene takes the hero plate in R2.8.
+- **R1.17 — the chart kit** (plan §139.11.11). Authored SVG in `src/components/ui/charts/`, with no chart library. Nothing uses it yet: Expenses (R5.8) and Analytics (R5.9) will.
+  - **The charts.**
+    - **`LineTrend`** draws a smooth line with a soft fill beneath it. An optional previous period is drawn dashed and muted, with a two-item legend.
+    - **`BarTrend`** draws round-topped bars, the peak or the chosen bar in the strong tone and the rest lighter.
+    - **`Donut`** has the total in its centre in the serif and a legend of shares. Past the fifth slice the rest fold into "Others", with a 2 px gap between segments.
+    - **`Sparkline`** is a 2 px line with a dot on its last point, `aria-hidden`.
+    - Each chart counts `paise` or a `count`.
+  - **The frame.** `ChartFrame` is a `figure` named by its heading. It shows one of four states, each at the chart's own height: a skeleton in the chart's shape, an error with Try again, an empty state that names the period with its next step, or the chart itself.
+  - **Exploring.** Hover, drag, tap, or focus and use the arrows, Home and End. Anywhere across the plot picks the nearest point, so each point's target is its whole column. The bubble shows the value and the date. It hangs inwards at the edges, and sits beside a point too high to go above it. The same words are announced in a live region.
+  - **Accessibility.** The plot is `role="img"`, labelled with its one-sentence summary. A visually hidden table carries every number. The draw-in (the line traces itself, the bars rise, the ring fades up) is declared only under `prefers-reduced-motion: no-preference`.
+  - **Sizing.** `useElementSize` (`src/hooks`, a `ResizeObserver`) gives each chart its container's width, so labels are drawn at a real 11 px rather than scaled by a `viewBox`.
+  - **Axes.**
+    - Value ticks are round steps that never split a rupee or a count.
+    - Dates are spread at an even step, and the last one is always kept.
+    - A bar chart labels every bar when each band has room for its date.
+    - Labels are measured in the page's font with a canvas, so they are held inside the plot, and one that would touch its neighbour is left out.
+    - `formatPaiseCompact` (`src/lib/format/currency.ts`) writes the ticks: "₹2K", "₹1.5L", "₹1Cr". It rounds before choosing a unit, so ₹99,999 reads "₹1L".
+  - **The palette.** `--color-chart-1` to `6` per theme, sampled from the reference's donut, line and bars, plus a derived `--color-chart-soft` for the lighter bars. `chart-1` draws every line and strong bar: 6.00 : 1 on the Golden card and 5.77 on the Peach one (≥ 3 : 1, WCAG 1.4.11). `chart-6` is the neutral taupe, so "Others", always last, reads as the rest. Plan §139.4 now points here rather than at R5.8/R5.9.
+  - **Checked in a browser** on a temporary page, since removed, in both themes at 340, 359, 360, 390 and 1280 px.
+    - **Hover:** it picked "27 Sep: ₹7,400".
+    - **Keys:** focus → "30 Sep", sixteen lefts → "14 Sep: ₹2,410", Home → "1 Sep".
+    - **The donut** stands beside its legend from 360 px and beneath it at 359.
+    - **Reduced motion:** with it on, no dasharray and no animation; with it off, the line ends fully drawn.
+    - **No console errors.**
+  - **What the browser caught.**
+    - The bubble covered the line near the top; it now goes beside the point.
+    - "₹3K" spilled left of the plot, and the last date of a bar chart hung past the card, so labels are measured now rather than guessed.
+    - A seven-day chart skipped its peak's date.
+    - The donut's container threshold missed the card's 1 px borders, so 360 px stacked.
+  - **Tests.** Geometry (ticks, the monotone curve, bars, shares, the ring), the axes, the frame's four states, the plot's pointer, touch, keys and bubble placement, each chart, `useElementSize` and `formatPaiseCompact`: 81 new (711 in all), 100 % of the kit. `tests/support/charts.ts` gives jsdom a measured size and a `PointerEvent`.

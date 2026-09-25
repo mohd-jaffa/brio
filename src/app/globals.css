@@ -29,6 +29,17 @@
   --color-action-hover: #3a2619;
   --color-action-text: #fff8f0; /* 15.8 on action */
 
+  /* The chart palette (plan §139.11.11), the reference's browns and oranges.
+     1 draws every line and strong bar: 6.00 : 1 on surface. 6 is the neutral
+     taupe, so "Others", always last, reads as the rest. Ring segments need no
+     contrast of their own: the legend states every value. */
+  --color-chart-1: #9c4a25; /* rust */
+  --color-chart-2: #4f2d1b; /* espresso, 11.9 */
+  --color-chart-3: #d2a47c; /* sand */
+  --color-chart-4: #e2713f; /* orange */
+  --color-chart-5: #f0bf98; /* peach */
+  --color-chart-6: #8d7359; /* taupe */
+
   --shadow-tone: 43 29 20;
 }
 
@@ -50,6 +61,13 @@
   --color-action: #3a2119;
   --color-action-hover: #4c2d22;
   --color-action-text: #fff8f3; /* 14.2 on action */
+
+  --color-chart-1: #a8441f; /* terracotta: 5.77 on surface */
+  --color-chart-2: #5a2a1c; /* cocoa, 11.4 */
+  --color-chart-3: #e7a07a; /* apricot */
+  --color-chart-4: #d0643a; /* orange */
+  --color-chart-5: #f3c3a8; /* blush */
+  --color-chart-6: #9a6f5e; /* rosy taupe */
 
   --shadow-tone: 51 32 26;
 }
@@ -83,6 +101,9 @@
   --color-warning-bg: color-mix(in oklab, var(--color-warning) 12%, var(--color-surface));
   --color-danger-bg: color-mix(in oklab, var(--color-danger) 12%, var(--color-surface));
   --color-info-bg: color-mix(in oklab, var(--color-info) 12%, var(--color-surface));
+
+  /* The lighter tone of the bars that are not the peak or the chosen one. */
+  --color-chart-soft: color-mix(in oklab, var(--color-chart-1) 32%, var(--color-surface));
 
   /* Warm, offset and soft: depth that belongs to the ground it sits on. */
   --shadow-card: 0 1px 2px rgb(var(--shadow-tone) / 0.05), 0 1px 1px rgb(var(--shadow-tone) / 0.03);
@@ -126,6 +147,14 @@
   --color-status-delivered: var(--color-status-delivered);
   --color-status-cancelled: var(--color-status-cancelled);
   --color-status-neutral: var(--color-status-neutral);
+
+  --color-chart-1: var(--color-chart-1);
+  --color-chart-2: var(--color-chart-2);
+  --color-chart-3: var(--color-chart-3);
+  --color-chart-4: var(--color-chart-4);
+  --color-chart-5: var(--color-chart-5);
+  --color-chart-6: var(--color-chart-6);
+  --color-chart-soft: var(--color-chart-soft);
 
   /* Fraunces for display, Inter for everything you operate (plan §137.4). */
   --font-heading: var(--font-heading);
@@ -284,6 +313,39 @@
 
   [data-theme] {
     transition: none;
+  }
+}
+
+/* The charts draw in: the line traces itself, the bars rise and the ring
+   fades up (plan §139.11.11). Declared only for those who have not asked for
+   less motion, so under reduce a chart is simply there from the start. */
+@media (prefers-reduced-motion: no-preference) {
+  .chart-draw {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: chart-draw 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .chart-rise {
+    transform-box: fill-box;
+    transform-origin: bottom;
+    animation: chart-rise 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .chart-fade {
+    animation: fade-in-up 0.4s ease-out both;
+  }
+}
+
+@keyframes chart-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes chart-rise {
+  from {
+    transform: scaleY(0);
   }
 }
 

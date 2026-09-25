@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatCurrency, formatPaise } from '@/lib/format/currency';
+import { formatCurrency, formatPaise, formatPaiseCompact } from '@/lib/format/currency';
 
 describe('formatCurrency', () => {
   it('formats whole numbers without trailing zeroes', () => {
@@ -27,5 +27,36 @@ describe('formatPaise', () => {
   it('says nothing rather than zero when there is no figure', () => {
     expect(formatPaise(null)).toBe('—');
     expect(formatPaise(undefined)).toBe('—');
+  });
+});
+
+describe('formatPaiseCompact', () => {
+  it('shortens thousands, lakhs and crores, with one decimal at most', () => {
+    expect(formatPaiseCompact(200_000)).toBe('₹2K');
+    expect(formatPaiseCompact(150_000)).toBe('₹1.5K');
+    expect(formatPaiseCompact(1_234_500)).toBe('₹12.3K');
+    expect(formatPaiseCompact(10_000_000)).toBe('₹1L');
+    expect(formatPaiseCompact(25_000_000)).toBe('₹2.5L');
+    expect(formatPaiseCompact(1_000_000_000)).toBe('₹1Cr');
+    expect(formatPaiseCompact(123_456_000_000)).toBe('₹123.5Cr');
+    expect(formatPaiseCompact(1_234_500_000_000)).toBe('₹1,234.5Cr');
+  });
+
+  it('rounds before choosing a unit, so an amount just under one reads as it', () => {
+    expect(formatPaiseCompact(9_999_900)).toBe('₹1L');
+    expect(formatPaiseCompact(99_950)).toBe('₹1K');
+  });
+
+  it('keeps small amounts whole, and zero as zero', () => {
+    expect(formatPaiseCompact(0)).toBe('₹0');
+    expect(formatPaiseCompact(50_000)).toBe('₹500');
+    expect(formatPaiseCompact(5_050)).toBe('₹51');
+  });
+
+  it('signs a negative amount and dashes nothing', () => {
+    expect(formatPaiseCompact(-200_000)).toBe('-₹2K');
+    expect(formatPaiseCompact(null)).toBe('—');
+    expect(formatPaiseCompact(undefined)).toBe('—');
+    expect(formatPaiseCompact(Number.NaN)).toBe('—');
   });
 });
