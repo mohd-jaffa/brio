@@ -53,6 +53,11 @@ export function CustomerFormSheet({
   onSuccess: () => void;
   initialData?: Customer;
 }) {
+  // Kept out of the React Compiler. The sheet stays mounted and resets its form
+  // each time it opens; reset() empties react-hook-form's field registry, which
+  // only a fresh register() call refills, and the compiler memoises those
+  // calls — so nothing typed after opening reached the form (R1.9).
+  "use no memo";
   const {
     register,
     handleSubmit,

@@ -36,12 +36,13 @@ function open(props: Partial<Parameters<typeof ProductFormSheet>[0]> = {}) {
 beforeEach(() => vi.clearAllMocks());
 
 describe("ProductFormSheet", () => {
-  it("renders nothing while it is closed", () => {
+  it("is out of sight while it is closed", () => {
     const { container } = render(
       <ProductFormSheet isOpen={false} onClose={vi.fn()} onSuccess={vi.fn()} />,
       { wrapper },
     );
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(container.querySelector("dialog")).not.toHaveAttribute("open");
   });
 
   it("shows a stored price in rupees, because that is how a baker thinks of it", () => {

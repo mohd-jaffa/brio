@@ -63,14 +63,15 @@ describe("AppShell", () => {
     await userEvent.click(more);
 
     expect(more).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByRole("dialog", { name: "More navigation options" })).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "More" })).toBeInTheDocument();
   });
 });
 
 describe("MoreSheet", () => {
-  it("renders nothing while it is closed", () => {
+  it("is out of sight while it is closed", () => {
     const { container } = render(<MoreSheet isOpen={false} onClose={vi.fn()} />);
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(container.querySelector("dialog")).not.toHaveAttribute("open");
   });
 
   it("lists exactly the secondary destinations", () => {

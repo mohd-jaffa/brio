@@ -8548,7 +8548,7 @@ the row needs; without an answer it is built on that question's default
 | R1.6 | The safe-area system: `viewport-fit`, `--safe-*`, `dvh`, keyboard, the five call sites | BUG-14; §138.6.3 | — | DONE (2026-09-24) |
 | R1.7 | AppShell: business header, five-item bottom nav, icon rail, grouped sidebar, top bar | §139.5 | — | TODO |
 | R1.8 | The component kit | §139.5 | — | DONE (2026-09-25; `sheet`/`dialog` with R1.9, the response card R1.10, `customer-picker` R3.6, `bill` R4.2, `illustration-picker` R5.6) |
-| R1.9 | Sheets and dialogs trap focus, make the page `inert` and return focus. A form stays mounted while its sheet is closed, and every change is checked in the browser — a form mounted only while open lost its typed value under the React Compiler, which jsdom does not run (changelog, R0.3) | BUG-25 | — | TODO |
+| R1.9 | Sheets and dialogs trap focus, make the page `inert` and return focus. A form stays mounted while its sheet is closed, and every change is checked in the browser — a form mounted only while open lost its typed value under the React Compiler, which jsdom does not run (changelog, R0.3) | BUG-25 | — | DONE (2026-09-25; the receipt's dialog semantics with R4.6) |
 | R1.10 | The response card and provider; action outcomes moved onto it | §139.6 | Q13 | TODO |
 | R1.11 | Input-hygiene primitives and the text-hygiene migration | §139.7 | — | DONE (2026-09-24) |
 | R1.12 | Search field contrast | BUG-24 | — | DONE (2026-09-24) |

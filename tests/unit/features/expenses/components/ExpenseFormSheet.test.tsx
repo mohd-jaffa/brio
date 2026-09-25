@@ -36,12 +36,13 @@ function open(props: Partial<Parameters<typeof ExpenseFormSheet>[0]> = {}) {
 beforeEach(() => vi.clearAllMocks());
 
 describe("ExpenseFormSheet", () => {
-  it("renders nothing while it is closed", () => {
+  it("is out of sight while it is closed", () => {
     const { container } = render(
       <ExpenseFormSheet isOpen={false} onClose={vi.fn()} onSuccess={vi.fn()} />,
       { wrapper },
     );
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(container.querySelector("dialog")).not.toHaveAttribute("open");
   });
 
   it("starts on today, so the common case is no typing", () => {

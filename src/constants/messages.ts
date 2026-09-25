@@ -166,6 +166,12 @@ export const UI_TEXT = {
     noResults: (term: string) => `Nothing matches “${term}”.`,
   },
 
+  /** The app's navigation (plan §139.5). */
+  nav: {
+    more: "More",
+    secondary: "Secondary navigation",
+  },
+
   /** The field kit (plan §139.5). */
   fields: {
     optional: "(Optional)",

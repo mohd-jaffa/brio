@@ -6,6 +6,32 @@ import { afterEach, vi } from "vitest";
 // globals, so each test would otherwise render on top of the one before.
 afterEach(cleanup);
 
+// jsdom has no modal dialogs: no showModal() or close(), and not the
+// browser's rule that a closed <dialog> is not drawn. Enough of both for a
+// test to see a sheet open and close; the top layer, the inert page and the
+// real focus behaviour are checked in a browser.
+if (!HTMLDialogElement.prototype.showModal) {
+  const escapable = new WeakSet<HTMLDialogElement>();
+  HTMLDialogElement.prototype.showModal = function showModal(this: HTMLDialogElement) {
+    this.setAttribute("open", "");
+    if (escapable.has(this)) return;
+    escapable.add(this);
+    // Escape in a modal dialog fires `cancel`, and closes it unless that is prevented.
+    this.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || !this.hasAttribute("open")) return;
+      if (this.dispatchEvent(new Event("cancel", { cancelable: true }))) this.close();
+    });
+  };
+  HTMLDialogElement.prototype.close = function close(this: HTMLDialogElement) {
+    if (!this.hasAttribute("open")) return;
+    this.removeAttribute("open");
+    this.dispatchEvent(new Event("close"));
+  };
+  const style = document.createElement("style");
+  style.textContent = "dialog:not([open]) { display: none; }";
+  document.head.append(style);
+}
+
 // Next's navigation hooks need a router; screens only read from it in tests.
 vi.mock("next/navigation", () => ({
   useRouter: () => ({

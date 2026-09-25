@@ -876,3 +876,26 @@ entry grows with them.
     - Checked in the browser: the sign-in field and the customer sheet match the reference's Customer details form.
   - **`empty-state` and the skeletons, restyled.** The empty state's icon sits in the medallion and its title in the serif. A skeleton is now a sunken block rather than a bordered card.
   - **R1.8 is done.** Its remaining kit entries belong to the rows that use them: `sheet`/`dialog` (R1.9), the response card (R1.10), `customer-picker` (R3.6), `bill` (R4.2) and `illustration-picker` (R5.6).
+- **R1.9 · BUG-25 — sheets and dialogs.**
+  - **`sheet`**, the kit's `sheet`/`dialog` (§139.5), is built on the native modal `<dialog>`.
+    - `showModal()` puts it in the top layer and makes the page behind inert to Tab, screen readers and pointers. Tab goes round inside, first to last and back, so focus never steps out to the browser's toolbar either.
+    - Focus moves in on opening (a given control, else the first field, else the first control) and goes back to whatever opened it, unless that has left the page.
+    - Escape (the dialog's `cancel`) and the backdrop close it unless it is not `dismissible`. `alertdialog` is there for the response card.
+    - It is a bottom sheet on phones and a centred dialog from 768 px, in `dvh`, riding above the keyboard and clear of the home indicator. The page does not scroll behind it.
+    - A closed sheet is not drawn but **stays mounted**.
+  - **`FormSheet`** keeps its props and is now a form inside a `Sheet`.
+  - **The More sheet** is a `Sheet`, named "More"; it had no focus handling at all. The receipt view's dialog semantics come with the new bill (R4.6).
+  - **The stock sheet** stays mounted before a product is chosen, and opens only with one.
+  - **A bug the browser caught, and its cause.** With the sheets always mounted, every form that resets on opening lost what was typed. The customer, product, expense and stock sheets all submitted "Name needs a value." with a name in the field. The previous commit, run the same way, sent the values.
+    - **Cause.** `reset()` empties react-hook-form's field registry, which only a fresh `register()` call refills, and the React Compiler memoises those calls. Once the form was mounted before opening, the reset on open left the registry empty, and every keystroke went nowhere. The same mechanism explains R0.3's lost quantity.
+    - **Fix.** Those four sheets carry `"use no memo"`, with a comment saying why. The other forms never reset, so their registrations stand.
+  - **Checked in the browser, with every write intercepted so nothing reached the database.**
+    - Customer, twice: the sheet opened blank each time and sent the name with `+919876522222`.
+    - Product: sent `defaultPrice` 125000 from "₹1,250".
+    - Expense: sent 45000.
+    - Stock: sent quantity 7.
+    - Payment: sent 50000 paise, and focus went back to Collect Payment.
+    - Cancel: its confirmation sent `CANCELLED`.
+    - Twelve Tabs stayed in the customer sheet; a pointer over the page title hit the backdrop; Escape returned focus to Add customer; the More sheet returned focus to More.
+    - One early run's stock-in of 7 reached the local database before its interception was fixed. It is local seed data.
+  - **Tests.** jsdom has no modal dialogs, so `tests/support/setup.ts` gives it `showModal`, `close`, Escape as `cancel`, and the rule that a closed dialog is not drawn. The sheet tests cover focus in and back, Escape, the backdrop, the Tab loop, a non-dismissible card, and typed values surviving a close. Sheets that rendered nothing when closed are now tested as mounted and out of sight.

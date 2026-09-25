@@ -36,12 +36,14 @@ function open(props: Partial<Parameters<typeof InventoryAdjustmentSheet>[0]> = {
 beforeEach(() => vi.clearAllMocks());
 
 describe("InventoryAdjustmentSheet", () => {
-  it("renders nothing without a product to adjust", () => {
+  it("stays closed without a product to adjust, its form already in place", () => {
     const { container } = render(
       <InventoryAdjustmentSheet isOpen onClose={vi.fn()} onSuccess={vi.fn()} />,
       { wrapper },
     );
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(container.querySelector("dialog")).not.toHaveAttribute("open");
+    expect(container.querySelector("form")).toBeInTheDocument();
   });
 
   it("names the product and its unit, so the count is unambiguous", () => {

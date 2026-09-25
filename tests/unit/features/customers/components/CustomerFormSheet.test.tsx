@@ -37,12 +37,13 @@ function open(props: Partial<Parameters<typeof CustomerFormSheet>[0]> = {}) {
 beforeEach(() => vi.clearAllMocks());
 
 describe("CustomerFormSheet", () => {
-  it("renders nothing while it is closed", () => {
+  it("is out of sight while it is closed", () => {
     const { container } = render(
       <CustomerFormSheet isOpen={false} onClose={vi.fn()} onSuccess={vi.fn()} />,
       { wrapper },
     );
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(container.querySelector("dialog")).not.toHaveAttribute("open");
   });
 
   it("opens blank for a new customer", () => {

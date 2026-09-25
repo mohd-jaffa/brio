@@ -23,13 +23,15 @@ function open(overrides: Partial<Parameters<typeof FormSheet>[0]> = {}) {
 }
 
 describe("FormSheet", () => {
-  it("renders nothing while it is closed", () => {
+  it("stays mounted but out of sight while it is closed, so its form keeps what was typed", () => {
     const { container } = render(
       <FormSheet open={false} title="New Customer" onClose={vi.fn()} onSubmit={vi.fn()} submitLabel="Save">
         <TextField label="Full Name" />
       </FormSheet>,
     );
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(container.querySelector("dialog")).not.toHaveAttribute("open");
+    expect(container.querySelector("input")).toBeInTheDocument();
   });
 
   it("is a dialog named by its heading", () => {
