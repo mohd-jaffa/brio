@@ -1,22 +1,26 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { PLATE_FOCUS, PLATES } from "@/assets/plates";
 import { UI_TEXT } from "@/constants/messages";
 
 import { BrandMark } from "./BrandMark";
 
 /**
- * The frame every authentication screen shares (plan §137). Daylight on a
- * warm wall, the bakery's mark and promise set over it, and a cream sheet that
+ * The frame every authentication screen shares (plan §138, §139.10). Daylight
+ * on a warm wall, the app's mark and a line set over it, and a sheet that
  * rises from the bottom carrying the form.
  *
- * The backdrop is built from light and colour rather than a photograph: the
- * references are mockups with the interface drawn into them, so there is no
- * plate to cut out, and a stand-in would read worse than the atmosphere does.
- * `--auth-photo` in globals.css is where a real one goes when there is one.
+ * The photograph is the cake-table plate (§139.11.12): a bake and dried
+ * florals against a warm wall, as the references show. It takes the right of
+ * the upper scene and fades in from nothing on its left, at its head and at
+ * its foot (`.auth-plate`), so no word sits on the photograph: every word was
+ * measured at ≥ 4.5 : 1 against the darkest pixel behind it, at 360 to
+ * 1280 px in both themes. It is the screen's largest paint, so it loads first.
  */
 export function AuthScene({
   headline,
@@ -63,7 +67,28 @@ export function AuthScene({
         )}
       </header>
 
-      <div className="mx-auto w-full max-w-xl flex-1 px-6 pb-10 pt-6">
+      <div className="relative isolate mx-auto w-full max-w-xl flex-1 px-6 pb-10 pt-6">
+        {/* On a phone the headline runs across most of the width, so the plate
+            keeps to the band above it, beside the mark; from 640 px it has the
+            room to stand beside the words. */}
+        <div
+          aria-hidden="true"
+          className="auth-plate pointer-events-none absolute right-0 top-0 -z-10 h-44 w-[62%] sm:inset-y-0 sm:h-auto"
+        >
+          <Image
+            src={PLATES["cake-table"]}
+            alt=""
+            fill
+            // The largest paint: fetched at once and first. (`priority` is
+            // deprecated in Next 16.)
+            loading="eager"
+            fetchPriority="high"
+            sizes="(min-width: 640px) 360px, 62vw"
+            className="object-cover"
+            style={{ objectPosition: PLATE_FOCUS["cake-table"] }}
+          />
+        </div>
+
         <span className="block text-primary">
           <BrandMark />
         </span>
@@ -102,7 +127,7 @@ export function AuthScene({
   );
 }
 
-/** The line the sheet closes on — the bakery's promise, not a legal footer. */
+/** The line the sheet closes on — a promise, not a legal footer. */
 export function AuthPromise({ children }: { children: string }) {
   return (
     <p className="flex items-center justify-center gap-2.5 rounded-2xl bg-sunken px-4 py-3.5 text-center text-sm text-text-muted">

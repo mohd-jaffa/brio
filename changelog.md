@@ -1218,3 +1218,18 @@ Each row is committed on its own; this entry grows with them.
     - The schema (tidying, required city and address, the shared limits, the password match on an empty business, no comparing invalid passwords).
     - The form: the steps, per-step checking, Enter, focus, going back, one request, a taken number returning to step 1, and other refusals staying.
     - The business written at registration.
+- **R2.8 — the auth screens: neutral headlines and the hero plate** (§138; Q6 answered, Q8 on its default).
+  - **Headlines for every home business, not only bakers.** The same short, composed voice: sign in is "Good work / starts here." ("Sign in to run your business"); register is "Grow what / you make / at home." ("Two short steps, and you are ready for orders"); the closing line is "Made at home, run with care." Forgot password, change password and confirm email were already neutral.
+  - **The plate behind the scene** (§139.11.12). It is the cake-table plate, a bake and dried florals on a warm wall, which is the scene the references describe. It replaces the unused `--auth-photo` hook.
+    - `.auth-plate` fades it in from nothing on its left and at its head, and out at its foot. From 640 px, where the scene is a column in a wider canvas, it fades on its right too.
+    - On a phone the headline spans most of the width, so the plate keeps to the band above it, beside the mark. From 640 px it stands beside the words.
+    - It is fetched eagerly and first (`loading="eager"`, `fetchPriority="high"`), as the screen's largest paint.
+  - **No word sits on the photograph.** Every word on sign in, register, forgot password and confirm email was measured against the darkest pixel behind its glyphs, at 360, 390, 820 and 1280 px in both themes (32 measurements). The lowest is **4.73 : 1**, "Home Business" on Peach at 360 px.
+    - The first attempt put the plate beside the headline on phones as well, and measured 0.78 : 1, because "Good work" ran into the flowers. That is why phones keep it in the band.
+    - The first measurement over-read too: a range over the headline also reports each line's full-width block box, not only its glyphs. Only glyph boxes are measured now.
+  - **Re-tokened already.** The scene and its sheet use `background`, `surface`, `sunken`, `primary` and the text tokens; no retired Flour Room token is left anywhere (R1.3).
+  - **`priority` is deprecated in Next 16.** The Hero's plate (R1.13) moved to `loading` and `fetchPriority` as well.
+  - **Tests:** `AuthScene` had none. Five now cover the neutral headline and its lines, the plate (decorative, the cake-table image, loaded eagerly and first), the back link and the other door where they exist and neither where they do not, and the closing promise. The Hero's loading hints are tested too.
+- **R2.9 — no theme switch on the signed-out screens** (Q15 on its default: none, the stored choice is honoured).
+  - Checked on sign in, register, forgot password and confirm email: no stored choice or Golden gives Golden, Peach gives Peach, and a stored `clean` reads as Golden (R1.3). No switch is drawn.
+  - Nothing to build. Appearance lives in Settings (R5.11), which a signed-out visitor cannot reach.

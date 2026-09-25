@@ -59,7 +59,9 @@ export function Hero({
             src={PLATES[plate]}
             alt=""
             fill
-            priority={priority}
+            // Next 16 deprecates `priority` for these two.
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "auto"}
             sizes="(min-width: 1024px) 720px, 60vw"
             className="object-cover [mask-image:linear-gradient(to_right,transparent_15%,black_70%)]"
             style={{ objectPosition: PLATE_FOCUS[plate] }}

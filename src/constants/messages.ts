@@ -140,13 +140,13 @@ export const UI_TEXT = {
     confirmationSentTo: (email: string) => `A new link is on its way to ${email}.`,
     checkingSession: "Checking your session…",
 
-    // The Flour Room direction (plan §137): the line breaks are the
-    // composition, so the headline is written as its lines.
-    signInHeadline: ["Good bakes", "start here."],
-    signInIntro: "Sign in to continue your sweet journey",
-    registerHeadline: ["Join a", "sweeter", "journey."],
-    registerIntro: "Create your account and start baking happiness",
-    promise: "Baking a sweeter tomorrow.",
+    // The line breaks are the composition, so each headline is written as its
+    // lines. Neutral for every home business, not only bakers (Q8).
+    signInHeadline: ["Good work", "starts here."],
+    signInIntro: "Sign in to run your business",
+    registerHeadline: ["Grow what", "you make", "at home."],
+    registerIntro: "Two short steps, and you are ready for orders",
+    promise: "Made at home, run with care.",
 
     // The three screens behind the front door (plan §138.6). Same voice: a
     // serif line that says where you are, then one sentence of why.

@@ -468,16 +468,14 @@ a {
    bake would sit, and the ground deepening toward the base so
    the form sheet has something to rest on.
 
-   This is atmosphere, not a subject. To use a real photograph
-   instead, set --auth-photo on .auth-canvas to a url() — it
-   layers above the wash and needs no other change.
+   This is atmosphere; the subject is the plate the scene sets
+   on its right (.auth-plate, AuthScene).
    ============================================================ */
 
 .auth-canvas {
   --auth-ground-deep: color-mix(in oklab, var(--color-background) 84%, var(--color-primary));
   background-color: var(--color-background);
   background-image:
-    var(--auth-photo, none),
     /* Three soft shafts rather than a repeat: window light falls in a few
        wide bands with feathered edges, and a regular stripe reads as
        wallpaper instead. */
@@ -507,8 +505,33 @@ a {
     /* daylight, upper left */
     radial-gradient(84% 60% at 6% -2%, rgba(255, 254, 250, 0.95), transparent 62%),
     linear-gradient(180deg, transparent 52%, var(--auth-ground-deep) 100%);
-  background-size: cover, auto, auto, auto, auto, auto;
-  background-position: center, 0 0, 0 0, 0 0, 0 0, 0 0;
+}
+
+/* The plate behind the scene (plan §139.11.12). It fades in from nothing on
+   its left and at its head, and out at its foot, so the words to its left, the
+   links above and the sheet below never sit on the photograph. */
+.auth-plate {
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0%, #000 60%),
+    linear-gradient(to bottom, transparent 0%, #000 14%, #000 55%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent 0%, #000 60%),
+    linear-gradient(to bottom, transparent 0%, #000 14%, #000 55%, transparent 100%);
+  mask-composite: intersect;
+}
+
+/* From 640 px the scene is a column in a wider canvas, so the plate fades out
+   on its right too rather than stopping at the column's edge. */
+@media (min-width: 40rem) {
+  .auth-plate {
+    -webkit-mask-image:
+      linear-gradient(to right, transparent 0%, #000 55%, #000 78%, transparent 100%),
+      linear-gradient(to bottom, transparent 0%, #000 14%, #000 55%, transparent 100%);
+    mask-image:
+      linear-gradient(to right, transparent 0%, #000 55%, #000 78%, transparent 100%),
+      linear-gradient(to bottom, transparent 0%, #000 14%, #000 55%, transparent 100%);
+  }
 }
 
 /* The form sheet rises out of the canvas and is what the eye lands on. The

@@ -21,6 +21,9 @@ describe("Hero", () => {
     expect(plate?.getAttribute("src")).toMatch(/cake-table/);
     expect(plate?.style.objectPosition).toBe("68% 55%");
     expect(plate?.parentElement).toHaveClass("max-w-2xl");
+    // The largest paint is fetched at once, and first.
+    expect(plate).toHaveAttribute("loading", "eager");
+    expect(plate).toHaveAttribute("fetchpriority", "high");
   });
 
   it("is a compact band with a tracked line, its words not a heading", () => {
@@ -31,6 +34,8 @@ describe("Hero", () => {
     expect(screen.getByText("Grow · Bake · Repeat")).toHaveClass("uppercase");
     expect(container.firstElementChild).toHaveClass("min-h-36");
     expect(container.querySelector("img")?.parentElement).toHaveClass("max-w-md");
+    // Not the largest paint: it waits to be needed.
+    expect(container.querySelector("img")).toHaveAttribute("loading", "lazy");
   });
 
   it("stands without a plate", () => {
