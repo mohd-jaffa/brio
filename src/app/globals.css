@@ -206,6 +206,13 @@
   box-shadow: 0 0 0 4px var(--color-background);
 }
 
+/* For a control inside a card that clips its corners — a row of a row list —
+   whose ring would be cut off outside it: the ring is drawn just inside. */
+.focus-inset:focus-visible {
+  outline-offset: -2px;
+  box-shadow: none;
+}
+
 /* ============================================================
    Safe areas, the viewport and the keyboard (plan §139.8)
 

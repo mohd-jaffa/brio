@@ -849,3 +849,6 @@ entry grows with them.
     - **`segmented-control`** is restyled as a surface pill on the sunken ground.
     - **`choice-chips`** are the category filter pills: the chosen one filled, the row scrolling to the screen's edge.
     - **`range-picker`** is a native select dressed as the references' "Last 30 days" pill, so a phone opens its own picker. Choosing Custom shows From and To dates, each bounding the other. The periods are `DATE_RANGES` in `src/constants/ranges.ts` (§139.11.11); remembering the choice per screen comes with R5.8/R5.9.
+  - **`row` and `row-list`**: a tile or an avatar, a title with up to two lines under it, a trailing block (an amount, a pill) and a chevron, with hairline dividers inside one card.
+    - A row is a link with `href`, a button with `onClick`, and plain otherwise. The whole row is the target.
+    - A new `focus-inset` class draws a row's focus ring just inside it, where the card's rounded clipping would otherwise cut it off. The global `:focus-visible` rule is unlayered, so it beats a utility class.
