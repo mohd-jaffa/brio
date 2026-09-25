@@ -1394,3 +1394,26 @@ this entry grows with them.
   - **Fix** (`src/components/ui/quantity-stepper.tsx`): every tap steps once, on its click, whatever made it (a mouse, a finger or a screen reader). Holding still repeats: after 400 ms, then every 80 ms. Only the click that ends a hold is skipped, and only on the button that was held.
   - **Proved** on an emulated Pixel 7: taps went 1 → 2 → 3 → 4 → 3 → 2. With a mouse, 1 → 2 → 3 → 2. A 0.7 s hold went 2 → 6.
   - **Tests:** a touch tap in the order a phone sends it, a mouse click, a hold and the click that ends it, a slide-off, a hold that never reaches its click, and a click on the other button after a hold.
+- **R3.15 · IMP-02 · IMP-06 · IMP-07 — the order detail, rebuilt** (plan §139.10; §137.7 "one card, not six").
+  - **The route is thin now** (`src/app/orders/[id]/page.tsx`). The screen is `src/features/orders/components/OrderDetail.tsx`, which reads the order, its customer (none for a Guest) and its payments. It shows the load failure with Try again (ScreenNotice) in the API's words.
+  - **Header:** the order number, "Delivery · due 27 Sep 2026, 12:00 AM", and **View bill**.
+  - **Summary card:** the status and payment pills, the total, the balance due when there is one, and **one next-step button** (IMP-06, `StatusActions.tsx`). The button reads "Mark as Preparing", "Mark as Ready", "Mark as Out for delivery" or "Mark as Delivered", or "Mark as Completed" for a pickup (§139.11.8). **More actions** opens a sheet with the other moves the table allows, Cancel last, and Cancel asks through a confirm card ("Keep order" is the safe answer). A finished order shows no actions. A move says "ORD-1006 is now Preparing." on a success card. A refused one, such as a move already made on another device, shows the API's words and reads the order again.
+  - **Customer** (`OrderContact.tsx`): the avatar, name and number, with **Call** (`tel:`) and **WhatsApp** (a `wa.me` link, no integration, IMP-02). A Guest shows "Guest" and no actions. A customer who cannot be read shows "Unknown customer".
+  - **Handover:** pickup or delivery, when, "Overdue" in red when it is late, the address, and **Map** when the order has a map link.
+  - **Items and money** (`OrderLines.tsx`): each line in full, never cut short (§136 D5-5), with its price each, the Custom mark and its note for the bill. Then the subtotal, each discount and charge, tax only when there is some, the total, what is paid and the **balance due** (IMP-07).
+  - **Payments** (`OrderPayments.tsx`): each one's method, time, reference and amount. The list shows "No payments yet" when there are none, and Try again when it could not be read (`PAYMENTS_LOAD_FAILED`). **Collect payment** appears while a balance is due and opens the payment sheet.
+  - **The bill** is built only when View bill is asked for, and never stored (AGENTS §15). A failure says "Bill not ready". Share and download come with Phase 4 (R4.4, R4.5).
+  - **Internal notes** are shown only when there are some, marked as never printed.
+  - **Kit:** `LinkButton` takes `tel:` and outside links as plain anchors, `newTab` (opened with `noopener noreferrer`), and `accessibleName` ("Call Meena Gupta"). `src/lib/phone.ts` gains `callHref` and `whatsAppHref`. `Payment.payment_method` is typed as the method it is.
+  - **The old screen's problems are gone:** the magic strings, six equal panels, the status select labelled twice (§136 L2-1), and `router.back()` as the only way out.
+  - **Proved in the browser:**
+    - ORD-1004 moved Pending → Preparing → Ready with a card each time. The menu offered "Mark as Delivered" and "Cancel order", and Cancel asked first.
+    - Collect payment offered the ₹600 owed, and View bill opened the bill.
+    - Call went to `tel:+919834567890`, and WhatsApp to `https://wa.me/919834567890` in a new tab.
+    - The Guest order ORD-1001 showed Guest with no actions.
+    - No sideways scroll at 360, 390, 820, 1280 or 1440, Golden or Peach.
+  - **Tests:**
+    - Each block, each state, and every move: the next step, the menu, Completed for a pickup, a cancel confirmed or kept, closing the menu, a move in flight, and a finished order.
+    - The screen reading, failing and trying again. A Guest order reads no customer. Moving on, cancelling and a refusal.
+    - Collecting a payment, the bill built, and the bill failing.
+    - `LinkButton` and the phone links.

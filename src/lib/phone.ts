@@ -38,3 +38,16 @@ export function formatPhoneDigits(raw: string): string {
   if (national.length <= 5) return national;
   return `${national.slice(0, 5)} ${national.slice(5)}`;
 }
+
+/** A number to dial from a tap: "tel:+919876543210". */
+export function callHref(e164: string): string {
+  return `tel:${e164}`;
+}
+
+/**
+ * A chat with the number on WhatsApp, with no integration (IMP-02): wa.me
+ * takes it as digits, the country code first and no +.
+ */
+export function whatsAppHref(e164: string): string {
+  return `https://wa.me/${e164.replace(/\D/g, '')}`;
+}

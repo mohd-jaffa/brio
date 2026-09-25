@@ -107,12 +107,17 @@ export function Button({
 }
 
 /**
- * A link that looks like a button — "Create Order", "Add Your First Customer".
- * It stays an anchor, so it can be opened in a new tab and read as a link.
+ * A link that looks like a button — "Create Order", "Add Your First Customer",
+ * or Call and WhatsApp on an order. It stays an anchor, so it can be opened in
+ * a new tab and read as a link. A place in the app goes through the router;
+ * anything else — `tel:`, a chat, a map — is a plain anchor, and `newTab`
+ * opens it beside the app without handing it the app's window.
  */
 export function LinkButton({
   href,
   label,
+  accessibleName,
+  newTab = false,
   variant = "primary",
   size = "md",
   shape = "rounded",
@@ -121,27 +126,34 @@ export function LinkButton({
 }: {
   href: string;
   label: string;
+  /** A fuller name for a screen reader, which must begin with `label`: "Call Meena Gupta". */
+  accessibleName?: string;
+  newTab?: boolean;
   variant?: ButtonVariant;
   size?: ButtonSize;
   shape?: ButtonShape;
   fullWidth?: boolean;
   icon?: LucideIcon;
 }) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        "touch-target inline-flex items-center justify-center gap-2 font-bold transition-all active:scale-[0.98]",
-        VARIANTS[variant],
-        SIZES[size],
-        SHAPES[shape],
-        fullWidth && "w-full",
-      )}
-    >
+  const props = {
+    href,
+    "aria-label": accessibleName,
+    className: cn(
+      "touch-target inline-flex items-center justify-center gap-2 font-bold transition-all active:scale-[0.98]",
+      VARIANTS[variant],
+      SIZES[size],
+      SHAPES[shape],
+      fullWidth && "w-full",
+    ),
+    ...(newTab && { target: "_blank", rel: "noopener noreferrer" }),
+  };
+  const body = (
+    <>
       {Icon && <Icon size={18} strokeWidth={2.5} aria-hidden="true" />}
       {label}
-    </Link>
+    </>
   );
+  return href.startsWith("/") ? <Link {...props}>{body}</Link> : <a {...props}>{body}</a>;
 }
 
 /** A square, label-less action beside a row — edit, open, remove. */

@@ -85,6 +85,21 @@ describe("LinkButton", () => {
 
     const link = screen.getByRole("link", { name: "Create Order" });
     expect(link).toHaveAttribute("href", "/orders/new");
+    expect(link).not.toHaveAttribute("target");
+  });
+
+  it("dials or opens a chat beside the app, named in full for a screen reader", () => {
+    render(
+      <>
+        <LinkButton href="tel:+919876543210" label="Call" accessibleName="Call Meena" />
+        <LinkButton href="https://wa.me/919876543210" label="WhatsApp" newTab fullWidth />
+      </>,
+    );
+    expect(screen.getByRole("link", { name: "Call Meena" })).toHaveAttribute("href", "tel:+919876543210");
+    const chat = screen.getByRole("link", { name: "WhatsApp" });
+    expect(chat).toHaveAttribute("target", "_blank");
+    expect(chat).toHaveAttribute("rel", "noopener noreferrer");
+    expect(chat).toHaveClass("w-full");
   });
 });
 

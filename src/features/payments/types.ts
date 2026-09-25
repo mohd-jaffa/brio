@@ -1,9 +1,11 @@
+import type { PaymentMethod } from "@/constants/statuses";
+
 export interface Payment {
   id: string;
   bakery_id: string;
   order_id: string;
   amount: number;
-  payment_method: string;
+  payment_method: PaymentMethod;
   reference: string | null;
   idempotency_key: string | null;
   paid_at: string;
@@ -13,7 +15,7 @@ export interface Payment {
 export interface CreatePaymentDTO {
   order_id: string;
   amount: number;
-  payment_method: string;
+  payment_method: PaymentMethod;
   reference?: string | null;
   idempotency_key: string;
 }
