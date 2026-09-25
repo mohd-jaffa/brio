@@ -1089,3 +1089,23 @@ Phase 2 rows, built now because the user asked for the proposal and it matches t
   - The bill printing this header replaces the hard-coded "Ovenly Bakery" with R4.1 (§133.2 B4).
   - `next_order_number`, listed in the plan's `_business_profile` migration, lands with R3.2, which uses it, so no column sits unused.
   - OpenAPI has no document yet (§133.11 K1); these endpoints join it when it is written.
+
+### Not built — the notification bell (R5.10), and why
+The proposal was reviewed and left to its row. A bell built today would have nothing to show and would be rebuilt when its sources arrive.
+- **Nothing writes the inbox.** No code inserts into `notifications` (§133.5 E1). A status change or a payment enqueues a push job, and the worker that would run it does not run yet (R2.1).
+- **What it would say is not ready.** The status text is the raw code, "Order #6-799 is now IN_PROGRESS" (BUG-26, R3.4), under the broken order numbers (BUG-08, R3.2).
+- **Per-user scoping is not needed.** A business has one owner (USER), so notifications stay scoped to the business, as the table and its RLS already are.
+- **The sound parts are already the plan's R5.10:** a `kind` column and the `(bakery_id, is_read, created_at desc)` index, Mark all as read, the tabs, and pagination with R5.13. Supabase Realtime may be used for it, selectively (§57); that choice belongs to R5.10.
+
+### Validation
+- `tsc --noEmit` clean; `eslint` clean; `vitest run` **148 files, 893 tests**, up from 136 and 814 at the start of the day. `next build` is green on Node 22 with no warnings, and lists `/business`, `/api/business` and `/api/business/logo`.
+- `0008_business_profile.sql` applies with `supabase migration up`, and again after a hand rollback. Its rules were proved on the local database as described above.
+- Browser checks as described under each change: the checkout bar at four widths with and without an inset, and the business screens at four widths in both themes.
+
+### Blockers
+- None. What was left, and where it goes:
+  - the notification bell, to R5.10 (above);
+  - server-side search, to R5.13, with pagination;
+  - the catch phrase and city at registration, to R2.4;
+  - the business header on the bill, to R4.1;
+  - `next_order_number`, to R3.2.

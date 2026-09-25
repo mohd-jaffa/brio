@@ -6554,9 +6554,9 @@ Every gap recorded here has been implemented. The entry is kept rather than dele
 
 | # | Gap | Where |
 |---|-----|-------|
-| B1 | No bakery profile endpoint. The Settings name and phone fields were hard-coded and have been removed; the section says so. | no `/api/bakery` route |
-| B2 | No logo upload: no storage bucket, no server-side size and content-type validation, no atomic replace-then-delete. | §56, §118 |
-| B3 | `bakeries` has a SELECT policy only. An UPDATE policy is needed before profile editing can work at all. | `supabase/migrations/0001_auth_foundation.sql` |
+| B1 | No bakery profile endpoint. The Settings name and phone fields were hard-coded and have been removed; the section says so. **Closed 2026-09-25 by R2.6:** `GET, PATCH /api/business` and Business details. | no `/api/bakery` route |
+| B2 | No logo upload: no storage bucket, no server-side size and content-type validation, no atomic replace-then-delete. **Closed 2026-09-25 by R2.7:** the private `business-logos` bucket, the size and first-bytes checks, and store → switch → delete. | §56, §118 |
+| B3 | `bakeries` has a SELECT policy only. An UPDATE policy is needed before profile editing can work at all. **Closed 2026-09-25 by R2.6** as §139.11.2 decided instead: `bakeries` stays SELECT-only, and edits go through owner-checked functions (`0008_business_profile.sql`). | `supabase/migrations/0001_auth_foundation.sql` |
 | B4 | The receipt header prints a hard-coded `"Ovenly Bakery"` instead of the bakery's own name. | `src/features/receipts/api.ts` |
 
 ---
@@ -8271,7 +8271,7 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 |---|---|---|
 | `…_tenant_integrity` | `unique (bakery_id, id)` on customers, products, categories, orders; **composite foreign keys** — `orders(bakery_id, customer_id)`, `payments(bakery_id, order_id)`, `inventory_transactions(bakery_id, product_id)`, `products(bakery_id, category_id)` — so no row can point into another business (BUG-19). The **payments, audit_logs and notifications** policies use `current_profile_bakery_id()` and `to authenticated` (BUG-18). `payments.amount > 0`, and a check on `payments.payment_method` (BUG-21). | 0 |
 | `…_roles_user` | Rename `BAKER` → `USER`; default `USER`. | 2 |
-| `…_business_profile` | `bakeries.tagline` (≤ 80), `bakeries.city`, trimmed-length checks; `bakeries.next_order_number` (int, default 1001). | 2 |
+| `…_business_profile` | `bakeries.tagline` (≤ 80), `bakeries.city`, trimmed-length checks; `bakeries.next_order_number` (int, default 1001). *Landed 2026-09-25 as `0008_business_profile`, with the logo reference, the owner-only edit functions and the logo bucket (R2.6, R2.7); `next_order_number` moves to R3.2's migration, which uses it.* | 2 |
 | `…_guest_orders` | `orders.customer_id` drops NOT NULL; a partial index on `(bakery_id, created_at) where customer_id is null`. | 3 |
 | `…_order_rpc` | **`create_order(payload jsonb, idempotency_key uuid)`** and **`change_order_status(order_id, status)`** as `security invoker` functions, so RLS still applies and each is **one transaction** (C1, C6); the order number is taken from `next_order_number` inside it (BUG-08); stock is checked before it is reserved (C4). `orders.idempotency_key uuid` with `unique (bakery_id, idempotency_key)` — no new table (C2); the same on `payments`. | 3 |
 | `…_status_ready` | Add `READY` to the status CHECK (Q3, answered). | 3 |
@@ -8567,8 +8567,8 @@ the row needs; without an answer it is built on that question's default
 | R2.3 | Stop writing the role into `user_metadata` | BUG-17 | — | TODO |
 | R2.4 | Registration: catch phrase, city, address; two steps | §139.11.2 | Q2 | TODO |
 | R2.5 | The confirmation mail through the queue; Resend confirmation | BUG-16 | — | TODO |
-| R2.6 | The business profile endpoint and the Business details screen | §133.2 B1, B3 | — | TODO |
-| R2.7 | Logo upload | §133.2 B2; §56 | — | TODO |
+| R2.6 | The business profile endpoint and the Business details screen | §133.2 B1, B3 | — | DONE (2026-09-25 · d027464; built ahead of the phase at the user's request; the catch phrase and city at registration with R2.4) |
+| R2.7 | Logo upload | §133.2 B2; §56 | — | DONE (2026-09-25 · d027464; on the bill with R4.1) |
 | R2.8 | Auth screens re-tokened; neutral headlines; the hero plate | §138 | Q6 (answered), Q8 | TODO |
 | R2.9 | A theme switch on the signed-out screens | §138.6.3 | Q15 | TODO |
 | R2.10 | Audit records the acting user and is written by the server only | §133.7 G1; BUG-20 | — | TODO |
