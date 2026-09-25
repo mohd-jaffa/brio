@@ -9,7 +9,7 @@ import { LinkButton } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ListScreen } from "@/components/ui/list-screen";
 import { PageHeader } from "@/components/ui/page-header";
-import { SearchInput } from "@/components/ui/search-input";
+import { SearchField } from "@/components/ui/search-field";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { StatusPill } from "@/components/ui/status-pill";
 import { UI_TEXT } from "@/constants/messages";
@@ -75,7 +75,7 @@ export default function OrdersPage() {
 
       <div className="space-y-4">
         <SegmentedControl label="Which orders to show" value={tab} options={TABS} onChange={setTab} />
-        <SearchInput
+        <SearchField
           value={search}
           onChange={setSearch}
           placeholder="Search by order number or customer"

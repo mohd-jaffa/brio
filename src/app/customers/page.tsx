@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ListScreen } from "@/components/ui/list-screen";
 import { PageHeader } from "@/components/ui/page-header";
-import { SearchInput } from "@/components/ui/search-input";
+import { SearchField } from "@/components/ui/search-field";
 import { UI_TEXT } from "@/constants/messages";
 import { CustomerFormSheet } from "@/features/customers/components/CustomerFormSheet";
 import type { Customer } from "@/features/customers/types";
@@ -37,7 +37,7 @@ export default function CustomersPage() {
         <Button icon={Plus} label="Add Customer" onClick={() => form.open()} />
       </PageHeader>
 
-      <SearchInput value={search} onChange={setSearch} placeholder="Search by name or phone" />
+      <SearchField value={search} onChange={setSearch} placeholder="Search by name or phone" />
 
       <ListScreen
         query={query}

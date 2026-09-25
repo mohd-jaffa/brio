@@ -863,3 +863,7 @@ entry grows with them.
     - **`cart-bar`**: the cart with its count (spoken in words), the running total, and the dark go-on button. It is `sticky` in the content column, so it never needs a sidebar's width as the current checkout bar does. Measured 80 px up on a phone, just above the nav.
     - **`fab`**: the one dark round + on a phone, above the nav and clear of the home indicator, and a worded button from 768 px. It is written in the page header's action slot, and follows a link or opens a sheet.
   - **Fixed:** Create order showed two back controls once its header gained one; the old "Back" button is gone.
+  - **`search-field` replaces `search-input`.** It keeps BUG-24's full-strength placeholder and icon, and the label for a screen reader.
+    - **`filter`** adds the square filter button beside it, pressed and dotted when filters are on.
+    - **`global`** is the top bar's search. ⌘K, or Ctrl K off Apple, reaches it from anywhere (`aria-keyshortcuts`), and a desktop shows the shortcut in the field. The key's name is read after hydration, so the server and the first paint agree.
+    - The four list screens moved to it, and AGENTS.md's tree names `status-pill`.

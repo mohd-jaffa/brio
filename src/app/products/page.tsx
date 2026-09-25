@@ -8,7 +8,7 @@ import { Button, IconButton } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ListScreen } from "@/components/ui/list-screen";
 import { PageHeader } from "@/components/ui/page-header";
-import { SearchInput } from "@/components/ui/search-input";
+import { SearchField } from "@/components/ui/search-field";
 import { ProductTile } from "@/components/ui/product-tile";
 import { StatusPill } from "@/components/ui/status-pill";
 import { UI_TEXT } from "@/constants/messages";
@@ -34,7 +34,7 @@ export default function ProductsPage() {
         <Button icon={Plus} label="Add Product" onClick={() => form.open()} />
       </PageHeader>
 
-      <SearchInput value={search} onChange={setSearch} placeholder="Search products" />
+      <SearchField value={search} onChange={setSearch} placeholder="Search products" />
 
       <ListScreen
         query={query}

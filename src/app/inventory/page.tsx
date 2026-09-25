@@ -10,7 +10,7 @@ import { cn } from "@/components/ui/cn";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ListScreen } from "@/components/ui/list-screen";
 import { PageHeader } from "@/components/ui/page-header";
-import { SearchInput } from "@/components/ui/search-input";
+import { SearchField } from "@/components/ui/search-field";
 import { LOW_STOCK_THRESHOLD } from "@/constants/inventory";
 import { UI_TEXT } from "@/constants/messages";
 import { InventoryAdjustmentSheet } from "@/features/inventory/components/InventoryAdjustmentSheet";
@@ -74,7 +74,7 @@ export default function InventoryPage() {
     <AppShell>
       <PageHeader title="Inventory" subtitle="Manage your stock and ingredients" />
 
-      <SearchInput value={search} onChange={setSearch} placeholder="Search active products" />
+      <SearchField value={search} onChange={setSearch} placeholder="Search active products" />
 
       <ListScreen
         query={query}
