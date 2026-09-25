@@ -3,28 +3,29 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { OrderRow } from "@/features/orders/types";
 
-const findOrderById = vi.fn();
-const updateOrder = vi.fn();
-vi.mock("@/features/orders/api", () => ({
-  findOrderById: (...args: unknown[]) => findOrderById(...args),
-  updateOrder: (...args: unknown[]) => updateOrder(...args),
+const { findOrderById, logActionSafe, createJob } = vi.hoisted(() => ({
+  findOrderById: vi.fn(),
+  logActionSafe: vi.fn(),
+  createJob: vi.fn(),
 }));
-vi.mock("@/lib/audit/auditLog", () => ({ logActionSafe: vi.fn() }));
-vi.mock("@/lib/jobs/queue", () => ({ createJob: vi.fn() }));
+vi.mock("@/features/orders/api", () => ({ findOrderById }));
+vi.mock("@/lib/audit/auditLog", () => ({ logActionSafe }));
+vi.mock("@/lib/jobs/queue", () => ({ createJob }));
 
 import { processPayment } from "@/features/payments/api";
 import { tenantOf } from "@tests/support/tenant";
 
 const ORDER_ID = "7c1f3a52-9d7e-4b1a-8a51-0f1d2c3b4a5e";
+const KEY = "0d9f4c1e-2b3a-4c5d-8e6f-7a8b9c0d1e2f";
 
-function orderRow(total: number, payment_status: OrderRow["payment_status"] = "UNPAID"): OrderRow {
+function orderRow(total: number): OrderRow {
   return {
     id: ORDER_ID,
     bakery_id: "b-1",
     customer_id: "c-1",
-    order_number: "#1-001",
+    order_number: "ORD-1001",
     status: "PENDING",
-    payment_status,
+    payment_status: "UNPAID",
     payment_method: null,
     payment_reference: null,
     subtotal: total,
@@ -42,30 +43,31 @@ function orderRow(total: number, payment_status: OrderRow["payment_status"] = "U
   };
 }
 
+type Result = { data: unknown; error: unknown };
+
 /**
- * Just enough of supabase-js for the payments table: reading what was already
- * paid on an order, and inserting the new payment. Every insert is recorded so
- * a test can see exactly what reached the database.
+ * Just enough of supabase-js for the payments table: looking a payment up by
+ * its key, and inserting one. The lookups answer in turn from `byKey`; every
+ * insert is recorded, and answers with `insertResult` when one is given.
  */
-function fakeClient(alreadyPaid: number[]) {
+function fakeClient({ byKey = [] as unknown[], insertResult }: { byKey?: unknown[]; insertResult?: Result } = {}) {
   const inserted: Record<string, unknown>[] = [];
+  let lookups = 0;
+  const chain = {
+    select: () => chain,
+    eq: () => chain,
+    maybeSingle: () => Promise.resolve({ data: byKey[Math.min(lookups++, byKey.length - 1)] ?? null, error: null }),
+  };
   const client = {
     from(table: string) {
       if (table !== "payments") throw new Error(`unexpected table ${table}`);
       return {
-        select: () => ({
-          eq: () => ({
-            eq: () => ({
-              order: () =>
-                Promise.resolve({ data: alreadyPaid.map((amount) => ({ amount })), error: null }),
-            }),
-          }),
-        }),
+        ...chain,
         insert: (row: Record<string, unknown>) => {
           inserted.push(row);
           return {
             select: () => ({
-              single: () => Promise.resolve({ data: { id: "p-1", ...row }, error: null }),
+              single: () => Promise.resolve(insertResult ?? { data: { id: "p-1", ...row }, error: null }),
             }),
           };
         },
@@ -75,93 +77,76 @@ function fakeClient(alreadyPaid: number[]) {
   return { client: client as unknown as SupabaseClient, inserted };
 }
 
+const payment = { order_id: ORDER_ID, amount: 50000, payment_method: "UPI" as const, reference: null };
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  findOrderById.mockResolvedValue({ order: orderRow(150000), items: [], adjustments: [] });
+});
+
 describe("processPayment", () => {
-  beforeEach(() => {
-    findOrderById.mockReset();
-    updateOrder.mockReset();
+  it("stores the amount it was given — already paise — with its key", async () => {
+    const { client, inserted } = fakeClient();
+    await processPayment(tenantOf(client), payment, KEY);
+
+    expect(inserted).toEqual([
+      { bakery_id: "b-1", order_id: ORDER_ID, amount: 50000, payment_method: "UPI", reference: null, idempotency_key: KEY },
+    ]);
   });
 
-  it("stores the amount it was given — already paise — without converting it again", async () => {
-    findOrderById.mockResolvedValue({ order: orderRow(150000), items: [], adjustments: [] });
-    const { client, inserted } = fakeClient([]);
-
-    await processPayment(tenantOf(client), {
-      order_id: ORDER_ID,
-      amount: 50000, // ₹500
-      payment_method: "UPI",
-      reference: null,
-    });
-
-    expect(inserted).toHaveLength(1);
-    expect(inserted[0].amount).toBe(50000);
+  it("leaves the payment status to the database, which derives it from the payments (BUG-06)", async () => {
+    const { client, inserted } = fakeClient();
+    await processPayment(tenantOf(client), payment, KEY);
+    expect(inserted[0]).not.toHaveProperty("payment_status");
   });
 
-  it("accepts a part payment well above 1% of the order", async () => {
-    findOrderById.mockResolvedValue({ order: orderRow(150000), items: [], adjustments: [] });
-    const { client } = fakeClient([]);
+  it("records nothing for a key already used, and answers with what it recorded (§133.3 C2)", async () => {
+    const first = { id: "p-1", order_id: ORDER_ID, amount: 50000 };
+    const { client, inserted } = fakeClient({ byKey: [first] });
 
-    await expect(
-      processPayment(tenantOf(client), {
-        order_id: ORDER_ID,
-        amount: 100000,
-        payment_method: "CASH",
-        reference: null,
-      }),
-    ).resolves.toMatchObject({ amount: 100000 });
-    expect(updateOrder).toHaveBeenCalledWith(tenantOf(client), ORDER_ID, {
-      payment_status: "PARTIALLY_PAID",
-    });
+    await expect(processPayment(tenantOf(client), payment, KEY)).resolves.toBe(first);
+    expect(inserted).toEqual([]);
+    expect(logActionSafe).not.toHaveBeenCalled();
+    expect(createJob).not.toHaveBeenCalled();
   });
 
-  it("marks the order paid when the payments reach its total", async () => {
-    findOrderById.mockResolvedValue({
-      order: orderRow(150000, "PARTIALLY_PAID"),
-      items: [],
-      adjustments: [],
+  it("answers with the other request's payment when both sent the key at once", async () => {
+    const first = { id: "p-1", order_id: ORDER_ID, amount: 50000 };
+    const { client } = fakeClient({
+      byKey: [null, first],
+      insertResult: { data: null, error: { code: "23505", message: 'duplicate key value violates unique constraint "payments_bakery_idempotency_key"' } },
     });
-    const { client } = fakeClient([100000]);
-
-    await processPayment(tenantOf(client), {
-      order_id: ORDER_ID,
-      amount: 50000,
-      payment_method: "UPI",
-      reference: "UPI-1",
-    });
-
-    expect(updateOrder).toHaveBeenCalledWith(tenantOf(client), ORDER_ID, { payment_status: "PAID" });
+    await expect(processPayment(tenantOf(client), payment, KEY)).resolves.toBe(first);
   });
 
-  it("refuses a payment that would take the order past its total, and records nothing", async () => {
-    findOrderById.mockResolvedValue({ order: orderRow(150000), items: [], adjustments: [] });
-    const { client, inserted } = fakeClient([100000]);
-
-    await expect(
-      processPayment(tenantOf(client), {
-        order_id: ORDER_ID,
-        amount: 50001,
-        payment_method: "CASH",
-        reference: null,
-      }),
-    ).rejects.toMatchObject({ kind: "CONFLICT" });
-    expect(inserted).toHaveLength(0);
-    expect(updateOrder).not.toHaveBeenCalled();
+  it("refuses a key reused for another order", async () => {
+    const { client } = fakeClient({ byKey: [{ id: "p-1", order_id: "another-order" }] });
+    await expect(processPayment(tenantOf(client), payment, KEY)).rejects.toMatchObject({ kind: "CONFLICT" });
   });
 
-  it("leaves the payment status alone when it has not changed", async () => {
-    findOrderById.mockResolvedValue({
-      order: orderRow(150000, "PARTIALLY_PAID"),
-      items: [],
-      adjustments: [],
+  it("passes the database's refusal of too much on, in the app's words", async () => {
+    const { client } = fakeClient({
+      insertResult: { data: null, error: { code: "P0001", hint: "PAYMENT_EXCEEDS_BALANCE", message: "payment exceeds the balance" } },
     });
-    const { client } = fakeClient([10000]);
-
-    await processPayment(tenantOf(client), {
-      order_id: ORDER_ID,
-      amount: 10000,
-      payment_method: "CASH",
-      reference: null,
+    await expect(processPayment(tenantOf(client), payment, KEY)).rejects.toMatchObject({
+      code: "PAYMENT_EXCEEDS_BALANCE",
+      kind: "BUSINESS_RULE",
+      httpStatus: 422,
     });
+    expect(logActionSafe).not.toHaveBeenCalled();
+  });
 
-    expect(updateOrder).not.toHaveBeenCalled();
+  it("refuses an order this business does not have, before anything is written", async () => {
+    findOrderById.mockRejectedValue(Object.assign(new Error("x"), { code: "RECORD_NOT_FOUND" }));
+    const { client, inserted } = fakeClient();
+    await expect(processPayment(tenantOf(client), payment, KEY)).rejects.toMatchObject({ code: "RECORD_NOT_FOUND" });
+    expect(inserted).toEqual([]);
+  });
+
+  it("audits the payment as the user who recorded it", async () => {
+    const { client } = fakeClient();
+    const tenant = tenantOf(client, { actorId: "u-7" });
+    await processPayment(tenant, payment, KEY);
+    expect(logActionSafe).toHaveBeenCalledWith(tenant, expect.objectContaining({ action: "CREATE", entity_type: "payments", entity_id: "p-1" }));
   });
 });

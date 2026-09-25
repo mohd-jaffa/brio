@@ -19,6 +19,7 @@ import {
   type SelectOption,
 } from "@/components/ui/text-field";
 import { UI_TEXT } from "@/constants/messages";
+import { useRequestKeys } from "@/hooks/useRequestKeys";
 import {
   DELIVERY_TYPE_LABELS,
   DELIVERY_TYPES,
@@ -51,7 +52,7 @@ const EMPTY: OrderFormValues = {
   items: [{ productId: "", quantity: 1, notes: "" }],
   adjustments: [],
   delivery: { type: "PICKUP", date: tomorrow(), address: "", googleMapsLink: "" },
-  payment: { status: "UNPAID", method: "CASH", reference: "" },
+  payment: { status: "UNPAID", method: "CASH", reference: "", amount: "" },
   notes: "",
 };
 
@@ -133,12 +134,16 @@ export default function NewOrderPage() {
   }, [watchedItems, watchedAdjustments, active]);
 
   const respond = useResponse();
+  const keys = useRequestKeys();
   const create = useApiMutation<OrderFormPayload, Order>(
-    (values) => OrdersClient.createOrder(values),
+    (values) => OrdersClient.createOrder(values, keys.keyFor(values)),
     {
       revalidate: [apiRoutes.orders.list],
       // The placed-order card, with its facts and actions, comes with R3.14.
-      onSuccess: (order) => router.push(`/orders/${order.id}`),
+      onSuccess: (order) => {
+        keys.settle();
+        router.push(`/orders/${order.id}`);
+      },
       onError: (failure) =>
         respond.failure(failure, { title: UI_TEXT.outcomes.orderNotPlaced, fallback: "SAVE_FAILED" }),
     },
@@ -355,6 +360,15 @@ export default function NewOrderPage() {
                 label="Method"
                 options={optionsFrom(PAYMENT_METHODS, PAYMENT_METHOD_LABELS)}
                 {...register("payment.method")}
+              />
+            )}
+            {paymentStatus === "PARTIALLY_PAID" && (
+              <TextField
+                label="Amount paid (₹)"
+                required
+                inputMode="decimal"
+                error={errors.payment?.amount?.message}
+                {...register("payment.amount")}
               />
             )}
           </div>

@@ -1289,3 +1289,46 @@ this entry grows with them.
     - Discounts larger than the order are refused as `ORDER_TOTAL_NEGATIVE`, also formerly a bare `CONFLICT`. Both now have wording in `messages.ts`.
   - **A custom line posts no stock.** The reservation skips it, where it would have failed on `item.product_id!`; the delivery and cancel movements already skipped it (R0.7). An order's item says `custom: true`, for the "Custom" mark.
   - **Tests:** pricing (catalogue prices, one read, custom lines, adjustments, Guest, a named customer, another business's customer, an unavailable product, a negative total and one too large). Also the new checkout path, the union's messages and paths both ways, the sheet's schema and the bulk product read.
+- **R3.1, R3.2, R3.3 · §133.3 C1, C2, C4 · BUG-08, BUG-09 — placing an order is one transaction, happens once, and cannot oversell.** R3.12's server half — payment at creation — lands with it, because it lives in the same transaction.
+  - **Migration `0015_create_order.sql`.**
+    - **Order numbers (BUG-08):** `bakeries.next_order_number`, from 1001. A `before insert` trigger numbers every order `ORD-1001`, `ORD-1002`, … from it, however the order was inserted, so nothing can choose a number the counter reaches later. It is a security-definer function, because `bakeries` is server-only, and it refuses to touch another business's counter. A rolled-back order rolls its number back, so numbers are sequential and never reused. The orders already stored keep their old numbers.
+    - **Idempotency (C2):** `orders.idempotency_key` and `payments.idempotency_key`, each unique per business. There is no new table (§139.12).
+    - **`stock_shortfalls(lines)`** lists the stocked products a draft asks for more of than there is, with what there is. *Stocked* means stock was recorded by hand — a stock in, adjustment, wastage or return (`MANUAL_INVENTORY_TYPES`). A product nobody stocks is made to order and never refused (the user's decision above).
+    - **Payments decide the payment status** (BUG-02, BUG-06, §139.11.9). A trigger derives it from the payments on every insert, update or delete. Another refuses a payment that would take an order past its total, with the order locked so two payments at once are counted in turn (`PAYMENT_EXCEEDS_BALANCE`).
+    - **Backfill:** an order marked Paid before this, with less paid than its total, gets a payment for the difference, dated when the order was placed, so the derived status keeps what the owner said. A Part-paid order with no payment is left alone, because nothing says how much was paid.
+    - **`create_order(order, key)`** is `security invoker`, so row-level security applies. In one transaction it:
+      - waits on the key (an advisory lock), and returns the order that key already made;
+      - checks the totals add up;
+      - locks the products in id order, so two orders cannot deadlock, and only then checks stock, so a second order for the last of something waits and is then refused (C4);
+      - stores the order, its lines, its adjustments, the reservations (catalogue lines only), and the payment taken with it.
+      Any failure stores nothing (C1, BUG-09). A shortfall answers `ORDER_INSUFFICIENT_STOCK` with what is left in its detail.
+  - **The server.**
+    - `createOrder` prices the draft (`pricing.ts`) and makes one call. The multi-step insert, its hard-delete compensation and `console.error` are gone (BUG-29), and so are `generateOrderNumber`, `insertOrder`, `insertOrderItems`, `insertOrderAdjustments` and `deleteOrderHard`.
+    - A new order and its payment are audited as the user who placed it, only when the call made them.
+    - `POST /api/orders` and `POST /api/orders/{id}/payments` require an `Idempotency-Key` header (`readIdempotencyKey`); without one they answer `IDEMPOTENCY_KEY_REQUIRED`.
+    - `processPayment` inserts once per key. A repeat, or a race on the same key, returns the payment already recorded. It no longer sets the payment status itself, and the overpayment check it ran is now the database's.
+  - **Payment at creation (R3.12, server).**
+    - The API takes `payment: { status: "UNPAID" } | { status: "PAID", method, reference } | { status: "PARTIALLY_PAID", amount, method, reference }`.
+    - Paid in full records the server's total. Part paid records its amount, which must be less than the total (`PAYMENT_PART_NOT_LESS`). An order that comes to nothing records no payment and reads Paid.
+    - `balanceDue` now reads the payments alone.
+    - The interim order screen asks for the amount when Part paid; the payment step of R3.9 replaces it.
+  - **Errors.**
+    - A refusal the database raises with a catalogue hint carries its JSON detail through to the response's `details`. That is how the shortfall arrives, and the driver's own text never does.
+    - `ORDER_INSUFFICIENT_STOCK`, `PAYMENT_EXCEEDS_BALANCE` and `ORDER_STATUS_TRANSITION_INVALID` answer 422, and `ORDER_STATUS_CHANGED` 409.
+    - `ApiError` keeps `details` on the client.
+  - **The browser's keys.**
+    - `postOnce(url, body, key)` sends the header.
+    - `requestKeys()` and `useRequestKeys()` give the same request the same key — a double tap, or Try again after a dropped connection — and a changed or next request a new one. Keys are built with `getRandomValues`, because `randomUUID` exists only on https.
+    - The payment sheet and the interim order screen use them.
+  - **Proved against the running app:**
+    - A Guest order (a brownie box and a custom topper, part paid ₹200) was sent **twice at once with one key**. Both answered 201 with the same `ORD-1001`. The database holds one order, one payment of ₹200 (Part paid), one reservation (the brownie box only), one audit row for the order and one for the payment, both naming Priya Baker, and the counter at 1002.
+    - A request with no key was refused (400).
+    - 50 brownie boxes with 5 left answered 422 with `{ name: "Fudgy Brownie Box (4 pcs)", available: 5, requested: 50 }`.
+    - Part paid of the whole total answered `PAYMENT_PART_NOT_LESS`.
+    - A payment sent twice with one key made one row, and one past the balance was refused.
+  - **Tests:**
+    - Pricing's payment, both ways.
+    - `createOrder`: the exact payload, a Guest with no payment, a zero total, the audits, a repeated key auditing nothing, and a shortfall carried through.
+    - `processPayment`: the key stored, a repeat, a race, a key reused for another order, the database's refusal, and the audit.
+    - The sheet sending Try again with the same key.
+    - Also the error mapping and detail, the client's `postOnce` and details, the key reader, the keys and the hook, the payment schemas, and a contract for 0015.

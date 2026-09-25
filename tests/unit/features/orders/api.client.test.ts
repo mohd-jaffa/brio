@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { OrdersClient } from "@/features/orders/api.client";
-import { getJson, patchJson } from "@/lib/api/client";
+import { getJson, patchJson, postOnce } from "@/lib/api/client";
 
 vi.mock("@/lib/api/client", () => ({
   getJson: vi.fn(),
   postJson: vi.fn(),
+  postOnce: vi.fn(),
   patchJson: vi.fn(),
   deleteJson: vi.fn(),
 }));
@@ -25,6 +26,9 @@ describe("OrdersClient", () => {
 
     await OrdersClient.getOrder("o-1");
     expect(getJson).toHaveBeenCalledWith("/api/orders/o-1");
+
+    await OrdersClient.createOrder({ customer: { kind: "GUEST" } } as never, "k-1");
+    expect(postOnce).toHaveBeenCalledWith("/api/orders", { customer: { kind: "GUEST" } }, "k-1");
 
     await OrdersClient.updateStatus("o-1", { status: "DELIVERED" });
     expect(patchJson).toHaveBeenCalledWith("/api/orders/o-1", { status: "DELIVERED" });

@@ -83,7 +83,7 @@ describe("summarise", () => {
       [
         order("a", { payment: "UNPAID", total: 30000 }),
         order("b", { payment: "PARTIALLY_PAID", total: 20000 }),
-        order("c", { payment: "PAID", total: 99000 }),
+        order("c", { payment: "PAID", total: 99000, paid: 99000 }),
         order("d", { payment: "UNPAID", status: "CANCELLED", total: 99000 }),
       ],
       now,

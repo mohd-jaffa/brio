@@ -4,7 +4,8 @@ import { MAX_ORDER_TOTAL_PAISE } from "@/constants/limits";
 import { getCustomerById } from "@/features/customers/api";
 import { getProductsByIds } from "@/features/products/api";
 import { businessRuleError, conflictError } from "@/lib/errors";
-import type { CreateOrderPayload } from "@/lib/validation";
+import type { PaymentMethod } from "@/constants/statuses";
+import type { CreateOrderPayload, OrderPayment } from "@/lib/validation";
 
 import { orderTotals, type OrderTotals } from "./totals";
 
@@ -31,10 +32,20 @@ export interface PricedLine {
 
 export type PricedCustomer = { kind: "GUEST" } | { kind: "CUSTOMER"; id: string; name: string; phone: string };
 
+/**
+ * What is paid as the order is placed (§139.11.9): nothing, or an amount —
+ * the whole total when paid in full. An amount of 0 records no payment: an
+ * order that comes to nothing is paid by coming to nothing.
+ */
+export type PricedPayment =
+  | { status: "UNPAID" }
+  | { status: "PAID" | "PARTIALLY_PAID"; amount: number; method: PaymentMethod; reference: string | null };
+
 export interface PricedDraft {
   customer: PricedCustomer;
   lines: PricedLine[];
   totals: OrderTotals;
+  payment: PricedPayment;
 }
 
 export async function priceDraft(tenant: Tenant, input: CreateOrderPayload): Promise<PricedDraft> {
@@ -82,5 +93,13 @@ export async function priceDraft(tenant: Tenant, input: CreateOrderPayload): Pro
     throw businessRuleError("ORDER_TOTAL_TOO_LARGE", { subtotal: totals.subtotal, total: totals.total });
   }
 
-  return { customer, lines, totals };
+  return { customer, lines, totals, payment: pricePayment(input.payment, totals.total) };
+}
+
+function pricePayment(payment: OrderPayment, total: number): PricedPayment {
+  if (payment.status === "UNPAID") return payment;
+  if (payment.status === "PAID") return { ...payment, amount: total };
+  // Part paid is less than the whole; the whole is Paid in full.
+  if (payment.amount >= total) throw businessRuleError("PAYMENT_PART_NOT_LESS", { amount: payment.amount, total });
+  return payment;
 }

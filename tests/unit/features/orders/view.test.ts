@@ -126,8 +126,9 @@ describe("balanceDue", () => {
     expect(balanceDue(owing("CANCELLED", "UNPAID", 30000, 0))).toBe(0);
   });
 
-  it("is nothing on an order marked paid, even with no payment recorded", () => {
-    expect(balanceDue(owing("DELIVERED", "PAID", 30000, 0))).toBe(0);
+  it("follows the payments, which are the truth, not the status (§139.11.9)", () => {
+    expect(balanceDue(owing("DELIVERED", "PAID", 30000, 30000))).toBe(0);
+    expect(balanceDue(owing("DELIVERED", "PAID", 30000, 0))).toBe(30000);
   });
 
   it("never goes below nothing", () => {

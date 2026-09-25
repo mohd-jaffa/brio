@@ -7,6 +7,7 @@ import { FormSheet } from "@/components/ui/form-sheet";
 import { useResponse } from "@/components/ui/response-card";
 import { optionsFrom, SelectField, TextField } from "@/components/ui/text-field";
 import { UI_TEXT } from "@/constants/messages";
+import { useRequestKeys } from "@/hooks/useRequestKeys";
 import { PAYMENT_METHOD_LABELS, PAYMENT_METHODS } from "@/constants/statuses";
 import { formatPaise } from "@/lib/format/currency";
 import { paiseToRupees } from "@/lib/money";
@@ -57,11 +58,13 @@ export function PaymentCollectionForm({
   });
 
   const respond = useResponse();
+  const keys = useRequestKeys();
   const { submit, submitting } = useApiMutation<PaymentFormPayload, Payment>(
-    (values) => PaymentsClient.createPayment(orderId, values),
+    (values) => PaymentsClient.createPayment(orderId, values, keys.keyFor(values)),
     {
       revalidate: [apiRoutes.orders.payments(orderId), apiRoutes.orders.detail(orderId)],
       onSuccess: (payment) => {
+        keys.settle();
         onPaymentSuccess();
         respond.success({
           title: UI_TEXT.outcomes.paymentRecorded,

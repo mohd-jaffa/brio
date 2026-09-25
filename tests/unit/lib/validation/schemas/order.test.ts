@@ -7,8 +7,51 @@ import {
   GUEST_CHOICE,
   orderFormSchema,
   orderListQuerySchema,
+  orderPaymentFormSchema,
+  orderPaymentSchema,
   updateOrderStatusSchema,
 } from "@/lib/validation/index";
+
+describe("payment when the order is placed (§139.11.9)", () => {
+  it("is unpaid, paid in full, or part paid with the amount", () => {
+    expect(orderPaymentSchema.parse({ status: "UNPAID", method: "CASH" })).toEqual({ status: "UNPAID" });
+    expect(orderPaymentSchema.parse({ status: "PAID", method: "UPI" })).toEqual({ status: "PAID", method: "UPI", reference: null });
+    expect(orderPaymentSchema.parse({ status: "PARTIALLY_PAID", amount: 50000, method: "CASH", reference: " R-1 " })).toEqual({
+      status: "PARTIALLY_PAID",
+      amount: 50000,
+      method: "CASH",
+      reference: "R-1",
+    });
+  });
+
+  it("asks part paid for its amount, and anything paid for its method", () => {
+    const part = orderPaymentSchema.safeParse({ status: "PARTIALLY_PAID", method: "CASH" });
+    expect(part.error?.issues[0]).toMatchObject({ path: ["amount"], message: VALIDATION_MESSAGES.amount("Amount paid") });
+    const paid = orderPaymentSchema.safeParse({ status: "PAID" });
+    expect(paid.error?.issues[0].message).toBe(VALIDATION_MESSAGES.chooseOne("payment method"));
+    expect(orderPaymentSchema.safeParse({ status: "PAID_LATER" }).error?.issues[0].message).toBe(
+      VALIDATION_MESSAGES.chooseOne("payment status"),
+    );
+  });
+
+  it("the form reads the part amount in rupees, and asks for it only when part paid", () => {
+    expect(orderPaymentFormSchema.parse({ status: "PARTIALLY_PAID", method: "UPI", reference: "", amount: "₹1,500" })).toEqual({
+      status: "PARTIALLY_PAID",
+      amount: 150000,
+      method: "UPI",
+      reference: null,
+    });
+    expect(orderPaymentFormSchema.parse({ status: "UNPAID", method: "UPI", reference: "", amount: "" })).toEqual({ status: "UNPAID" });
+    for (const [amount, message] of [
+      ["", VALIDATION_MESSAGES.required("Amount paid")],
+      ["0", VALIDATION_MESSAGES.moreThanZero("Amount paid")],
+      ["lots", VALIDATION_MESSAGES.amount("Amount paid")],
+    ]) {
+      const result = orderPaymentFormSchema.safeParse({ status: "PARTIALLY_PAID", method: "UPI", reference: "", amount });
+      expect(result.error?.issues[0]).toMatchObject({ path: ["amount"], message });
+    }
+  });
+});
 
 const UUID = "3f2504e0-4f89-11d3-9a0c-0305e82c3301";
 const OTHER_UUID = "9f1c8a52-3d66-4a1e-8b0a-6d1f0f3a2b77";
@@ -102,7 +145,7 @@ describe("order", () => {
       items: [{ productId: OTHER_UUID, quantity: 1, notes: "" }],
       adjustments: [{ type: "CHARGE", name: "Delivery", amount: "40" }],
       delivery: { type: "DELIVERY", date: "2026-09-23T10:00", address: "12 Lane", googleMapsLink: "" },
-      payment: { status: "UNPAID", reference: "" },
+      payment: { status: "UNPAID", method: "CASH", reference: "" },
       notes: "",
     });
 
@@ -118,7 +161,7 @@ describe("order", () => {
       items: [{ productId: OTHER_UUID, quantity: 1, notes: "" }],
       adjustments: [],
       delivery: { type: "PICKUP", date: "2026-09-23T10:00", address: "", googleMapsLink: "" },
-      payment: { status: "UNPAID", reference: "" },
+      payment: { status: "UNPAID", method: "CASH", reference: "" },
       notes: "",
     });
     expect(parsed.customer).toEqual({ kind: "GUEST" });

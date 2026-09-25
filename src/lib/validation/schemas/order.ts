@@ -95,6 +95,55 @@ export const orderCustomerSchema = z.discriminatedUnion(
   { error: VALIDATION_MESSAGES.chooseOne("customer") },
 );
 
+const paymentMethod = z.enum(PAYMENT_METHODS, { error: VALIDATION_MESSAGES.chooseOne("payment method") });
+
+/**
+ * What was paid when the order was placed (plan §139.11.9). Paid in full or
+ * part paid records a payment; part paid says how much. The payment status
+ * after that is derived from the payments, never chosen.
+ */
+export const orderPaymentSchema = z.discriminatedUnion(
+  "status",
+  [
+    z.object({ status: z.literal("UNPAID") }),
+    z.object({ status: z.literal("PAID"), method: paymentMethod, reference: optionalLine("Payment reference", 120) }),
+    z.object({
+      status: z.literal("PARTIALLY_PAID"),
+      amount: paiseAmount("Amount paid"),
+      method: paymentMethod,
+      reference: optionalLine("Payment reference", 120),
+    }),
+  ],
+  { error: VALIDATION_MESSAGES.chooseOne("payment status") },
+);
+
+/**
+ * The payment as a form holds it: the amount typed in rupees, asked for only
+ * when part paid, and the method kept even while Unpaid is chosen.
+ */
+export const orderPaymentFormSchema = z
+  .object({
+    status: z.enum(PAYMENT_STATUSES),
+    method: paymentMethod,
+    reference: optionalLine("Payment reference", 120),
+    amount: z.string().optional(),
+  })
+  .transform((payment, ctx): z.output<typeof orderPaymentSchema> => {
+    const { status, method, reference } = payment;
+    if (status === "UNPAID") return { status };
+    if (status === "PAID") return { status, method, reference };
+    const amount = paiseText("Amount paid").safeParse(payment.amount ?? "");
+    if (!amount.success) {
+      ctx.addIssue({ code: "custom", message: amount.error.issues[0].message, path: ["amount"] });
+      return z.NEVER;
+    }
+    if (amount.data === 0) {
+      ctx.addIssue({ code: "custom", message: VALIDATION_MESSAGES.moreThanZero("Amount paid"), path: ["amount"] });
+      return z.NEVER;
+    }
+    return { status, amount: amount.data, method, reference };
+  });
+
 /** What `GET /api/orders?customer=` accepts: `guest`, or one customer's id. */
 export const orderListQuerySchema = z.object({
   customer: z.union([z.literal("guest"), z.string().uuid()]).optional(),
@@ -117,11 +166,7 @@ export const createOrderSchema = z.object({
     googleMapsLink: optionalUrl("Google Maps link"),
   }),
 
-  payment: z.object({
-    status: z.enum(PAYMENT_STATUSES),
-    method: z.enum(PAYMENT_METHODS).optional(),
-    reference: optionalLine("Payment reference", 120),
-  }),
+  payment: orderPaymentSchema,
 
   notes: optionalLines("Order notes", 1000),
 });
@@ -181,11 +226,7 @@ export const orderFormSchema = z.object({
     address: optionalLines("Delivery address", 500),
     googleMapsLink: optionalUrl("Google Maps link"),
   }),
-  payment: z.object({
-    status: z.enum(PAYMENT_STATUSES),
-    method: z.enum(PAYMENT_METHODS).optional(),
-    reference: optionalLine("Payment reference", 120),
-  }),
+  payment: orderPaymentFormSchema,
   notes: optionalLines("Order notes", 1000),
 }).transform(({ customerId, ...order }) => ({
   ...order,
@@ -195,4 +236,6 @@ export const orderFormSchema = z.object({
 export type OrderFormValues = z.input<typeof orderFormSchema>;
 export type OrderFormPayload = z.output<typeof orderFormSchema>;
 export type OrderCustomer = z.output<typeof orderCustomerSchema>;
+export type OrderPayment = z.output<typeof orderPaymentSchema>;
+export type OrderPaymentFormValues = z.input<typeof orderPaymentFormSchema>;
 export type OrderListQuery = z.output<typeof orderListQuerySchema>;

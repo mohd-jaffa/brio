@@ -32,6 +32,23 @@ const POSTGRES_ERRORS: Record<string, { kind: ErrorKind; code: ErrorMessageCode 
   PGRST301: { kind: "AUTHENTICATION", code: "AUTH_SESSION_INVALID" },
 };
 
+/**
+ * What a refusal the app raised itself says in its DETAIL — the stock that is
+ * short, say — as an object the client can use. Only ever read for a P0001
+ * with a catalogue hint, which is the app's own words, never the driver's.
+ */
+function raisedDetails(err: PostgrestError): Record<string, unknown> | undefined {
+  if (!err.details) return undefined;
+  try {
+    const parsed: unknown = JSON.parse(err.details);
+    return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>)
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /** supabase-js turns a request that never reached the server into a codeless error. */
 function isNetworkFailure(err: PostgrestError): boolean {
   return (
@@ -39,6 +56,13 @@ function isNetworkFailure(err: PostgrestError): boolean {
     /failed to fetch|network request failed|networkerror|load failed|fetch failed/i.test(err.message ?? "")
   );
 }
+
+/** The refusals the database raises for a business rule (0015, 0016): 422. */
+const BUSINESS_RULES: ReadonlySet<ErrorMessageCode> = new Set<ErrorMessageCode>([
+  "ORDER_INSUFFICIENT_STOCK",
+  "ORDER_STATUS_TRANSITION_INVALID",
+  "PAYMENT_EXCEEDS_BALANCE",
+]);
 
 /**
  * The kind a catalogue code belongs to, by its naming convention. Also used
@@ -48,7 +72,8 @@ export function kindOf(code: ErrorMessageCode): ErrorKind {
   if (code === "AUTH_SESSION_REQUIRED" || code === "AUTH_SESSION_INVALID") return "AUTHENTICATION";
   if (code === "AUTH_ROLE_FORBIDDEN") return "AUTHORIZATION";
   if (code === "NOT_FOUND" || code === "RECORD_NOT_FOUND") return "NOT_FOUND";
-  if (/^CONFLICT$|_ALREADY_EXISTS$/.test(code)) return "CONFLICT";
+  if (/^CONFLICT$|_ALREADY_EXISTS$|_CHANGED$/.test(code)) return "CONFLICT";
+  if (BUSINESS_RULES.has(code)) return "BUSINESS_RULE";
   if (code === "EXTERNAL_SERVICE_ERROR" || code === "MAIL_PROVIDER_NOT_CONFIGURED") return "EXTERNAL_SERVICE";
   if (code === "INTERNAL_ERROR" || code === "CONFIG_INVALID") return "INTERNAL";
   return "VALIDATION";
@@ -58,7 +83,7 @@ export function fromPostgrestError(err: PostgrestError): AppError {
   // A refusal raised through RAISE ... USING HINT carries its catalogue code in
   // the hint; the app shows its own wording for it.
   if (err.code === "P0001" && isErrorMessageCode(err.hint)) {
-    return new AppError({ kind: kindOf(err.hint), code: err.hint, cause: err });
+    return new AppError({ kind: kindOf(err.hint), code: err.hint, details: raisedDetails(err), cause: err });
   }
 
   const mapped = POSTGRES_ERRORS[err.code];

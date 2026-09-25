@@ -23,7 +23,7 @@ function draft(overrides: Partial<CreateOrderPayload> = {}): CreateOrderPayload 
     items: [{ productId: CAKE, quantity: 2, notes: "Happy birthday, Anu" }],
     adjustments: [],
     delivery: { type: "PICKUP", date: "2026-09-26T10:00:00.000Z", address: null, googleMapsLink: null },
-    payment: { status: "UNPAID", reference: null },
+    payment: { status: "UNPAID" },
     notes: null,
     ...overrides,
   };
@@ -106,6 +106,24 @@ describe("priceDraft", () => {
     await expect(
       priceDraft(tenantOf({}), draft({ adjustments: [{ type: "DISCOUNT", name: "Too much", amount: 300_000 }] })),
     ).rejects.toMatchObject({ code: "ORDER_TOTAL_NEGATIVE", kind: "BUSINESS_RULE" });
+  });
+
+  it("takes the whole total as paid in full, and part paid as typed (§139.11.9)", async () => {
+    const paid = await priceDraft(tenantOf({}), draft({ payment: { status: "PAID", method: "UPI", reference: "U-1" } }));
+    expect(paid.payment).toEqual({ status: "PAID", amount: 250_000, method: "UPI", reference: "U-1" });
+
+    const part = await priceDraft(tenantOf({}), draft({ payment: { status: "PARTIALLY_PAID", amount: 50_000, method: "CASH", reference: null } }));
+    expect(part.payment).toEqual({ status: "PARTIALLY_PAID", amount: 50_000, method: "CASH", reference: null });
+
+    expect((await priceDraft(tenantOf({}), draft())).payment).toEqual({ status: "UNPAID" });
+  });
+
+  it("refuses a part payment that is the whole total or more", async () => {
+    for (const amount of [250_000, 250_001]) {
+      await expect(
+        priceDraft(tenantOf({}), draft({ payment: { status: "PARTIALLY_PAID", amount, method: "CASH", reference: null } })),
+      ).rejects.toMatchObject({ code: "PAYMENT_PART_NOT_LESS", kind: "BUSINESS_RULE" });
+    }
   });
 
   it("refuses a total that would not fit its column (BUG-12)", async () => {

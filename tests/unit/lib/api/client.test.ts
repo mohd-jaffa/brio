@@ -7,6 +7,7 @@ import {
   getJson,
   patchJson,
   postFile,
+  postOnce,
   postJson,
   resetSessionRefresh,
 } from '@/lib/api/client';
@@ -191,6 +192,28 @@ describe('the JSON verbs', () => {
     mockFetchSuccess([{ id: 'c-1' }]);
 
     await expect(getJson('/api/customers')).resolves.toEqual([{ id: 'c-1' }]);
+  });
+
+  it('postOnce sends the idempotency key beside the JSON body', async () => {
+    mockFetchSuccess({ id: 'o-1' });
+
+    await postOnce('/api/orders', { items: [] }, 'k-1');
+    expect(mockFetch).toHaveBeenCalledWith('/api/orders', {
+      method: 'POST',
+      body: JSON.stringify({ items: [] }),
+      headers: { 'Content-Type': 'application/json', 'Idempotency-Key': 'k-1' },
+    });
+  });
+
+  it('keeps what a refusal names, such as the stock that is short', async () => {
+    const details = { shortfalls: [{ name: 'Brownie', available: 2 }] };
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 422,
+      json: async () => ({ error: { code: 'ORDER_INSUFFICIENT_STOCK', message: 'Short', requestId: 'req_2', details } }),
+    });
+
+    await expect(postJson('/api/orders', {})).rejects.toMatchObject({ code: 'ORDER_INSUFFICIENT_STOCK', details });
   });
 
   it('keeps the request id a failure was reported under', async () => {

@@ -5,6 +5,7 @@ export interface Payment {
   amount: number;
   payment_method: string;
   reference: string | null;
+  idempotency_key: string | null;
   paid_at: string;
   created_at: string;
 }
@@ -14,4 +15,5 @@ export interface CreatePaymentDTO {
   amount: number;
   payment_method: string;
   reference?: string | null;
+  idempotency_key: string;
 }

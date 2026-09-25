@@ -4,10 +4,9 @@ import { type CreatePaymentPayload } from "@/lib/validation";
 import { logActionSafe } from "@/lib/audit/auditLog";
 import { JOB_TYPES } from "@/constants/jobs";
 import { createJob } from "@/lib/jobs/queue";
-import { findOrderById, updateOrder } from "@/features/orders/api";
+import { findOrderById } from "@/features/orders/api";
 import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
 import { conflictError } from "@/lib/errors";
-import { sumPaise } from "@/lib/money";
 
 export async function createPaymentRecord(tenant: Tenant, data: CreatePaymentDTO): Promise<Payment> {
   const { supabase: client, bakeryId } = tenant;
@@ -19,6 +18,7 @@ export async function createPaymentRecord(tenant: Tenant, data: CreatePaymentDTO
       amount: data.amount,
       payment_method: data.payment_method,
       reference: data.reference,
+      idempotency_key: data.idempotency_key,
     })
     .select()
     .single();
@@ -40,32 +40,54 @@ export async function findPaymentsByOrderId(tenant: Tenant, orderId: string): Pr
   return data;
 }
 
-export async function processPayment(tenant: Tenant, input: CreatePaymentPayload): Promise<Payment> {
-  const orderData = await findOrderById(tenant, input.order_id);
-  const order = orderData.order;
-  // Already whole paise: the form converted the rupees a baker typed, and the
-  // schema carries paise (AGENTS.md §13). Converting again stored 100× the amount.
-  const amountPaise = input.amount;
+/** The payment this business already recorded under a key, if any. */
+async function findPaymentByKey(tenant: Tenant, idempotencyKey: string): Promise<Payment | null> {
+  const { supabase: client, bakeryId } = tenant;
+  const { data, error } = await client
+    .from("payments")
+    .select("*")
+    .eq("bakery_id", bakeryId)
+    .eq("idempotency_key", idempotencyKey)
+    .maybeSingle();
+  if (error) throw fromPostgrestError(error);
+  return data;
+}
 
-  const existingPayments = await findPaymentsByOrderId(tenant, input.order_id);
-  const totalPaid = sumPaise(existingPayments.map((payment) => payment.amount));
+/**
+ * Records a payment against an order (plan §139.11.9). The database does the
+ * rest in the same statement (0015_create_order.sql): a payment that would
+ * take the order past its total is refused, with the order locked so two at
+ * once are counted in turn, and the order's payment status is derived from its
+ * payments — never set by hand (BUG-06).
+ *
+ * `idempotencyKey` makes a repeat harmless: the same key returns the payment
+ * the first request recorded, and records nothing more (§133.3 C2).
+ */
+export async function processPayment(
+  tenant: Tenant,
+  input: CreatePaymentPayload,
+  idempotencyKey: string,
+): Promise<Payment> {
+  // Read through this business's records: another's order is not found.
+  const { order } = await findOrderById(tenant, input.order_id);
 
-  if (totalPaid + amountPaise > order.total) {
-    throw conflictError("CONFLICT", { reason: "payment_exceeds_order_total" });
-  }
+  const repeat = await findPaymentByKey(tenant, idempotencyKey);
+  if (repeat) return sameOrder(repeat, order.id);
 
-  const payment = await createPaymentRecord(tenant, {
-    order_id: input.order_id,
-    amount: amountPaise,
-    payment_method: input.payment_method,
-    reference: input.reference,
-  });
-
-  const newTotalPaid = totalPaid + amountPaise;
-  const newPaymentStatus = newTotalPaid >= order.total ? "PAID" : "PARTIALLY_PAID";
-
-  if (order.payment_status !== newPaymentStatus) {
-    await updateOrder(tenant, order.id, { payment_status: newPaymentStatus });
+  let payment: Payment;
+  try {
+    payment = await createPaymentRecord(tenant, {
+      order_id: order.id,
+      amount: input.amount,
+      payment_method: input.payment_method,
+      reference: input.reference,
+      idempotency_key: idempotencyKey,
+    });
+  } catch (error) {
+    // The same key sent twice at once: the other request recorded it first.
+    const recorded = await findPaymentByKey(tenant, idempotencyKey);
+    if (recorded) return sameOrder(recorded, order.id);
+    throw error;
   }
 
   await logActionSafe(tenant, {
@@ -87,5 +109,11 @@ export async function processPayment(tenant: Tenant, input: CreatePaymentPayload
     }
   });
 
+  return payment;
+}
+
+/** A key names one payment on one order; reused for another order, it is refused. */
+function sameOrder(payment: Payment, orderId: string): Payment {
+  if (payment.order_id !== orderId) throw conflictError("CONFLICT", { reason: "idempotency_key_reused" });
   return payment;
 }

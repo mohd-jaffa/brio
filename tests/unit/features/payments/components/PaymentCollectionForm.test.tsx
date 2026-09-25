@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -54,6 +54,7 @@ describe("PaymentCollectionForm", () => {
       amount: 50000,
       payment_method: "UPI",
       reference: null,
+      idempotency_key: "k-1",
       paid_at: "2026-09-22T00:00:00Z",
       created_at: "2026-09-22T00:00:00Z",
     });
@@ -65,13 +66,28 @@ describe("PaymentCollectionForm", () => {
     await userEvent.click(screen.getByRole("button", { name: "Record Payment" }));
 
     await waitFor(() =>
-      expect(PaymentsClient.createPayment).toHaveBeenCalledWith("o-1", {
-        amount: 50000,
-        payment_method: "UPI",
-        reference: null,
-      }),
+      expect(PaymentsClient.createPayment).toHaveBeenCalledWith(
+        "o-1",
+        { amount: 50000, payment_method: "UPI", reference: null },
+        expect.stringMatching(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/),
+      ),
     );
     expect(props.onPaymentSuccess).toHaveBeenCalledOnce();
+  });
+
+  it("sends Try again with the same key, so a payment that did land is not recorded twice (§133.3 C2)", async () => {
+    vi.mocked(PaymentsClient.createPayment).mockRejectedValue(new ApiError(503, "EXTERNAL_SERVICE_ERROR", "Offline"));
+    open();
+
+    const record = screen.getByRole("button", { name: "Record Payment" });
+    await userEvent.click(record);
+    const card = await screen.findByRole("alertdialog");
+    await userEvent.click(within(card).getByRole("button", { name: "Close" }));
+    await userEvent.click(record);
+
+    await waitFor(() => expect(PaymentsClient.createPayment).toHaveBeenCalledTimes(2));
+    const [first, second] = vi.mocked(PaymentsClient.createPayment).mock.calls;
+    expect(second[2]).toBe(first[2]);
   });
 
   it("refuses an amount that is not an amount", async () => {

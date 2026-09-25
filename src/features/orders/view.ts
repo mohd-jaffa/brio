@@ -66,11 +66,10 @@ export function byDueDate(orders: readonly Order[], open: boolean): Order[] {
 
 /**
  * What is still owed on an order, in whole paise: its total less what has been
- * paid. A cancelled order owes nothing. An order marked paid owes nothing even
- * with no payment behind it, because orders placed as paid record none yet
- * (plan §139.14 BUG-02) — counting them would invent debts.
+ * paid. The payments are the truth (plan §139.11.9): an order placed as paid
+ * records its payment (0015_create_order.sql). A cancelled order owes nothing.
  */
 export function balanceDue(order: Order): number {
-  if (order.status === "CANCELLED" || order.payment.status === "PAID") return 0;
+  if (order.status === "CANCELLED") return 0;
   return Math.max(0, order.pricing.total - order.payment.paid);
 }

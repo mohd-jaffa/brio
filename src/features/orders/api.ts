@@ -53,60 +53,6 @@ export async function findOrderById(tenant: Tenant, id: string): Promise<{
 }
 
 /**
- * Inserts a new order row.
- */
-export async function insertOrder(
-  tenant: Tenant,
-  payload: Omit<OrderRow, "id" | "bakery_id" | "created_at" | "updated_at">
-): Promise<OrderRow> {
-  const { supabase: client, bakeryId } = tenant;
-  const { data, error } = await client
-    .from("orders")
-    .insert({ ...payload, bakery_id: bakeryId })
-    .select()
-    .single();
-
-  if (error) throw fromPostgrestError(error);
-  return data as OrderRow;
-}
-
-/**
- * Inserts order items array.
- */
-export async function insertOrderItems(
-  tenant: Tenant,
-  items: Omit<OrderItemRow, "id" | "created_at">[]
-): Promise<OrderItemRow[]> {
-  const { supabase: client } = tenant;
-  if (items.length === 0) return [];
-  const { data, error } = await client
-    .from("order_items")
-    .insert(items)
-    .select();
-
-  if (error) throw fromPostgrestError(error);
-  return data as OrderItemRow[];
-}
-
-/**
- * Inserts order adjustments array.
- */
-export async function insertOrderAdjustments(
-  tenant: Tenant,
-  adjustments: Omit<OrderAdjustmentRow, "id" | "created_at">[]
-): Promise<OrderAdjustmentRow[]> {
-  const { supabase: client } = tenant;
-  if (adjustments.length === 0) return [];
-  const { data, error } = await client
-    .from("order_adjustments")
-    .insert(adjustments)
-    .select();
-
-  if (error) throw fromPostgrestError(error);
-  return data as OrderAdjustmentRow[];
-}
-
-/**
  * Updates an order status / payment status safely using pickColumns and requireRow.
  */
 export async function updateOrder(
@@ -154,32 +100,6 @@ export async function moveOrderStatus(
   if (error) throw fromPostgrestError(error);
   if (data === null) throw conflictError("ORDER_STATUS_CHANGED", { from, to });
   return data as OrderRow;
-}
-
-/**
- * Performs hard delete of an order (for rollback or dev cleanup).
- */
-export async function deleteOrderHard(tenant: Tenant, id: string): Promise<void> {
-  const { supabase: client } = tenant;
-  const { error } = await client.from("orders").delete().eq("id", id);
-  if (error) throw fromPostgrestError(error);
-}
-
-/**
- * Generates next sequential order number.
- */
-export async function generateOrderNumber(tenant: Tenant): Promise<string> {
-  const { supabase: client, bakeryId } = tenant;
-  const { count, error } = await client
-    .from("orders")
-    .select("*", { count: "exact", head: true })
-    .eq("bakery_id", bakeryId);
-
-  if (error) throw fromPostgrestError(error);
-  
-  const baseNumber = (count ?? 0) + 1;
-  const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-  return `#${baseNumber}-${randomSuffix}`;
 }
 
 /**

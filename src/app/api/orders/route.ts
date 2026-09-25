@@ -2,6 +2,7 @@ import { createOrder } from "@/features/orders/checkout";
 import { getAllOrders } from "@/features/orders/queries";
 import { withBakeryRoute } from "@/features/auth/guard";
 import { readJson } from "@/lib/api/handler";
+import { readIdempotencyKey } from "@/lib/api/idempotency";
 import { createOrderSchema, orderListQuerySchema } from "@/lib/validation";
 
 export const runtime = "nodejs";
@@ -17,7 +18,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   return withBakeryRoute(
     request,
-    async (tenant) => createOrder(tenant, await readJson(request, createOrderSchema)),
+    async (tenant) => createOrder(tenant, await readJson(request, createOrderSchema), readIdempotencyKey(request)),
     { successStatus: 201 },
   );
 }

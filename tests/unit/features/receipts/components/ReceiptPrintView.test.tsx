@@ -35,6 +35,7 @@ const receipt: ReceiptData = {
       amount: 94000,
       payment_method: "UPI",
       reference: "UPI-991",
+      idempotency_key: null,
       paid_at: "2026-09-22T10:00:00Z",
       created_at: "2026-09-22T10:00:00Z",
     },

@@ -54,10 +54,14 @@ export const ERROR_MESSAGES = {
   ORDER_STATUS_UPDATE_FAILED: "Could not update this order. Please try again.",
   ORDER_TOTAL_TOO_LARGE: "An order can come to at most ₹1,00,00,000. Split it into smaller orders.",
   ORDER_TOTAL_NEGATIVE: "The discounts come to more than the order. Lower a discount and try again.",
+  ORDER_INSUFFICIENT_STOCK: "There isn’t enough stock for this order.",
   ORDER_PRODUCT_UNAVAILABLE: "One of these products is no longer available. Remove it and try again.",
   ORDER_STATUS_TRANSITION_INVALID: "This order can’t move to that status from where it is now.",
   ORDER_STATUS_CHANGED: "This order was just changed somewhere else. Refresh to see where it is now.",
   PAYMENT_FAILED: "Could not record this payment. Please try again.",
+  PAYMENT_EXCEEDS_BALANCE: "That is more than is still owed on this order.",
+  PAYMENT_PART_NOT_LESS: "A part payment must be less than the total. Choose Paid in full instead.",
+  IDEMPOTENCY_KEY_REQUIRED: "This request could not be checked for repeats. Please try again.",
   STOCK_UPDATE_FAILED: "Could not update stock. Please try again.",
 } as const;
 

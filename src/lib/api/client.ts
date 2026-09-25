@@ -18,6 +18,8 @@ export class ApiError extends Error {
     readonly code: ErrorMessageCode | "UNKNOWN_ERROR",
     message: string,
     readonly requestId?: string,
+    /** What the refusal names, when it names something — the stock that is short. */
+    readonly details?: unknown,
   ) {
     super(message);
     this.name = "ApiError";
@@ -27,7 +29,7 @@ export class ApiError extends Error {
 interface ApiEnvelope<T> {
   success?: boolean;
   data?: T;
-  error?: { code?: ErrorMessageCode; message?: string; requestId?: string };
+  error?: { code?: ErrorMessageCode; message?: string; requestId?: string; details?: unknown };
 }
 
 const REFRESH_ROUTE = "/api/auth/refresh";
@@ -76,18 +78,25 @@ export async function fetcher<T>(url: string, init?: RequestInit): Promise<T> {
       body.error?.code ?? "UNKNOWN_ERROR",
       body.error?.message ?? ERROR_MESSAGES.INTERNAL_ERROR,
       body.error?.requestId,
+      body.error?.details,
     );
   }
 
   return body.data as T;
 }
 
+/** Sent with a write that must happen once however often it is sent (§133.3 C2). */
+export const IDEMPOTENCY_HEADER = "Idempotency-Key";
+
 const send = <T>(method: string) =>
-  (url: string, payload?: unknown): Promise<T> =>
-    fetcher<T>(url, { method, body: payload === undefined ? undefined : JSON.stringify(payload) });
+  (url: string, payload?: unknown, headers?: Record<string, string>): Promise<T> =>
+    fetcher<T>(url, { method, headers, body: payload === undefined ? undefined : JSON.stringify(payload) });
 
 export const getJson = <T>(url: string) => fetcher<T>(url);
 export const postJson = <T>(url: string, payload?: unknown) => send<T>("POST")(url, payload);
+/** A POST that the server makes once per key: a repeat returns what the first made. */
+export const postOnce = <T>(url: string, payload: unknown, idempotencyKey: string) =>
+  send<T>("POST")(url, payload, { [IDEMPOTENCY_HEADER]: idempotencyKey });
 export const patchJson = <T>(url: string, payload?: unknown) => send<T>("PATCH")(url, payload);
 export const deleteJson = <T>(url: string) => send<T>("DELETE")(url);
 

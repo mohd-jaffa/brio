@@ -125,29 +125,32 @@ begin
   -- 5. Orders. One of each state the screens have to draw: delivered and
   --    paid, in progress, part-paid, overdue, and cancelled.
   -- ----------------------------------------------------------
+  --    Each takes its number, ORD-1001 onwards, from the business's counter
+  --    as it is inserted (0015), in the order listed. The payment status is
+  --    derived from the payments in step 8.
   insert into public.orders (
-    id, bakery_id, customer_id, order_number, status, payment_status, payment_method, payment_reference,
+    id, bakery_id, customer_id, status, payment_method, payment_reference,
     subtotal, discount, delivery_charge, tax, total,
     delivery_type, delivery_date, delivery_address, notes, created_at
   )
   values
-    (v_order_1, v_bakery_id, v_cust_anu,   '#1001', 'DELIVERED',   'PAID',           'UPI',  'UPI987654321',
+    (v_order_1, v_bakery_id, v_cust_anu,   'DELIVERED',   'UPI',  'UPI987654321',
      120000, 0, 5000, 0, 125000,
      'DELIVERY', now() - interval '1 day',  'Flat 302, Sunrise Apartments, M.G. Road', 'Birthday cake — "Happy Birthday Anu" on top', now() - interval '3 days'),
 
-    (v_order_2, v_bakery_id, v_cust_rahul, '#1002', 'IN_PROGRESS', 'UNPAID',         null,   null,
+    (v_order_2, v_bakery_id, v_cust_rahul, 'IN_PROGRESS', null,   null,
      45000, 5000, 0, 0, 40000,
      'PICKUP',   now() + interval '1 day',  null, 'Regular customer discount', now()),
 
-    (v_order_3, v_bakery_id, v_cust_meena, '#1003', 'PENDING',     'PARTIALLY_PAID', 'CASH', null,
+    (v_order_3, v_bakery_id, v_cust_meena, 'PENDING',     'CASH', null,
      101000, 0, 5000, 0, 106000,
      'DELIVERY', now(),                     'Block B-404, Green Park', 'Half paid on booking', now()),
 
-    (v_order_4, v_bakery_id, v_cust_farida,'#1004', 'PENDING',     'UNPAID',         null,   null,
+    (v_order_4, v_bakery_id, v_cust_farida,'PENDING',     null,   null,
      95000, 0, 0, 0, 95000,
      'PICKUP',   now() - interval '3 days', null, 'Café order — chase this one', now() - interval '6 days'),
 
-    (v_order_5, v_bakery_id, v_cust_anu,   '#1005', 'CANCELLED',   'UNPAID',         null,   null,
+    (v_order_5, v_bakery_id, v_cust_anu,   'CANCELLED',   null,   null,
      50000, 0, 0, 0, 50000,
      'DELIVERY', now() - interval '2 days', 'Flat 302, Sunrise Apartments, M.G. Road', 'Cancelled by customer', now() - interval '4 days')
   on conflict (id) do nothing;

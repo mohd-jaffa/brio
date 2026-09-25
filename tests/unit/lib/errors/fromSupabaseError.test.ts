@@ -18,6 +18,10 @@ describe("kindOf", () => {
     ["EXTERNAL_SERVICE_ERROR", "EXTERNAL_SERVICE"],
     ["INTERNAL_ERROR", "INTERNAL"],
     ["VALIDATION_ERROR", "VALIDATION"],
+    ["ORDER_STATUS_CHANGED", "CONFLICT"],
+    ["ORDER_INSUFFICIENT_STOCK", "BUSINESS_RULE"],
+    ["ORDER_STATUS_TRANSITION_INVALID", "BUSINESS_RULE"],
+    ["PAYMENT_EXCEEDS_BALANCE", "BUSINESS_RULE"],
   ] as const)("reads %s as %s", (code, kind) => {
     expect(kindOf(code)).toBe(kind);
   });
@@ -44,6 +48,26 @@ describe("fromPostgrestError", () => {
     );
     expect(error.code).toBe("AUTH_ACCOUNT_INACTIVE");
     expect(error.message).toBe(ERROR_MESSAGES.AUTH_ACCOUNT_INACTIVE);
+  });
+
+  it("keeps what a refusal the app raised names in its detail, such as the stock that is short", () => {
+    const error = fromPostgrestError(
+      postgrest({
+        code: "P0001",
+        hint: "ORDER_INSUFFICIENT_STOCK",
+        message: "not enough stock",
+        details: '{"shortfalls": [{"name": "Brownie", "available": 2}]}',
+      }),
+    );
+    expect(error.httpStatus).toBe(422);
+    expect(error.details).toEqual({ shortfalls: [{ name: "Brownie", available: 2 }] });
+  });
+
+  it("keeps no detail that is not the app's own object", () => {
+    for (const details of ["", "Key (id)=(1) already exists.", "[1,2]", "null"]) {
+      expect(fromPostgrestError(postgrest({ code: "P0001", hint: "VALIDATION_ERROR", details })).details).toBeUndefined();
+    }
+    expect(fromPostgrestError(postgrest({ code: "23505", details: '{"a":1}' })).details).toBeUndefined();
   });
 
   it("reads a request that never reached the server as a network failure", () => {
