@@ -245,6 +245,16 @@
 
   /* The phone's bottom navigation, without its inset. */
   --nav-height: 4.25rem;
+
+  /* What a floating notice clears at the foot of a phone's screen: the
+     bottom navigation where the screen has one, nothing where it does not
+     (the signed-out screens). The notice is drawn above every route, outside
+     the shell, so it cannot inherit this from the shell itself. */
+  --bottom-bar-offset: 0px;
+}
+
+:root:has([data-bottom-nav]) {
+  --bottom-bar-offset: var(--nav-height);
 }
 
 /* These are deliberately unlayered, so they win over a padding utility —

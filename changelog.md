@@ -1233,3 +1233,7 @@ Each row is committed on its own; this entry grows with them.
 - **R2.9 — no theme switch on the signed-out screens** (Q15 on its default: none, the stored choice is honoured).
   - Checked on sign in, register, forgot password and confirm email: no stored choice or Golden gives Golden, Peach gives Peach, and a stored `clean` reads as Golden (R1.3). No switch is drawn.
   - Nothing to build. Appearance lives in Settings (R5.11), which a signed-out visitor cannot reach.
+- **Fixed: on the signed-out screens, a notice floated over the primary button.** Found while running the phase's exit journey.
+  - After registering, "Account created" appeared on the sign-in screen 68 px above where §139.6 puts it, leaving room for a bottom navigation that screen does not have, and sat over the Sign in button.
+  - A notice now clears the navigation only where there is one. `--bottom-bar-offset` is the navigation's height when the page has a `[data-bottom-nav]` (`:root:has(…)`), and 0 otherwise. The notice is drawn above every route, outside the shell, so it could not have inherited it from the shell.
+  - Measured at 390 px with a 34 px home indicator: on sign in the offset is 0 and the notice rests at the foot (732–838 of 844); inside the app the notice ends at 734 and the navigation begins at 742.

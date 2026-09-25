@@ -51,6 +51,8 @@ describe("AppShell", () => {
   it("puts Home, Orders, Products, Customers and More on a phone's bottom bar", () => {
     shell();
     const [, bottom] = navs();
+    // What a floating notice clears on a phone, and only where there is one.
+    expect(bottom).toHaveAttribute("data-bottom-nav");
     const names = [
       ...within(bottom).getAllByRole("link").map((link) => link.textContent),
       ...within(bottom).getAllByRole("button").map((button) => button.textContent),

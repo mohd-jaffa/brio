@@ -362,7 +362,7 @@ function ResponseNotice({ card, onClose }: { card: Card; onClose: () => void }) 
       onPointerLeave={letGo}
       onFocus={hold}
       onBlur={letGo}
-      className="animate-response fixed inset-x-4 bottom-[calc(var(--nav-height)+var(--safe-bottom)+0.75rem)] z-50 mx-auto max-w-[420px] overflow-hidden rounded-2xl border border-border bg-surface shadow-elevated md:bottom-6"
+      className="animate-response fixed inset-x-4 bottom-[calc(var(--bottom-bar-offset)+var(--safe-bottom)+0.75rem)] z-50 mx-auto max-w-[420px] overflow-hidden rounded-2xl border border-border bg-surface shadow-elevated md:bottom-6"
     >
       <div className="flex items-start gap-3 p-4">
         <Medallion icon={icon} tone={tone} size="sm" />
