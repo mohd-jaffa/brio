@@ -26,6 +26,7 @@ export const apiRoutes = {
   },
   orders: {
     list: "/api/orders",
+    preview: "/api/orders/preview",
     detail: (id: string) => `/api/orders/${id}`,
     payments: (id: string) => `/api/orders/${id}/payments`,
     receipt: (id: string) => `/api/orders/${id}/receipt`,

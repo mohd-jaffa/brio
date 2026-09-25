@@ -1356,3 +1356,10 @@ this entry grows with them.
     - The worker writing them.
     - The payment's notification as facts, and a queue failure kept from failing the payment.
     - A contract for 0016, with the transition table checked against the app's for all 12 cases.
+- **R3.13 · §139.11.5 — `POST /api/orders/preview`, the estimate.**
+  - The body is parsed with the same `createOrderSchema` as creation and priced by the same `priceDraft`.
+  - Stock is checked with the same `stock_shortfalls` that `create_order` uses, without its locks. **Nothing is written.**
+  - `OrderEstimate` is the bill before the order exists: the customer or Guest, the priced lines, the adjustments, the server's totals, delivery, payment so far, the balance that would be due, the shortfalls (empty when there is stock for everything), and when it was issued. There is no order number. Internal notes are left out, because a bill never shows them (§139.11.6).
+  - `OrdersClient.preview` and `apiRoutes.orders.preview` are ready for R3.9 and the bill (R4.3).
+  - **Against the running app:** a draft for Anu Sharma (9 brownie boxes with a birthday note, a custom topper, ₹50 off, part paid ₹500) answered 200. It carried Anu's name and phone, the product's name and price from the database, the total ₹3,520, the balance ₹3,020, and `{ name: "Fudgy Brownie Box (4 pcs)", available: 5, requested: 9 }`. Orders, ledger lines, payments and the order counter were the same count before and after.
+  - **Tests:** the server's pricing with the payment so far and the balance; the internal notes never in it; stock checked for catalogue lines only, and not at all for an all-custom draft; a failed check in the app's words; and the client call.
