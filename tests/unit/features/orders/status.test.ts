@@ -24,6 +24,7 @@ vi.mock("@/lib/jobs/queue", () => ({ createJob: (...args: unknown[]) => createJo
 vi.mock("@/lib/audit/auditLog", () => ({ logActionSafe: vi.fn() }));
 
 import { updateOrderStatus } from "@/features/orders/status";
+import { tenantOf } from "@tests/support/tenant";
 
 const client = {} as SupabaseClient;
 
@@ -80,7 +81,7 @@ describe("updateOrderStatus", () => {
   it("refuses a move the table does not allow, and writes nothing", async () => {
     orderAt("DELIVERED");
 
-    await expect(updateOrderStatus(client, "b-1", "o-1", { status: "PENDING" })).rejects.toMatchObject({
+    await expect(updateOrderStatus(tenantOf(client), "o-1", { status: "PENDING" })).rejects.toMatchObject({
       code: "ORDER_STATUS_TRANSITION_INVALID",
       kind: "BUSINESS_RULE",
     });
@@ -91,25 +92,25 @@ describe("updateOrderStatus", () => {
 
   it("refuses out for delivery on a pickup order", async () => {
     orderAt("IN_PROGRESS", "PICKUP");
-    await expect(updateOrderStatus(client, "b-1", "o-1", { status: "IN_TRANSIT" })).rejects.toMatchObject({
+    await expect(updateOrderStatus(tenantOf(client), "o-1", { status: "IN_TRANSIT" })).rejects.toMatchObject({
       code: "ORDER_STATUS_TRANSITION_INVALID",
     });
   });
 
   it("moves the order only from where it was read", async () => {
     orderAt("PENDING");
-    await updateOrderStatus(client, "b-1", "o-1", { status: "IN_PROGRESS" });
-    expect(api.moveOrderStatus).toHaveBeenCalledWith(client, "b-1", "o-1", "PENDING", "IN_PROGRESS");
+    await updateOrderStatus(tenantOf(client), "o-1", { status: "IN_PROGRESS" });
+    expect(api.moveOrderStatus).toHaveBeenCalledWith(tenantOf(client), "o-1", "PENDING", "IN_PROGRESS");
     expect(logInventoryTransaction).not.toHaveBeenCalled();
     expect(createJob).toHaveBeenCalledOnce();
   });
 
   it("gives the stock back when an order is cancelled", async () => {
     orderAt("IN_PROGRESS");
-    await updateOrderStatus(client, "b-1", "o-1", { status: "CANCELLED" });
+    await updateOrderStatus(tenantOf(client), "o-1", { status: "CANCELLED" });
 
     expect(logInventoryTransaction).toHaveBeenCalledTimes(1);
-    expect(logInventoryTransaction).toHaveBeenCalledWith(client, "b-1", {
+    expect(logInventoryTransaction).toHaveBeenCalledWith(tenantOf(client), {
       productId: "p-cake",
       type: "ORDER_RESERVATION",
       quantity: 2,
@@ -120,9 +121,9 @@ describe("updateOrderStatus", () => {
 
   it("releases the reservation and posts consumption on delivery, in that order", async () => {
     orderAt("IN_TRANSIT");
-    await updateOrderStatus(client, "b-1", "o-1", { status: "DELIVERED" });
+    await updateOrderStatus(tenantOf(client), "o-1", { status: "DELIVERED" });
 
-    expect(logInventoryTransaction.mock.calls.map(([, , line]) => [line.type, line.quantity])).toEqual([
+    expect(logInventoryTransaction.mock.calls.map(([, line]) => [line.type, line.quantity])).toEqual([
       ["ORDER_RESERVATION", 2],
       ["ORDER_CONSUMPTION", -2],
     ]);
@@ -132,7 +133,7 @@ describe("updateOrderStatus", () => {
     orderAt("IN_TRANSIT");
     api.moveOrderStatus.mockRejectedValue(Object.assign(new Error("moved"), { code: "ORDER_STATUS_CHANGED" }));
 
-    await expect(updateOrderStatus(client, "b-1", "o-1", { status: "DELIVERED" })).rejects.toMatchObject({
+    await expect(updateOrderStatus(tenantOf(client), "o-1", { status: "DELIVERED" })).rejects.toMatchObject({
       code: "ORDER_STATUS_CHANGED",
     });
     expect(logInventoryTransaction).not.toHaveBeenCalled();
@@ -140,7 +141,7 @@ describe("updateOrderStatus", () => {
 
   it("treats asking for the status it already has as nothing to do", async () => {
     orderAt("PENDING");
-    await updateOrderStatus(client, "b-1", "o-1", { status: "PENDING" });
+    await updateOrderStatus(tenantOf(client), "o-1", { status: "PENDING" });
     expect(api.moveOrderStatus).not.toHaveBeenCalled();
     expect(logInventoryTransaction).not.toHaveBeenCalled();
     expect(createJob).not.toHaveBeenCalled();

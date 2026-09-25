@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Tenant } from "@/lib/supabase/tenant";
 
 import { EDITABLE_COLUMNS } from "@/constants/editableColumns";
 import { blankToNull, definedOnly } from "@/lib/supabase/columns";
@@ -8,8 +8,8 @@ import type { CreateProductPayload, UpdateProductPayload } from "@/lib/validatio
 import type { Product, ProductRow } from "./types";
 
 /** A bakery's products — the menu orders are built from (AGENTS.md §6). */
-const products = (client: SupabaseClient, bakeryId: string) =>
-  tenantRecords<ProductRow>(client, "products", bakeryId);
+const products = (tenant: Tenant) =>
+  tenantRecords<ProductRow>(tenant, "products");
 
 export function toProduct(row: ProductRow): Product {
   return {
@@ -38,33 +38,30 @@ function toColumns(input: UpdateProductPayload) {
   });
 }
 
-export async function getAllProducts(client: SupabaseClient, bakeryId: string): Promise<Product[]> {
-  const rows = await products(client, bakeryId).list([{ column: "name" }]);
+export async function getAllProducts(tenant: Tenant): Promise<Product[]> {
+  const rows = await products(tenant).list([{ column: "name" }]);
   return rows.map(toProduct);
 }
 
 export async function getProductById(
-  client: SupabaseClient,
-  bakeryId: string,
+  tenant: Tenant,
   id: string,
 ): Promise<Product> {
-  return toProduct(await products(client, bakeryId).find(id));
+  return toProduct(await products(tenant).find(id));
 }
 
 export async function createProduct(
-  client: SupabaseClient,
-  bakeryId: string,
+  tenant: Tenant,
   input: CreateProductPayload,
 ): Promise<Product> {
-  return toProduct(await products(client, bakeryId).insert(toColumns(input)));
+  return toProduct(await products(tenant).insert(toColumns(input)));
 }
 
 export async function updateProduct(
-  client: SupabaseClient,
-  bakeryId: string,
+  tenant: Tenant,
   id: string,
   input: UpdateProductPayload,
 ): Promise<Product> {
-  const row = await products(client, bakeryId).update(id, toColumns(input), EDITABLE_COLUMNS.products);
+  const row = await products(tenant).update(id, toColumns(input), EDITABLE_COLUMNS.products);
   return toProduct(row);
 }

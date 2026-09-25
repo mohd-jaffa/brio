@@ -1,10 +1,9 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import type { AuditAction } from "@/lib/audit/types";
 import { logActionSafe } from "@/lib/audit/auditLog";
 import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
 
 import { pickColumns } from "./columns";
+import type { Tenant } from "./tenant";
 import { requireRow } from "./writes";
 
 /**
@@ -16,7 +15,8 @@ import { requireRow } from "./writes";
  *   instead of them;
  * - every write asks for its row back, so a row RLS hides reads as a refusal
  *   and never as success (see requireRow);
- * - every mutation is audited with the row before and after it.
+ * - every mutation is audited with the row before and after it, and with who
+ *   made it (the tenant's actor, plan §133.7 G1).
  *
  * An UPDATE writes only the columns named in EDITABLE_COLUMNS for that table —
  * never a row read back, never a form's whole state.
@@ -38,17 +38,12 @@ export interface TenantRecords<Row extends { id: string }> {
   remove(id: string): Promise<Row>;
 }
 
-export function tenantRecords<Row extends { id: string }>(
-  client: SupabaseClient,
-  table: string,
-  bakeryId: string,
-): TenantRecords<Row> {
+export function tenantRecords<Row extends { id: string }>(tenant: Tenant, table: string): TenantRecords<Row> {
+  const { supabase: client, bakeryId } = tenant;
   const scoped = () => client.from(table).select("*").eq("bakery_id", bakeryId);
 
   const audit = (action: AuditAction, id: string, previous: unknown, next: unknown) =>
-    logActionSafe(client, {
-      bakery_id: bakeryId,
-      user_id: null,
+    logActionSafe(tenant, {
       action,
       entity_type: table,
       entity_id: id,

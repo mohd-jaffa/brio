@@ -1,17 +1,16 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Tenant } from "@/lib/supabase/tenant";
 
 import { findAllOrders, findOrderById, findOrderLines, findPaidByOrder } from "./api";
 import { mapToOrderModel } from "./mappers";
 import type { Order } from "./types";
 
 export async function getOrderById(
-  client: SupabaseClient,
-  bakeryId: string,
+  tenant: Tenant,
   id: string,
 ): Promise<Order> {
   const [{ order, items, adjustments }, paid] = await Promise.all([
-    findOrderById(client, bakeryId, id),
-    findPaidByOrder(client, bakeryId, [id]),
+    findOrderById(tenant, id),
+    findPaidByOrder(tenant, [id]),
   ]);
   return mapToOrderModel(order, items, adjustments, paid.get(id));
 }
@@ -23,12 +22,12 @@ export async function getOrderById(
  * order has, the analytics page adds them up, and the dashboard needs what is
  * still owed, all of which read zero when they are left off.
  */
-export async function getAllOrders(client: SupabaseClient, bakeryId: string): Promise<Order[]> {
-  const orders = await findAllOrders(client, bakeryId);
+export async function getAllOrders(tenant: Tenant): Promise<Order[]> {
+  const orders = await findAllOrders(tenant);
   const ids = orders.map((order) => order.id);
   const [{ items, adjustments }, paid] = await Promise.all([
-    findOrderLines(client, ids),
-    findPaidByOrder(client, bakeryId, ids),
+    findOrderLines(tenant, ids),
+    findPaidByOrder(tenant, ids),
   ]);
 
   return orders.map((order) =>

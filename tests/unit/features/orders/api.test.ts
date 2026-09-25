@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it } from "vitest";
 
 import { findPaidByOrder, moveOrderStatus } from "@/features/orders/api";
+import { tenantOf } from "@tests/support/tenant";
 
 /**
  * A query builder that records every filter it is given and answers with
@@ -27,7 +28,7 @@ function recordingClient(answer: { data: unknown; error: unknown }) {
 describe("moveOrderStatus", () => {
   it("changes the order only if it is still in the status it was read in", async () => {
     const { client, filters } = recordingClient({ data: { id: "o-1", status: "DELIVERED" }, error: null });
-    await expect(moveOrderStatus(client, "b-1", "o-1", "IN_TRANSIT", "DELIVERED")).resolves.toMatchObject({
+    await expect(moveOrderStatus(tenantOf(client), "o-1", "IN_TRANSIT", "DELIVERED")).resolves.toMatchObject({
       status: "DELIVERED",
     });
     expect(filters).toContainEqual(["status", "IN_TRANSIT"]);
@@ -36,7 +37,7 @@ describe("moveOrderStatus", () => {
 
   it("reports a conflict when the order had already moved", async () => {
     const { client } = recordingClient({ data: null, error: null });
-    await expect(moveOrderStatus(client, "b-1", "o-1", "IN_TRANSIT", "DELIVERED")).rejects.toMatchObject({
+    await expect(moveOrderStatus(tenantOf(client), "o-1", "IN_TRANSIT", "DELIVERED")).rejects.toMatchObject({
       code: "ORDER_STATUS_CHANGED",
       kind: "CONFLICT",
     });
@@ -53,7 +54,7 @@ describe("findPaidByOrder", () => {
       ],
       error: null,
     });
-    const paid = await findPaidByOrder(client, "b-1", ["a", "b", "c"]);
+    const paid = await findPaidByOrder(tenantOf(client), ["a", "b", "c"]);
     expect(paid.get("a")).toBe(75000);
     expect(paid.get("b")).toBe(10000);
     expect(paid.has("c")).toBe(false);
@@ -61,6 +62,6 @@ describe("findPaidByOrder", () => {
 
   it("asks nothing for an empty list", async () => {
     const client = { from: () => { throw new Error("should not query"); } } as unknown as SupabaseClient;
-    await expect(findPaidByOrder(client, "b-1", [])).resolves.toEqual(new Map());
+    await expect(findPaidByOrder(tenantOf(client), [])).resolves.toEqual(new Map());
   });
 });

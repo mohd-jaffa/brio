@@ -1,4 +1,4 @@
-import { type SupabaseClient } from "@supabase/supabase-js";
+import type { Tenant } from "@/lib/supabase/tenant";
 import { type Payment, type CreatePaymentDTO } from "./types";
 import { type CreatePaymentPayload } from "@/lib/validation";
 import { logActionSafe } from "@/lib/audit/auditLog";
@@ -8,7 +8,8 @@ import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
 import { conflictError } from "@/lib/errors";
 import { sumPaise } from "@/lib/money";
 
-export async function createPaymentRecord(client: SupabaseClient, bakeryId: string, data: CreatePaymentDTO): Promise<Payment> {
+export async function createPaymentRecord(tenant: Tenant, data: CreatePaymentDTO): Promise<Payment> {
+  const { supabase: client, bakeryId } = tenant;
   const { data: payment, error } = await client
     .from("payments")
     .insert({
@@ -25,7 +26,8 @@ export async function createPaymentRecord(client: SupabaseClient, bakeryId: stri
   return payment;
 }
 
-export async function findPaymentsByOrderId(client: SupabaseClient, bakeryId: string, orderId: string): Promise<Payment[]> {
+export async function findPaymentsByOrderId(tenant: Tenant, orderId: string): Promise<Payment[]> {
+  const { supabase: client, bakeryId } = tenant;
   const { data, error } = await client
     .from("payments")
     .select("*")
@@ -37,21 +39,21 @@ export async function findPaymentsByOrderId(client: SupabaseClient, bakeryId: st
   return data;
 }
 
-export async function processPayment(client: SupabaseClient, bakeryId: string, input: CreatePaymentPayload): Promise<Payment> {
-  const orderData = await findOrderById(client, bakeryId, input.order_id);
+export async function processPayment(tenant: Tenant, input: CreatePaymentPayload): Promise<Payment> {
+  const orderData = await findOrderById(tenant, input.order_id);
   const order = orderData.order;
   // Already whole paise: the form converted the rupees a baker typed, and the
   // schema carries paise (AGENTS.md §13). Converting again stored 100× the amount.
   const amountPaise = input.amount;
 
-  const existingPayments = await findPaymentsByOrderId(client, bakeryId, input.order_id);
+  const existingPayments = await findPaymentsByOrderId(tenant, input.order_id);
   const totalPaid = sumPaise(existingPayments.map((payment) => payment.amount));
 
   if (totalPaid + amountPaise > order.total) {
     throw conflictError("CONFLICT", { reason: "payment_exceeds_order_total" });
   }
 
-  const payment = await createPaymentRecord(client, bakeryId, {
+  const payment = await createPaymentRecord(tenant, {
     order_id: input.order_id,
     amount: amountPaise,
     payment_method: input.payment_method,
@@ -62,19 +64,17 @@ export async function processPayment(client: SupabaseClient, bakeryId: string, i
   const newPaymentStatus = newTotalPaid >= order.total ? "PAID" : "PARTIALLY_PAID";
 
   if (order.payment_status !== newPaymentStatus) {
-    await updateOrder(client, bakeryId, order.id, { payment_status: newPaymentStatus });
+    await updateOrder(tenant, order.id, { payment_status: newPaymentStatus });
   }
 
-  await logActionSafe(client, {
-    bakery_id: bakeryId,
-    user_id: null,
+  await logActionSafe(tenant, {
     action: "CREATE",
     entity_type: "payments",
     entity_id: payment.id,
     new_data: payment as unknown as Record<string, unknown>,
   });
 
-  await createJob(client, {
+  await createJob(tenant.supabase, {
     type: "SEND_PUSH_NOTIFICATION",
     payload: {
       token: "mock-token", 

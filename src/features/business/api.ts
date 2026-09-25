@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Tenant } from "@/lib/supabase/tenant";
 
 import { LOGO_BUCKET, type LogoMimeType } from "@/constants/uploads";
 import { logActionSafe } from "@/lib/audit/auditLog";
@@ -32,34 +32,33 @@ export function toBusinessProfile(row: BusinessRow): BusinessProfile {
   };
 }
 
-function findBusiness(client: SupabaseClient, bakeryId: string): Promise<BusinessRow> {
+function findBusiness(tenant: Tenant): Promise<BusinessRow> {
+  const { supabase: client, bakeryId } = tenant;
   return requireRow<BusinessRow>(
     client.from("bakeries").select(COLUMNS).eq("id", bakeryId).maybeSingle(),
     "RECORD_NOT_FOUND",
   );
 }
 
-const audit = (client: SupabaseClient, bakeryId: string, before: Partial<BusinessRow>, after: Partial<BusinessRow>) =>
-  logActionSafe(client, {
-    bakery_id: bakeryId,
-    user_id: null,
+const audit = (tenant: Tenant, before: Partial<BusinessRow>, after: Partial<BusinessRow>) =>
+  logActionSafe(tenant, {
     action: "UPDATE",
     entity_type: "bakeries",
-    entity_id: bakeryId,
+    entity_id: tenant.bakeryId,
     previous_data: before,
     new_data: after,
   });
 
-export async function getBusiness(client: SupabaseClient, bakeryId: string): Promise<BusinessProfile> {
-  return toBusinessProfile(await findBusiness(client, bakeryId));
+export async function getBusiness(tenant: Tenant): Promise<BusinessProfile> {
+  return toBusinessProfile(await findBusiness(tenant));
 }
 
 export async function updateBusiness(
-  client: SupabaseClient,
-  bakeryId: string,
+  tenant: Tenant,
   input: BusinessProfilePayload,
 ): Promise<BusinessProfile> {
-  const before = await findBusiness(client, bakeryId);
+  const { supabase: client } = tenant;
+  const before = await findBusiness(tenant);
   const after = await requireRow<BusinessRow>(
     client
       .rpc("update_business_profile", {
@@ -73,12 +72,13 @@ export async function updateBusiness(
       .maybeSingle(),
     "RECORD_NOT_FOUND",
   );
-  await audit(client, bakeryId, before, after);
+  await audit(tenant, before, after);
   return toBusinessProfile(after);
 }
 
 /** A file nothing refers to any more. Failing to remove one is logged, not fatal. */
-async function removeLogoFile(client: SupabaseClient, bakeryId: string, path: string) {
+async function removeLogoFile(tenant: Tenant, path: string) {
+  const { supabase: client, bakeryId } = tenant;
   const { error } = await client.storage.from(LOGO_BUCKET).remove([path]);
   if (error) {
     logger.warn("Logo file not removed", { bakeryId, logoId: logoVersion(path), reason: error.message });
@@ -93,10 +93,10 @@ async function removeLogoFile(client: SupabaseClient, bakeryId: string, path: st
  * no logo, or two. The size was already checked as the body was read.
  */
 export async function replaceLogo(
-  client: SupabaseClient,
-  bakeryId: string,
+  tenant: Tenant,
   file: Uint8Array,
 ): Promise<BusinessProfile> {
+  const { supabase: client, bakeryId } = tenant;
   const type = sniffLogoType(file);
   if (!type) throw validationError("LOGO_TYPE_NOT_ALLOWED");
 
@@ -108,26 +108,25 @@ export async function replaceLogo(
 
   const switched = await client.rpc("set_business_logo", { p_path: path, p_mime_type: type });
   if (switched.error) {
-    await removeLogoFile(client, bakeryId, path);
+    await removeLogoFile(tenant, path);
     throw fromPostgrestError(switched.error);
   }
 
   const previous = switched.data as string | null;
-  if (previous) await removeLogoFile(client, bakeryId, previous);
-  await audit(client, bakeryId, { logo_path: previous }, { logo_path: path, logo_mime_type: type });
+  if (previous) await removeLogoFile(tenant, previous);
+  await audit(tenant, { logo_path: previous }, { logo_path: path, logo_mime_type: type });
 
-  return getBusiness(client, bakeryId);
+  return getBusiness(tenant);
 }
 
 /** The current logo's bytes, for /api/business/logo to answer with. */
 export async function readLogo(
-  client: SupabaseClient,
-  bakeryId: string,
+  tenant: Tenant,
 ): Promise<{ file: Blob; type: LogoMimeType; version: string }> {
-  const row = await findBusiness(client, bakeryId);
+  const row = await findBusiness(tenant);
   if (!row.logo_path || !row.logo_mime_type) throw notFoundError();
 
-  const { data, error } = await client.storage.from(LOGO_BUCKET).download(row.logo_path);
+  const { data, error } = await tenant.supabase.storage.from(LOGO_BUCKET).download(row.logo_path);
   if (error || !data) throw externalServiceError("EXTERNAL_SERVICE_ERROR", undefined, error);
   return { file: data, type: row.logo_mime_type, version: logoVersion(row.logo_path) };
 }

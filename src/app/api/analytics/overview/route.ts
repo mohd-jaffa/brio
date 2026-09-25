@@ -4,5 +4,5 @@ import { withBakeryRoute } from "@/features/auth/guard";
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  return withBakeryRoute(request, ({ supabase, bakeryId }) => getOverview(supabase, bakeryId));
+  return withBakeryRoute(request, (tenant) => getOverview(tenant));
 }

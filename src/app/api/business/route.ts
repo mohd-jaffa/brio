@@ -6,11 +6,11 @@ import { businessProfileSchema } from "@/lib/validation";
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  return withBakeryRoute(request, ({ supabase, bakeryId }) => getBusiness(supabase, bakeryId));
+  return withBakeryRoute(request, (tenant) => getBusiness(tenant));
 }
 
 export async function PATCH(request: Request) {
-  return withBakeryRoute(request, async ({ supabase, bakeryId }) =>
-    updateBusiness(supabase, bakeryId, await readJson(request, businessProfileSchema)),
+  return withBakeryRoute(request, async (tenant) =>
+    updateBusiness(tenant, await readJson(request, businessProfileSchema)),
   );
 }

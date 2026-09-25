@@ -1,60 +1,31 @@
-import { type SupabaseClient } from "@supabase/supabase-js";
-import { type CreateAuditLogDTO, type AuditLog } from "./types";
-import { internalError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
+import { createSupabaseServiceRoleClient } from "@/lib/supabase/server";
+import type { Tenant } from "@/lib/supabase/tenant";
 
-export async function createAuditLog(
-  client: SupabaseClient, 
-  payload: CreateAuditLogDTO
-): Promise<AuditLog> {
-  const { data, error } = await client
+import type { AuditEntry } from "./types";
+
+/**
+ * Records a business mutation (AGENTS.md §11), with who made it (plan §133.7
+ * G1). The trail is written by the server only (BUG-20): a signed-in user may
+ * read their business's audit rows but not insert one, so the row goes in
+ * through the service role, with the business and the acting user taken from
+ * the tenant the route built from the session — never from the entry.
+ *
+ * A failure is logged and swallowed: the change it describes has already
+ * happened, and refusing it now would report a failure that did not occur.
+ */
+export async function logActionSafe(tenant: Tenant, entry: AuditEntry): Promise<void> {
+  const { error } = await createSupabaseServiceRoleClient()
     .from("audit_logs")
-    .insert(payload)
-    .select()
-    .single();
+    .insert({ ...entry, bakery_id: tenant.bakeryId, user_id: tenant.actorId });
 
   if (error) {
-    throw internalError("INTERNAL_ERROR", error);
-  }
-
-  return data;
-}
-
-export async function getAuditLogsByEntity(
-  client: SupabaseClient, 
-  bakeryId: string, 
-  entityType: string, 
-  entityId: string
-): Promise<AuditLog[]> {
-  const { data, error } = await client
-    .from("audit_logs")
-    .select("*")
-    .eq("bakery_id", bakeryId)
-    .eq("entity_type", entityType)
-    .eq("entity_id", entityId)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    throw internalError("INTERNAL_ERROR", error);
-  }
-
-  return data;
-}
-
-export async function logActionSafe(
-  client: SupabaseClient, 
-  payload: CreateAuditLogDTO
-): Promise<void> {
-  try {
-    await createAuditLog(client, payload);
-  } catch (error) {
-    // We log the error but don't fail the primary business mutation
-    logger.error("Failed to write audit log", { 
-      bakeryId: payload.bakery_id,
-      action: payload.action,
-      entityType: payload.entity_type,
-      entityId: payload.entity_id,
-      error: String(error)
+    logger.error("Failed to write audit log", {
+      bakeryId: tenant.bakeryId,
+      action: entry.action,
+      entityType: entry.entity_type,
+      entityId: entry.entity_id,
+      code: error.code,
     });
   }
 }

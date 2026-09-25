@@ -7,13 +7,13 @@ import { updateCustomerSchema } from "@/lib/validation";
 export const runtime = "nodejs";
 
 export async function GET(request: Request, { params }: RouteParams<"id">) {
-  return withBakeryRoute(request, async ({ supabase, bakeryId }) =>
-    getCustomerById(supabase, bakeryId, (await params).id),
+  return withBakeryRoute(request, async (tenant) =>
+    getCustomerById(tenant, (await params).id),
   );
 }
 
 export async function PATCH(request: Request, { params }: RouteParams<"id">) {
-  return withBakeryRoute(request, async ({ supabase, bakeryId }) =>
-    updateCustomer(supabase, bakeryId, (await params).id, await readJson(request, updateCustomerSchema)),
+  return withBakeryRoute(request, async (tenant) =>
+    updateCustomer(tenant, (await params).id, await readJson(request, updateCustomerSchema)),
   );
 }

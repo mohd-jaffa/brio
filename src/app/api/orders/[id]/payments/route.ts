@@ -7,18 +7,18 @@ import { createPaymentSchema } from "@/lib/validation";
 export const runtime = "nodejs";
 
 export async function GET(request: Request, { params }: RouteParams<"id">) {
-  return withBakeryRoute(request, async ({ supabase, bakeryId }) =>
-    findPaymentsByOrderId(supabase, bakeryId, (await params).id),
+  return withBakeryRoute(request, async (tenant) =>
+    findPaymentsByOrderId(tenant, (await params).id),
   );
 }
 
 export async function POST(request: Request, { params }: RouteParams<"id">) {
   return withBakeryRoute(
     request,
-    async ({ supabase, bakeryId }) => {
+    async (tenant) => {
       // The order the payment belongs to comes from the path, never the body.
       const body = { ...((await readJson(request)) as object), order_id: (await params).id };
-      return processPayment(supabase, bakeryId, createPaymentSchema.parse(body));
+      return processPayment(tenant, createPaymentSchema.parse(body));
     },
     { successStatus: 201 },
   );

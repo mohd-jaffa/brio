@@ -1,4 +1,4 @@
-import { type SupabaseClient } from "@supabase/supabase-js";
+import type { Tenant } from "@/lib/supabase/tenant";
 
 export interface AnalyticsOverview {
   totalRevenue: number;
@@ -7,7 +7,8 @@ export interface AnalyticsOverview {
   pendingPayments: number;
 }
 
-export async function getOverview(client: SupabaseClient, bakeryId: string): Promise<AnalyticsOverview> {
+export async function getOverview(tenant: Tenant): Promise<AnalyticsOverview> {
+  const { supabase: client, bakeryId } = tenant;
   const [ordersResult, expensesResult, paymentsResult] = await Promise.all([
     client
       .from("orders")

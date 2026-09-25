@@ -1,4 +1,4 @@
-import { type SupabaseClient } from "@supabase/supabase-js";
+import type { Tenant } from "@/lib/supabase/tenant";
 import { type OrderRow, type OrderItemRow, type OrderAdjustmentRow } from "./types";
 import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
 import { requireRow } from "@/lib/supabase/writes";
@@ -9,7 +9,8 @@ import { conflictError } from "@/lib/errors";
 /**
  * Reads all orders for a tenant sorted by created_at descending.
  */
-export async function findAllOrders(client: SupabaseClient, bakeryId: string): Promise<OrderRow[]> {
+export async function findAllOrders(tenant: Tenant): Promise<OrderRow[]> {
+  const { supabase: client, bakeryId } = tenant;
   const { data, error } = await client
     .from("orders")
     .select("*")
@@ -23,11 +24,12 @@ export async function findAllOrders(client: SupabaseClient, bakeryId: string): P
 /**
  * Reads an order by id with items and adjustments.
  */
-export async function findOrderById(client: SupabaseClient, bakeryId: string, id: string): Promise<{
+export async function findOrderById(tenant: Tenant, id: string): Promise<{
   order: OrderRow;
   items: OrderItemRow[];
   adjustments: OrderAdjustmentRow[];
 }> {
+  const { supabase: client, bakeryId } = tenant;
   const order = await requireRow<OrderRow>(
     client.from("orders").select("*").eq("bakery_id", bakeryId).eq("id", id).maybeSingle(),
     "RECORD_NOT_FOUND",
@@ -52,10 +54,10 @@ export async function findOrderById(client: SupabaseClient, bakeryId: string, id
  * Inserts a new order row.
  */
 export async function insertOrder(
-  client: SupabaseClient, 
-  bakeryId: string, 
+  tenant: Tenant,
   payload: Omit<OrderRow, "id" | "bakery_id" | "created_at" | "updated_at">
 ): Promise<OrderRow> {
+  const { supabase: client, bakeryId } = tenant;
   const { data, error } = await client
     .from("orders")
     .insert({ ...payload, bakery_id: bakeryId })
@@ -70,9 +72,10 @@ export async function insertOrder(
  * Inserts order items array.
  */
 export async function insertOrderItems(
-  client: SupabaseClient, 
+  tenant: Tenant,
   items: Omit<OrderItemRow, "id" | "created_at">[]
 ): Promise<OrderItemRow[]> {
+  const { supabase: client } = tenant;
   if (items.length === 0) return [];
   const { data, error } = await client
     .from("order_items")
@@ -87,9 +90,10 @@ export async function insertOrderItems(
  * Inserts order adjustments array.
  */
 export async function insertOrderAdjustments(
-  client: SupabaseClient, 
+  tenant: Tenant,
   adjustments: Omit<OrderAdjustmentRow, "id" | "created_at">[]
 ): Promise<OrderAdjustmentRow[]> {
+  const { supabase: client } = tenant;
   if (adjustments.length === 0) return [];
   const { data, error } = await client
     .from("order_adjustments")
@@ -104,11 +108,11 @@ export async function insertOrderAdjustments(
  * Updates an order status / payment status safely using pickColumns and requireRow.
  */
 export async function updateOrder(
-  client: SupabaseClient,
-  bakeryId: string,
+  tenant: Tenant,
   id: string,
   payload: Partial<Pick<OrderRow, "status" | "payment_status">>
 ): Promise<OrderRow> {
+  const { supabase: client, bakeryId } = tenant;
   const patch = pickColumns(payload, EDITABLE_COLUMNS.orders);
 
   return requireRow<OrderRow>(
@@ -130,12 +134,12 @@ export async function updateOrder(
  * follows a move is never posted twice.
  */
 export async function moveOrderStatus(
-  client: SupabaseClient,
-  bakeryId: string,
+  tenant: Tenant,
   id: string,
   from: OrderRow["status"],
   to: OrderRow["status"],
 ): Promise<OrderRow> {
+  const { supabase: client, bakeryId } = tenant;
   const { data, error } = await client
     .from("orders")
     .update({ status: to })
@@ -153,7 +157,8 @@ export async function moveOrderStatus(
 /**
  * Performs hard delete of an order (for rollback or dev cleanup).
  */
-export async function deleteOrderHard(client: SupabaseClient, id: string): Promise<void> {
+export async function deleteOrderHard(tenant: Tenant, id: string): Promise<void> {
+  const { supabase: client } = tenant;
   const { error } = await client.from("orders").delete().eq("id", id);
   if (error) throw fromPostgrestError(error);
 }
@@ -161,7 +166,8 @@ export async function deleteOrderHard(client: SupabaseClient, id: string): Promi
 /**
  * Generates next sequential order number.
  */
-export async function generateOrderNumber(client: SupabaseClient, bakeryId: string): Promise<string> {
+export async function generateOrderNumber(tenant: Tenant): Promise<string> {
+  const { supabase: client, bakeryId } = tenant;
   const { count, error } = await client
     .from("orders")
     .select("*", { count: "exact", head: true })
@@ -179,10 +185,10 @@ export async function generateOrderNumber(client: SupabaseClient, bakeryId: stri
  * for the whole list; an order with no payments is simply absent from the map.
  */
 export async function findPaidByOrder(
-  client: SupabaseClient,
-  bakeryId: string,
+  tenant: Tenant,
   orderIds: readonly string[],
 ): Promise<Map<string, number>> {
+  const { supabase: client, bakeryId } = tenant;
   const paid = new Map<string, number>();
   if (orderIds.length === 0) return paid;
 
@@ -201,9 +207,10 @@ export async function findPaidByOrder(
 
 /** The items and adjustments of several orders at once, for a list view. */
 export async function findOrderLines(
-  client: SupabaseClient,
+  tenant: Tenant,
   orderIds: readonly string[],
 ): Promise<{ items: OrderItemRow[]; adjustments: OrderAdjustmentRow[] }> {
+  const { supabase: client } = tenant;
   if (orderIds.length === 0) return { items: [], adjustments: [] };
 
   const [itemsResponse, adjustmentsResponse] = await Promise.all([

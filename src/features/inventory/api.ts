@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Tenant } from "@/lib/supabase/tenant";
 
 import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
 import { definedOnly } from "@/lib/supabase/columns";
@@ -12,8 +12,8 @@ import type { InventoryBalance, InventoryTransaction, InventoryTransactionRow } 
  * movement is appended, and a balance is the sum of a product's movements, so
  * two things happening at once cannot lose one of them.
  */
-const ledger = (client: SupabaseClient, bakeryId: string) =>
-  tenantRecords<InventoryTransactionRow>(client, "inventory_transactions", bakeryId);
+const ledger = (tenant: Tenant) =>
+  tenantRecords<InventoryTransactionRow>(tenant, "inventory_transactions");
 
 export function toTransaction(row: InventoryTransactionRow): InventoryTransaction {
   return {
@@ -28,11 +28,10 @@ export function toTransaction(row: InventoryTransactionRow): InventoryTransactio
 }
 
 export async function logInventoryTransaction(
-  client: SupabaseClient,
-  bakeryId: string,
+  tenant: Tenant,
   input: LogInventoryTransactionPayload,
 ): Promise<InventoryTransaction> {
-  const row = await ledger(client, bakeryId).insert(
+  const row = await ledger(tenant).insert(
     definedOnly({
       product_id: input.productId,
       type: input.type,
@@ -46,10 +45,10 @@ export async function logInventoryTransaction(
 
 /** What is in stock now, per product: the sum of its ledger lines. */
 export async function getInventoryBalances(
-  client: SupabaseClient,
-  bakeryId: string,
+  tenant: Tenant,
   productIds?: string[],
 ): Promise<InventoryBalance[]> {
+  const { supabase: client, bakeryId } = tenant;
   let query = client
     .from("inventory_transactions")
     .select("product_id, quantity")

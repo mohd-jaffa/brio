@@ -8,13 +8,13 @@ import { updateOrderStatusSchema } from "@/lib/validation";
 export const runtime = "nodejs";
 
 export async function GET(request: Request, { params }: RouteParams<"id">) {
-  return withBakeryRoute(request, async ({ supabase, bakeryId }) =>
-    getOrderById(supabase, bakeryId, (await params).id),
+  return withBakeryRoute(request, async (tenant) =>
+    getOrderById(tenant, (await params).id),
   );
 }
 
 export async function PATCH(request: Request, { params }: RouteParams<"id">) {
-  return withBakeryRoute(request, async ({ supabase, bakeryId }) =>
-    updateOrderStatus(supabase, bakeryId, (await params).id, await readJson(request, updateOrderStatusSchema)),
+  return withBakeryRoute(request, async (tenant) =>
+    updateOrderStatus(tenant, (await params).id, await readJson(request, updateOrderStatusSchema)),
   );
 }

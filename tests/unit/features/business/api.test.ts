@@ -9,6 +9,7 @@ const warn = vi.fn();
 vi.mock("@/lib/logger", () => ({ logger: { info: vi.fn(), warn: (...args: unknown[]) => warn(...args), error: vi.fn() } }));
 
 import { getBusiness, readLogo, replaceLogo, toBusinessProfile, updateBusiness } from "@/features/business/api";
+import { tenantOf } from "@tests/support/tenant";
 
 const BAKERY = "b1c2d3e4-f5a6-4890-abcd-ef1234567890";
 const OLD_LOGO = `bakeries/${BAKERY}/logo/11111111-1111-4111-8111-111111111111`;
@@ -111,13 +112,13 @@ describe("toBusinessProfile", () => {
 describe("getBusiness", () => {
   it("reads the caller's own business", async () => {
     const { client, calls } = fakeClient();
-    await expect(getBusiness(client, BAKERY)).resolves.toMatchObject({ id: BAKERY, name: "Sweet Delights", city: "Pune" });
+    await expect(getBusiness(tenantOf(client, { bakeryId: BAKERY }))).resolves.toMatchObject({ id: BAKERY, name: "Sweet Delights", city: "Pune" });
     expect(calls[0]).toEqual(["select", "bakeries", "id", BAKERY, expect.stringContaining("logo_path")]);
   });
 
   it("reads a business RLS hides as not found", async () => {
     const { client } = fakeClient({ rows: [] });
-    await expect(getBusiness(client, BAKERY)).rejects.toMatchObject({ code: "RECORD_NOT_FOUND" });
+    await expect(getBusiness(tenantOf(client, { bakeryId: BAKERY }))).rejects.toMatchObject({ code: "RECORD_NOT_FOUND" });
   });
 });
 
@@ -128,15 +129,15 @@ describe("updateBusiness", () => {
     const after = row({ tagline: "Baked fresh" });
     const { client, calls } = fakeClient({ rpc: { update_business_profile: ok(after) } });
 
-    await expect(updateBusiness(client, BAKERY, input)).resolves.toMatchObject({ tagline: "Baked fresh" });
+    await expect(updateBusiness(tenantOf(client, { bakeryId: BAKERY }), input)).resolves.toMatchObject({ tagline: "Baked fresh" });
     expect(calls).toContainEqual([
       "rpc",
       "update_business_profile",
       { p_business_name: "Sweet Delights", p_tagline: "Baked fresh", p_city: "Pune", p_address: "12 MG Road", p_phone: "+919876543210" },
     ]);
-    expect(logActionSafe).toHaveBeenCalledWith(client, expect.objectContaining({
-      bakery_id: BAKERY,
+    expect(logActionSafe).toHaveBeenCalledWith(tenantOf(client, { bakeryId: BAKERY }), expect.objectContaining({
       action: "UPDATE",
+      entity_id: BAKERY,
       entity_type: "bakeries",
       previous_data: row(),
       new_data: after,
@@ -147,7 +148,7 @@ describe("updateBusiness", () => {
     const { client } = fakeClient({
       rpc: { update_business_profile: failed({ code: "P0001", hint: "RECORD_NOT_FOUND", message: "no business for this caller" }) },
     });
-    await expect(updateBusiness(client, BAKERY, input)).rejects.toMatchObject({ code: "RECORD_NOT_FOUND" });
+    await expect(updateBusiness(tenantOf(client, { bakeryId: BAKERY }), input)).rejects.toMatchObject({ code: "RECORD_NOT_FOUND" });
     expect(logActionSafe).not.toHaveBeenCalled();
   });
 });
@@ -155,7 +156,7 @@ describe("updateBusiness", () => {
 describe("replaceLogo", () => {
   it("refuses a file that is not an image before anything is stored", async () => {
     const { client, calls } = fakeClient();
-    await expect(replaceLogo(client, BAKERY, new TextEncoder().encode("<script>"))).rejects.toMatchObject({
+    await expect(replaceLogo(tenantOf(client, { bakeryId: BAKERY }), new TextEncoder().encode("<script>"))).rejects.toMatchObject({
       code: "LOGO_TYPE_NOT_ALLOWED",
       httpStatus: 400,
     });
@@ -168,7 +169,7 @@ describe("replaceLogo", () => {
       rpc: { set_business_logo: ok(OLD_LOGO) },
     });
 
-    const profile = await replaceLogo(client, BAKERY, PNG);
+    const profile = await replaceLogo(tenantOf(client, { bakeryId: BAKERY }), PNG);
     const stored = uploadedPath(calls);
 
     expect(stored).toMatch(new RegExp(`^bakeries/${BAKERY}/logo/[0-9a-f-]{36}$`));
@@ -177,7 +178,7 @@ describe("replaceLogo", () => {
     expect(calls[1]).toEqual(["rpc", "set_business_logo", { p_path: stored, p_mime_type: "image/png" }]);
     expect(calls[2]).toEqual(["remove", "business-logos", OLD_LOGO]);
     expect(profile.logoUrl).toMatch(/^\/api\/business\/logo\?v=/);
-    expect(logActionSafe).toHaveBeenCalledWith(client, expect.objectContaining({
+    expect(logActionSafe).toHaveBeenCalledWith(tenantOf(client, { bakeryId: BAKERY }), expect.objectContaining({
       previous_data: { logo_path: OLD_LOGO },
       new_data: { logo_path: stored, logo_mime_type: "image/png" },
     }));
@@ -185,13 +186,13 @@ describe("replaceLogo", () => {
 
   it("deletes nothing when there was no logo before", async () => {
     const { client, calls } = fakeClient({ rpc: { set_business_logo: ok(null) } });
-    await replaceLogo(client, BAKERY, PNG);
+    await replaceLogo(tenantOf(client, { bakeryId: BAKERY }), PNG);
     expect(calls.some(([kind]) => kind === "remove")).toBe(false);
   });
 
   it("changes nothing when the file cannot be stored", async () => {
     const { client, calls } = fakeClient({ upload: failed({ message: "The object exceeded the maximum allowed size" }) });
-    await expect(replaceLogo(client, BAKERY, PNG)).rejects.toMatchObject({ code: "UPLOAD_FAILED", kind: "EXTERNAL_SERVICE" });
+    await expect(replaceLogo(tenantOf(client, { bakeryId: BAKERY }), PNG)).rejects.toMatchObject({ code: "UPLOAD_FAILED", kind: "EXTERNAL_SERVICE" });
     expect(calls.map(([kind]) => kind)).toEqual(["upload"]);
   });
 
@@ -199,7 +200,7 @@ describe("replaceLogo", () => {
     const { client, calls } = fakeClient({
       rpc: { set_business_logo: failed({ code: "P0001", hint: "RECORD_NOT_FOUND", message: "no business" }) },
     });
-    await expect(replaceLogo(client, BAKERY, PNG)).rejects.toMatchObject({ code: "RECORD_NOT_FOUND" });
+    await expect(replaceLogo(tenantOf(client, { bakeryId: BAKERY }), PNG)).rejects.toMatchObject({ code: "RECORD_NOT_FOUND" });
     expect(calls.map(([kind]) => kind)).toEqual(["upload", "rpc", "remove"]);
     expect(calls[2]).toEqual(["remove", "business-logos", uploadedPath(calls)]);
     expect(logActionSafe).not.toHaveBeenCalled();
@@ -207,7 +208,7 @@ describe("replaceLogo", () => {
 
   it("keeps the new logo when the old file will not delete, and says so in the log", async () => {
     const { client } = fakeClient({ rpc: { set_business_logo: ok(OLD_LOGO) }, remove: failed({ message: "storage down" }) });
-    await expect(replaceLogo(client, BAKERY, PNG)).resolves.toBeDefined();
+    await expect(replaceLogo(tenantOf(client, { bakeryId: BAKERY }), PNG)).resolves.toBeDefined();
     expect(warn).toHaveBeenCalledWith("Logo file not removed", {
       bakeryId: BAKERY,
       logoId: "11111111-1111-4111-8111-111111111111",
@@ -219,13 +220,13 @@ describe("replaceLogo", () => {
 describe("readLogo", () => {
   it("answers not found when the business has no logo", async () => {
     const { client, calls } = fakeClient();
-    await expect(readLogo(client, BAKERY)).rejects.toMatchObject({ code: "NOT_FOUND", httpStatus: 404 });
+    await expect(readLogo(tenantOf(client, { bakeryId: BAKERY }))).rejects.toMatchObject({ code: "NOT_FOUND", httpStatus: 404 });
     expect(calls.some(([kind]) => kind === "download")).toBe(false);
   });
 
   it("reads the current file, with its type and version", async () => {
     const { client, calls } = fakeClient({ rows: [row({ logo_path: OLD_LOGO, logo_mime_type: "image/png" })] });
-    await expect(readLogo(client, BAKERY)).resolves.toMatchObject({
+    await expect(readLogo(tenantOf(client, { bakeryId: BAKERY }))).resolves.toMatchObject({
       type: "image/png",
       version: "11111111-1111-4111-8111-111111111111",
     });
@@ -237,6 +238,6 @@ describe("readLogo", () => {
       rows: [row({ logo_path: OLD_LOGO, logo_mime_type: "image/png" })],
       download: failed({ message: "Object not found" }),
     });
-    await expect(readLogo(client, BAKERY)).rejects.toMatchObject({ code: "EXTERNAL_SERVICE_ERROR", kind: "EXTERNAL_SERVICE" });
+    await expect(readLogo(tenantOf(client, { bakeryId: BAKERY }))).rejects.toMatchObject({ code: "EXTERNAL_SERVICE_ERROR", kind: "EXTERNAL_SERVICE" });
   });
 });

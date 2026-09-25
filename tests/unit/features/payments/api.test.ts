@@ -13,6 +13,7 @@ vi.mock("@/lib/audit/auditLog", () => ({ logActionSafe: vi.fn() }));
 vi.mock("@/lib/jobs/queue", () => ({ createJob: vi.fn() }));
 
 import { processPayment } from "@/features/payments/api";
+import { tenantOf } from "@tests/support/tenant";
 
 const ORDER_ID = "7c1f3a52-9d7e-4b1a-8a51-0f1d2c3b4a5e";
 
@@ -84,7 +85,7 @@ describe("processPayment", () => {
     findOrderById.mockResolvedValue({ order: orderRow(150000), items: [], adjustments: [] });
     const { client, inserted } = fakeClient([]);
 
-    await processPayment(client, "b-1", {
+    await processPayment(tenantOf(client), {
       order_id: ORDER_ID,
       amount: 50000, // ₹500
       payment_method: "UPI",
@@ -100,14 +101,14 @@ describe("processPayment", () => {
     const { client } = fakeClient([]);
 
     await expect(
-      processPayment(client, "b-1", {
+      processPayment(tenantOf(client), {
         order_id: ORDER_ID,
         amount: 100000,
         payment_method: "CASH",
         reference: null,
       }),
     ).resolves.toMatchObject({ amount: 100000 });
-    expect(updateOrder).toHaveBeenCalledWith(client, "b-1", ORDER_ID, {
+    expect(updateOrder).toHaveBeenCalledWith(tenantOf(client), ORDER_ID, {
       payment_status: "PARTIALLY_PAID",
     });
   });
@@ -120,14 +121,14 @@ describe("processPayment", () => {
     });
     const { client } = fakeClient([100000]);
 
-    await processPayment(client, "b-1", {
+    await processPayment(tenantOf(client), {
       order_id: ORDER_ID,
       amount: 50000,
       payment_method: "UPI",
       reference: "UPI-1",
     });
 
-    expect(updateOrder).toHaveBeenCalledWith(client, "b-1", ORDER_ID, { payment_status: "PAID" });
+    expect(updateOrder).toHaveBeenCalledWith(tenantOf(client), ORDER_ID, { payment_status: "PAID" });
   });
 
   it("refuses a payment that would take the order past its total, and records nothing", async () => {
@@ -135,7 +136,7 @@ describe("processPayment", () => {
     const { client, inserted } = fakeClient([100000]);
 
     await expect(
-      processPayment(client, "b-1", {
+      processPayment(tenantOf(client), {
         order_id: ORDER_ID,
         amount: 50001,
         payment_method: "CASH",
@@ -154,7 +155,7 @@ describe("processPayment", () => {
     });
     const { client } = fakeClient([10000]);
 
-    await processPayment(client, "b-1", {
+    await processPayment(tenantOf(client), {
       order_id: ORDER_ID,
       amount: 10000,
       payment_method: "CASH",

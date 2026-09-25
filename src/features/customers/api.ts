@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Tenant } from "@/lib/supabase/tenant";
 
 import { EDITABLE_COLUMNS } from "@/constants/editableColumns";
 import { blankToNull, definedOnly } from "@/lib/supabase/columns";
@@ -15,8 +15,8 @@ import type { Customer, CustomerRow } from "./types";
  * The input these take has already been parsed by its schema at the route
  * boundary, so the server is authoritative and nothing is parsed twice.
  */
-const customers = (client: SupabaseClient, bakeryId: string) =>
-  tenantRecords<CustomerRow>(client, "customers", bakeryId);
+const customers = (tenant: Tenant) =>
+  tenantRecords<CustomerRow>(tenant, "customers");
 
 export function toCustomer(row: CustomerRow): Customer {
   return {
@@ -44,33 +44,30 @@ function toColumns(input: UpdateCustomerPayload) {
   });
 }
 
-export async function getAllCustomers(client: SupabaseClient, bakeryId: string): Promise<Customer[]> {
-  const rows = await customers(client, bakeryId).list([{ column: "name" }]);
+export async function getAllCustomers(tenant: Tenant): Promise<Customer[]> {
+  const rows = await customers(tenant).list([{ column: "name" }]);
   return rows.map(toCustomer);
 }
 
 export async function getCustomerById(
-  client: SupabaseClient,
-  bakeryId: string,
+  tenant: Tenant,
   id: string,
 ): Promise<Customer> {
-  return toCustomer(await customers(client, bakeryId).find(id));
+  return toCustomer(await customers(tenant).find(id));
 }
 
 export async function createCustomer(
-  client: SupabaseClient,
-  bakeryId: string,
+  tenant: Tenant,
   input: CreateCustomerPayload,
 ): Promise<Customer> {
-  return toCustomer(await customers(client, bakeryId).insert(toColumns(input)));
+  return toCustomer(await customers(tenant).insert(toColumns(input)));
 }
 
 export async function updateCustomer(
-  client: SupabaseClient,
-  bakeryId: string,
+  tenant: Tenant,
   id: string,
   input: UpdateCustomerPayload,
 ): Promise<Customer> {
-  const row = await customers(client, bakeryId).update(id, toColumns(input), EDITABLE_COLUMNS.customers);
+  const row = await customers(tenant).update(id, toColumns(input), EDITABLE_COLUMNS.customers);
   return toCustomer(row);
 }

@@ -7,13 +7,13 @@ import { createOrderSchema } from "@/lib/validation";
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  return withBakeryRoute(request, ({ supabase, bakeryId }) => getAllOrders(supabase, bakeryId));
+  return withBakeryRoute(request, (tenant) => getAllOrders(tenant));
 }
 
 export async function POST(request: Request) {
   return withBakeryRoute(
     request,
-    async ({ supabase, bakeryId }) => createOrder(supabase, bakeryId, await readJson(request, createOrderSchema)),
+    async (tenant) => createOrder(tenant, await readJson(request, createOrderSchema)),
     { successStatus: 201 },
   );
 }

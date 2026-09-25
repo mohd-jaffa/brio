@@ -167,6 +167,7 @@ src/
 
 - Each feature encapsulates its own UI components, hooks, API fetchers, types, and decomposed domain logic functions.
 - Avoid monolithic `service.ts` or `repository.ts` classes. Use focused, pure functions for domain logic.
+- **A feature's data functions take a `Tenant`** (`src/lib/supabase/tenant.ts`): the caller's client, the business and the acting user, as `withBakeryRoute` builds them from the session. They never take `(client, bakeryId)` separately (plan §133.7 G1).
 - **`src/lib` never imports from `src/features`.** Features compose lib, not the other way round.
 - **Strict Constant Centralization**: No magic strings or inline error messages are allowed anywhere in the app. Use `src/constants/messages.ts` for all UI text, validation feedback, and error codes, and `src/constants/statuses.ts` for every status, method and category the database also knows.
 - **Use the shared UI kit.** A screen does not restyle a button, a field, a list state or a sheet. If something is needed twice, it belongs in `src/components/ui`.
@@ -347,6 +348,12 @@ Audit important actions including:
 - inventory changes
 - expense changes
 - account/security changes
+
+Every audit row records **who** acted: `logActionSafe(tenant, entry)` takes the
+business and the acting user from the tenant, never from the entry. The trail
+is **written by the server only**, through the service role; a signed-in user
+may read their business's rows and insert none (BUG-20,
+`0011_audit_writes.sql`).
 
 Do not log sensitive credentials.
 

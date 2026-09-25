@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Tenant } from "@/lib/supabase/tenant";
 
 import { EDITABLE_COLUMNS } from "@/constants/editableColumns";
 import { blankToNull, definedOnly } from "@/lib/supabase/columns";
@@ -8,8 +8,8 @@ import type { CreateExpensePayload, UpdateExpensePayload } from "@/lib/validatio
 import type { Expense, ExpenseRow } from "./types";
 
 /** A bakery's expenses, newest day first. */
-const expenses = (client: SupabaseClient, bakeryId: string) =>
-  tenantRecords<ExpenseRow>(client, "expenses", bakeryId);
+const expenses = (tenant: Tenant) =>
+  tenantRecords<ExpenseRow>(tenant, "expenses");
 
 export function toExpense(row: ExpenseRow): Expense {
   return {
@@ -36,8 +36,8 @@ function toColumns(input: UpdateExpensePayload) {
   });
 }
 
-export async function getAllExpenses(client: SupabaseClient, bakeryId: string): Promise<Expense[]> {
-  const rows = await expenses(client, bakeryId).list([
+export async function getAllExpenses(tenant: Tenant): Promise<Expense[]> {
+  const rows = await expenses(tenant).list([
     { column: "expense_date", ascending: false },
     { column: "created_at", ascending: false },
   ]);
@@ -45,35 +45,31 @@ export async function getAllExpenses(client: SupabaseClient, bakeryId: string): 
 }
 
 export async function getExpenseById(
-  client: SupabaseClient,
-  bakeryId: string,
+  tenant: Tenant,
   id: string,
 ): Promise<Expense> {
-  return toExpense(await expenses(client, bakeryId).find(id));
+  return toExpense(await expenses(tenant).find(id));
 }
 
 export async function createExpense(
-  client: SupabaseClient,
-  bakeryId: string,
+  tenant: Tenant,
   input: CreateExpensePayload,
 ): Promise<Expense> {
-  return toExpense(await expenses(client, bakeryId).insert(toColumns(input)));
+  return toExpense(await expenses(tenant).insert(toColumns(input)));
 }
 
 export async function updateExpense(
-  client: SupabaseClient,
-  bakeryId: string,
+  tenant: Tenant,
   id: string,
   input: UpdateExpensePayload,
 ): Promise<Expense> {
-  const row = await expenses(client, bakeryId).update(id, toColumns(input), EDITABLE_COLUMNS.expenses);
+  const row = await expenses(tenant).update(id, toColumns(input), EDITABLE_COLUMNS.expenses);
   return toExpense(row);
 }
 
 export async function deleteExpense(
-  client: SupabaseClient,
-  bakeryId: string,
+  tenant: Tenant,
   id: string,
 ): Promise<Expense> {
-  return toExpense(await expenses(client, bakeryId).remove(id));
+  return toExpense(await expenses(tenant).remove(id));
 }

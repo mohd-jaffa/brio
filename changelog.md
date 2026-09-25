@@ -1126,3 +1126,19 @@ Each row is committed on its own; this entry grows with them.
   - **Code:** `USER_ROLES` is `["USER", "DEV"]`. A screen calls the role "Owner". `BAKERY_ROLES` became `BUSINESS_ROLES` (`["USER"]`), the plan's name. The guards, registration, the seed, the test stubs and AGENTS.md §8–§9 follow. **DEV still gets no business data** (§5).
   - **Checked against the running app:** signing in answers `"role":"USER"`, and `/api/business`, `/api/customers` and `/api/orders` answer 200. The same account set to DEV is refused with `AUTH_ROLE_FORBIDDEN`, and it was set back afterwards.
   - **Tests:** the role list, the "Owner" label, `BUSINESS_ROLES` without DEV, the account card and menu showing "Owner", and a contract for 0010.
+- **R2.10 · §133.7 G1 · BUG-20 — audit records who, and only the server writes it.**
+  - **Who.** Every audit row had `user_id` null. A feature's data functions now take a `Tenant` (`src/lib/supabase/tenant.ts`): the caller's client, the business and the acting user. That is the shape §133.7 G1 prefers over `(client, bakeryId, …)`. `withBakeryRoute` builds it from the session, and `BakeryContext` is one, so every route hands it straight on.
+    - `tenantRecords(tenant, table)` and `logActionSafe(tenant, entry)` take the business and the actor from it, never from the entry, so an entry cannot claim another business or another user.
+    - Customers, products, expenses, inventory, orders (reads, checkout, status), payments, receipts, analytics and the business profile all follow, along with their 15 routes.
+  - **Only the server writes it.** A signed-in user could insert audit rows for their own business, so the trail could be forged. `logActionSafe` now writes through the service role.
+    - **Migration `0011_audit_writes.sql`** drops the insert policy and leaves `authenticated` SELECT alone. As with `bakeries`, the default privileges had given it UPDATE, DELETE and TRUNCATE too.
+    - On the local database a signed-in user still reads their business's trail and is refused an insert: "permission denied for table audit_logs".
+  - **A gap closed on the way:** creating an order was never audited, though every later change to one was (AGENTS.md §11). It now writes a CREATE row.
+  - `getAuditLogsByEntity` had no caller and is gone.
+  - **Checked against the running app.** A customer created and then edited produced a CREATE and an UPDATE audit row, both naming Priya Baker. Every read route (orders, one order, its payments and receipt, products, expenses, stock, analytics, business) answers 200 after the refactor. The test customer was removed afterwards. The 12 rows written before today keep their empty user.
+  - **Tests:** 12 new.
+    - The audit logger, which had none: it writes through the server's client, records the actor and business from the tenant, lets an entry claim neither, and logs a failed write without failing the change.
+    - `tenantRecords`, which had none either: reads are scoped, and inserts, updates and removals are each audited as the acting user, while a refused write is not.
+    - The order-creation audit, and a contract for 0011.
+    - The data-layer tests now pass a tenant (`tests/support/tenant.ts`).
+  - AGENTS.md §5 and §11 record both rules.

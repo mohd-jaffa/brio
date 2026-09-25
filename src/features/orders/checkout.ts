@@ -1,4 +1,4 @@
-import { type SupabaseClient } from "@supabase/supabase-js";
+import type { Tenant } from "@/lib/supabase/tenant";
 import { type Order, type OrderRow } from "./types";
 import { type CreateOrderPayload } from "@/lib/validation";
 import { MAX_ORDER_TOTAL_PAISE } from "@/constants/limits";
@@ -6,24 +6,24 @@ import { businessRuleError, conflictError } from "@/lib/errors";
 import { getCustomerById } from "@/features/customers/api";
 import { getProductById } from "@/features/products/api";
 import { logInventoryTransaction } from "@/features/inventory/api";
+import { logActionSafe } from "@/lib/audit/auditLog";
 import { generateOrderNumber, insertOrder, insertOrderItems, insertOrderAdjustments, deleteOrderHard } from "./api";
 import { mapToOrderModel } from "./mappers";
 import { orderTotals } from "./totals";
 
 export async function createOrder(
-  client: SupabaseClient, 
-  bakeryId: string, 
+  tenant: Tenant,
   input: CreateOrderPayload,
 ): Promise<Order> {
   // The customer is read back through this business's records, so one that
   // belongs to another business is refused here as not found — not left to a
   // foreign key, and never stored (BUG-19).
-  await getCustomerById(client, bakeryId, input.customerId);
+  await getCustomerById(tenant, input.customerId);
 
   // Every product is read back: the prices the order is built from are the
   // ones in the database now, never the ones the browser sent (AGENTS.md §13).
   const products = await Promise.all(
-    input.items.map((item) => getProductById(client, bakeryId, item.productId)),
+    input.items.map((item) => getProductById(tenant, item.productId)),
   );
   const productsById = new Map(products.map((product) => [product.id, product]));
 
@@ -59,12 +59,12 @@ export async function createOrder(
     throw businessRuleError("ORDER_TOTAL_TOO_LARGE", { subtotal, total });
   }
 
-  const orderNumber = await generateOrderNumber(client, bakeryId);
+  const orderNumber = await generateOrderNumber(tenant);
 
   let createdOrder: OrderRow | null = null;
   
   try {
-    createdOrder = await insertOrder(client, bakeryId, {
+    createdOrder = await insertOrder(tenant, {
       customer_id: input.customerId,
       order_number: orderNumber,
       status: "PENDING",
@@ -87,7 +87,7 @@ export async function createOrder(
       ...item,
       order_id: createdOrder!.id,
     }));
-    const createdItems = await insertOrderItems(client, itemsToInsert);
+    const createdItems = await insertOrderItems(tenant, itemsToInsert);
 
     const adjustmentsToInsert = input.adjustments.map(adj => ({
       order_id: createdOrder!.id,
@@ -95,10 +95,10 @@ export async function createOrder(
       name: adj.name,
       amount: adj.amount,
     }));
-    const createdAdjustments = await insertOrderAdjustments(client, adjustmentsToInsert);
+    const createdAdjustments = await insertOrderAdjustments(tenant, adjustmentsToInsert);
 
     const inventoryPromises = createdItems.map(item => 
-      logInventoryTransaction(client, bakeryId, {
+      logInventoryTransaction(tenant, {
         productId: item.product_id!,
         type: "ORDER_RESERVATION",
         quantity: -item.quantity,
@@ -108,11 +108,19 @@ export async function createOrder(
     );
     await Promise.all(inventoryPromises);
 
+    // Every other change to an order was audited; its creation was not (AGENTS.md §11).
+    await logActionSafe(tenant, {
+      action: "CREATE",
+      entity_type: "orders",
+      entity_id: createdOrder.id,
+      new_data: createdOrder as unknown as Record<string, unknown>,
+    });
+
     return mapToOrderModel(createdOrder, createdItems, createdAdjustments);
 
   } catch (error) {
     if (createdOrder) {
-      await deleteOrderHard(client, createdOrder.id).catch(e => {
+      await deleteOrderHard(tenant, createdOrder.id).catch(e => {
         console.error("FATAL: Failed to rollback order during compensation", e);
       });
     }

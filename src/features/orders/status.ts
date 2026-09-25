@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Tenant } from "@/lib/supabase/tenant";
 
 import { logInventoryTransaction } from "@/features/inventory/api";
 import { logActionSafe } from "@/lib/audit/auditLog";
@@ -27,12 +27,11 @@ import type { Order, OrderRow } from "./types";
  * leaves them apart. That is R3.4 (`change_order_status`, §133.3 C6).
  */
 export async function updateOrderStatus(
-  client: SupabaseClient,
-  bakeryId: string,
+  tenant: Tenant,
   id: string,
   input: UpdateOrderStatusPayload,
 ): Promise<Order> {
-  const { order: before, items } = await findOrderById(client, bakeryId, id);
+  const { order: before, items } = await findOrderById(tenant, id);
   let after: OrderRow = before;
 
   const to = input.status;
@@ -41,10 +40,10 @@ export async function updateOrderStatus(
       throw businessRuleError("ORDER_STATUS_TRANSITION_INVALID", { from: before.status, to });
     }
 
-    after = await moveOrderStatus(client, bakeryId, id, before.status, to);
+    after = await moveOrderStatus(tenant, id, before.status, to);
 
     for (const movement of stockMovements(to, items)) {
-      await logInventoryTransaction(client, bakeryId, {
+      await logInventoryTransaction(tenant, {
         ...movement,
         referenceType: "ORDER",
         referenceId: id,
@@ -54,12 +53,10 @@ export async function updateOrderStatus(
 
   // Setting the payment status by hand goes when payments drive it (R3.12, BUG-06).
   if (input.paymentStatus && input.paymentStatus !== after.payment_status) {
-    after = await updateOrder(client, bakeryId, id, { payment_status: input.paymentStatus });
+    after = await updateOrder(tenant, id, { payment_status: input.paymentStatus });
   }
 
-  await logActionSafe(client, {
-    bakery_id: bakeryId,
-    user_id: null,
+  await logActionSafe(tenant, {
     action: "STATUS_CHANGE",
     entity_type: "orders",
     entity_id: id,
@@ -68,7 +65,7 @@ export async function updateOrderStatus(
   });
 
   if (after.status !== before.status) {
-    await createJob(client, {
+    await createJob(tenant.supabase, {
       type: "SEND_PUSH_NOTIFICATION",
       payload: {
         payload: {
@@ -80,8 +77,8 @@ export async function updateOrderStatus(
   }
 
   const [current, paid] = await Promise.all([
-    findOrderById(client, bakeryId, id),
-    findPaidByOrder(client, bakeryId, [id]),
+    findOrderById(tenant, id),
+    findPaidByOrder(tenant, [id]),
   ]);
   return mapToOrderModel(current.order, current.items, current.adjustments, paid.get(id));
 }

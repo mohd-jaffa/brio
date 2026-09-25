@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   return withBakeryRoute(
     request,
-    async ({ supabase, bakeryId }) => logInventoryTransaction(supabase, bakeryId, await readJson(request, logInventoryTransactionSchema)),
+    async (tenant) => logInventoryTransaction(tenant, await readJson(request, logInventoryTransactionSchema)),
     { successStatus: 201 },
   );
 }

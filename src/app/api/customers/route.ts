@@ -6,13 +6,13 @@ import { createCustomerSchema } from "@/lib/validation";
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  return withBakeryRoute(request, ({ supabase, bakeryId }) => getAllCustomers(supabase, bakeryId));
+  return withBakeryRoute(request, (tenant) => getAllCustomers(tenant));
 }
 
 export async function POST(request: Request) {
   return withBakeryRoute(
     request,
-    async ({ supabase, bakeryId }) => createCustomer(supabase, bakeryId, await readJson(request, createCustomerSchema)),
+    async (tenant) => createCustomer(tenant, await readJson(request, createCustomerSchema)),
     { successStatus: 201 },
   );
 }

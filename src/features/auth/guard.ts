@@ -1,9 +1,8 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import { BUSINESS_ROLES, type UserRole } from "@/constants/roles";
 import { withApiHandler, type ApiContext } from "@/lib/api/handler";
 import { authenticationError, authorizationError } from "@/lib/errors";
 import { createSupabaseAnonClient, createSupabaseServiceRoleClient } from "@/lib/supabase/server";
+import type { Tenant } from "@/lib/supabase/tenant";
 
 import { readAccessTokenCookie } from "./cookies";
 import { getSession } from "./api";
@@ -60,12 +59,13 @@ export async function requireAuth(
   return session;
 }
 
-/** What a tenant-scoped route is handed: who is asking, and a client that can only see their bakery. */
-export interface BakeryContext extends ApiContext {
+/**
+ * What a tenant-scoped route is handed: who is asking, and a client that can
+ * only see their business. It is a `Tenant`, so it goes straight to a
+ * feature's data functions, which record its actor on every audit row.
+ */
+export interface BakeryContext extends ApiContext, Tenant {
   session: AuthenticatedSession;
-  /** Carries the caller's token, so every read and write runs under their RLS policies. */
-  supabase: SupabaseClient;
-  bakeryId: string;
 }
 
 /**
@@ -74,7 +74,8 @@ export interface BakeryContext extends ApiContext {
  * temporary password, and builds a Supabase client that carries the caller's
  * token — so tenant isolation is enforced by RLS rather than by each route
  * remembering to filter. Every such route goes through here; none builds a
- * service-role client of its own to serve a request.
+ * service-role client of its own to serve a request. The audit trail is the
+ * one write the server makes itself (src/lib/audit, BUG-20).
  */
 export function withBakeryRoute<TData>(
   request: Request,
@@ -91,6 +92,7 @@ export function withBakeryRoute<TData>(
         session,
         supabase: createSupabaseAnonClient(session.accessToken),
         bakeryId: session.profile.bakeryId,
+        actorId: session.profile.id,
       });
     },
     { successStatus: options.successStatus },
