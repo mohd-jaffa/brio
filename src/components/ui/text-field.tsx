@@ -41,9 +41,22 @@ interface FieldShell {
   hint?: string;
 }
 
-function useFieldIds(error?: string) {
+/** A hint is read with its field; an error takes its place, on screen and when read. */
+function useFieldIds(error?: string, hint?: string) {
   const id = useId();
-  return { id, errorId: error ? `${id}-error` : undefined };
+  return {
+    id,
+    errorId: error ? `${id}-error` : undefined,
+    hintId: hint && !error ? `${id}-hint` : undefined,
+  };
+}
+
+function FieldHint({ id, hint }: { id?: string; hint?: string }) {
+  return id ? (
+    <p id={id} className="mt-1.5 text-xs text-text-muted">
+      {hint}
+    </p>
+  ) : null;
 }
 
 function Label({
@@ -81,9 +94,9 @@ export const TextField = forwardRef<
     prefix?: string;
   } & Omit<InputHTMLAttributes<HTMLInputElement>, "className" | "id" | "prefix">
 >(function TextField({ label, error, required, optional, hint, trailing, leading, prefix, ...rest }, ref) {
-  const { id, errorId } = useFieldIds(error);
+  const { id, errorId, hintId } = useFieldIds(error, hint);
   const prefixId = prefix ? `${id}-prefix` : undefined;
-  const describedBy = [prefixId, errorId].filter(Boolean).join(" ") || undefined;
+  const describedBy = [prefixId, hintId, errorId].filter(Boolean).join(" ") || undefined;
   return (
     <div>
       <Label htmlFor={id} label={label} required={required} optional={optional} />
@@ -125,7 +138,7 @@ export const TextField = forwardRef<
           <span className="absolute inset-y-0 right-1.5 flex items-center">{trailing}</span>
         )}
       </div>
-      {hint && !error && <p className="mt-1.5 text-xs text-text-muted">{hint}</p>}
+      <FieldHint id={hintId} hint={hint} />
       <FieldError id={errorId} message={error} />
     </div>
   );
@@ -135,7 +148,7 @@ export const TextAreaField = forwardRef<
   HTMLTextAreaElement,
   FieldShell & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "className" | "id">
 >(function TextAreaField({ label, error, required, optional, hint, rows = 3, ...rest }, ref) {
-  const { id, errorId } = useFieldIds(error);
+  const { id, errorId, hintId } = useFieldIds(error, hint);
   return (
     <div>
       <Label htmlFor={id} label={label} required={required} optional={optional} />
@@ -145,11 +158,11 @@ export const TextAreaField = forwardRef<
         rows={rows}
         aria-required={required || undefined}
         aria-invalid={error ? true : undefined}
-        aria-describedby={errorId}
+        aria-describedby={hintId ?? errorId}
         className={cn(CONTROL_CLASSES, "min-h-20")}
         {...rest}
       />
-      {hint && !error && <p className="mt-1.5 text-xs text-text-muted">{hint}</p>}
+      <FieldHint id={hintId} hint={hint} />
       <FieldError id={errorId} message={error} />
     </div>
   );
@@ -167,7 +180,7 @@ export const SelectField = forwardRef<
       "className" | "id"
     >
 >(function SelectField({ label, error, required, optional, hint, options, placeholder, ...rest }, ref) {
-  const { id, errorId } = useFieldIds(error);
+  const { id, errorId, hintId } = useFieldIds(error, hint);
   return (
     <div>
       <Label htmlFor={id} label={label} required={required} optional={optional} />
@@ -176,7 +189,7 @@ export const SelectField = forwardRef<
         ref={ref}
         aria-required={required || undefined}
         aria-invalid={error ? true : undefined}
-        aria-describedby={errorId}
+        aria-describedby={hintId ?? errorId}
         className={CONTROL_CLASSES}
         {...rest}
       >
@@ -187,7 +200,7 @@ export const SelectField = forwardRef<
           </option>
         ))}
       </select>
-      {hint && !error && <p className="mt-1.5 text-xs text-text-muted">{hint}</p>}
+      <FieldHint id={hintId} hint={hint} />
       <FieldError id={errorId} message={error} />
     </div>
   );

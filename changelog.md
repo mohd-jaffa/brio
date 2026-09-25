@@ -1009,6 +1009,10 @@ Each lands on its own commit; this entry grows with them.
     - 1280 px: the bar ends at the bottom edge.
     - At every width, the last field ends above the bar once the page is scrolled to the end. Nothing scrolls sideways and there are no console errors.
   - R3.9 still replaces this bar with the cart bar.
+- **A field's hint was shown but never read out.** `TextField`, `TextAreaField` and `SelectField` drew the hint under the control without tying it to the control, so a screen reader skipped it. Found while adding the business phone's hint.
+  - The hint now has an id and is in the control's `aria-describedby`. On a phone field it comes after "+91".
+  - When a field shows a message, the message replaces the hint both on screen and when read out.
+  - **Tests:** each of the three fields reads its hint, and the message in its place.
 
 ### Changed (the user's decision, recorded under AGENTS §31)
 - **No global search.** The user decided that search is not needed on Home or in the top bar. It stays in the lists where it is looked for: Orders, Customers, Products, Inventory, the create-order grid and the customer picker.

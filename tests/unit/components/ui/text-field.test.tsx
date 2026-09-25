@@ -39,12 +39,19 @@ describe("TextField", () => {
     expect(screen.getByRole("textbox")).toHaveAttribute("aria-required", "true");
   });
 
-  it("shows a hint until there is a message to show instead", () => {
+  it("shows a hint until there is a message to show instead, and reads whichever is shown", () => {
     const { rerender } = render(<TextField label="Quantity" hint="Enter a plain count." />);
     expect(screen.getByText("Enter a plain count.")).toBeInTheDocument();
+    expect(screen.getByLabelText("Quantity")).toHaveAccessibleDescription("Enter a plain count.");
 
     rerender(<TextField label="Quantity" hint="Enter a plain count." error="Quantity needs a value." />);
     expect(screen.queryByText("Enter a plain count.")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Quantity")).toHaveAccessibleDescription("Quantity needs a value.");
+  });
+
+  it("reads the prefix, then the hint", () => {
+    render(<TextField label="Business phone" prefix="+91" hint="Printed on your bills." />);
+    expect(screen.getByLabelText("Business phone")).toHaveAccessibleDescription("+91 Printed on your bills.");
   });
 
   it("passes what is typed on to its caller", async () => {
@@ -99,6 +106,11 @@ describe("TextAreaField", () => {
     expect(screen.getByLabelText("Address").tagName).toBe("TEXTAREA");
     expect(screen.getByRole("alert")).toHaveTextContent("at most 500");
   });
+
+  it("reads its hint with it", () => {
+    render(<TextAreaField label="Address" hint="Where the bill says you are." />);
+    expect(screen.getByLabelText("Address")).toHaveAccessibleDescription("Where the bill says you are.");
+  });
 });
 
 describe("SelectField", () => {
@@ -114,6 +126,14 @@ describe("SelectField", () => {
     await userEvent.selectOptions(screen.getByLabelText("Paid With"), "UPI");
     expect(onChange).toHaveBeenCalled();
     expect(screen.getByRole("option", { name: "Cash" })).toBeInTheDocument();
+  });
+
+  it("reads its hint with it, or its message in the hint's place", () => {
+    const { rerender } = render(<SelectField label="Paid With" options={options} hint="How the money came in." />);
+    expect(screen.getByLabelText("Paid With")).toHaveAccessibleDescription("How the money came in.");
+
+    rerender(<SelectField label="Paid With" options={options} hint="How the money came in." error="Choose a method." />);
+    expect(screen.getByLabelText("Paid With")).toHaveAccessibleDescription("Choose a method.");
   });
 
   it("can start on a placeholder that is not a real choice", () => {
