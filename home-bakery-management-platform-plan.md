@@ -8551,7 +8551,7 @@ the row needs; without an answer it is built on that question's default
 | R1.10 | The response card and provider; action outcomes moved onto it | §139.6 | Q13 | TODO |
 | R1.11 | Input-hygiene primitives and the text-hygiene migration | §139.7 | — | DONE (2026-09-24) |
 | R1.12 | Search field contrast | BUG-24 | — | DONE (2026-09-24) |
-| R1.13 | Photographic plates from the supplied photographs, WebP ≤ 200 KB | §139.11.12 | Q6 (answered) | TODO |
+| R1.13 | Photographic plates from the supplied photographs, WebP ≤ 200 KB | §139.11.12 | Q6 (answered) | DONE (2026-09-25) |
 | R1.14 | Shared copy for the wider audience — tagline, empty states, errors | §139.1 #2 | Q8 | TODO |
 | R1.15 | The illustration library ships: the build script (transparent WebP, the duplicate check), `src/assets/illustrations`, the registry, the `illustration` component, and the product tile built on it | §139.11.10 | Q16 | DONE (2026-09-24; credit on Q16 default) |
 | R1.16 | The `…_illustrations` migration: `products.icon_key` and `bakeries.expense_category_icons` | §139.12 | — | DONE (2026-09-24) |

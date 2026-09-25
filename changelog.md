@@ -786,3 +786,9 @@ entry grows with them.
   - **Expense categories.** `bakeries.expense_category_icons` is a `jsonb` object, defaulting to `{}`, for R5.16.
   - **Validation.** The product schema takes `iconKey` through `optionalIllustration`: a library key or null, refused otherwise with "Choose a picture.". It is a nullable enum rather than a union, because a union buried the enum's message under the catch-all.
   - **Seed:** four products have illustrations, and the sourdough keeps the default, so both are on screen.
+- **R1.13 — the photographic plates** (plan §139.11.12).
+  - **`scripts/plates.mjs`** (`npm run plates`) builds them from the supplied photographs in `design-references/`, which stay uncommitted. Only the derived WebPs in `src/assets/plates/` are committed.
+  - **`cake-table`** is `v2-plate-cake-clean.png` whole: 1536 × 1024, 98 KB. **`drip-cake`** and **`brownies`** are the two heroes from 48 % of their width, clear of the headline printed on their left: 799 × 1024, 78 KB and 90 KB. Each was checked by eye, and no type survives the crop.
+  - The script steps the quality down from 80 until a plate is within 200 KB; all three fit at 80.
+  - **`PLATES`** (`src/assets/plates/index.ts`) imports them statically, like the illustrations. A test checks every name maps to its file, every built file is listed, and each is within 200 KB.
+  - Nothing shows them yet: the `hero` component places them (R1.8), and the auth scene takes the hero plate in R2.8.

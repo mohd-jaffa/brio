@@ -9,6 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "illustrations": "node scripts/illustrations.mjs",
+    "plates": "node scripts/plates.mjs",
     "pretest": "node scripts/check-test-paths.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
