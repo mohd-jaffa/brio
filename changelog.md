@@ -1237,3 +1237,22 @@ Each row is committed on its own; this entry grows with them.
   - After registering, "Account created" appeared on the sign-in screen 68 px above where §139.6 puts it, leaving room for a bottom navigation that screen does not have, and sat over the Sign in button.
   - A notice now clears the navigation only where there is one. `--bottom-bar-offset` is the navigation's height when the page has a `[data-bottom-nav]` (`:root:has(…)`), and 0 otherwise. The notice is drawn above every route, outside the shell, so it could not have inherited it from the shell.
   - Measured at 390 px with a 34 px home indicator: on sign in the offset is 0 and the notice rests at the foot (732–838 of 844); inside the app the notice ends at 734 and the navigation begins at 742.
+
+### Validation
+- `tsc --noEmit` clean; `eslint` clean; `vitest run` **162 files, 974 tests**, up from 148 and 893 at the start of the phase. `next build` is green on Node 22 with no warnings.
+- Migrations `0009` – `0012` apply with `supabase migration up`, each proved on the local database as its row describes.
+- **The phase's exit test, end to end in a browser** (plan §139.18): "a new user registers with every field, edits their business, and the confirmation arrives through the queue."
+  - At 390 px, "Nisha Kapoor" registered "Bloom Room · Flowers for every day · Chennai · 3 Beach Road, Besant Nagar" across the two steps.
+  - She signed in. Business details showed what she had registered. She changed the catch phrase, and the header read "Bloom Room / Fresh flowers, every morning" at once. The audit row reads "UPDATE bakeries by Nisha Kapoor".
+  - The queue held one pending confirmation. `npm run worker` completed it on the first attempt, and one "Confirm your Ovenly account" reached her address in Mailpit.
+  - No errors. The test account was removed afterwards.
+- **Captured at every width in both themes:**
+  - Settings, with Resend, at 360, 390, 820 and 1280 px: 8 captures, no sideways scroll.
+  - Sign in, register, forgot password and confirm email: 32 contrast measurements, the lowest 4.73 : 1.
+  - Registration's two steps at 390 and 1280 px.
+  - Business details, earlier today: 32 captures.
+
+### Blockers
+- None.
+- **Open, for whoever hosts the app:** the worker is a second process (`npm run worker`) that must run beside the app in production. The plan names no host yet, so how it is started and kept running there is undecided. Until it runs, confirmation emails wait in the queue, and registration is unaffected.
+- **Left to their rows:** jobs enqueued with the service role, exponential backoff, and the Menu and Cleanup workers (R6.1); the business header on the bill (R4.1); Appearance in Settings (R5.11); notifications written to the inbox (R3.4, R5.10); OpenAPI (R6.3).

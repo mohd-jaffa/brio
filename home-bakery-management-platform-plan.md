@@ -6598,7 +6598,7 @@ The queue table and the claim/complete/fail helpers exist. Nothing runs them.
 
 | # | Gap |
 |---|-----|
-| F1 | **Nothing drains the queue.** `processNextJob` is never called — there is no cron route, scheduled function or worker process. Every job enqueued so far is still `pending`. |
+| F1 | **Closed 2026-09-25 by R2.1 (F1–F5).** **Nothing drains the queue.** `processNextJob` is never called — there is no cron route, scheduled function or worker process. Every job enqueued so far is still `pending`. |
 | F2 | `registerNotificationWorker` and `registerAnalyticsWorker` are never called, so no handler is registered even if the queue did run. |
 | F3 | `claimNextJob` is **not atomic**: it updates `status = 'pending'` with a limit and no `FOR UPDATE SKIP LOCKED`, so two workers can claim the same job. AGENTS.md §17 requires atomic claiming. |
 | F4 | `claimNextJob` **sets** `attempts: 1` instead of incrementing it, so `processNextJob`'s `attempts < maxAttempts` check never trips and a failing job retries forever. Nothing reaches the dead-letter state. |
@@ -6613,7 +6613,7 @@ The queue table and the claim/complete/fail helpers exist. Nothing runs them.
 
 | # | Gap |
 |---|-----|
-| G1 | `audit_logs.user_id` is written as `null` for every mutation — the trail records what changed but not who changed it. The audit call is centralised in `tenantRecords`, and `withBakeryRoute` already holds the session, so the fix is to thread the acting user through the data layer. Preferred shape: feature functions take the `BakeryContext` object rather than `(client, bakeryId, …)`, so the argument list stops growing. |
+| G1 | **Closed 2026-09-25 by R2.10.** `audit_logs.user_id` is written as `null` for every mutation — the trail records what changed but not who changed it. The audit call is centralised in `tenantRecords`, and `withBakeryRoute` already holds the session, so the fix is to thread the acting user through the data layer. Preferred shape: feature functions take the `BakeryContext` object rather than `(client, bakeryId, …)`, so the argument list stops growing. |
 
 ---
 
@@ -8315,8 +8315,8 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 ## 139.14 Bugs found in this pass
 
 Verified against the code on 2026-09-24. **Phase 0 fixed twelve of them the same day,
-and Phase 1 four more** (marked in the Row column; changelog, "Phase 0" and
-"Phase 1"). Severity:
+Phase 1 four more, and Phase 2 three more** (marked in the Row column; changelog,
+"Phase 0", "Phase 1" and "Phase 2"). Severity:
 **S1** corrupts money, stock or data · **S2** a feature does not work · **S3**
 wrong but survivable · **S4** polish.
 
@@ -8562,16 +8562,16 @@ the row needs; without an answer it is built on that question's default
 
 | ID | Work | Source | Waits on | Status |
 |---|---|---|---|---|
-| R2.1 | The worker system runs: runner, atomic claim, attempts, stale-job recovery | §133.6 F1–F5 | — | TODO |
-| R2.2 | `BAKER` → `USER`: migration, constants, guards, seed, tests | §139.11.1 | — | TODO |
-| R2.3 | Stop writing the role into `user_metadata` | BUG-17 | — | TODO |
-| R2.4 | Registration: catch phrase, city, address; two steps | §139.11.2 | Q2 | TODO |
-| R2.5 | The confirmation mail through the queue; Resend confirmation | BUG-16 | — | TODO |
+| R2.1 | The worker system runs: runner, atomic claim, attempts, stale-job recovery | §133.6 F1–F5 | — | DONE (2026-09-25 · 570aa82; how it is hosted in production is open — changelog) |
+| R2.2 | `BAKER` → `USER`: migration, constants, guards, seed, tests | §139.11.1 | — | DONE (2026-09-25 · df711e8) |
+| R2.3 | Stop writing the role into `user_metadata` | BUG-17 | — | DONE (2026-09-25 · 1d4db4a) |
+| R2.4 | Registration: catch phrase, city, address; two steps | §139.11.2 | Q2 | DONE (2026-09-25 · 671a73b; Q2 default) |
+| R2.5 | The confirmation mail through the queue; Resend confirmation | BUG-16 | — | DONE (2026-09-25 · d94f5a3) |
 | R2.6 | The business profile endpoint and the Business details screen | §133.2 B1, B3 | — | DONE (2026-09-25 · d027464; built ahead of the phase at the user's request; the catch phrase and city at registration with R2.4) |
 | R2.7 | Logo upload | §133.2 B2; §56 | — | DONE (2026-09-25 · d027464; on the bill with R4.1) |
-| R2.8 | Auth screens re-tokened; neutral headlines; the hero plate | §138 | Q6 (answered), Q8 | TODO |
-| R2.9 | A theme switch on the signed-out screens | §138.6.3 | Q15 | TODO |
-| R2.10 | Audit records the acting user and is written by the server only | §133.7 G1; BUG-20 | — | TODO |
+| R2.8 | Auth screens re-tokened; neutral headlines; the hero plate | §138 | Q6 (answered), Q8 | DONE (2026-09-25 · 6671e63; Q8 default) |
+| R2.9 | A theme switch on the signed-out screens | §138.6.3 | Q15 | DONE (2026-09-25 · 6671e63; Q15 default: none, the stored choice honoured — verified, nothing to build) |
+| R2.10 | Audit records the acting user and is written by the server only | §133.7 G1; BUG-20 | — | DONE (2026-09-25 · 3c8ebe5) |
 
 ### Phase 3 — Orders
 
