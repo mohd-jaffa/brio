@@ -1,13 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import { FormSheet } from "@/components/ui/form-sheet";
 import { useResponse } from "@/components/ui/response-card";
 import { optionsFrom, SelectField, TextAreaField, TextField } from "@/components/ui/text-field";
 import { UI_TEXT } from "@/constants/messages";
+import { useOpeningKey } from "@/hooks/useOpeningKey";
 import { paiseToRupees } from "@/lib/money";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiMutation } from "@/lib/query/useApiMutation";
@@ -44,7 +44,7 @@ function valuesOf(product?: Product): ProductFormValues {
   };
 }
 
-export function ProductFormSheet({
+function ProductForm({
   isOpen,
   onClose,
   onSuccess,
@@ -55,24 +55,17 @@ export function ProductFormSheet({
   onSuccess: () => void;
   initialData?: Product;
 }) {
-  // Kept out of the React Compiler. The sheet stays mounted and resets its form
-  // each time it opens; reset() empties react-hook-form's field registry, which
-  // only a fresh register() call refills, and the compiler memoises those
-  // calls — so nothing typed after opening reached the form (R1.9).
+  // Kept out of the React Compiler, as every react-hook-form sheet is (R1.9).
   "use no memo";
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm<ProductFormValues, unknown, ProductFormPayload>({
     resolver: zodResolver(productFormSchema),
-    defaultValues: EMPTY,
+    defaultValues: valuesOf(initialData),
   });
 
-  useEffect(() => {
-    if (isOpen) reset(valuesOf(initialData));
-  }, [isOpen, initialData, reset]);
 
   const respond = useResponse();
   const { submit, submitting } = useApiMutation<ProductFormPayload, Product>(
@@ -148,4 +141,14 @@ export function ProductFormSheet({
       </div>
     </FormSheet>
   );
+}
+
+/**
+ * A fresh form for each opening (src/hooks/useOpeningKey.ts), filled from the
+ * record the moment it shows. It used to reset itself in an effect as it
+ * opened, which wiped what was already typed when the effect landed late.
+ */
+export function ProductFormSheet(props: Parameters<typeof ProductForm>[0]) {
+  const opening = useOpeningKey(props.isOpen);
+  return <ProductForm key={opening} {...props} />;
 }

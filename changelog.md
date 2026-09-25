@@ -1417,3 +1417,8 @@ this entry grows with them.
     - The screen reading, failing and trying again. A Guest order reads no customer. Moving on, cancelling and a refusal.
     - Collecting a payment, the bill built, and the bill failing.
     - `LinkButton` and the phone links.
+- **Fixed — a form sheet could wipe what had just been typed in it** (found by the Phase 3 exit test, 2026-09-26).
+  - **What happened:** the new customer, product, expense and stock-adjustment sheets reset their fields in an effect as they opened. On a phone that effect landed up to about 50 ms after the sheet appeared, so a name typed straight away was cleared. On the order screen the save was then refused with "Name needs a value." and "Phone needs a value.", while the address, typed later, was kept. It showed on the Customers screen as well as the order screen.
+  - **Fix:** `src/hooks/useOpeningKey.ts` gives each opening its own key. Each sheet's form is keyed by it, so every opening mounts a fresh form, already filled from the record (or blank), and no reset runs while anyone is typing. A sheet closed half-filled opens blank next time, and one opened for a different record shows that record. The four sheets keep their props; only their insides moved.
+  - **Proved in the browser (Pixel 7):** a name typed the moment the sheet opened was still there at 50, 150, 400 and 1000 ms, on Customers and on the order screen. Before the fix it was gone by 50 ms.
+  - **Tests:** the hook, one key per opening; and the customer sheet keeping what is typed across re-renders, opening blank after a close, and opening filled for the record being edited.

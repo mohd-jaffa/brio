@@ -1,13 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import { FormSheet } from "@/components/ui/form-sheet";
 import { useResponse } from "@/components/ui/response-card";
 import { optionsFrom, optionsOf, SelectField, TextField } from "@/components/ui/text-field";
 import { UI_TEXT } from "@/constants/messages";
+import { useOpeningKey } from "@/hooks/useOpeningKey";
 import {
   EXPENSE_CATEGORIES,
   PAYMENT_METHOD_LABELS,
@@ -46,7 +46,7 @@ function valuesOf(expense?: Expense): ExpenseFormValues {
   };
 }
 
-export function ExpenseFormSheet({
+function ExpenseForm({
   isOpen,
   onClose,
   onSuccess,
@@ -57,24 +57,17 @@ export function ExpenseFormSheet({
   onSuccess: () => void;
   initialData?: Expense;
 }) {
-  // Kept out of the React Compiler. The sheet stays mounted and resets its form
-  // each time it opens; reset() empties react-hook-form's field registry, which
-  // only a fresh register() call refills, and the compiler memoises those
-  // calls — so nothing typed after opening reached the form (R1.9).
+  // Kept out of the React Compiler, as every react-hook-form sheet is (R1.9).
   "use no memo";
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm<ExpenseFormValues, unknown, ExpenseFormPayload>({
     resolver: zodResolver(expenseFormSchema),
-    defaultValues: valuesOf(undefined),
+    defaultValues: valuesOf(initialData),
   });
 
-  useEffect(() => {
-    if (isOpen) reset(valuesOf(initialData));
-  }, [isOpen, initialData, reset]);
 
   const respond = useResponse();
   const { submit, submitting } = useApiMutation<ExpenseFormPayload, Expense>(
@@ -146,4 +139,14 @@ export function ExpenseFormSheet({
       />
     </FormSheet>
   );
+}
+
+/**
+ * A fresh form for each opening (src/hooks/useOpeningKey.ts), filled from the
+ * record the moment it shows. It used to reset itself in an effect as it
+ * opened, which wiped what was already typed when the effect landed late.
+ */
+export function ExpenseFormSheet(props: Parameters<typeof ExpenseForm>[0]) {
+  const opening = useOpeningKey(props.isOpen);
+  return <ExpenseForm key={opening} {...props} />;
 }

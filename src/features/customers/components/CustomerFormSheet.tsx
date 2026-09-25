@@ -1,13 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import { FormSheet } from "@/components/ui/form-sheet";
 import { useResponse } from "@/components/ui/response-card";
 import { TextAreaField, TextField } from "@/components/ui/text-field";
 import { UI_TEXT } from "@/constants/messages";
+import { useOpeningKey } from "@/hooks/useOpeningKey";
 import { ApiError } from "@/lib/api/client";
 import { formatPhoneDigits } from "@/lib/phone";
 import { apiRoutes } from "@/lib/query/keys";
@@ -49,7 +49,7 @@ function valuesOf(customer?: Customer): CreateCustomerInput {
   };
 }
 
-export function CustomerFormSheet({
+function CustomerForm({
   isOpen,
   onClose,
   onSuccess,
@@ -68,26 +68,17 @@ export function CustomerFormSheet({
   onUseExisting?: (customerId: string) => void;
   initialData?: Customer;
 }) {
-  // Kept out of the React Compiler. The sheet stays mounted and resets its form
-  // each time it opens; reset() empties react-hook-form's field registry, which
-  // only a fresh register() call refills, and the compiler memoises those
-  // calls — so nothing typed after opening reached the form (R1.9).
+  // Kept out of the React Compiler, as every react-hook-form sheet is (R1.9).
   "use no memo";
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm<CreateCustomerInput, unknown, CreateCustomerPayload>({
     resolver: zodResolver(createCustomerSchema),
-    defaultValues: EMPTY,
+    defaultValues: valuesOf(initialData),
   });
 
-  // The sheet is kept mounted between openings, so its fields are refilled each
-  // time rather than keeping whatever was typed for the record before.
-  useEffect(() => {
-    if (isOpen) reset(valuesOf(initialData));
-  }, [isOpen, initialData, reset]);
 
   const respond = useResponse();
   const { submit, submitting } = useApiMutation<CreateCustomerPayload, Customer>(
@@ -182,4 +173,14 @@ export function CustomerFormSheet({
       />
     </FormSheet>
   );
+}
+
+/**
+ * A fresh form for each opening (src/hooks/useOpeningKey.ts), filled from the
+ * record the moment it shows. It used to reset itself in an effect as it
+ * opened, which wiped what was already typed when the effect landed late.
+ */
+export function CustomerFormSheet(props: Parameters<typeof CustomerForm>[0]) {
+  const opening = useOpeningKey(props.isOpen);
+  return <CustomerForm key={opening} {...props} />;
 }

@@ -81,6 +81,24 @@ describe("CustomerFormSheet", () => {
     expect(screen.getByLabelText(/Address/)).toHaveValue("");
   });
 
+  it("starts each opening afresh, and never clears what is being typed while it is open", async () => {
+    const sheet = (props: { isOpen: boolean; initialData?: Customer }) => (
+      <CustomerFormSheet onClose={vi.fn()} onSuccess={vi.fn()} {...props} />
+    );
+    const { rerender } = render(sheet({ isOpen: true }), { wrapper });
+    await userEvent.type(screen.getByLabelText(/Full Name/), "Kavya");
+    rerender(sheet({ isOpen: true }));
+    expect(screen.getByLabelText(/Full Name/)).toHaveValue("Kavya");
+
+    rerender(sheet({ isOpen: false }));
+    rerender(sheet({ isOpen: true }));
+    expect(screen.getByLabelText(/Full Name/)).toHaveValue("");
+
+    rerender(sheet({ isOpen: false, initialData: meena }));
+    rerender(sheet({ isOpen: true, initialData: meena }));
+    expect(screen.getByLabelText(/Full Name/)).toHaveValue("Meena Gupta");
+  });
+
   it("refuses to save without the fields the database requires", async () => {
     open();
     await userEvent.click(screen.getByRole("button", { name: "Save Customer" }));

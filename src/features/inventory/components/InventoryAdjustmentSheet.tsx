@@ -1,13 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import { FormSheet } from "@/components/ui/form-sheet";
 import { useResponse } from "@/components/ui/response-card";
 import { optionsFrom, SelectField, TextField } from "@/components/ui/text-field";
 import { UI_TEXT } from "@/constants/messages";
+import { useOpeningKey } from "@/hooks/useOpeningKey";
 import { INVENTORY_TRANSACTION_LABELS, MANUAL_INVENTORY_TYPES } from "@/constants/statuses";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiMutation } from "@/lib/query/useApiMutation";
@@ -29,7 +29,7 @@ const EMPTY: StockAdjustmentFormValues = { type: "STOCK_IN", quantity: "" };
  * chooses what happened; which way that moves stock is the type's business
  * (signedQuantity), not theirs (AGENTS.md §14).
  */
-export function InventoryAdjustmentSheet({
+function InventoryAdjustmentForm({
   isOpen,
   onClose,
   onSuccess,
@@ -40,24 +40,17 @@ export function InventoryAdjustmentSheet({
   onSuccess: () => void;
   product?: Product;
 }) {
-  // Kept out of the React Compiler. The sheet stays mounted and resets its form
-  // each time it opens; reset() empties react-hook-form's field registry, which
-  // only a fresh register() call refills, and the compiler memoises those
-  // calls — so nothing typed after opening reached the form (R1.9).
+  // Kept out of the React Compiler, as every react-hook-form sheet is (R1.9).
   "use no memo";
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm<StockAdjustmentFormValues, unknown, StockAdjustmentFormPayload>({
     resolver: zodResolver(stockAdjustmentFormSchema),
     defaultValues: EMPTY,
   });
 
-  useEffect(() => {
-    if (isOpen) reset(EMPTY);
-  }, [isOpen, reset]);
 
   // Read here, never as `product!.id` inside the callback: the React Compiler
   // lifts that read into a render-time memo dependency, and it threw on every
@@ -115,4 +108,14 @@ export function InventoryAdjustmentSheet({
       />
     </FormSheet>
   );
+}
+
+/**
+ * A fresh form for each opening (src/hooks/useOpeningKey.ts), filled from the
+ * record the moment it shows. It used to reset itself in an effect as it
+ * opened, which wiped what was already typed when the effect landed late.
+ */
+export function InventoryAdjustmentSheet(props: Parameters<typeof InventoryAdjustmentForm>[0]) {
+  const opening = useOpeningKey(props.isOpen);
+  return <InventoryAdjustmentForm key={opening} {...props} />;
 }
