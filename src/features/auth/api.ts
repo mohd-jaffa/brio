@@ -9,6 +9,8 @@ import {
   internalError,
 } from "@/lib/errors";
 import { logger } from "@/lib/logger";
+import { JOB_TYPES } from "@/constants/jobs";
+import { createJob } from "@/lib/jobs/queue";
 import { createConfiguredMailService } from "@/lib/mail/nodemailer.provider";
 import type {
   ChangePasswordPayload,
@@ -277,9 +279,6 @@ function assertActive(profile: AuthProfile) {
 }
 
 export async function register(client: SupabaseClient, registration: RegisterPayload) {
-  const env = getServerEnv();
-  const mailService = createConfiguredMailService();
-
   const { data: userData, error: userError } = await client.auth.admin.createUser({
     email: registration.email,
     phone: registration.phone,
@@ -302,33 +301,86 @@ export async function register(client: SupabaseClient, registration: RegisterPay
     throw internalError();
   }
 
+  let created: Awaited<ReturnType<typeof createBakeryAndProfile>>;
   try {
-    const { bakeryId, profile } = await createBakeryAndProfile(client, {
+    created = await createBakeryAndProfile(client, {
       userId: user.id,
       businessName: registration.businessName,
       phone: registration.phone,
       email: registration.email,
       name: registration.name,
     });
-
-    const confirmationUrl = await createConfirmationUrl(client, registration.email, env);
-    await mailService.sendAccountConfirmation({
-      to: registration.email,
-      name: registration.name,
-      confirmationUrl,
-    });
-
-    return {
-      userId: user.id,
-      bakeryId,
-      profile: mapProfile(profile),
-    };
   } catch (error) {
     // Without this the phone and email stay taken by an account that has no
     // bakery, and the same person can never register again.
     await rollbackCreatedUser(client, user.id);
     throw error;
   }
+
+  // The email is queued, not sent here (BUG-16): the account is made whether
+  // or not mail is working, and the worker sends it — retrying if it must. If
+  // even the queue cannot take it, the account still stands, and Settings
+  // offers to send it again.
+  try {
+    await queueAccountConfirmation(client, user.id);
+  } catch (error) {
+    logger.error("Could not queue the confirmation email", {
+      userId: user.id,
+      reason: error instanceof Error ? error.message : String(error),
+    });
+  }
+
+  return {
+    userId: user.id,
+    bakeryId: created.bakeryId,
+    profile: mapProfile(created.profile),
+  };
+}
+
+/**
+ * Puts a confirmation email on the queue for this user (plan §17). A second
+ * request while one is still waiting adds nothing, so tapping Resend twice
+ * sends one email.
+ */
+export async function queueAccountConfirmation(adminClient: SupabaseClient, userId: string): Promise<void> {
+  const { data, error } = await adminClient
+    .from("jobs")
+    .select("id")
+    .eq("type", JOB_TYPES.accountConfirmation)
+    .in("status", ["pending", "processing"])
+    .eq("payload->>userId", userId)
+    .limit(1);
+
+  if (error) throw internalError("INTERNAL_ERROR", undefined, error);
+  if (data && data.length > 0) return;
+
+  await createJob(adminClient, { type: JOB_TYPES.accountConfirmation, payload: { userId } });
+}
+
+/**
+ * The worker's side of a queued confirmation (NotificationWorker). The link is
+ * made now, not when the job was queued, so no sign-in token ever sits in the
+ * queue. An account already confirmed, or gone, needs no email; anything else
+ * that fails throws, so the queue tries again.
+ */
+export async function sendAccountConfirmation(adminClient: SupabaseClient, userId: string): Promise<void> {
+  const profile = await getProfileById(adminClient, userId);
+  if (!profile || profile.email_confirmed_at) {
+    logger.info("Confirmation email not needed", { userId, reason: profile ? "confirmed" : "no account" });
+    return;
+  }
+
+  const env = getServerEnv();
+  const mailService = createConfiguredMailService(env);
+  const confirmationUrl = await createConfirmationUrl(adminClient, profile.email, env);
+  await mailService.sendAccountConfirmation({ to: profile.email, name: profile.name, confirmationUrl });
+}
+
+/** Settings' Resend confirmation (plan §139.11.2), for the signed-in account. */
+export async function resendConfirmation(adminClient: SupabaseClient, profile: AuthProfile) {
+  if (profile.emailConfirmedAt) throw conflictError("AUTH_EMAIL_ALREADY_CONFIRMED");
+  await queueAccountConfirmation(adminClient, profile.id);
+  return { queued: true };
 }
 
 export async function login(

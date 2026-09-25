@@ -1,21 +1,35 @@
 "use client";
 
-import { KeyRound } from "lucide-react";
+import { KeyRound, MailCheck } from "lucide-react";
 
-import { LinkButton } from "@/components/ui/button";
+import { Button, LinkButton } from "@/components/ui/button";
+import { useResponse } from "@/components/ui/response-card";
 import { ScreenNotice } from "@/components/ui/screen-notice";
+import { UI_TEXT } from "@/constants/messages";
 import { ROLE_LABELS } from "@/constants/roles";
 import { AUTH_ROUTES } from "@/constants/routes";
+import { useApiMutation } from "@/lib/query/useApiMutation";
 
+import { AuthClient } from "../api.client";
 import { useAuth } from "../AuthProvider";
 
 /**
  * The account a baker is signed in as, on the Settings screen. It reads what
  * the session already knows, so it needs no endpoint of its own — and it is
- * where the password is changed from, rather than only after a reset.
+ * where the password is changed from, rather than only after a reset, and
+ * where an unconfirmed email's link is sent again (BUG-16).
  */
 export function AccountSummary() {
   const { profile } = useAuth();
+  const respond = useResponse();
+  const resend = useApiMutation<void, { queued: boolean }>(() => AuthClient.resendConfirmation(), {
+    onSuccess: () =>
+      respond.success({
+        title: UI_TEXT.outcomes.confirmationSent,
+        message: UI_TEXT.auth.confirmationSentTo(profile?.email ?? ""),
+      }),
+    onError: (failure) => respond.failure(failure, { title: UI_TEXT.outcomes.confirmationNotSent }),
+  });
 
   if (!profile) return null;
 
@@ -38,9 +52,16 @@ export function AccountSummary() {
       </div>
 
       {!profile.emailConfirmedAt && (
-        <ScreenNotice tone="info">
-          Your email address is not confirmed yet. Use the link in the email we sent you.
-        </ScreenNotice>
+        <div className="space-y-3">
+          <ScreenNotice tone="info">{UI_TEXT.auth.notConfirmed}</ScreenNotice>
+          <Button
+            label={UI_TEXT.auth.resendConfirmation}
+            variant="secondary"
+            icon={MailCheck}
+            loading={resend.submitting}
+            onClick={() => void resend.submit()}
+          />
+        </div>
       )}
 
       <dl className="grid gap-4 sm:grid-cols-2">

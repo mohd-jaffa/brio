@@ -1170,3 +1170,29 @@ Each row is committed on its own; this entry grows with them.
     - The process: it registers every handler and stops on SIGTERM.
     - The notification and analytics handlers, and a contract for 0012.
   - README and AGENTS.md §17 say how to run it.
+- **R2.5 · BUG-16 — the confirmation email goes through the queue, and can be sent again.**
+  - **Registration no longer fails when mail does.** It sent the confirmation inline, and a failed send rolled the whole account back. The account is now made first, then a `SEND_ACCOUNT_CONFIRMATION` job is queued carrying only the user's id. If even the queue cannot take it, the account stands, the failure is logged, and Settings offers to send it again. A failure while making the account still removes the new user, as before.
+  - **The NotificationWorker sends it** (`sendAccountConfirmation`).
+    - The link is made when the email is sent, not when it is queued, so no sign-in token ever sits in the queue.
+    - An account already confirmed, or gone, needs no email.
+    - A failed send throws, so the queue retries it, up to three times.
+  - **Resend confirmation.** Settings shows it while the address is unconfirmed, and it answers on a response card: "A new link is on its way to …".
+    - It uses `POST /api/auth/resend-confirmation`, for the signed-in account only.
+    - A confirmed account is refused with `AUTH_EMAIL_ALREADY_CONFIRMED` (409).
+    - A second request while one is still waiting adds nothing, so tapping twice sends one email.
+    - The route is not named `/api/auth/confirm/…`: the client treats anything starting with the confirm route as never to be retried after a session refresh.
+  - **The password-reset email stays inline, deliberately.** It carries the temporary password, and a queued job would keep that password in the database in plain text (AGENTS §9).
+  - **Checked end to end:**
+    - A new account registered through the API. At that point the queue held one pending job carrying only its user id, and Mailpit held no email.
+    - `npm run worker` sent it: one "Confirm your Ovenly account" to the new address.
+    - The link, opened in a browser, confirmed the account (`email_confirmed_at` set), and Settings stopped offering Resend.
+    - Marked unconfirmed again, the account pressed Resend in Settings and saw the card. Two more requests left **one** job queued.
+    - The confirmed demo account was refused.
+    - The new account showed its own business, "Petal & Twine", in the shell.
+    - The test account, its jobs and its emails were removed afterwards.
+  - **Tests:** 14 new.
+    - Registration queues rather than sends, names only the user, and keeps the account when the queue is down.
+    - Duplicates collapse.
+    - The link is made at send time. Confirmed and missing accounts are skipped, and a failed send throws.
+    - Resend queues, or is refused when the address is confirmed.
+    - The worker's handler, the client call, and the Settings button with its outcome and refusal cards.

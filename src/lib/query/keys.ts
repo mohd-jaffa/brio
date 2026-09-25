@@ -14,6 +14,7 @@ export const apiRoutes = {
     passwordReset: "/api/auth/password-reset",
     refresh: "/api/auth/refresh",
     confirm: "/api/auth/confirm",
+    resendConfirmation: "/api/auth/resend-confirmation",
   },
   customers: {
     list: "/api/customers",

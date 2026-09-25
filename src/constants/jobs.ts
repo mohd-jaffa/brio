@@ -7,6 +7,7 @@ export type JobStatus = (typeof JOB_STATUSES)[number];
 
 /** Every kind of work the queue carries, and the handler registered for it. */
 export const JOB_TYPES = {
+  accountConfirmation: "SEND_ACCOUNT_CONFIRMATION",
   pushNotification: "SEND_PUSH_NOTIFICATION",
   refreshAnalytics: "REFRESH_ANALYTICS",
 } as const;

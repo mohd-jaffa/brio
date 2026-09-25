@@ -11,16 +11,19 @@ vi.mock("@/features/notifications/capacitor-push.service", () => ({
   },
 }));
 vi.mock("@/lib/logger", () => ({ logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() } }));
+const { sendAccountConfirmation, serviceClient } = vi.hoisted(() => ({ sendAccountConfirmation: vi.fn(), serviceClient: { service: true } }));
+vi.mock("@/features/auth/api", () => ({ sendAccountConfirmation }));
+vi.mock("@/lib/supabase/server", () => ({ createSupabaseServiceRoleClient: () => serviceClient }));
 
 import { registerNotificationWorker } from "@/features/notifications/worker";
 
 const job = (payload: Record<string, unknown>) => ({ id: "j-1", type: "SEND_PUSH_NOTIFICATION", payload }) as Job;
 
-function handler() {
+function handler(type = "SEND_PUSH_NOTIFICATION") {
   registerNotificationWorker();
-  const [type, handle] = registerJobHandler.mock.calls[0];
-  expect(type).toBe("SEND_PUSH_NOTIFICATION");
-  return handle as (job: Job) => Promise<void>;
+  const registered = registerJobHandler.mock.calls.find(([name]) => name === type);
+  expect(registered).toBeDefined();
+  return registered![1] as (job: Job) => Promise<void>;
 }
 
 beforeEach(() => vi.clearAllMocks());
@@ -42,5 +45,15 @@ describe("the notification worker", () => {
     const handle = handler();
     await expect(handle(job({ token: "device-1", payload: { title: "t", body: "b" } }))).rejects.toThrow();
     await expect(handle(job({}))).rejects.toThrow();
+  });
+
+  it("sends the confirmation email a registration queued, as the server", async () => {
+    await handler("SEND_ACCOUNT_CONFIRMATION")(job({ userId: "u-1" }));
+    expect(sendAccountConfirmation).toHaveBeenCalledWith(serviceClient, "u-1");
+  });
+
+  it("fails a confirmation job that names no user", async () => {
+    await expect(handler("SEND_ACCOUNT_CONFIRMATION")(job({}))).rejects.toThrow("Confirmation job has no user");
+    expect(sendAccountConfirmation).not.toHaveBeenCalled();
   });
 });

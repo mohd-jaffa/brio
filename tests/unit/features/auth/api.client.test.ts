@@ -58,6 +58,16 @@ describe("AuthClient", () => {
     );
   });
 
+  it("asks for the confirmation email again", async () => {
+    answers({ queued: true });
+
+    await expect(AuthClient.resendConfirmation()).resolves.toEqual({ queued: true });
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/auth/resend-confirmation",
+      expect.objectContaining({ method: "POST" }),
+    );
+  });
+
   it("asks for a temporary password", async () => {
     answers({ accepted: true });
 

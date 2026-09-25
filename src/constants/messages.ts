@@ -22,6 +22,7 @@ export const ERROR_MESSAGES = {
   AUTH_PASSWORD_CHANGE_FAILED: "Could not change your password. Please try again.",
   AUTH_RESET_REQUEST_FAILED: "Could not send the reset email. Please try again.",
   AUTH_EMAIL_CONFIRM_FAILED: "That confirmation link is invalid or has expired.",
+  AUTH_EMAIL_ALREADY_CONFIRMED: "Your email address is already confirmed.",
   AUTH_SIGN_OUT_FAILED: "Could not sign you out. Please try again.",
 
   CONFIG_INVALID: "The server configuration is invalid.",
@@ -126,6 +127,9 @@ export const UI_TEXT = {
     temporaryPasswordNotice:
       "You signed in with a temporary password. Choose a new one to continue.",
     accountCreated: "Account created. Sign in with your mobile number and password.",
+    notConfirmed: "Your email address is not confirmed yet. Use the link in the email we sent you.",
+    resendConfirmation: "Resend confirmation",
+    confirmationSentTo: (email: string) => `A new link is on its way to ${email}.`,
     checkingSession: "Checking your session…",
 
     // The Flour Room direction (plan §137): the line breaks are the
@@ -203,6 +207,8 @@ export const UI_TEXT = {
     resetEmailSent: "Check your email",
     resetNotSent: "Email not sent",
     passwordNotChanged: "Password not changed",
+    confirmationSent: "Confirmation email sent",
+    confirmationNotSent: "Email not sent",
     amount: "Amount",
     balanceDue: "Balance due",
     keepOrder: "Keep order",

@@ -4,12 +4,22 @@ import { CapacitorPushProvider } from "./capacitor-push.service";
 import { type Job } from "@/lib/jobs/types";
 import { type NotificationPayload } from "./types";
 import { logger } from "@/lib/logger";
+import { createSupabaseServiceRoleClient } from "@/lib/supabase/server";
+import { sendAccountConfirmation } from "@/features/auth/api";
 
 const pushProvider = new CapacitorPushProvider();
 
 export function registerNotificationWorker() {
   registerJobHandler(JOB_TYPES.pushNotification, handlePushNotification);
+  registerJobHandler(JOB_TYPES.accountConfirmation, handleAccountConfirmation);
   logger.info("NotificationWorker registered handlers");
+}
+
+/** The confirmation email queued at registration or by Resend (BUG-16). */
+async function handleAccountConfirmation(job: Job): Promise<void> {
+  const { userId } = job.payload as { userId?: string };
+  if (!userId) throw new Error("Confirmation job has no user");
+  await sendAccountConfirmation(createSupabaseServiceRoleClient(), userId);
 }
 
 async function handlePushNotification(job: Job): Promise<void> {

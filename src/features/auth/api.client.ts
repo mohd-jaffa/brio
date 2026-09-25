@@ -39,6 +39,8 @@ export const AuthClient = {
   confirmEmail: (payload: ConfirmEmailInput) =>
     postJson<AuthSessionView>(apiRoutes.auth.confirm, payload),
 
+  resendConfirmation: () => postJson<{ queued: boolean }>(apiRoutes.auth.resendConfirmation),
+
   signOut: () => postJson<{ signedOut: boolean }>(apiRoutes.auth.logout),
 
   getSession: () => fetcher<AuthSessionView>(apiRoutes.auth.session),
