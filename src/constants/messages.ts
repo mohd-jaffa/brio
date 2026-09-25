@@ -166,6 +166,13 @@ export const UI_TEXT = {
     noResults: (term: string) => `Nothing matches “${term}”.`,
   },
 
+  /** The range picker (plan §139.5). */
+  range: {
+    label: "Period",
+    from: "From",
+    to: "To",
+  },
+
   /** How a stat tile says which way its figure moved (plan §139.5). */
   stats: {
     up: "Up",

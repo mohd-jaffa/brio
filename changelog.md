@@ -843,3 +843,9 @@ entry grows with them.
     - **The sparkline** shows from 1024 px.
     - The tile stays a `dt`/`dd` group, so it reads "Total sales, ₹45,280, Up 12%". `tone` now tints only the medallion.
     - **Where it moved.** The dashboard's four tiles each carry a medallion. The dashboard and customer-profile sections that held tiles are no longer cards themselves, so the tiles are not cards inside a card. Analytics keeps its own figures until R5.9.
+  - **Choosing among a few: `tabs`, `segmented-control`, `choice-chips` and `range-picker`.**
+    - **`useArrowSelection`** (`src/hooks`) is the keyboard all of them share, per the WAI-ARIA pattern. Only the chosen one is in the Tab order, the arrows move the choice (wrapping round), Home and End go to either end, and focus follows the choice. The segmented control was a radiogroup that the arrows did not move.
+    - **`tabs`** are underlined, scroll sideways, and can show a count. Each names the `TabPanel` it controls.
+    - **`segmented-control`** is restyled as a surface pill on the sunken ground.
+    - **`choice-chips`** are the category filter pills: the chosen one filled, the row scrolling to the screen's edge.
+    - **`range-picker`** is a native select dressed as the references' "Last 30 days" pill, so a phone opens its own picker. Choosing Custom shows From and To dates, each bounding the other. The periods are `DATE_RANGES` in `src/constants/ranges.ts` (§139.11.11); remembering the choice per screen comes with R5.8/R5.9.

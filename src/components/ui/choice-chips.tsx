@@ -5,11 +5,11 @@ import { useArrowSelection } from "@/hooks/useArrowSelection";
 import { cn } from "./cn";
 
 /**
- * A choice between a few named views — Today, Week, Month; Active and Past
- * orders (plan §139.5 `segmented`). A real radiogroup: Tab reaches the chosen
- * one, and the arrow keys move the choice (AGENTS.md §21).
+ * Filters as a row of pills — All, Cakes, Cupcakes (plan §139.5). One is
+ * chosen at a time, so it is a radiogroup with the arrow-key movement, and
+ * the row scrolls sideways rather than wrapping when there are many.
  */
-export function SegmentedControl<T extends string>({
+export function ChoiceChips<T extends string>({
   label,
   value,
   options,
@@ -30,7 +30,7 @@ export function SegmentedControl<T extends string>({
       role="radiogroup"
       aria-label={label}
       onKeyDown={keys.onKeyDown}
-      className="flex rounded-xl bg-sunken p-1"
+      className="-mx-4 flex gap-2 overflow-x-auto px-4 py-1 [scrollbar-width:none] sm:mx-0 sm:px-0"
     >
       {options.map((option) => {
         const selected = option.value === value;
@@ -44,8 +44,10 @@ export function SegmentedControl<T extends string>({
             tabIndex={keys.tabIndex(option.value)}
             onClick={() => onChange(option.value)}
             className={cn(
-              "touch-target flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-all",
-              selected ? "bg-surface text-text shadow-card" : "text-text-muted hover:text-text",
+              "touch-target shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+              selected
+                ? "border-primary bg-primary text-primary-text"
+                : "border-border bg-surface text-text hover:bg-surface-hover",
             )}
           >
             {option.label}
