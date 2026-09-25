@@ -43,4 +43,8 @@ export const apiRoutes = {
   analytics: {
     overview: "/api/analytics/overview",
   },
+  business: {
+    profile: "/api/business",
+    logo: "/api/business/logo",
+  },
 } as const;

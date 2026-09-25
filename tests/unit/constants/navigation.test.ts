@@ -13,12 +13,12 @@ describe("the navigation lists", () => {
     expect(NAV_GROUPS.map(labels)).toEqual([
       ["Home", "Orders", "Products", "Customers"],
       ["Analytics", "Expenses"],
-      ["Inventory", "Settings"],
+      ["Inventory", "Business details", "Settings"],
     ]);
   });
 
   it("puts behind More everything the bottom bar does not hold", () => {
-    expect(labels(MORE_NAV)).toEqual(["Analytics", "Expenses", "Inventory", "Settings"]);
+    expect(labels(MORE_NAV)).toEqual(["Analytics", "Expenses", "Inventory", "Business details", "Settings"]);
   });
 
   it("gives every destination a unique id and href", () => {

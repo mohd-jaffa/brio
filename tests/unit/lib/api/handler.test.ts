@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { validationError } from "@/lib/errors";
 
-import { createRequestId, normalizeApiError, readJson, withApiHandler } from "@/lib/api/handler";
+import { createRequestId, normalizeApiError, readBody, readJson, withApiHandler } from "@/lib/api/handler";
 
 vi.mock("@/lib/logger", () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
@@ -42,6 +42,58 @@ describe("readJson", () => {
   it("lets a schema failure through as a ZodError", async () => {
     const schema = z.object({ name: z.string() });
     await expect(readJson(post({ name: 7 }), schema)).rejects.toBeInstanceOf(z.ZodError);
+  });
+});
+
+describe("readBody", () => {
+  const limit = { maxBytes: 8, tooLarge: "LOGO_TOO_LARGE" as const };
+
+  /** A body arriving in pieces, with no length declared — as a chunked upload does. */
+  function streamed(...chunks: number[][]) {
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        for (const chunk of chunks) controller.enqueue(new Uint8Array(chunk));
+        controller.close();
+      },
+    });
+    return new Request("https://x.test/api/upload", { method: "POST", body, duplex: "half" } as RequestInit);
+  }
+
+  it("returns the bytes, joined in order", async () => {
+    await expect(readBody(streamed([1, 2, 3], [4, 5]), limit)).resolves.toEqual(new Uint8Array([1, 2, 3, 4, 5]));
+  });
+
+  it("accepts a body of exactly the limit", async () => {
+    await expect(readBody(streamed([1, 2, 3, 4], [5, 6, 7, 8]), limit)).resolves.toHaveLength(8);
+  });
+
+  it("refuses a body that declares more than the limit before reading any of it", async () => {
+    const request = new Request("https://x.test/api/upload", {
+      method: "POST",
+      body: new Uint8Array(4),
+      headers: { "content-length": "9000" },
+    });
+    await expect(readBody(request, limit)).rejects.toMatchObject({ code: "LOGO_TOO_LARGE", httpStatus: 400 });
+    expect(request.bodyUsed).toBe(false);
+  });
+
+  it("reads a body that declares a length within the limit", async () => {
+    const request = new Request("https://x.test/api/upload", {
+      method: "POST",
+      body: new Uint8Array([1, 2, 3]),
+      headers: { "content-length": "3" },
+    });
+    await expect(readBody(request, limit)).resolves.toEqual(new Uint8Array([1, 2, 3]));
+  });
+
+  it("refuses a body that turns out larger than it said, or said nothing", async () => {
+    await expect(readBody(streamed([1, 2, 3, 4, 5], [6, 7, 8, 9]), limit)).rejects.toMatchObject({
+      code: "LOGO_TOO_LARGE",
+    });
+  });
+
+  it("reads no body as empty", async () => {
+    await expect(readBody(new Request("https://x.test/api/upload", { method: "POST" }), limit)).resolves.toHaveLength(0);
   });
 });
 
@@ -93,6 +145,12 @@ describe("withApiHandler", () => {
       success: false,
       error: { code: "VALIDATION_ERROR", requestId: "req_abc" },
     });
+  });
+
+  it("hands back a route's own response untouched — a file, not the envelope", async () => {
+    const file = new Response("png", { headers: { "content-type": "image/png" } });
+    const response = await withApiHandler(post({}), async () => file);
+    expect(response).toBe(file);
   });
 
   it("never returns the internals of an unexpected failure", async () => {

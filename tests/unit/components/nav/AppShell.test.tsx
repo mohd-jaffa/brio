@@ -12,6 +12,10 @@ import { AppShell } from "@/components/nav/AppShell";
 // feature's own tests, not to what the navigation offers.
 const { auth } = vi.hoisted(() => ({ auth: { current: {} as ReturnType<typeof authStub> } }));
 vi.mock("@/features/auth/AuthProvider", () => ({ useAuth: () => auth.current }));
+// The mark's own states are BusinessMark's tests; here it is simply loaded.
+vi.mock("@/features/business/hooks/useBusiness", () => ({
+  useBusiness: () => ({ data: { id: "b-1", name: "Asha's Kitchen", tagline: null, city: null, address: null, phone: "+919876543210", logoUrl: null } }),
+}));
 
 beforeEach(() => {
   auth.current = authStub();
@@ -66,7 +70,7 @@ describe("AppShell", () => {
   it("shows the business's mark and the account's initials on a phone", () => {
     shell();
     const [phoneBar] = screen.getAllByRole("banner");
-    expect(within(phoneBar).getByText("Ovenly")).toBeInTheDocument();
+    expect(within(phoneBar).getByText("Asha's Kitchen")).toBeInTheDocument();
     const account = within(phoneBar).getByRole("link", { name: "Account: Asha Baker" });
     expect(account).toHaveAttribute("href", "/settings");
     expect(account).toHaveTextContent("AB");

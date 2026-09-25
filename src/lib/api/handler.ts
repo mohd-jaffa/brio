@@ -1,6 +1,7 @@
 import type { ZodType } from "zod";
 import { ZodError } from "zod";
 
+import type { ErrorMessageCode } from "@/constants/messages";
 import { AppError, toAppError, validationError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 
@@ -43,6 +44,43 @@ export async function readJson<T>(request: Request, schema?: ZodType<T>): Promis
   return schema ? schema.parse(body) : body;
 }
 
+/**
+ * A request's raw body, refused with `tooLarge` once it passes `maxBytes`.
+ * The declared length is checked first, so an honest oversized upload is
+ * turned away before any of it is read; the count is kept while reading too,
+ * because a client may leave the length out or state it falsely.
+ */
+export async function readBody(
+  request: Request,
+  { maxBytes, tooLarge }: { maxBytes: number; tooLarge: ErrorMessageCode },
+): Promise<Uint8Array> {
+  const declared = Number(request.headers.get("content-length"));
+  if (Number.isFinite(declared) && declared > maxBytes) throw validationError(tooLarge);
+  if (!request.body) return new Uint8Array(0);
+
+  const chunks: Uint8Array[] = [];
+  let received = 0;
+  const reader = request.body.getReader();
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    received += value.byteLength;
+    if (received > maxBytes) {
+      await reader.cancel();
+      throw validationError(tooLarge);
+    }
+    chunks.push(value);
+  }
+
+  const body = new Uint8Array(received);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return body;
+}
+
 /** Any thrown value as an AppError — a Zod failure keeps which field went wrong. */
 export function normalizeApiError(error: unknown): AppError {
   if (error instanceof ZodError) {
@@ -62,7 +100,11 @@ export async function withApiHandler<TData>(
   const requestId = createRequestId(request.headers);
 
   try {
-    return successResponse(await handler({ requestId }), requestId, options.successStatus ?? 200);
+    const data = await handler({ requestId });
+    // A route that answers with a file (the logo) builds its own response; a
+    // failure on the way still answers in the envelope below.
+    if (data instanceof Response) return data;
+    return successResponse(data, requestId, options.successStatus ?? 200);
   } catch (error) {
     const appError = normalizeApiError(error);
 

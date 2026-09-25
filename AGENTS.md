@@ -181,6 +181,7 @@ Keep domain features separate inside `src/features/`.
 ```text
 features/
 ├── auth/
+├── business/        # the business profile and its logo (plan §139.11.2, §56)
 ├── customers/
 ├── products/
 ├── orders/
@@ -470,6 +471,15 @@ Rules:
 - When a new logo is successfully uploaded, delete the previous logo.
 - Do not delete the old logo before the new upload has been validated and successfully stored.
 - Never expose arbitrary storage paths.
+
+Where it lives (`0008_business_profile.sql`, `src/features/business`): the
+private `business-logos` bucket, at `bakeries/{bakery_id}/logo/{logo id}`, which
+its policies open only to that business. It is sent as the request body to
+`POST /api/business/logo`, typed by its own first bytes (never the browser's
+word), and read back only through `GET /api/business/logo` by its signed-in
+owner. `bakeries` is SELECT-only for a client: the profile and the logo
+reference change through `update_business_profile` and `set_business_logo`,
+which act only for the owner.
 - Do not introduce image uploads for products, customers, orders, expenses, receipts, menu items, or users unless the plan is explicitly changed.
 
 **App-owned artwork is not an upload.** The illustration library (`artwork/illustrations/`, shipped from `src/assets/illustrations/`, plan §139.11.10) and the photographic plates (`src/assets/plates/`, §139.11.12) ship with the app. A user **chooses** an illustration for a product or an expense category; nothing they choose is stored except its key. Their masters are committed; the design references in `design-references/` are not.

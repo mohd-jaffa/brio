@@ -33,6 +33,8 @@ export const ERROR_MESSAGES = {
 
   SAVE_FAILED: "Could not save your changes. Please try again.",
   UPLOAD_FAILED: "Could not upload the file.",
+  LOGO_TOO_LARGE: "That logo is larger than 500 KB.",
+  LOGO_TYPE_NOT_ALLOWED: "Choose a PNG, JPG or WebP image.",
   RECORD_NOT_FOUND: "That record could not be found. Refresh and try again.",
 
   // What a list says when its own load fails, so each screen names its subject.
@@ -46,6 +48,7 @@ export const ERROR_MESSAGES = {
   ORDER_LOAD_FAILED: "Could not load this order. Please try again.",
   CUSTOMER_LOAD_FAILED: "Could not load this customer. Please try again.",
   RECEIPT_LOAD_FAILED: "Could not build this bill. Please try again.",
+  BUSINESS_LOAD_FAILED: "Could not load your business details. Please try again.",
 
   ORDER_STATUS_UPDATE_FAILED: "Could not update this order. Please try again.",
   ORDER_TOTAL_TOO_LARGE: "An order can come to at most ₹1,00,00,000. Split it into smaller orders.",
@@ -190,6 +193,9 @@ export const UI_TEXT = {
     orderCancelled: "Order cancelled",
     orderNotUpdated: "Order not updated",
     orderNotPlaced: "Order not placed",
+    businessSaved: "Business details saved",
+    businessNotSaved: "Business details not saved",
+    logoUploaded: "Logo updated",
     logoNotUploaded: "Logo not uploaded",
     signInFailed: "Couldn’t sign you in",
     accountCreated: "Account created",
@@ -257,6 +263,30 @@ export const UI_TEXT = {
     cancelTitle: (orderNumber: string) => `Cancel order ${orderNumber}?`,
     cancelBody: "Its reserved stock goes back on the shelf. A cancelled order can’t be reopened.",
     cancelConfirm: "Cancel order",
+  },
+
+  /** Business details (plan §139.10, §139.11.2). */
+  business: {
+    title: "Business details",
+    subtitle: "How your business appears in the app and on every bill",
+    name: "Business name",
+    tagline: "Catch phrase",
+    taglinePlaceholder: "e.g. Your friendly home baker",
+    city: "City",
+    address: "Address",
+    phone: "Business phone",
+    phoneHint: "Printed on your bills. It can differ from the number you sign in with.",
+    save: "Save details",
+    logo: "Logo",
+    logoHint: "PNG, JPG or WebP, up to 500 KB. It appears on your bills and at the top of the app.",
+    uploadLogo: "Upload logo",
+    replaceLogo: "Replace logo",
+    currentLogo: "Your current logo",
+    noLogo: "No logo yet",
+    preview: "Bill header preview",
+    previewNote: "This is how the top of your bills will read.",
+    settingsRow: "Business details",
+    settingsRowHint: "Name, address and logo",
   },
 
   /** The screens shown when a route is missing or a screen fails (plan §134 P0-2, P1-1). */

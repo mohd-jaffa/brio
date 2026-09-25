@@ -1,14 +1,18 @@
-import { Cake } from "lucide-react";
+"use client";
 
 import { UI_TEXT } from "@/constants/messages";
+import { BusinessLogo } from "@/features/business/components/BusinessLogo";
+import { useBusiness } from "@/features/business/hooks/useBusiness";
 
 import { cn } from "../ui/cn";
 
 /**
- * The business's mark, name and catch phrase, at the head of the phone's top
- * bar and the sidebar (plan §139.5). Until the business profile can be read
- * (R2.6) it shows the app's own name and line; the logo, once uploaded
- * (R2.7), takes the mark's place.
+ * The business's own mark, name and catch phrase, at the head of the phone's
+ * top bar and the sidebar (plan §139.5, §139.11.2). Until the profile has
+ * loaded, the words are a quiet placeholder rather than the app's name, so
+ * the header does not flash "Ovenly" before the business. If it cannot be
+ * loaded, the app's own name and line stand in. With no logo, or no catch
+ * phrase, the cake mark and a neutral line take their places.
  */
 export function BusinessMark({
   compact = false,
@@ -20,24 +24,33 @@ export function BusinessMark({
   /** The rail hides the words but keeps them for a screen reader. */
   textClassName?: string;
 }) {
+  const { data: business, error } = useBusiness();
+  const loading = business === undefined && !error;
+
   return (
     <div className={cn("flex min-w-0 items-center gap-2.5", className)}>
-      <span
-        aria-hidden="true"
-        className={cn(
-          "flex shrink-0 items-center justify-center rounded-full bg-primary text-primary-text shadow-card",
-          compact ? "size-9" : "size-10",
-        )}
-      >
-        <Cake size={compact ? 18 : 20} strokeWidth={1.75} />
-      </span>
+      <BusinessLogo src={business?.logoUrl ?? null} size={compact ? "sm" : "md"} eager />
       <span className={cn("min-w-0", textClassName)}>
-        <span className="block truncate font-heading text-lg font-medium leading-tight text-text">
-          {UI_TEXT.appName}
-        </span>
-        <span className="block truncate text-[10px] font-semibold uppercase tracking-[0.2em] text-text-muted">
-          {UI_TEXT.appTagline}
-        </span>
+        {loading ? (
+          <span aria-busy="true" className="block">
+            <span className="sr-only">{UI_TEXT.states.loading}</span>
+            <span aria-hidden="true" className="block h-4 w-28 animate-pulse rounded bg-sunken" />
+            <span aria-hidden="true" className="mt-1.5 block h-2.5 w-20 animate-pulse rounded bg-sunken" />
+          </span>
+        ) : (
+          <>
+            {/* A long name is cut short to fit; hovering shows all of it. */}
+            <span
+              title={business?.name}
+              className="block truncate font-heading text-lg font-medium leading-tight text-text"
+            >
+              {business?.name ?? UI_TEXT.appName}
+            </span>
+            <span className="block truncate text-[10px] font-semibold uppercase tracking-[0.2em] text-text-muted">
+              {business?.tagline ?? UI_TEXT.appTagline}
+            </span>
+          </>
+        )}
       </span>
     </div>
   );

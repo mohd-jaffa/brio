@@ -1020,3 +1020,72 @@ Each lands on its own commit; this entry grows with them.
   - **R5.13 takes the sound half of the proposal:** once a list paginates, a filter in the browser would only search the page it holds, so each list's search moves to the server with it. It is debounced and tenant-scoped, with loading, empty and error states.
   - **No trigram indexes yet.** The proposal asked for indexed search. Every list is already narrowed by its `bakery_id` index to one business's rows, a few hundred to a few thousand. AGENTS §23 asks for indexes that follow measured query patterns, so one is added when a query plan shows a need.
   - **Code:** `SearchField` loses its `global` variant (⌘K, the shortcut hint), which only the top bar was to use, along with its three tests. The shell's note no longer promises search.
+
+### Added — the business's own name and logo (R2.6, R2.7; plan §139.11.2, §56, §118)
+Phase 2 rows, built now because the user asked for the proposal and it matches the plan. The shell showed the app's name, "Ovenly · Home Business", because the business profile could not be read or edited, and no logo could be uploaded (§133.2 B1–B3).
+
+- **Migration `0008_business_profile.sql`.**
+  - `bakeries.tagline` (the catch phrase, ≤ 80) and `bakeries.city` (2–80) are new. They are nullable because businesses registered before them have none; registration asks for them from R2.4.
+  - The name, catch phrase, city and address are bounded as the schema is.
+  - `logo` was never written and becomes `logo_path`, with `logo_mime_type`. A check keeps the path inside the business's own folder, `bakeries/{id}/logo/{uuid}` (§56). Path and type are set together or not at all.
+  - **Edits go through two `security definer` functions** that act only on the caller's own business and only for its owner. `bakeries` stays SELECT-only for a client (§139.11.2), and no route uses the service-role key to serve a request.
+    - `update_business_profile` writes the whole profile.
+    - `set_business_logo` points the business at a stored file and returns the one it replaced. It refuses a file that was never stored.
+    - Both run with an empty `search_path`, and only `authenticated` may execute them.
+  - **Grants fixed while here.** 0004 meant a signed-in user to have SELECT on `bakeries` and `profiles` and nothing more. Supabase's default privileges had already given `authenticated` every privilege, including UPDATE, DELETE and TRUNCATE, so only RLS stood in the way of an UPDATE and nothing at all before a TRUNCATE. The write grants are revoked. Every write to those tables already runs as the service role or through the functions above.
+  - **The private `business-logos` bucket.** It allows 500 KB and PNG, JPEG or WebP, repeating the server's checks. Its policies open select, insert and delete only inside `bakeries/{the caller's business}/`. It has no update policy, because a new logo is always a new file.
+  - **Proved on the local database:**
+    - The owner edits their business. A second business's owner changed only their own and could not see the first.
+    - A direct `UPDATE` from a client is refused.
+    - A blank or 81-character catch phrase breaks its check (23514).
+    - A logo reference into another business's folder breaks the shape check, and one to a file never stored is refused.
+    - In storage, the other owner sees none of the first business's files and is refused writing into its folder.
+    - Rolled back by hand and re-applied with `supabase migration up`, the migration applies cleanly on a database at 0007, bucket already present or not.
+- **`GET` and `PATCH /api/business`** (§139.13). They read and edit the business through `withBakeryRoute`, so DEV and a user still owing a password change are refused as everywhere else.
+  - The payload is `businessProfileSchema` (`src/lib/validation/schemas/business.ts`): business name 2–160, catch phrase optional ≤ 80, city 2–80 and address ≤ 300 (both required, Q2), and the business phone as a mobile number. It goes through the input-hygiene primitives.
+  - The change is audited with the row before and after.
+  - The logo is given as `/api/business/logo?v={logo id}`, never as a storage path.
+- **`POST /api/business/logo`**, in the order §118 sets:
+  1. The file is the request body. `readBody` (`src/lib/api/handler.ts`) refuses it past 500 KB: on a declared length before reading, and by counting while it reads, for a body that states no length or a false one.
+  2. Its type is read from its first bytes (`sniffLogoType`) and never from the browser. A script named `logo.png` is refused.
+  3. It is stored under a new id.
+  4. The business is pointed at it.
+  5. Only then is the old file deleted.
+  - If pointing the business at the new file fails, the new file is taken away again and the old logo stays.
+  - If the old file will not delete, that is logged, not fatal.
+- **`GET /api/business/logo`** answers with the file for its signed-in owner only.
+  - `nosniff`, a sandboxing `Content-Security-Policy`, and an ETag of the logo's id.
+  - A request naming the current version may be cached for a year (`immutable`), because a new logo gets a new address. Any other request must ask again.
+  - `withApiHandler` now passes back a route's own `Response` untouched, so a failure on the way still answers in the envelope.
+- **Business details** (`/business`, §139.10): business name, catch phrase, city, address and business phone (+91, with a hint that it is printed on bills), the logo, and a **live preview of the bill's header**. The preview sits beside the form from 1024 px and beneath it on a phone.
+  - Saved and refused outcomes are response cards. Field mistakes are shown beside each field.
+  - The logo is chosen from a real button that opens the file chooser. The browser checks the type and size first, so an obvious mistake is refused on a card without anything being sent. The server checks both again.
+  - It is in the sidebar's third group (Inventory · **Business details** · Settings), and so in the phone's More sheet, as §139.5 and §139.10 set.
+  - Settings links to it, in place of the logo control that said uploads were not available and the placeholder that said editing was not wired up.
+- **The shell shows the business**, not the app:
+  - its logo, fitted inside a round frame rather than cropped, and fetched at once because it tops every screen;
+  - its name, with the full name on hover when it is cut short;
+  - its catch phrase.
+  - **Fallbacks.** A quiet placeholder while loading, so the header does not flash "Ovenly". The app's name and line if the profile cannot be loaded. The cake mark with no logo or a logo that fails to load, never a broken image, and "Home Business" with no catch phrase.
+  - The profile is read once and shared by every part of the shell. It is not re-read on focus, and an edit refreshes it.
+- **Copy:** the account card said "Your bakery's own details are above", now "business".
+- **Tests:** 74 new.
+  - The schema.
+  - Sniffing: PNG, JPEG, WebP, a script, an SVG, a GIF, a WAV in a RIFF wrapper, too short, empty.
+  - The response headers.
+  - The data layer, with a fake client that records every storage and database call in order: the replace sequence, and each failure (not an image, storage refusing, the switch failing, the old file not deleting, not found, a storage read failing).
+  - `readBody`: in pieces, exactly at the limit, a declared excess before reading, an undeclared excess, no body.
+  - `postFile`, the client, the hook (one fetch for the whole shell, none on focus), the logo, the preview, the logo field, the form, the screen, the mark's five states, the navigation and a contract for 0008.
+  - The new and changed code measures 100% on statements, branches, functions and lines.
+- **Checked in a browser.**
+  - Saving tidied the name and the number and changed the header at once. The preview followed each keystroke.
+  - A PNG uploaded and showed in the header, the sidebar, the field and the preview. A JPEG sent as `image/png` was stored as `image/jpeg`, with the old file gone.
+  - A 600 KB file was refused, with its length declared and without.
+  - A text file was refused on a card with no request sent.
+  - Signed out, the logo answered 401 in the envelope.
+  - Home, Business details, Settings and Create order at 360, 390, 820 and 1280 px, in Golden and Peach (32 captures): the business's name and logo on every one, no sideways scroll, no console errors.
+- **Deliberately not here:**
+  - Registration asking for the catch phrase, city and address is R2.4.
+  - The bill printing this header replaces the hard-coded "Ovenly Bakery" with R4.1 (§133.2 B4).
+  - `next_order_number`, listed in the plan's `_business_profile` migration, lands with R3.2, which uses it, so no column sits unused.
+  - OpenAPI has no document yet (§133.11 K1); these endpoints join it when it is written.

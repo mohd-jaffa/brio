@@ -6,6 +6,7 @@ import {
   fetcher,
   getJson,
   patchJson,
+  postFile,
   postJson,
   resetSessionRefresh,
 } from '@/lib/api/client';
@@ -166,6 +167,24 @@ describe('the JSON verbs', () => {
       body: undefined,
       headers: { 'Content-Type': 'application/json' },
     });
+  });
+
+  it('postFile sends the file itself as the body, with its own type', async () => {
+    mockFetchSuccess({ logoUrl: '/api/business/logo?v=1' });
+    const file = new Blob(['png'], { type: 'image/png' });
+
+    await postFile('/api/business/logo', file);
+    expect(mockFetch).toHaveBeenCalledWith('/api/business/logo', {
+      method: 'POST',
+      body: file,
+      headers: { 'Content-Type': 'image/png' },
+    });
+  });
+
+  it('postFile names a file of no type as plain bytes', async () => {
+    mockFetchSuccess({});
+    await postFile('/api/business/logo', new Blob(['?']));
+    expect(mockFetch.mock.calls[0][1].headers).toEqual({ 'Content-Type': 'application/octet-stream' });
   });
 
   it('getJson reads without a method', async () => {

@@ -33,7 +33,7 @@ export function AccountSummary() {
           Your Account
         </h2>
         <p className="text-xs font-medium text-text-muted">
-          How you sign in. Your bakery&rsquo;s own details are above.
+          How you sign in. Your business&rsquo;s own details are above.
         </p>
       </div>
 

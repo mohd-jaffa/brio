@@ -90,3 +90,11 @@ export const getJson = <T>(url: string) => fetcher<T>(url);
 export const postJson = <T>(url: string, payload?: unknown) => send<T>("POST")(url, payload);
 export const patchJson = <T>(url: string, payload?: unknown) => send<T>("PATCH")(url, payload);
 export const deleteJson = <T>(url: string) => send<T>("DELETE")(url);
+
+/** A file as the whole body, with its own type: the logo upload (plan §56). */
+export const postFile = <T>(url: string, file: Blob) =>
+  fetcher<T>(url, {
+    method: "POST",
+    body: file,
+    headers: { "Content-Type": file.type || "application/octet-stream" },
+  });

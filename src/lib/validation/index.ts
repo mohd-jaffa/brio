@@ -47,6 +47,12 @@ export {
 } from "./schemas/auth";
 
 export {
+  businessProfileSchema,
+  type BusinessProfileInput,
+  type BusinessProfilePayload,
+} from "./schemas/business";
+
+export {
   createCustomerSchema,
   updateCustomerSchema,
   type CreateCustomerInput,

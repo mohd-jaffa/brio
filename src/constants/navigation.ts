@@ -7,6 +7,7 @@ import {
   Menu,
   Package,
   Settings,
+  Store,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -30,17 +31,18 @@ const CUSTOMERS: NavItem = { id: "customers", label: "Customers", icon: Users, h
 const ANALYTICS: NavItem = { id: "analytics", label: "Analytics", icon: BarChart3, href: "/analytics" };
 const EXPENSES: NavItem = { id: "expenses", label: "Expenses", icon: CircleDollarSign, href: "/expenses" };
 const INVENTORY: NavItem = { id: "inventory", label: "Inventory", icon: Package, href: "/inventory" };
+const BUSINESS: NavItem = { id: "business", label: "Business details", icon: Store, href: "/business" };
 const SETTINGS: NavItem = { id: "settings", label: "Settings", icon: Settings, href: "/settings" };
 
 /**
  * The sidebar and the rail, in the plan's three groups: the daily work, the
- * numbers, and the rest. Notifications and Business details join the last
- * group with their screens (R5.10, R2.6).
+ * numbers, and the rest. Notifications joins the last group with its screen
+ * (R5.10).
  */
 export const NAV_GROUPS: readonly (readonly NavItem[])[] = [
   [HOME, ORDERS, PRODUCTS, CUSTOMERS],
   [ANALYTICS, EXPENSES],
-  [INVENTORY, SETTINGS],
+  [INVENTORY, BUSINESS, SETTINGS],
 ];
 
 /** Every destination, in order. */
