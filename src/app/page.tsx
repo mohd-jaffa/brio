@@ -73,13 +73,17 @@ export default function DashboardPage() {
 
       {failed && <ScreenNotice>{errorMessage(orders.error, "DASHBOARD_LOAD_FAILED")}</ScreenNotice>}
 
-      <section className="rounded-2xl border border-border bg-surface p-5 shadow-card">
+      <section>
         <h2 className="mb-4 flex items-center gap-2 font-heading text-sm font-bold text-text">
           <ClipboardList size={18} strokeWidth={2.5} className="text-primary" aria-hidden="true" />
           Business Today
         </h2>
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatTile label="Today's Orders" value={loading ? "—" : String(summary.todaysOrders)} />
+          <StatTile
+            label="Today's Orders"
+            value={loading ? "—" : String(summary.todaysOrders)}
+            icon={ShoppingBag}
+          />
           <StatTile
             label="Today's Revenue"
             value={loading ? "—" : formatPaise(summary.todaysRevenue)}
@@ -90,11 +94,13 @@ export default function DashboardPage() {
             label="Pending Orders"
             value={loading ? "—" : String(summary.pendingOrders)}
             tone="warning"
+            icon={ClipboardList}
           />
           <StatTile
             label="Pending Payments"
             value={loading ? "—" : formatPaise(summary.pendingPayments)}
             tone="danger"
+            icon={CircleDollarSign}
           />
         </dl>
       </section>

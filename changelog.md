@@ -838,3 +838,8 @@ entry grows with them.
     - **Measured in the browser.** I hid the words and screenshotted what was behind them. Taking each line's glyph box at 360, 390, 768 and 1280 px in both themes, every word meets 5.62 : 1 (Golden) and 5.32 : 1 (Peach) against the darkest pixel behind it, which is muted text on plain sunken. The first mask put Peach's tracked line at 4.35, which is why the fade starts at 15 %.
     - **Wide screens.** The plate stops growing (`max-w-2xl`, and `max-w-md` for a band), so a portrait plate is not cropped to a sliver. `PLATE_FOCUS` gives each plate a focal point for any crop.
   - **`quote-block`**: the centred serif line on the sunken ground, a wheat sprig, and a small plate from 380 px.
+  - **`stat-tile`, rewritten.** A medallion when it has an icon, the figure (in the serif with `headline`, as the tablet reference sets them), the label, and a delta on the previous period.
+    - **The delta.** An arrow and the percent, with "Up" or "Down" for a screen reader, and "No change" at zero. Up is green and down is rose, reversed with `up: "bad"` for a cost. It can say what it is measured against ("vs last month").
+    - **The sparkline** shows from 1024 px.
+    - The tile stays a `dt`/`dd` group, so it reads "Total sales, ₹45,280, Up 12%". `tone` now tints only the medallion.
+    - **Where it moved.** The dashboard's four tiles each carry a medallion. The dashboard and customer-profile sections that held tiles are no longer cards themselves, so the tiles are not cards inside a card. Analytics keeps its own figures until R5.9.

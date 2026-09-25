@@ -166,6 +166,13 @@ export const UI_TEXT = {
     noResults: (term: string) => `Nothing matches “${term}”.`,
   },
 
+  /** How a stat tile says which way its figure moved (plan §139.5). */
+  stats: {
+    up: "Up",
+    down: "Down",
+    unchanged: "No change",
+  },
+
   /** The words every chart shares (plan §139.11.11). */
   charts: {
     others: "Others",
