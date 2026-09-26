@@ -9,6 +9,7 @@ import type { Order } from "@/features/orders/types";
 import { PaymentsClient } from "@/features/payments/api.client";
 import { ApiError } from "@/lib/api/client";
 
+import { aBill } from "@tests/support/bills";
 import { anOrder, aPayment } from "@tests/support/orders";
 import { Providers } from "@tests/support/providers";
 
@@ -36,13 +37,7 @@ function serve(order: Order = anOrder()) {
     "/api/orders/o-1": order,
     "/api/customers/c-1": meena,
     "/api/orders/o-1/payments": [aPayment()],
-    "/api/orders/o-1/receipt": {
-      order,
-      items: order.items,
-      payments: [aPayment()],
-      bakeryName: "Sweet Delights",
-      generatedAt: "2026-09-26T08:00:00.000Z",
-    },
+    "/api/orders/o-1/bill": aBill(),
   };
 }
 
@@ -194,23 +189,23 @@ describe("OrderDetail: payment and the bill", () => {
     expect(PaymentsClient.createPayment).toHaveBeenCalledOnce();
   });
 
-  it("builds the bill when asked, and closes it", async () => {
+  it("opens the bill when asked, and closes it", async () => {
     open();
     await loaded();
     await userEvent.click(screen.getByRole("button", { name: "View bill" }));
-    await screen.findByRole("button", { name: "Print receipt" });
-    await userEvent.click(screen.getAllByRole("button", { name: "Close" })[0]);
-    expect(screen.queryByRole("button", { name: "Print receipt" })).not.toBeInTheDocument();
-    expect(fetcher).toHaveBeenCalledWith("/api/orders/o-1/receipt");
+    const dialog = await screen.findByRole("dialog", { name: "Bill ORD-1006" });
+    expect(await within(dialog).findByRole("article", { name: "Bill ORD-1006" })).toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Close" }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Bill ORD-1006" })).not.toBeInTheDocument());
+    expect(fetcher).toHaveBeenCalledWith("/api/orders/o-1/bill");
   });
 
   it("says so when the bill could not be built", async () => {
-    answers["/api/orders/o-1/receipt"] = new TypeError("offline");
+    answers["/api/orders/o-1/bill"] = new TypeError("offline");
     open();
     await loaded();
     await userEvent.click(screen.getByRole("button", { name: "View bill" }));
     const card = await screen.findByRole("alertdialog", { name: "Bill not ready" });
     expect(card).toHaveTextContent("Could not build this bill.");
-    expect(screen.getByRole("button", { name: "View bill" })).not.toHaveAttribute("aria-busy");
   });
 });

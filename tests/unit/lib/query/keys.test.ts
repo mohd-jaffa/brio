@@ -7,7 +7,8 @@ describe("apiRoutes", () => {
     expect(apiRoutes.customers.list).toBe("/api/customers");
     expect(apiRoutes.customers.detail("c-1")).toBe("/api/customers/c-1");
     expect(apiRoutes.orders.payments("o-1")).toBe("/api/orders/o-1/payments");
-    expect(apiRoutes.orders.receipt("o-1")).toBe("/api/orders/o-1/receipt");
+    expect(apiRoutes.orders.bill("o-1")).toBe("/api/orders/o-1/bill");
+    expect(apiRoutes.orders.billPdf("o-1")).toBe("/api/orders/o-1/bill.pdf");
   });
 
   it("asks for every balance when no product is named", () => {

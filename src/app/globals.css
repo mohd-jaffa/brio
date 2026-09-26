@@ -83,6 +83,15 @@
   --color-status-cancelled: #a63a34;
   --color-status-neutral: #5e5550;
 
+  /* The bill (plan §139.11.6): a white sheet with near-black ink in either
+     theme — the theme shows only in its header rule and its total, which take
+     --color-primary. The image and the PDF use the same values
+     (src/features/receipts/palette.ts, held to these by its test). */
+  --color-paper: #ffffff;
+  --color-ink: #231a15; /* 17 : 1 on paper */
+  --color-ink-muted: #5f534b; /* 7.4 on paper */
+  --color-paper-rule: #e6ded6;
+
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
@@ -150,6 +159,11 @@
   --color-status-delivered: var(--color-status-delivered);
   --color-status-cancelled: var(--color-status-cancelled);
   --color-status-neutral: var(--color-status-neutral);
+
+  --color-paper: var(--color-paper);
+  --color-ink: var(--color-ink);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-paper-rule: var(--color-paper-rule);
 
   --color-chart-1: var(--color-chart-1);
   --color-chart-2: var(--color-chart-2);

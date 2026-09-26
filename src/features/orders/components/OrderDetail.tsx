@@ -16,8 +16,7 @@ import { orderStatusLabel, type OrderStatus } from "@/constants/statuses";
 import type { Customer } from "@/features/customers/types";
 import { PaymentCollectionForm } from "@/features/payments/components/PaymentCollectionForm";
 import type { Payment } from "@/features/payments/types";
-import { ReceiptPrintView } from "@/features/receipts/components/ReceiptPrintView";
-import type { ReceiptData } from "@/features/receipts/types";
+import { OrderBill } from "@/features/receipts/components/OrderBill";
 import { errorMessage } from "@/lib/errors/errorMessage";
 import { formatPaise } from "@/lib/format/currency";
 import { formatDateTime } from "@/lib/format/date";
@@ -38,8 +37,7 @@ import { StatusActions } from "./StatusActions";
  * step, with the other moves in a menu (IMP-06); who it is for, with Call,
  * WhatsApp and Map (IMP-02); the items and totals; the payments, the balance
  * due and Collect payment (IMP-07); and the bill, built when it is asked for
- * and never stored (AGENTS §15). Sharing and downloading the bill come with
- * Phase 4.
+ * and never stored (AGENTS §15), shared from inside it.
  */
 export function OrderDetail({ id }: { id: string }) {
   const text = UI_TEXT.orderDetail;
@@ -54,13 +52,6 @@ export function OrderDetail({ id }: { id: string }) {
   const customerId = order.data?.customerId;
   const customer = useApiQuery<Customer>(customerId ? apiRoutes.customers.detail(customerId) : null);
   const payments = useApiQuery<Payment[]>(apiRoutes.orders.payments(id));
-  const bill = useApiQuery<ReceiptData>(billOpen ? apiRoutes.orders.receipt(id) : null, {
-    shouldRetryOnError: false,
-    onError: (failure) => {
-      setBillOpen(false);
-      respond.failure(failure, { title: text.billNotBuilt, fallback: "RECEIPT_LOAD_FAILED" });
-    },
-  });
 
   const move = useApiMutation<OrderStatus, Order>((status) => OrdersClient.updateStatus(id, { status }), {
     revalidate: [apiRoutes.orders.detail(id), apiRoutes.orders.list],
@@ -115,7 +106,6 @@ export function OrderDetail({ id }: { id: string }) {
           icon={ReceiptText}
           variant="secondary"
           size="sm"
-          loading={billOpen && !bill.data}
           onClick={() => setBillOpen(true)}
         />
       </PageHeader>
@@ -191,14 +181,7 @@ export function OrderDetail({ id }: { id: string }) {
         />
       )}
 
-      {billOpen && bill.data && (
-        <ReceiptPrintView
-          receipt={bill.data}
-          customerName={customer.data?.name}
-          customerPhone={customer.data?.phone}
-          onClose={() => setBillOpen(false)}
-        />
-      )}
+      <OrderBill orderId={id} orderNumber={current.orderNumber} open={billOpen} onClose={() => setBillOpen(false)} />
     </>
   );
 }

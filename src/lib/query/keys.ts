@@ -29,7 +29,8 @@ export const apiRoutes = {
     preview: "/api/orders/preview",
     detail: (id: string) => `/api/orders/${id}`,
     payments: (id: string) => `/api/orders/${id}/payments`,
-    receipt: (id: string) => `/api/orders/${id}/receipt`,
+    bill: (id: string) => `/api/orders/${id}/bill`,
+    billPdf: (id: string) => `/api/orders/${id}/bill.pdf`,
   },
   inventory: {
     transactions: "/api/inventory",

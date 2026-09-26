@@ -328,6 +328,37 @@ export const UI_TEXT = {
     billNotBuilt: "Bill not ready",
   },
 
+  /** The bill (plan §139.11.6): what it says, and the dialog it opens in. */
+  bill: {
+    title: (orderNumber: string) => `Bill ${orderNumber}`,
+    estimateTitle: "Estimate",
+    loading: "Building the bill",
+    ribbon: "Bill",
+    estimateRibbon: "Estimate",
+    notConfirmed: "not yet confirmed",
+    /** Stands for the order number in an estimate's file name. */
+    estimateFile: "Estimate",
+    billedTo: "Billed to",
+    guest: "Guest",
+    mapLink: "Map link",
+    items: "Items",
+    totals: "Totals",
+    each: (quantity: number, price: string) => `${quantity} × ${price}`,
+    subtotal: "Subtotal",
+    tax: "Tax",
+    total: "Total",
+    paid: (method: string, reference: string | null) =>
+      ["Paid", method, reference ? `ref ${reference}` : null].filter(Boolean).join(" · "),
+    balanceDue: "Balance due",
+    thanks: "Thank you for your order!",
+    madeWith: (app: string) => `Made with ${app}`,
+    share: "Share",
+    downloadPdf: "Download PDF",
+    /** Sent beside the image: WhatsApp shows it as the caption. */
+    shareText: (what: string, business: string, total: string, due: string | null) =>
+      `${what} from ${business} — total ${total}${due ? `, balance due ${due}` : ""}.`,
+  },
+
   /** Creating an order: items, then details, then payment (plan §139.10). */
   newOrder: {
     title: "Create order",
