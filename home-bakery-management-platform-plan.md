@@ -7906,7 +7906,7 @@ A header with the number, status pill and due date. The customer (or Guest) with
 Call, WhatsApp and Map. Items, totals, **payments** with **Collect payment**, and
 the **balance due**. **One next-step button** (Pending → Preparing → …), with the
 remaining transitions in a menu; **Cancel** asks through a confirm card.
-**Bill:** view, share, download.
+**Bill:** view, share, download — **[View bill]** opens it, and **[Share]** is inside it (§139.11.6); there is no print.
 
 ### Customers
 
@@ -8097,7 +8097,8 @@ and an offline screen (PWA and Android).
 - **Output — every one generated on demand, none stored:**
   - **Share as an image (PNG)** — WhatsApp shows an image inline, and it is the common case. Web Share with files where it is supported; download plus copied text where it is not; the native share sheet on Android (§139.17).
   - **Download PDF** — an on-demand route, never stored (§133.8 H1).
-  - **Print** — a print stylesheet.
+  - ~~**Print** — a print stylesheet.~~ **Dropped 2026-09-26 (the user):** a bill has no print action. **[View bill]** opens the bill, and inside it **[Share]** stands where Print was, with **[Download PDF]** beside it on a placed order.
+- **File names:** a shared or downloaded bill is named **`{order number} - {business name}`** — `ORD-1028 - Sweet Delights Home Bakery.png`, and `.pdf` for the PDF (the user, 2026-09-26). An estimate has no number yet, so it is `Estimate - {business name}`. Characters a file name cannot hold (`/ \ : * ? " < > |`) are dropped.
 - **Accessibility:** the preview is a real dialog with a heading, and the bill reads in order to a screen reader.
 
 ### 139.11.7 Custom items (Q5, approved)
@@ -8611,9 +8612,9 @@ the row needs; without an answer it is built on that question's default
 | R4.1 | The bill view-model, with the business profile | §133.2 B4 | — | TODO |
 | R4.2 | The bill component — estimate and confirmed | §139.11.6 | — | TODO |
 | R4.3 | View bill before saving, with Share | §139.11.5 | — | TODO |
-| R4.4 | Share as a PNG — Web Share with files, else download | IMP-02 | — | TODO |
+| R4.4 | Share as a PNG — Web Share with files, else download; **[Share]** inside the bill, the file named `{order number} - {business name}` (2026-09-26) | IMP-02 | — | TODO |
 | R4.5 | The PDF on demand, never stored | §133.8 H1; §15 | — | TODO |
-| R4.6 | Print stylesheet; dialog semantics; labels, not enums | BUG-27 | — | TODO |
+| R4.6 | ~~Print stylesheet;~~ dialog semantics; labels, not enums — print dropped (2026-09-26, the user: Share stands where Print was) | BUG-27 | — | TODO |
 | R4.7 | The footer: app name and web link | §139.1 #9 | — | TODO |
 
 ### Phase 5 — Screens

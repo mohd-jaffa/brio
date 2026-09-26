@@ -1501,3 +1501,14 @@ this entry grows with them.
 
 ### Blockers
 - None.
+
+## 2026-09-26 — The bill shares; it never prints (the user)
+
+### Changed
+- **Plan §139.11.6, §139.10 and tracker R4.4 and R4.6 are updated with the user's decision:**
+  - **No print action.** **[View bill]** opens the bill, and **[Share]** sits inside it where Print was. **[Download PDF]** sits beside it on a placed order.
+  - **File names.** A shared or downloaded bill is named `{order number} - {business name}`, for example `ORD-1028 - Sweet Delights Home Bakery.png`. An estimate has no number yet, so it is named `Estimate - {business name}`.
+  - **R4.6** keeps the dialog semantics and the labels in place of enums. The print stylesheet is dropped.
+
+### Blockers
+- None.
