@@ -79,3 +79,13 @@ export function formatDaysAgo(iso: string, now: Date = new Date()): string {
   if (days < 365) return text.months(Math.floor(days / 30));
   return text.years(Math.floor(days / 365));
 }
+
+/**
+ * When something happened, for a feed (plan §139.10): the time if it was
+ * today, then "Yesterday", "2 days ago" and on.
+ */
+export function formatRecent(iso: string, now: Date = new Date()): string {
+  if (dayKey(iso) === todayKey(now)) return formatTime(iso);
+  const ago = formatDaysAgo(iso, now);
+  return ago.charAt(0).toUpperCase() + ago.slice(1);
+}

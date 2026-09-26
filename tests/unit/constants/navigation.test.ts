@@ -13,11 +13,11 @@ describe("the navigation lists", () => {
     expect(NAV_GROUPS.map(labels)).toEqual([
       ["Home", "Orders", "Products", "Customers"],
       ["Analytics", "Expenses"],
-      ["Inventory", "Business details", "Settings"],
+      ["Inventory", "Notifications", "Business details", "Settings"],
     ]);
   });
 
-  it("puts behind More everything the bottom bar does not hold", () => {
+  it("puts behind More everything the bottom bar does not hold but the inbox, which the bell opens", () => {
     expect(labels(MORE_NAV)).toEqual(["Analytics", "Expenses", "Inventory", "Business details", "Settings"]);
   });
 

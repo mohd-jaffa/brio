@@ -17,6 +17,9 @@ vi.mock("@/features/business/hooks/useBusiness", () => ({
   useBusiness: () => ({ data: { id: "b-1", name: "Asha's Kitchen", tagline: null, city: null, address: null, phone: "+919876543210", logoUrl: null } }),
 }));
 
+// The count's own states are the bell's tests; here some wait.
+vi.mock("@/features/notifications/hooks/useUnreadNotifications", () => ({ useUnreadNotifications: () => 3 }));
+
 beforeEach(() => {
   auth.current = authStub();
 });
@@ -34,6 +37,13 @@ function shell() {
 const navs = () => screen.getAllByRole("navigation", { name: "Main navigation" });
 
 describe("AppShell", () => {
+  it("rings the bell in both top bars, the phone's and the wider screens'", () => {
+    shell();
+    const bells = screen.getAllByRole("link", { name: "Notifications, 3 unread" });
+    expect(bells).toHaveLength(2);
+    for (const bell of bells) expect(bell).toHaveAttribute("href", "/notifications");
+  });
+
   it("puts the screen's own content in the main region", () => {
     shell();
     expect(within(screen.getByRole("main")).getByText("Screen content")).toBeInTheDocument();

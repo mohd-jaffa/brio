@@ -196,3 +196,25 @@ export const CUSTOMER_SEGMENT_TONES: Record<CustomerSegment, StatusTone> = {
   REGULAR: "delivered",
   NEW: "ready",
 };
+
+/**
+ * What a notification is about (plan §139.12 `…_notification_kind`;
+ * 0022_notification_kind.sql).
+ */
+export const NOTIFICATION_KINDS = ["ORDER", "PAYMENT", "STOCK", "CUSTOMER", "SYSTEM"] as const;
+export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];
+
+/**
+ * The inbox's tabs (plan §139.10: All · Orders · Customers · System) and the
+ * kinds each shows: a payment is about an order, and stock is the business's
+ * own, so it sits with the system's.
+ */
+export const NOTIFICATION_TABS = ["ALL", "ORDERS", "CUSTOMERS", "SYSTEM"] as const;
+export type NotificationTab = (typeof NOTIFICATION_TABS)[number];
+
+export const NOTIFICATION_TAB_KINDS: Record<NotificationTab, readonly NotificationKind[]> = {
+  ALL: NOTIFICATION_KINDS,
+  ORDERS: ["ORDER", "PAYMENT"],
+  CUSTOMERS: ["CUSTOMER"],
+  SYSTEM: ["STOCK", "SYSTEM"],
+};

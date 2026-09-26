@@ -2090,3 +2090,53 @@ this entry grows with them.
 ### Blockers
 - None.
 
+
+## 2026-09-26 — Notifications (R5.10); Phase 5 closed
+
+### Added
+- **The inbox** (`/notifications`, plan §139.10):
+  - what happened in the business, newest first, a page at a time;
+  - tabs **All · Orders · Customers · System**;
+  - **Mark all as read**, whose failure is a response card;
+  - tapping a row follows its link and marks it read;
+  - loading, empty, empty-tab and failed states, with Try again.
+- **The bell** in the phone's top bar and the wider screens' top bar, carrying the unread count — 1 to 9, then "9+" (the user asked for a count; see Decisions). Its name says the exact number. It asks again every minute and whenever the app comes back into view. **Notifications** joins the sidebar and the rail; it stays out of More, since the phone has the bell.
+- **`0022_notification_kind`:**
+  - `notifications.kind`, and indexes for the newest-first read and the unread count;
+  - the owner can mark a notification read and change nothing else about it;
+  - triggers queue an **order placed**, a **customer added**, and a counted product on sale **falling to the low-stock mark** — once as it crosses, never for a delivered order's consumption line.
+- **`0023_order_due_notifications`** (the user): an open order **due soon** (today or tomorrow) and one **overdue** are each told once, from 8 AM in the business's day. The worker sweeps every minute through `queue_due_order_notifications`, which marks and queues in one statement, so two workers tell an order once. Open orders more than a day overdue when it arrives are taken as told.
+- **The worker:**
+  - it files each notification in the business's inbox, under its job's id, so a retried job writes no second copy;
+  - then it pushes, as before;
+  - `lib/jobs` gains sweeps: work a worker looks for every minute rather than is asked for.
+- **Routes:** `GET /api/notifications`, `GET /api/notifications/unread`, `POST /api/notifications/read-all`, `POST /api/notifications/{id}/read`.
+- **Kit:** a row's subtitle may take two lines (`wrap`); a notification's message is not cut short.
+
+### Changed
+- A payment's notification carries its order's id, so it links to the order.
+- Settings' Notifications row — the Android permission — comes with push (R8.6).
+
+### Decisions
+- **The count** caps at "9+", not the "10+" suggested: two characters keep the badge a circle on a 44 px bell. It is one constant (`NOTIFICATION_BADGE_MAX`).
+- **Due is counted in days**, as everywhere in the app (IMP-05), and alerts wait for the business's morning.
+- Recorded in the plan's answers of 2026-09-26.
+
+### Validation
+- **On the local database, in a rolled-back transaction:**
+  - a product counted at 8 alerted once as it fell to 4, two order lines in one statement included; not again at 3; not for a delivered order of something already low; again after a restock fell to 5; never for a product nobody counts;
+  - a customer added queued its notification;
+  - the owner could not insert a notification or change its words, only mark it read;
+  - the due sweep queued five orders due tomorrow and yesterday's overdue one, a second sweep queued none, a sweep before the hour queued none, and a signed-in user could not run it.
+- **Over HTTP, on a throwaway account:**
+  - **Events:** a customer, an order for them, a payment, a status move, and a guest order that took a product to 4 all queued their notifications.
+  - **The new worker code** wrote each with its kind, words and link; run again, it wrote no duplicates.
+  - **API:** the tabs narrowed as specified; the unread count fell as one and then all were marked read; a bad tab or id was refused.
+  - **Tenant isolation:** another business could neither see nor mark the notification.
+- **In Chromium:** the inbox and the bell at 360, 390, 820 and 1280 px in Golden and Peach, with no sideways scroll and no page errors.
+- `tsc`, `eslint` and the full suite pass. Every new component, hook and client service is at 100% coverage.
+
+### Blockers
+- None.
+- **Migrations:** `0022` and `0023` are applied locally; they need applying in other environments.
+- **Restart the worker:** one started before this change does not know the new kinds. It fails their jobs, which retry every 5 minutes and are set aside after 3 tries.

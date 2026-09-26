@@ -9,12 +9,15 @@ vi.mock("@/lib/logger", () => ({ logger }));
 import {
   claimNextJob,
   clearJobHandlers,
+  clearSweeps,
   createJob,
   markCompleted,
   markFailed,
   processNextJob,
   recoverStaleJobs,
   registerJobHandler,
+  registerSweep,
+  runSweeps,
 } from "@/lib/jobs/queue";
 
 function job(overrides: Partial<Job> = {}): Job {
@@ -186,5 +189,39 @@ describe("processNextJob", () => {
     const { client, updates } = fakeClient({ claimed: job() });
     await processNextJob(client, "w-1");
     expect(updates[0].changes.last_error).toBe("plain words");
+  });
+});
+
+describe("sweeps", () => {
+  const client = {} as SupabaseClient;
+  beforeEach(() => clearSweeps());
+
+  it("runs every registered sweep with the worker's client", async () => {
+    const first = vi.fn().mockResolvedValue(undefined);
+    const second = vi.fn().mockResolvedValue(undefined);
+    registerSweep("first", first);
+    registerSweep("second", second);
+    await runSweeps(client);
+    expect(first).toHaveBeenCalledWith(client);
+    expect(second).toHaveBeenCalledWith(client);
+  });
+
+  it("logs one that fails and still runs the rest", async () => {
+    const after = vi.fn().mockResolvedValue(undefined);
+    registerSweep("broken", vi.fn().mockRejectedValue(new Error("database down")));
+    registerSweep("plain", () => Promise.reject("plain words"));
+    registerSweep("after", after);
+    await runSweeps(client);
+    expect(logger.error).toHaveBeenCalledWith("Sweep failed", { sweep: "broken", reason: "database down" });
+    expect(logger.error).toHaveBeenCalledWith("Sweep failed", { sweep: "plain", reason: "plain words" });
+    expect(after).toHaveBeenCalled();
+  });
+
+  it("runs none once they are forgotten", async () => {
+    const sweep = vi.fn();
+    registerSweep("gone", sweep);
+    clearSweeps();
+    await runSweeps(client);
+    expect(sweep).not.toHaveBeenCalled();
   });
 });

@@ -60,6 +60,12 @@ export const apiRoutes = {
     overview: "/api/analytics/overview",
   },
   dashboard: "/api/dashboard",
+  notifications: {
+    list: "/api/notifications",
+    unread: "/api/notifications/unread",
+    readAll: "/api/notifications/read-all",
+    read: (id: string) => `/api/notifications/${id}/read`,
+  },
   business: {
     profile: "/api/business",
     logo: "/api/business/logo",

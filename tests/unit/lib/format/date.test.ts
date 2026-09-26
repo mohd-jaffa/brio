@@ -4,6 +4,7 @@ import {
   formatDateTime,
   formatDayMonth,
   formatDaysAgo,
+  formatRecent,
   formatLongDate,
   formatMonth,
   formatTime,
@@ -92,5 +93,19 @@ describe('formatDaysAgo', () => {
 
   it('never reads a later instant as the future', () => {
     expect(formatDaysAgo('2026-09-28T05:00:00Z', now)).toBe('today');
+  });
+});
+
+describe('formatRecent', () => {
+  const now = new Date('2026-09-26T06:00:00Z'); // 11:30 in India
+
+  it('gives the time for something today, in the business clock', () => {
+    expect(formatRecent('2026-09-26T04:54:00Z', now)).toBe('10:24 AM');
+  });
+
+  it('then says how long ago, as a line begins', () => {
+    expect(formatRecent('2026-09-25T06:00:00Z', now)).toBe('Yesterday');
+    expect(formatRecent('2026-09-23T06:00:00Z', now)).toBe('3 days ago');
+    expect(formatRecent('2026-09-12T06:00:00Z', now)).toBe('2 weeks ago');
   });
 });

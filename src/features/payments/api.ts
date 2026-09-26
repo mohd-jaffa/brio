@@ -98,7 +98,7 @@ export async function processPayment(
     new_data: payment as unknown as Record<string, unknown>,
   });
 
-  await notifyPayment(tenant, order.order_number, payment.amount);
+  await notifyPayment(tenant, order.id, order.order_number, payment.amount);
   return payment;
 }
 
@@ -107,11 +107,11 @@ export async function processPayment(
  * (BUG-26). The payment is recorded already, so a queue that cannot take the
  * notification is logged, never reported as a failed payment.
  */
-async function notifyPayment(tenant: Tenant, orderNumber: string, amount: number) {
+async function notifyPayment(tenant: Tenant, orderId: string, orderNumber: string, amount: number) {
   try {
     await createJob(tenant.supabase, {
       type: JOB_TYPES.pushNotification,
-      payload: { bakeryId: tenant.bakeryId, message: { kind: "PAYMENT_RECEIVED", orderNumber, amount } },
+      payload: { bakeryId: tenant.bakeryId, message: { kind: "PAYMENT_RECEIVED", orderId, orderNumber, amount } },
     });
   } catch (error) {
     logger.error("Could not queue the payment notification", {

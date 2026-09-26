@@ -5,6 +5,8 @@
  * failure.
  */
 
+import type { NotificationTab } from "./statuses";
+
 export const ERROR_MESSAGES = {
   VALIDATION_ERROR: "Please check the highlighted fields.",
   VALIDATION_INVALID_JSON: "The request body must be valid JSON.",
@@ -58,6 +60,8 @@ export const ERROR_MESSAGES = {
   ORDER_LOAD_FAILED: "Could not load this order. Please try again.",
   PAYMENTS_LOAD_FAILED: "Could not load the payments on this order. Please try again.",
   CUSTOMER_LOAD_FAILED: "Could not load this customer. Please try again.",
+  NOTIFICATIONS_LOAD_FAILED: "Could not load your notifications. Please try again.",
+  NOTIFICATIONS_READ_FAILED: "Could not mark your notifications as read. Please try again.",
   RECEIPT_LOAD_FAILED: "Could not build this bill. Please try again.",
   BILL_SHARE_FAILED: "Could not share this bill. Please try again.",
   BILL_PDF_FAILED: "Could not make the PDF of this bill. Please try again.",
@@ -228,6 +232,7 @@ export const UI_TEXT = {
    */
   outcomes: {
     customerSaved: "Customer saved",
+    notificationsNotRead: "Not marked as read",
     customerNotSaved: "Customer not saved",
     customerNotChosen: "Customer not chosen",
     productSaved: "Product saved",
@@ -301,6 +306,7 @@ export const UI_TEXT = {
       inventory: "Inventory",
       business: "Business details",
       settings: "Settings",
+      notifications: "Notifications",
       more: "More",
     },
     /** What each place behind More holds, under its name (plan §139.10). */
@@ -950,6 +956,37 @@ export const UI_TEXT = {
     orderStatusBody: (orderNumber: string, status: string) => `${orderNumber} is now ${status}.`,
     paymentTitle: "Payment received",
     paymentBody: (amount: string, orderNumber: string) => `${amount} received for ${orderNumber}.`,
+    orderPlacedTitle: "New order",
+    orderPlacedBody: (orderNumber: string, customer: string) => `${orderNumber} placed for ${customer}.`,
+    customerAddedTitle: "New customer",
+    customerAddedBody: (name: string) => `${name} joined your customers.`,
+    orderDueTitle: "Due soon",
+    orderDueBody: (orderNumber: string, customer: string, day: "today" | "tomorrow") =>
+      `${orderNumber} for ${customer} is due ${day}.`,
+    orderOverdueTitle: "Overdue",
+    orderOverdueBody: (orderNumber: string, customer: string, due: string) =>
+      `${orderNumber} for ${customer} was due on ${due}.`,
+    stockLowTitle: "Low stock",
+    stockLowBody: (product: string, left: string) => `${product} is down to ${left}.`,
+
+    /** The inbox (plan §139.10). */
+    title: "Notifications",
+    subtitle: "What happened in the business, newest first",
+    tabs: "Notifications by kind",
+    tabNames: { ALL: "All", ORDERS: "Orders", CUSTOMERS: "Customers", SYSTEM: "System" } as Record<NotificationTab, string>,
+    markAllRead: "Mark all as read",
+    unread: "Unread",
+    emptyTitle: "Nothing yet",
+    emptyHint: "New orders, orders due, payments, low stock and new customers show up here as they happen.",
+    noneInTab: {
+      ORDERS: "No news of orders or payments yet",
+      CUSTOMERS: "No new customers yet",
+      SYSTEM: "No stock alerts yet",
+    } as Record<Exclude<NotificationTab, "ALL">, string>,
+    /** The bell in the top bar, by what waits behind it. */
+    bell: (unread: number) => (unread > 0 ? `Notifications, ${unread} unread` : "Notifications"),
+    /** The bell's count once it passes what the badge shows: "9+". */
+    moreThan: (most: number) => `${most}+`,
   },
 
   /** Business details (plan §139.10, §139.11.2). */

@@ -112,6 +112,8 @@
   --color-success-bg: color-mix(in oklab, var(--color-success) 12%, var(--color-surface));
   --color-warning-bg: color-mix(in oklab, var(--color-warning) 12%, var(--color-surface));
   --color-danger-bg: color-mix(in oklab, var(--color-danger) 12%, var(--color-surface));
+  /* Words set on danger itself — the bell's count: 6.2 on danger. */
+  --color-danger-text: var(--color-primary-text);
   --color-info-bg: color-mix(in oklab, var(--color-info) 12%, var(--color-surface));
 
   /* The lighter tone of the bars that are not the peak or the chosen one. */
@@ -149,6 +151,7 @@
   --color-warning-bg: var(--color-warning-bg);
   --color-danger: var(--color-danger);
   --color-danger-bg: var(--color-danger-bg);
+  --color-danger-text: var(--color-danger-text);
   --color-info: var(--color-info);
   --color-info-bg: var(--color-info-bg);
 

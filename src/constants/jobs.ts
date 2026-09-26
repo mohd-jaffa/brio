@@ -25,3 +25,6 @@ export const JOB_RETRY_DELAY_MS = 5 * 60_000;
 
 /** How long an idle worker waits before looking again. */
 export const WORKER_IDLE_MS = 5_000;
+
+/** How often a worker runs its sweeps — the look for orders due soon or overdue. */
+export const SWEEP_INTERVAL_MS = 60_000;

@@ -27,6 +27,21 @@ export const PAGE_SIZE = 20;
 /** How far into a list a page may start — far past any list a business keeps. */
 export const MAX_PAGE_START = 100_000;
 
+/** How often the bell asks again how many notifications wait (plan §139.10). */
+export const NOTIFICATION_REFRESH_MS = 60_000;
+
+/**
+ * The most the bell counts before it says "9+": two characters keep the badge
+ * a small circle on the icon. Its name still says exactly how many.
+ */
+export const NOTIFICATION_BADGE_MAX = 9;
+
+/**
+ * The hour of the business's day from which an order due soon, or overdue,
+ * is told (0023): its morning, never the middle of the night.
+ */
+export const DUE_NOTICE_FROM_HOUR = 8;
+
 /** An expense category's name: a tile's label, not a sentence (`0020_expense_categories`). */
 export const MAX_EXPENSE_CATEGORY_NAME = 40;
 

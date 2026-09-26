@@ -6589,7 +6589,7 @@ Every gap recorded here has been implemented. The entry is kept rather than dele
 
 | # | Gap |
 |---|-----|
-| E1 | The `notifications` table exists with RLS and is never read or written. There is no notifications screen and no bell. |
+| E1 | **Closed 2026-09-26 by R5.10.** The `notifications` table exists with RLS and is never read or written. There is no notifications screen and no bell. |
 | E2 | Push delivery is a mock that logs (`CapacitorPushProvider`). There is no device-token registry, so every `SEND_PUSH_NOTIFICATION` job finds no device and completes without sending. |
 | E3 | `processPayment` still enqueues a literal `token: "mock-token"`. Remove it when the token registry lands. |
 
@@ -7502,6 +7502,12 @@ masters are the exception: they are app artwork, and they are committed under
   - **Enforcement:** the database holds the rule on the rows themselves (`0021_profile_changes`), and the screens say beforehand when a detail opens again.
   - **The confirmation mail:** its own wording is set up later, as the user asked.
 - **About credits the app's maker, not the illustrations** (the user; R5.11). Settings → About reads **Crafted by · jaFFa**, in place of Q16's "Illustrations: Vecteezy.com". Q16's other half stands: the licence of every illustration is confirmed before the Play release (Phase 8), since Vecteezy's free licence asks for a credit and only its Pro licence does not.
+- **Notifications** (R5.10):
+  - **What notifies:** the events of §25 and §28 — an order placed, an order moved, a payment received, a product falling to the low-stock mark, a customer added — and, at the user's request, **an order due soon and an order overdue**.
+  - **Due is counted in days**, as everywhere in the app (IMP-05): *due soon* when an open order's day is today or tomorrow, *overdue* once its day has passed. Each order is told once of each, from 8 AM in the business's day, so a push (R8.6) never lands at midnight.
+  - **The bell carries the count** (the user suggested 1 to 10, then "10+"; the production choice is **1 to 9, then "9+"**, which keeps the badge a small two-character circle). Its name says the exact number to a screen reader.
+  - **The tabs:** Orders holds orders and payments; Customers, new customers; System, stock alerts and anything else.
+  - **Settings' Notifications row** is the Android permission, so it comes with push (R8.6); the inbox needs no permission.
 
 ---
 
@@ -8032,10 +8038,13 @@ timezone, with the previous period for every delta.
 
 ### Notifications
 
-A bell with an unread dot, in the top bar. The screen has **Mark all as read**
-and tabs **All · Orders · Customers · System** — which needs a `kind` column on
-the existing `notifications` table. Tapping a row follows its `action_url`
-(§133.5 E1).
+A bell in the top bar, carrying the unread count — 1 to 9, then "9+" (the user,
+2026-09-26). The screen has **Mark all as read** and tabs **All · Orders ·
+Customers · System** — which needs a `kind` column on the existing
+`notifications` table. Tapping a row follows its `action_url` and marks it read
+(§133.5 E1). *Built 2026-09-26 (R5.10): the worker writes each notification
+from its job (`0022_notification_kind`); orders due soon and overdue are swept
+every minute (`0023_order_due_notifications`).*
 
 ### More (phone)
 
@@ -8048,7 +8057,7 @@ A profile card (initials, name, "Owner · {business}", the catch phrase as a
 quote). Then **Business details**; **Account** (name, email, the sign-in number,
 change password); **Appearance** (Golden or Peach); **Notifications** (the
 Android permission); **About** (the version, the privacy policy, and **Crafted by · jaFFa** — the user, 2026-09-26, in place of the illustration credit); **Sign out**.
-The Notifications row joins with R5.10, and the privacy policy with its page (R8.10); until then About shows the version and the maker.
+The Notifications row — the Android permission — joins with push (R8.6), and the privacy policy with its page (R8.10); until then About shows the version and the maker.
 The reference's separate Profile screen is folded in here.
 
 ### Business details
@@ -8347,7 +8356,8 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `…_drop_categories` | *Added 2026-09-26 as `0018_drop_categories` (R5.6).* Drops `products.category_id` with its composite reference and index, then the unused `categories` table with its policy, trigger and checks. Expense categories (`expenses.category`) are untouched. | 5 |
 | `…_stock_levels` | *Added 2026-09-26 as `0019_stock_levels` (R5.7).* A read-only, `security_invoker` view adding each product's ledger up in the database — balance, `stocked` (the oversell guard's own test, 0015) and last movement — because a read of the lines stops at the API's 1,000-row limit and the sums were quietly short past it. Inventory and Home's low stock read it. No table. | 5 |
 | `…_expense_categories` | *Added 2026-09-26 as `0020_expense_categories` (R5.8, R5.16; the user's decision of that day).* **`expense_categories`** — a business's own categories: RLS to the business, SELECT only for the API role, names unique per business on `lower(btrim(name))`, 1–40 characters, never one of the eight. **`expenses.category`**: the CHECK of the eight becomes a trigger that takes a default or one of the expense's own business's categories, locking it for share against a rename or delete. Owner-only `security definer` functions: **`create_expense_category`**; **`update_expense_category`**, whose rename moves the category's expenses and picture in one transaction; and **`delete_expense_category`**, refused while an expense is filed under the category. The eight are never changed or deleted. | 5 |
-| `…_notification_kind` | `notifications.kind` (`ORDER`, `PAYMENT`, `STOCK`, `CUSTOMER`, `SYSTEM`); index `(bakery_id, is_read, created_at desc)`. | 5 |
+| `…_notification_kind` | *Added 2026-09-26 as `0022_notification_kind` (R5.10).* `notifications.kind` (`ORDER`, `PAYMENT`, `STOCK`, `CUSTOMER`, `SYSTEM`); indexes `(bakery_id, created_at desc, id)` and `(bakery_id, is_read, created_at desc)`. Written by the worker only: `authenticated` loses INSERT and UPDATE, and may update `is_read` alone. Triggers queue the plan's events in their own transactions: an order placed, a customer added, and a counted product on sale falling to the low-stock mark (`low_stock_mark()`, equal to `LOW_STOCK_THRESHOLD`) — once as it crosses, never for a consumption line. | 5 |
+| `…_order_due_notifications` | *Added 2026-09-26 as `0023_order_due_notifications` (R5.10; the user).* `orders.due_notified_at` and `orders.overdue_notified_at`; a partial index on open orders by `delivery_date`; **`queue_due_order_notifications(p_from_hour)`**, the worker's alone, which marks and queues in one statement each open order due today or tomorrow, and each overdue, in its business's timezone, from the hour given. Open orders more than a day overdue when it arrives are marked as told. | 5 |
 | `…_audit_writes` | Revoke `INSERT` on `audit_logs` from `authenticated`; audit is written by the server with the acting user (§133.7 G1, BUG-20). | 2 |
 | `…_device_tokens` | The push-token registry (§133.5 E2). | 8 |
 | `…_profile_theme` *(if Q14)* | `profiles.theme`. | 1 |
@@ -8384,7 +8394,8 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `GET, POST /api/expense-categories`, `PATCH, DELETE /api/expense-categories/{category}` | New (§139.11.10; the user, 2026-09-26). GET lists the eight, then the business's own, each with its illustration. POST `{ name, iconKey }` adds one of its own; PATCH `{ name, iconKey }` renames it or changes its picture; DELETE removes one no expense is filed under. The eight are never changed (`EXPENSE_CATEGORY_DEFAULT_FIXED`), a name is taken once (`EXPENSE_CATEGORY_ALREADY_EXISTS`), and a category in use stays (`EXPENSE_CATEGORY_IN_USE`). Done 2026-09-26 (R5.16). |
 | `POST /api/products`, `PATCH /api/products/{id}` | Accept `iconKey`: a registry key, or null for the default. |
 | ~~`GET, POST, PATCH /api/categories`~~ | **Dropped 2026-09-25:** products need no categories. |
-| `GET /api/notifications`, `POST /api/notifications/read-all` | New (§133.5 E1). |
+| `GET /api/notifications`, `POST /api/notifications/read-all` | New (§133.5 E1). GET `?tab=ALL\|ORDERS\|CUSTOMERS\|SYSTEM&cursor=` pages the inbox, newest first; read-all answers how many it marked. Done 2026-09-26 (R5.10). |
+| `GET /api/notifications/unread`, `POST /api/notifications/{id}/read` | New (R5.10): the bell's count, and one notification marked read as it is opened — one of another business's is not found. |
 
 **OpenAPI** is updated with every change (§133.11 K1).
 
@@ -8687,14 +8698,14 @@ the row needs; without an answer it is built on that question's default
 
 ### Phase 5 — Screens
 
-**Status (2026-09-26):** every row is done except **R5.10 Notifications**, which the user set aside for later. The exit test holds for every screen that is built:
+**Status (2026-09-26): closed.** Every row is done, R5.10 Notifications last. The exit test holds for every screen:
 
 - **Screens:** 16 routes at 360, 390, 414, 820, 1280 and 1440 px in Golden and Peach, with no sideways scroll and no page errors.
 - **Charts:** they follow §139.11.11.
 - **Copy:** no hard-coded strings remain.
 - **Build:** `next build` passes.
 
-Phase 5 closes when R5.10 is done.
+Phase 5 closed on 2026-09-26 with R5.10.
 
 | ID | Work | Source | Waits on | Status |
 |---|---|---|---|---|
@@ -8707,7 +8718,7 @@ Phase 5 closes when R5.10 is done.
 | R5.7 | Inventory | §139.10 | — | DONE (2026-09-26 · `0019_stock_levels`; each product's history, a page at a time) |
 | R5.8 | Expenses as the reference shows: KPIs, the category donut, daily bars, recent expenses; the Categories and Transactions tabs; `GET /api/expenses/summary`; expenses edited and deleted (the user, 2026-09-26) | §139.10; §139.11.11 | — | DONE (2026-09-26 · summed on the server; Transactions a page at a time) |
 | R5.9 | Analytics as the reference shows: KPIs with deltas, the sales-trend line, top products (custom items as one row in the Products tab); ~~sales by category~~ dropped with categories (2026-09-25), **sales by product** in its place (the user, 2026-09-26); the Sales, Orders, Customers and Products tabs; server aggregation; Top Customers; the guest split | §133.9 I1, I3; IMP-10; §139.11.11 | — | DONE (2026-09-26 · worked out on the server; the period is remembered on the device) |
-| R5.10 | Notifications inbox and bell; the `kind` column | §133.5 E1 | — | TODO |
+| R5.10 | Notifications inbox and bell; the `kind` column; orders due soon and overdue (the user, 2026-09-26) | §133.5 E1; §25, §28 | — | DONE (2026-09-26 · `0022_notification_kind`, `0023_order_due_notifications`; the bell counts to "9+"; Settings' permission row comes with push, R8.6) |
 | R5.11 | More and Settings (Appearance, Account, About with ~~the illustration credit~~ the maker, the user 2026-09-26); no Help | §139.10 | Q7 (answered), Q16 | DONE (2026-09-26 · the profile folded into Settings; the theme moved there from More and the account menu; the Notifications row waits for R5.10, the privacy policy for R8.10) |
 | R5.12 | ~~Global search~~ | IMP-01 | — | DROPPED (2026-09-25, the user's decision: search stays in each list, R5.13) |
 | R5.13 | Pagination on every list; each list's search runs on the server with it — debounced, tenant-scoped, with loading, empty and error states | §133.9 I4; IMP-11; IMP-01 (2026-09-25) | — | DONE (2026-09-26 · Orders, Customers, a customer's orders, Guest sales, the customer picker, Expenses' transactions and each product's stock history are paged. Products — and Inventory's list of the same products — stays one read: a menu, not a ledger (the user, 2026-09-26)) |

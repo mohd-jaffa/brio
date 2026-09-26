@@ -107,6 +107,35 @@ export function clearJobHandlers() {
 }
 
 /**
+ * Work that is not asked for but looked for: every so often a worker runs
+ * each sweep — a feature's check of what has come due, which queues jobs of
+ * its own. Registered by name, as handlers are, by the features that own them.
+ */
+export type Sweep = (client: SupabaseClient) => Promise<void>;
+
+const sweeps = new Map<string, Sweep>();
+
+export function registerSweep(name: string, sweep: Sweep) {
+  sweeps.set(name, sweep);
+}
+
+/** Only for tests: forgets every registered sweep. */
+export function clearSweeps() {
+  sweeps.clear();
+}
+
+/** Runs every sweep once. One that fails is logged and leaves the rest to run. */
+export async function runSweeps(client: SupabaseClient): Promise<void> {
+  for (const [name, sweep] of sweeps) {
+    try {
+      await sweep(client);
+    } catch (error) {
+      logger.error("Sweep failed", { sweep: name, reason: error instanceof Error ? error.message : String(error) });
+    }
+  }
+}
+
+/**
  * Takes one job and runs it. Returns whether there was one, so a worker knows
  * to look again at once or to wait. A handler that throws fails that attempt;
  * nothing a handler does can stop the worker.

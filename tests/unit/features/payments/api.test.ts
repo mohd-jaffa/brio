@@ -157,7 +157,7 @@ describe("processPayment", () => {
     await processPayment(tenantOf(client), payment, KEY);
     expect(createJob).toHaveBeenCalledWith(client, {
       type: "SEND_PUSH_NOTIFICATION",
-      payload: { bakeryId: "b-1", message: { kind: "PAYMENT_RECEIVED", orderNumber: "ORD-1001", amount: 50000 } },
+      payload: { bakeryId: "b-1", message: { kind: "PAYMENT_RECEIVED", orderId: ORDER_ID, orderNumber: "ORD-1001", amount: 50000 } },
     });
   });
 

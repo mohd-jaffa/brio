@@ -2,15 +2,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Job } from "@/lib/jobs/types";
 
-const registerJobHandler = vi.hoisted(() => vi.fn());
-vi.mock("@/lib/jobs/queue", () => ({ registerJobHandler }));
+const { registerJobHandler, registerSweep } = vi.hoisted(() => ({ registerJobHandler: vi.fn(), registerSweep: vi.fn() }));
+vi.mock("@/lib/jobs/queue", () => ({ registerJobHandler, registerSweep }));
 const sendPush = vi.hoisted(() => vi.fn());
 vi.mock("@/features/notifications/capacitor-push.service", () => ({
   CapacitorPushProvider: class {
     sendPush = sendPush;
   },
 }));
-vi.mock("@/lib/logger", () => ({ logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() } }));
+const logger = vi.hoisted(() => ({ info: vi.fn(), warn: vi.fn(), error: vi.fn() }));
+vi.mock("@/lib/logger", () => ({ logger }));
 const { sendAccountConfirmation, sendEmailChangeConfirmation, serviceClient } = vi.hoisted(() => ({
   sendAccountConfirmation: vi.fn(),
   sendEmailChangeConfirmation: vi.fn(),
@@ -19,6 +20,11 @@ const { sendAccountConfirmation, sendEmailChangeConfirmation, serviceClient } = 
 vi.mock("@/features/auth/api", () => ({ sendAccountConfirmation }));
 vi.mock("@/features/auth/account", () => ({ sendEmailChangeConfirmation }));
 vi.mock("@/lib/supabase/server", () => ({ createSupabaseServiceRoleClient: () => serviceClient }));
+const { recordNotification, queueDueOrderNotifications } = vi.hoisted(() => ({
+  recordNotification: vi.fn(),
+  queueDueOrderNotifications: vi.fn(),
+}));
+vi.mock("@/features/notifications/api", () => ({ recordNotification, queueDueOrderNotifications }));
 
 import { registerNotificationWorker } from "@/features/notifications/worker";
 
@@ -57,6 +63,44 @@ describe("the notification worker", () => {
     expect(sendPush).toHaveBeenCalledWith("device-1", { title: "Order updated", body: "ORD-1028 is now Ready." });
   });
 
+  it("files it in the business's inbox first, under the job's id, with its kind and where it leads", async () => {
+    sendPush.mockResolvedValue(true);
+    await handler()(
+      job({ bakeryId: "b-1", message: { kind: "STOCK_LOW", productId: "p-1", productName: "Brownies", balance: 3, unit: "piece" } }),
+    );
+    expect(recordNotification).toHaveBeenCalledWith(serviceClient, {
+      id: "j-1",
+      bakeryId: "b-1",
+      kind: "STOCK",
+      text: { title: "Low stock", body: "Brownies is down to 3 pieces." },
+      actionUrl: "/inventory",
+    });
+    // No device yet: in the inbox all the same, and done.
+    expect(sendPush).not.toHaveBeenCalled();
+  });
+
+  it("files words queued ready-made as the system's, leading nowhere", async () => {
+    await handler()(job({ bakeryId: "b-1", payload: { title: "t", body: "b" } }));
+    expect(recordNotification).toHaveBeenCalledWith(serviceClient, {
+      id: "j-1",
+      bakeryId: "b-1",
+      kind: "SYSTEM",
+      text: { title: "t", body: "b" },
+      actionUrl: null,
+    });
+  });
+
+  it("files nothing for a job that names no business, and pushes nothing once filing fails", async () => {
+    await handler()(job({ payload: { title: "t", body: "b" } }));
+    expect(recordNotification).not.toHaveBeenCalled();
+
+    recordNotification.mockRejectedValueOnce(new Error("database down"));
+    await expect(handler()(job({ token: "device-1", bakeryId: "b-1", payload: { title: "t", body: "b" } }))).rejects.toThrow(
+      "database down",
+    );
+    expect(sendPush).not.toHaveBeenCalled();
+  });
+
   it("fails the attempt when the push is refused, or there is nothing to send", async () => {
     sendPush.mockResolvedValue(false);
     const handle = handler();
@@ -79,5 +123,20 @@ describe("the notification worker", () => {
     await handler("SEND_EMAIL_CHANGE_CONFIRMATION")(job({ userId: "u-1" }));
     expect(sendEmailChangeConfirmation).toHaveBeenCalledWith(serviceClient, "u-1");
     await expect(handler("SEND_EMAIL_CHANGE_CONFIRMATION")(job({}))).rejects.toThrow("Email change job has no user");
+  });
+
+  it("sweeps for orders due soon or overdue, and says when it queued any", async () => {
+    registerNotificationWorker();
+    const [name, sweep] = registerSweep.mock.calls[0] as [string, (client: unknown) => Promise<void>];
+    expect(name).toBe("due orders");
+
+    queueDueOrderNotifications.mockResolvedValueOnce(0);
+    await sweep(serviceClient);
+    expect(queueDueOrderNotifications).toHaveBeenCalledWith(serviceClient);
+    expect(logger.info).not.toHaveBeenCalledWith("Queued notifications for orders due", expect.anything());
+
+    queueDueOrderNotifications.mockResolvedValueOnce(2);
+    await sweep(serviceClient);
+    expect(logger.info).toHaveBeenCalledWith("Queued notifications for orders due", { queued: 2 });
   });
 });

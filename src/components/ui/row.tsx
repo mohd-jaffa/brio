@@ -38,6 +38,9 @@ export function RowList({ label, children, className }: { label?: string; childr
  * a button with only `onClick`, and plain otherwise; the whole row is the
  * target, so it is easy to hit.
  *
+ * `wrap` lets the line under the title run to a second line rather than be
+ * cut short, where that line is the point — a notification's message.
+ *
  * `leadingControl` is a control of its own at the start — an expense
  * category's picture, tapped to change it — kept beside the row's target
  * rather than inside it, since one control cannot hold another.
@@ -53,6 +56,7 @@ export function Row({
   onClick,
   chevron = href !== undefined || onClick !== undefined,
   arriving = false,
+  wrap = false,
 }: {
   leading?: ReactNode;
   leadingControl?: ReactNode;
@@ -65,13 +69,17 @@ export function Row({
   chevron?: boolean;
   /** It has just joined the list — a payment recorded a moment ago — and drops into place. */
   arriving?: boolean;
+  /** The subtitle may take two lines. */
+  wrap?: boolean;
 }) {
   const body = (
     <>
       {leading && <span className="shrink-0">{leading}</span>}
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-semibold text-text">{title}</span>
-        {subtitle && <span className="mt-0.5 block truncate text-sm text-text-muted">{subtitle}</span>}
+        {subtitle && (
+          <span className={cn("mt-0.5 block text-sm text-text-muted", wrap ? "line-clamp-2" : "truncate")}>{subtitle}</span>
+        )}
         {meta && <span className="mt-0.5 block truncate text-xs text-text-muted">{meta}</span>}
       </span>
       {trailing && (

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const logger = vi.hoisted(() => ({ info: vi.fn(), warn: vi.fn(), error: vi.fn() }));
 vi.mock("@/lib/logger", () => ({ logger }));
-const queue = vi.hoisted(() => ({ processNextJob: vi.fn(), recoverStaleJobs: vi.fn() }));
+const queue = vi.hoisted(() => ({ processNextJob: vi.fn(), recoverStaleJobs: vi.fn(), runSweeps: vi.fn() }));
 vi.mock("@/lib/jobs/queue", () => queue);
 
 import { runWorker } from "@/lib/jobs/runner";
@@ -13,6 +13,7 @@ const client = {} as SupabaseClient;
 beforeEach(() => {
   vi.clearAllMocks();
   queue.recoverStaleJobs.mockResolvedValue(0);
+  queue.runSweeps.mockResolvedValue(undefined);
 });
 
 describe("runWorker", () => {
@@ -74,5 +75,29 @@ describe("runWorker", () => {
     const running = runWorker({ client, workerId: "w-1", signal: stop.signal, idleMs: 0 });
     await running;
     expect(logger.error).toHaveBeenCalledWith("Worker could not reach the queue", { workerId: "w-1", reason: "down" });
+  });
+
+  it("sweeps first, then not again until the interval has passed", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+    try {
+      const stop = new AbortController();
+      let looks = 0;
+      queue.processNextJob.mockImplementation(async () => {
+        looks += 1;
+        if (looks === 3) stop.abort();
+        return false;
+      });
+
+      const running = runWorker({ client, workerId: "w-1", signal: stop.signal, idleMs: 30_000, sweepMs: 60_000 });
+      await vi.advanceTimersByTimeAsync(30_000); // second look: 30 s on, not yet due
+      await vi.advanceTimersByTimeAsync(30_000); // third look: 60 s on, due again
+      await running;
+
+      expect(queue.runSweeps).toHaveBeenCalledTimes(2);
+      expect(queue.runSweeps).toHaveBeenCalledWith(client);
+      expect(queue.runSweeps.mock.invocationCallOrder[0]).toBeLessThan(queue.processNextJob.mock.invocationCallOrder[0]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

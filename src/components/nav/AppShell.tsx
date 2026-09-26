@@ -9,6 +9,7 @@ import { UI_TEXT } from "@/constants/messages";
 import { BOTTOM_NAV, isActivePath, NAV_GROUPS } from "@/constants/navigation";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { RequireAuth } from "@/features/auth/components/RequireAuth";
+import { NotificationBell } from "@/features/notifications/components/NotificationBell";
 import { useSettle } from "@/hooks/useSettle";
 
 import { cn } from "../ui/cn";
@@ -19,16 +20,16 @@ import { MoreSheet } from "./MoreSheet";
 /**
  * The frame every screen sits in (plan §139.5, §139.9):
  *
- * - **Phone (< 768 px):** a top bar with the business's mark, name and line
- *   and the account's initials; a five-item bottom bar with a tinted pill on
- *   the current place; More opens the rest.
+ * - **Phone (< 768 px):** a top bar with the business's mark, name and line,
+ *   the bell and the account's initials; a five-item bottom bar with a tinted
+ *   pill on the current place; More opens the rest.
  * - **Tablet (768–1023 px):** a 72 px icon rail, its labels shown as tooltips
- *   and read as each link's name, and a top bar with the account.
+ *   and read as each link's name, and a top bar with the bell and the account.
  * - **Desktop (≥ 1024 px):** the 248 px sidebar in the plan's three groups,
  *   the same top bar, and content up to 1200 px wide.
  *
- * Every edge pays its safe area. The bell (R5.10) joins the top bar with its
- * feature; there is no global search (the user's decision, 2026-09-25).
+ * Every edge pays its safe area. There is no global search (the user's
+ * decision, 2026-09-25).
  *
  * Every screen is drawn inside this, so the session gate lives here too: no
  * page has to remember to ask whether anyone is signed in.
@@ -102,14 +103,18 @@ function AppFrame({ children }: { children: ReactNode }) {
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="safe-top [--safe-pt:0.75rem] safe-x [--safe-px:1rem] sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-border bg-surface/90 pb-3 backdrop-blur-md md:hidden">
           <BusinessMark compact />
-          {profile && (
-            <Link href="/settings" aria-label={UI_TEXT.nav.account(profile.name)} className="touch-target flex items-center justify-center rounded-full">
-              <Avatar name={profile.name} size="sm" />
-            </Link>
-          )}
+          <div className="flex shrink-0 items-center gap-1">
+            <NotificationBell />
+            {profile && (
+              <Link href="/settings" aria-label={UI_TEXT.nav.account(profile.name)} className="touch-target flex items-center justify-center rounded-full">
+                <Avatar name={profile.name} size="sm" />
+              </Link>
+            )}
+          </div>
         </header>
 
         <header className="safe-top [--safe-pt:0.75rem] sticky top-0 z-20 hidden items-center justify-end gap-3 border-b border-border bg-surface/85 pb-3 pl-6 pr-[calc(var(--safe-right)+1.5rem)] backdrop-blur-md md:flex">
+          <NotificationBell />
           <AccountPopover />
         </header>
 
