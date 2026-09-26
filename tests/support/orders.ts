@@ -1,4 +1,4 @@
-import type { Order } from "@/features/orders/types";
+import type { Order, OrderListItem } from "@/features/orders/types";
 import type { Payment } from "@/features/payments/types";
 
 /**
@@ -58,6 +58,25 @@ export function aPayment(changes: Partial<Payment> = {}): Payment {
     idempotency_key: null,
     paid_at: "2026-09-26T07:06:00.000Z",
     created_at: "2026-09-26T07:06:00.000Z",
+    ...changes,
+  };
+}
+
+/** An order as a list shows it (`OrderListItem`): ORD-1006 for Meena, a cake, part paid. */
+export function anOrderListItem(changes: Partial<OrderListItem> = {}): OrderListItem {
+  return {
+    id: "o-1",
+    orderNumber: "ORD-1006",
+    status: "PENDING",
+    deliveryType: "DELIVERY",
+    dueAt: "2026-09-27T05:00:00Z",
+    customer: { id: "c-1", name: "Meena Gupta" },
+    firstItem: { name: "Chocolate truffle cake", iconKey: "chocolate-cake-slice", custom: false },
+    lineCount: 1,
+    total: 125000,
+    paymentStatus: "PARTIALLY_PAID",
+    balanceDue: 75000,
+    createdAt: "2026-09-26T05:00:00Z",
     ...changes,
   };
 }

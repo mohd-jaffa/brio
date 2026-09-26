@@ -33,6 +33,27 @@ export interface ListQuery {
 }
 
 /**
+ * A screen, or a part of one, that could not load (AGENTS.md §21): why, in
+ * the app's words, and **Try again**. It stays on the screen rather than on a
+ * response card, because the screen has nothing else to show.
+ */
+export function LoadFailed({ query, loadFailed }: { query: ListQuery; loadFailed: ErrorMessageCode }) {
+  return (
+    <section className="space-y-4">
+      <ScreenNotice>{errorMessage(query.error, loadFailed)}</ScreenNotice>
+      {query.mutate && (
+        <Button
+          label={UI_TEXT.actions.retry}
+          variant="secondary"
+          loading={query.isValidating}
+          onClick={() => query.mutate?.()}
+        />
+      )}
+    </section>
+  );
+}
+
+/**
  * Each item as a card of its own in the list's grid — or, with `renderList`
  * instead, the screen draws the whole list itself: hairline rows on a phone,
  * a table on a desktop.
@@ -89,21 +110,7 @@ export function ListScreen<T>({
     );
   }
 
-  if (failed) {
-    return (
-      <section className="space-y-4">
-        <ScreenNotice>{errorMessage(query.error, loadFailed)}</ScreenNotice>
-        {query.mutate && (
-          <Button
-            label={UI_TEXT.actions.retry}
-            variant="secondary"
-            loading={query.isValidating}
-            onClick={() => query.mutate?.()}
-          />
-        )}
-      </section>
-    );
-  }
+  if (failed) return <LoadFailed query={query} loadFailed={loadFailed} />;
 
   if (!data || data.length === 0) {
     return <section>{noMatches ? <p className="py-10 text-center text-sm font-medium text-text-muted">{noMatches}</p> : empty}</section>;

@@ -76,6 +76,7 @@ export {
 } from "./schemas/product";
 
 export { cursorParam, listQuerySchema, searchParam, type ListQuery } from "./schemas/list";
+export { dashboardQuerySchema, type DashboardQuery } from "./schemas/dashboard";
 
 export {
   createExpenseSchema,

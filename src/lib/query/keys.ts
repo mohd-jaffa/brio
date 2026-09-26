@@ -46,6 +46,7 @@ export const apiRoutes = {
   analytics: {
     overview: "/api/analytics/overview",
   },
+  dashboard: "/api/dashboard",
   business: {
     profile: "/api/business",
     logo: "/api/business/logo",

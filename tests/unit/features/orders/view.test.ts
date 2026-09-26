@@ -60,6 +60,10 @@ describe("isOverdue", () => {
   it("is not late while the time is still to come", () => {
     expect(isOverdue(order("4", "PENDING", "2026-09-23T10:00:00Z"), now)).toBe(false);
   });
+
+  it("is not late on the day it is due, even past its time (IMP-05)", () => {
+    expect(isOverdue(order("5", "PENDING", "2026-09-22T04:00:00Z"), now)).toBe(false);
+  });
 });
 
 describe("statusPill", () => {

@@ -45,6 +45,19 @@ export async function readJson<T>(request: Request, schema?: ZodType<T>): Promis
 }
 
 /**
+ * The request's query, parsed by `schema`: each parameter's value as a string,
+ * an empty one as absent. A list's filters, its search and its page are read
+ * here, so a bad one answers with the same envelope as a bad body.
+ */
+export function readQuery<T>(request: Request, schema: ZodType<T>): T {
+  const values: Record<string, string> = {};
+  for (const [name, value] of new URL(request.url).searchParams) {
+    if (value !== "" && !(name in values)) values[name] = value;
+  }
+  return schema.parse(values);
+}
+
+/**
  * A request's raw body, refused with `tooLarge` once it passes `maxBytes`.
  * The declared length is checked first, so an honest oversized upload is
  * turned away before any of it is read; the count is kept while reading too,

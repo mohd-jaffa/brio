@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { validationError } from "@/lib/errors";
 
-import { createRequestId, normalizeApiError, readBody, readJson, withApiHandler } from "@/lib/api/handler";
+import { createRequestId, normalizeApiError, readBody, readJson, readQuery, withApiHandler } from "@/lib/api/handler";
 
 vi.mock("@/lib/logger", () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
@@ -42,6 +42,19 @@ describe("readJson", () => {
   it("lets a schema failure through as a ZodError", async () => {
     const schema = z.object({ name: z.string() });
     await expect(readJson(post({ name: 7 }), schema)).rejects.toBeInstanceOf(z.ZodError);
+  });
+});
+
+describe("readQuery", () => {
+  const schema = z.object({ period: z.string().optional(), status: z.string().optional() });
+
+  it("hands the query to the schema, an empty value as absent and a repeat as its first", () => {
+    const request = new Request("http://x/api/dashboard?period=WEEK&status=&period=MONTH");
+    expect(readQuery(request, schema)).toEqual({ period: "WEEK" });
+  });
+
+  it("lets a schema failure through as a ZodError", () => {
+    expect(() => readQuery(new Request("http://x/?period=1"), z.object({ period: z.enum(["WEEK"]) }))).toThrow(z.ZodError);
   });
 });
 

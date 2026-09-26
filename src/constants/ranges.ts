@@ -22,3 +22,16 @@ export interface DateRange {
   from?: string;
   to?: string;
 }
+
+/**
+ * The Home switch (plan §139.10): today, this week from its Monday, and this
+ * month from its first — each in the business's calendar.
+ */
+export const HOME_PERIODS = ["TODAY", "WEEK", "MONTH"] as const;
+export type HomePeriod = (typeof HOME_PERIODS)[number];
+
+export const HOME_PERIOD_LABELS: Record<HomePeriod, string> = {
+  TODAY: "Today",
+  WEEK: "Week",
+  MONTH: "Month",
+};

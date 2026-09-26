@@ -1621,3 +1621,46 @@ this entry grows with them.
 
 ### Blockers
 - None. Screens move onto paging one by one as they are rebuilt. `GET /api/orders` switches last, after Home, Analytics and Customer detail stop reading every order.
+
+## 2026-09-26 — Home (R5.1) and its filters (R5.15)
+
+### Added
+- **`GET /api/dashboard?period=TODAY|WEEK|MONTH&status=&payment=` (`src/features/dashboard/api.ts`).** Works Home out on the server from bounded queries, so the browser no longer reads every order, product and stock line (§133.9 I4).
+  - **Queries:** the period's orders once, for the tiles and the charts. The orders due, what is owed, the ledger, the products and the recent customers each have their own query.
+  - **Sums:** every sum is a pure function in `summary.ts`, tested on plain rows.
+- **Home (`src/features/dashboard/components/Home.tsx`).** Built as §139.10 lays it out. `src/app/page.tsx` now only draws it.
+  - **Greeting:** "Good morning, {first name}", by the business's clock (§134 P2-1), over the catch phrase or a neutral line. It sits on the hero plate on a phone; on a desktop it is a row with the date and the quote.
+  - **Tiles:** due today, sales for the period, to collect, low stock, with a Today / Week / Month switch. Sales has its sparkline from 1024 px.
+  - **Orders due:** grouped Overdue / Due today / Tomorrow, soonest first, with **View all**.
+  - **Low stock:** stocked products only, the rule the oversell guard uses (0015). A product nobody counts is not "low".
+  - **Desktop:** the sales by day, the orders by status, the top products (custom items as one line) and the recent customers.
+  - **Also:** the quote block on a phone, and **New order** as the + (the words from 768 px).
+- **Dashboard filters (R5.15, §116–§117).** A sheet on the orders due with Preparation (All, Pending, Preparing, Ready, Out for delivery) and Payment (All, Unpaid, Part paid, Paid).
+  - The two combine, and **Clear filters** removes both.
+  - The filter button shows a dot while either is on.
+- **The order row (`OrderRow`, `OrderListItem`, `ORDER_LIST_COLUMNS`).** An order as every list will show it, read in one query with its customer, its lines and each line's illustration.
+  - **Line 1:** the first item's illustration, then the number and the customer, or Guest.
+  - **Line 2:** the first item and "+2 more".
+  - **Line 3:** "Due 27 Sep · ₹750 to pay" (IMP-07).
+  - **Right:** the amount and the status pill.
+- **Kit:**
+  - `SectionHeading`: a title with **View all** named for a screen reader.
+  - `FilterButton`: taken out of `SearchField` so a list without search can use it.
+  - `LoadFailed`: taken out of `ListScreen` for a screen that is not a list.
+- **Calendar:** `addDaysKey`, `dayStart` (India's midnight as an instant), `weekStartKey`, `monthStartKey`, `daysFrom`, `bakeryHour`. `formatLongDate` gives "Saturday, 26 Sep 2026".
+- **Other:** `readQuery` parses a route's query through a schema, as `readJson` does a body. The test support gains `fakeSupabase`, a recording, chainable query double.
+
+### Changed
+- **IMP-05 / §134 P2-2:** an order due today stays **today** until the day ends. It is overdue only on a later day, in `dueBucket` and `isOverdue` alike, so Order detail's "late" follows too.
+- Home's greeting no longer says "Good morning, Baker!".
+
+### Removed
+- The old Home page's browser-side sums (`summarise`, `ordersByDue`) and its quick-action tiles, which were outside §139.10.
+
+### Validation
+- `tsc`, `eslint` and the test-path check are clean. 219 test files and 1,384 tests pass. The new components, the summary, the API and the list model are at 100% coverage.
+- `GET /api/dashboard` was read against local data. The day sums add up to the period total. The filters combine. A period it does not know is refused in the validation envelope.
+- **Captures:** 360, 390, 820, 1280 and 1440 px, in Golden and Peach, with no sideways scroll and no errors on the page.
+
+### Blockers
+- None. The order row cuts off its longer lines at 360 px, but the number, the due date, the amount and the status stay whole.

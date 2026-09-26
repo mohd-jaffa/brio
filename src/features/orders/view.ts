@@ -6,10 +6,13 @@ import {
   orderStatusLabel,
   PAYMENT_STATUS_LABELS,
   PAYMENT_STATUS_TONES,
+  type DeliveryType,
+  type OrderStatus,
   type StatusTone,
 } from "@/constants/statuses";
+import { dueBucket } from "@/lib/dates/calendar";
 
-import type { Order } from "./types";
+import type { Order, OrderListItem } from "./types";
 
 /**
  * How an order reads on a screen. The list, the detail page and the dashboard
@@ -21,15 +24,28 @@ export function isOpen(order: Order): boolean {
   return !FINAL_STATUSES.includes(order.status);
 }
 
-/** Past its delivery time and still open. A delivered or cancelled order is never late. */
+/**
+ * Due on a day already gone, and still open. An order due today is not late
+ * until the day ends (IMP-05); a delivered or cancelled order is never late.
+ */
 export function isOverdue(order: Order, now: Date = new Date()): boolean {
-  return isOpen(order) && new Date(order.delivery.date).getTime() < now.getTime();
+  return isOpen(order) && dueBucket(order.delivery.date, now) === "overdue";
+}
+
+function pill(status: OrderStatus, deliveryType: DeliveryType, due: string, now?: Date) {
+  const late = !FINAL_STATUSES.includes(status) && dueBucket(due, now) === "overdue";
+  if (late) return { label: UI_TEXT.orders.overdue, tone: "cancelled" as StatusTone };
+  return { label: orderStatusLabel(status, deliveryType), tone: ORDER_STATUS_TONES[status] };
 }
 
 /** What the pill beside an order says, and in what tone — "Overdue" outranks the status. */
 export function statusPill(order: Order, now?: Date): { label: string; tone: StatusTone } {
-  if (isOverdue(order, now)) return { label: UI_TEXT.orders.overdue, tone: "cancelled" };
-  return { label: orderStatusLabel(order.status, order.delivery.type), tone: ORDER_STATUS_TONES[order.status] };
+  return pill(order.status, order.delivery.type, order.delivery.date, now);
+}
+
+/** The same pill for an order in a list (./types `OrderListItem`). */
+export function listStatusPill(order: OrderListItem, now?: Date): { label: string; tone: StatusTone } {
+  return pill(order.status, order.deliveryType, order.dueAt, now);
 }
 
 export function paymentPill(order: Order): { label: string; tone: StatusTone } {

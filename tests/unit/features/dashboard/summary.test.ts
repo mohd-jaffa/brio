@@ -1,162 +1,172 @@
 import { describe, expect, it } from "vitest";
 
-import type { InventoryBalance } from "@/features/inventory/types";
-import type { Order, OrderStatus, PaymentStatus } from "@/features/orders/types";
-import type { Product } from "@/features/products/types";
+import { HOME_LIST_LIMITS } from "@/constants/limits";
+import {
+  groupDue,
+  lowStock,
+  ordersByStatus,
+  periodDays,
+  periodSales,
+  recentCustomers,
+  salesByDay,
+  topProducts,
+  type PeriodOrder,
+} from "@/features/dashboard/summary";
+import type { OrderListItem } from "@/features/orders/types";
 
-import { lowStock, ordersByDue, summarise } from "@/features/dashboard/summary";
+const item = (productId: string | null, name: string, quantity: number, subtotal: number, iconKey: string | null = null) => ({
+  product_id: productId,
+  product_name: name,
+  quantity,
+  subtotal,
+  products: productId ? { icon_key: iconKey } : null,
+});
 
-const now = new Date("2026-09-22T06:00:00Z"); // 11:30 in India
+// 26 Sep 2026 is a Saturday. Times are in India: 10:00 IST is 04:30Z.
+const orders: PeriodOrder[] = [
+  { total: 1000, status: "DELIVERED", created_at: "2026-09-26T04:30:00Z", order_items: [item("p-cake", "Cake", 1, 1000, "cake")] },
+  { total: 500, status: "PENDING", created_at: "2026-09-25T20:00:00Z", order_items: [item("p-cake", "Cake", 1, 500, "cake")] }, // 26 Sep 01:30 IST
+  { total: 700, status: "CANCELLED", created_at: "2026-09-26T05:00:00Z", order_items: [item("p-bread", "Bread", 5, 700)] },
+  { total: 300, status: "IN_PROGRESS", created_at: "2026-09-22T05:00:00Z", order_items: [item(null, "Topper", 2, 200), item(null, "Card", 1, 100)] },
+  { total: 900, status: "PENDING", created_at: "2026-09-02T05:00:00Z", order_items: [item("p-bread", "Bread", 3, 900)] },
+];
 
-function order(
-  id: string,
-  {
-    status = "PENDING" as OrderStatus,
-    payment = "UNPAID" as PaymentStatus,
-    paid = 0,
-    total = 10000,
-    due = "2026-09-22T12:00:00Z",
-    createdAt = "2026-09-22T05:00:00Z",
-  } = {},
-): Order {
-  return {
-    id,
-    customerId: "c-1",
-    orderNumber: `#${id}`,
-    status,
-    payment: { status: payment, paid },
-    pricing: { subtotal: total, discount: 0, deliveryCharge: 0, tax: 0, total },
-    delivery: { type: "PICKUP", date: due },
-    items: [],
-    adjustments: [],
-    createdAt,
-    updatedAt: createdAt,
-  };
-}
-
-function product(id: string, isActive = true): Product {
-  return {
-    id,
-    name: `Product ${id}`,
-    defaultPrice: 10000,
-    unit: "piece",
-    isActive,
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-01-01T00:00:00Z",
-  };
-}
-
-describe("summarise", () => {
-  it("counts what was taken today, in the bakery's own day", () => {
-    const summary = summarise(
-      [
-        order("today", { total: 50000 }),
-        order("yesterday", { createdAt: "2026-09-20T05:00:00Z", total: 90000 }),
-      ],
-      now,
-    );
-
-    expect(summary.todaysOrders).toBe(1);
-    expect(summary.todaysRevenue).toBe(50000);
+describe("periodDays", () => {
+  it("starts today, this week's Monday or this month's first", () => {
+    expect(periodDays("TODAY", "2026-09-26").start).toBe("2026-09-26");
+    expect(periodDays("WEEK", "2026-09-26").start).toBe("2026-09-21");
+    expect(periodDays("MONTH", "2026-09-26").start).toBe("2026-09-01");
   });
 
-  it("leaves a cancelled order out of today's trading", () => {
-    const summary = summarise([order("x", { status: "CANCELLED", total: 50000 })], now);
-    expect(summary.todaysOrders).toBe(0);
-    expect(summary.todaysRevenue).toBe(0);
-  });
-
-  it("counts every order still being worked on", () => {
-    const summary = summarise(
-      [
-        order("a", { status: "PENDING" }),
-        order("b", { status: "IN_PROGRESS" }),
-        order("c", { status: "DELIVERED" }),
-      ],
-      now,
-    );
-    expect(summary.pendingOrders).toBe(2);
-  });
-
-  it("adds up what is still owed, ignoring cancelled orders", () => {
-    const summary = summarise(
-      [
-        order("a", { payment: "UNPAID", total: 30000 }),
-        order("b", { payment: "PARTIALLY_PAID", total: 20000 }),
-        order("c", { payment: "PAID", total: 99000, paid: 99000 }),
-        order("d", { payment: "UNPAID", status: "CANCELLED", total: 99000 }),
-      ],
-      now,
-    );
-    expect(summary.pendingPayments).toBe(50000);
-  });
-
-  it("takes what has been paid off a part-paid order", () => {
-    const summary = summarise(
-      [
-        order("a", { payment: "PARTIALLY_PAID", total: 150000, paid: 50000 }),
-        order("b", { payment: "UNPAID", total: 30000 }),
-      ],
-      now,
-    );
-    expect(summary.pendingPayments).toBe(130000);
-  });
-
-  it("is all zeroes for a bakery with no orders", () => {
-    expect(summarise([], now)).toEqual({
-      todaysOrders: 0,
-      todaysRevenue: 0,
-      pendingOrders: 0,
-      pendingPayments: 0,
-    });
+  it("draws at least the last week, so today alone is still a trend", () => {
+    expect(periodDays("TODAY", "2026-09-26").chartStart).toBe("2026-09-20");
+    expect(periodDays("WEEK", "2026-09-22").chartStart).toBe("2026-09-16");
+    expect(periodDays("MONTH", "2026-09-26").chartStart).toBe("2026-09-01");
   });
 });
 
-describe("ordersByDue", () => {
-  it("groups what is open by when it is due, overdue first", () => {
-    const groups = ordersByDue(
-      [
-        order("later", { due: "2026-09-30T10:00:00Z" }),
-        order("tomorrow", { due: "2026-09-23T10:00:00Z" }),
-        order("today", { due: "2026-09-22T12:00:00Z" }),
-        order("late", { due: "2026-09-21T10:00:00Z" }),
-      ],
+describe("periodSales", () => {
+  it("adds up what was placed from the start in India, cancelled orders left out", () => {
+    expect(periodSales(orders, "2026-09-26")).toBe(1500);
+    expect(periodSales(orders, "2026-09-21")).toBe(1800);
+  });
+});
+
+describe("salesByDay", () => {
+  it("gives every day its total, a quiet day nothing, and ignores days outside", () => {
+    expect(salesByDay(orders, ["2026-09-25", "2026-09-26"])).toEqual([
+      { day: "2026-09-25", total: 0 },
+      { day: "2026-09-26", total: 1500 },
+    ]);
+  });
+});
+
+describe("topProducts", () => {
+  it("ranks what sold by what it took, with custom items as one line", () => {
+    expect(topProducts(orders, "2026-09-21")).toEqual([
+      { productId: "p-cake", name: "Cake", iconKey: "cake", quantity: 2, sales: 1500 },
+      { productId: null, name: "Custom items", iconKey: null, quantity: 3, sales: 300 },
+    ]);
+  });
+
+  it("breaks a tie on what it took by how many, then by name", () => {
+    const tied: PeriodOrder[] = [
+      { total: 0, status: "PENDING", created_at: "2026-09-26T05:00:00Z", order_items: [item("a", "Bun", 1, 100), item("b", "Apple", 1, 100), item("c", "Cookie", 3, 100)] },
+    ];
+    expect(topProducts(tied, "2026-09-26").map((line) => line.name)).toEqual(["Cookie", "Apple", "Bun"]);
+  });
+
+  it("keeps to the top few", () => {
+    const many: PeriodOrder[] = [
+      {
+        total: 0,
+        status: "PENDING",
+        created_at: "2026-09-26T05:00:00Z",
+        order_items: Array.from({ length: 8 }, (_, index) => item(`p-${index}`, `P${index}`, 1, index)),
+      },
+    ];
+    expect(topProducts(many, "2026-09-26")).toHaveLength(HOME_LIST_LIMITS.topProducts);
+  });
+});
+
+describe("ordersByStatus", () => {
+  it("counts the period's orders at each status, in order, leaving out a status with none", () => {
+    expect(ordersByStatus(orders, "2026-09-21")).toEqual([
+      { status: "PENDING", count: 1 },
+      { status: "IN_PROGRESS", count: 1 },
+      { status: "DELIVERED", count: 1 },
+      { status: "CANCELLED", count: 1 },
+    ]);
+  });
+});
+
+describe("groupDue", () => {
+  const due = (id: string, dueAt: string) => ({ id, dueAt }) as OrderListItem;
+  const now = new Date("2026-09-26T06:00:00Z"); // 11:30 in India
+
+  it("groups by day — an order due earlier today is still today (IMP-05)", () => {
+    const groups = groupDue(
+      [due("late", "2026-09-25T05:00:00Z"), due("earlier", "2026-09-26T03:00:00Z"), due("next", "2026-09-27T05:00:00Z")],
       now,
     );
-
-    expect(groups.map((group) => group.bucket)).toEqual(["overdue", "today", "tomorrow", "later"]);
-    expect(groups[0].orders.map((entry) => entry.id)).toEqual(["late"]);
+    expect(groups.map((group) => [group.bucket, group.orders.map((order) => order.id)])).toEqual([
+      ["overdue", ["late"]],
+      ["today", ["earlier"]],
+      ["tomorrow", ["next"]],
+    ]);
   });
 
-  it("leaves out a group with nothing in it", () => {
-    const groups = ordersByDue([order("today", { due: "2026-09-22T12:00:00Z" })], now);
-    expect(groups.map((group) => group.bucket)).toEqual(["today"]);
-  });
-
-  it("leaves out orders that are finished", () => {
-    expect(ordersByDue([order("done", { status: "DELIVERED" })], now)).toEqual([]);
+  it("leaves out an empty group", () => {
+    expect(groupDue([due("next", "2026-09-27T05:00:00Z")], now).map((group) => group.bucket)).toEqual(["tomorrow"]);
   });
 });
 
 describe("lowStock", () => {
-  const balances: InventoryBalance[] = [
-    { productId: "a", balance: 2 },
-    { productId: "b", balance: 40 },
+  const products = [
+    { id: "p-cake", name: "Cake", icon_key: "cake", unit: "piece" },
+    { id: "p-bun", name: "Bun", icon_key: null, unit: "piece" },
+    { id: "p-bread", name: "Bread", icon_key: null, unit: "piece" },
+    { id: "p-flour", name: "Flour", icon_key: null, unit: "kg" },
+    { id: "p-never", name: "Never counted", icon_key: null, unit: "piece" },
+    { id: "p-new", name: "No lines yet", icon_key: null, unit: "piece" },
   ];
 
-  it("names what is at or below the mark, emptiest first", () => {
-    const low = lowStock([product("a"), product("b"), product("c")], balances);
+  it("lists stocked products at or under the mark, emptiest first, names breaking a tie", () => {
+    const lines = [
+      { product_id: "p-cake", quantity: 10, type: "STOCK_IN" as const },
+      { product_id: "p-cake", quantity: -7, type: "ORDER_RESERVATION" as const },
+      { product_id: "p-bun", quantity: 3, type: "ADJUSTMENT" as const },
+      { product_id: "p-bread", quantity: 3, type: "RETURN" as const },
+      { product_id: "p-flour", quantity: 50, type: "STOCK_IN" as const },
+      { product_id: "p-never", quantity: -2, type: "ORDER_RESERVATION" as const },
+    ];
+    expect(lowStock(lines, products)).toEqual([
+      { productId: "p-bread", name: "Bread", iconKey: null, unit: "piece", balance: 3 },
+      { productId: "p-bun", name: "Bun", iconKey: null, unit: "piece", balance: 3 },
+      { productId: "p-cake", name: "Cake", iconKey: "cake", unit: "piece", balance: 3 },
+    ]);
+  });
+});
 
-    // c has never moved, so it is at zero.
-    expect(low.map((line) => line.product.id)).toEqual(["c", "a"]);
-    expect(low[0].balance).toBe(0);
+describe("recentCustomers", () => {
+  it("lists each customer once, newest first, with their order count, and skips guests", () => {
+    const rows = [
+      { created_at: "2026-09-26T05:00:00Z", customers: { id: "c-1", name: "Anu" } },
+      { created_at: "2026-09-26T04:00:00Z", customers: null },
+      { created_at: "2026-09-25T05:00:00Z", customers: { id: "c-2", name: "Rahul" } },
+      { created_at: "2026-09-24T05:00:00Z", customers: { id: "c-1", name: "Anu" } },
+    ];
+    expect(recentCustomers(rows, new Map([["c-1", 4]]))).toEqual([
+      { id: "c-1", name: "Anu", orders: 4, lastOrderAt: "2026-09-26T05:00:00Z" },
+      { id: "c-2", name: "Rahul", orders: 0, lastOrderAt: "2026-09-25T05:00:00Z" },
+    ]);
   });
 
-  it("says nothing about a product that is not on sale", () => {
-    expect(lowStock([product("c", false)], balances)).toEqual([]);
-  });
-
-  it("is empty when everything is well stocked", () => {
-    expect(lowStock([product("b")], balances)).toEqual([]);
+  it("stops at the few Home shows", () => {
+    const rows = Array.from({ length: 9 }, (_, index) => ({
+      created_at: "2026-09-26T05:00:00Z",
+      customers: { id: `c-${index}`, name: `C${index}` },
+    }));
+    expect(recentCustomers(rows, new Map())).toHaveLength(HOME_LIST_LIMITS.recentCustomers);
   });
 });

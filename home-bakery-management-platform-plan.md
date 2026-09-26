@@ -6631,7 +6631,7 @@ The queue table and the claim/complete/fail helpers exist. Nothing runs them.
 | # | Gap |
 |---|-----|
 | I1 | Top Customers (§40) is not built. |
-| I2 | Dashboard filters (§116–§117) are not built. |
+| I2 | **Closed 2026-09-26 by R5.15:** Home's orders due filter by preparation and payment, combined, in a sheet. Dashboard filters (§116–§117) are not built. |
 | I3 | `/api/analytics/overview` exists and nothing calls it. The Analytics screen fetches every order and expense and adds them up in the browser, which will not survive a real dataset. Move the aggregation to the endpoint and page the rest. |
 | I4 | No pagination anywhere. Every list fetches every row. |
 
@@ -8302,6 +8302,7 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `POST /api/auth/register` | Adds tagline, city and address; the confirmation is queued. |
 | `GET, PATCH /api/business` | New — the business profile (§133.2 B1). |
 | `POST /api/business/logo` | New — the logo upload, under §56 rules (§133.2 B2). |
+| `GET /api/dashboard` | New (R5.1, 2026-09-26) — `?period=TODAY\|WEEK\|MONTH&status=&payment=`. Home worked out on the server: the four tiles, the orders due (overdue, today, tomorrow), low stock, and the period's sales by day, orders by status, top products and recent customers. |
 | `GET /api/orders` | `?customer=guest\|{id}&status=&from=&to=&cursor=` — filters and pagination (§133.9 I4). |
 | `POST /api/orders` | Calls `create_order`; takes an `Idempotency-Key` header, the customer union, and custom items. |
 | `POST /api/orders/preview` | New — the estimate. Validates, prices and checks stock; **writes nothing**. |
@@ -8621,7 +8622,7 @@ the row needs; without an answer it is built on that question's default
 
 | ID | Work | Source | Waits on | Status |
 |---|---|---|---|---|
-| R5.1 | Home | §139.10; IMP-05 | — | TODO |
+| R5.1 | Home | §139.10; IMP-05 | — | DONE (2026-09-26 · Home; `GET /api/dashboard` works it out on the server, so Home no longer reads every order) |
 | R5.2 | Orders list | §139.10; IMP-07 | — | TODO |
 | R5.3 | Customers: segments, the pinned Guest sales row, search on digits | §139.10; BUG-23 | — | TODO |
 | R5.4 | Customer detail: stats, orders, notes, addresses, create order, order again | IMP-03, IMP-04 | — | TODO |
@@ -8635,7 +8636,7 @@ the row needs; without an answer it is built on that question's default
 | R5.12 | ~~Global search~~ | IMP-01 | — | DROPPED (2026-09-25, the user's decision: search stays in each list, R5.13) |
 | R5.13 | Pagination on every list; each list's search runs on the server with it — debounced, tenant-scoped, with loading, empty and error states | §133.9 I4; IMP-11; IMP-01 (2026-09-25) | — | TODO |
 | R5.14 | Hard-coded strings swept, screen by screen | BUG-30 | — | TODO |
-| R5.15 | Dashboard filters | §133.9 I2 | — | TODO |
+| R5.15 | Dashboard filters | §133.9 I2 | — | DONE (2026-09-26 · with R5.1: preparation and payment, combined, on the orders due) |
 | R5.16 | Expense category illustrations: the Categories tab, the picker, the expense form's category field, `/api/expense-categories` | §139.11.10 | — | TODO |
 
 ### Phase 6 — Hardening

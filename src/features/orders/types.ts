@@ -104,3 +104,29 @@ export interface Order {
   createdAt: string;
   updatedAt: string;
 }
+
+/**
+ * An order as a list shows it (plan §139.10): the row on a phone, the line of
+ * a desktop table, the due list on Home. Enough to draw it and no more — the
+ * whole order is read when it is opened.
+ */
+export interface OrderListItem {
+  id: string;
+  orderNumber: string;
+  status: OrderStatus;
+  deliveryType: DeliveryType;
+  /** When it is due: the delivery, or the pickup. */
+  dueAt: string;
+  /** null is a Guest order (plan §139.11.3). */
+  customer: { id: string; name: string } | null;
+  /** The first line, for the row's picture and words; null only for an order with none. */
+  firstItem: { name: string; iconKey: string | null; custom: boolean } | null;
+  /** How many lines the order has in all: the row says "+2 more" for the rest. */
+  lineCount: number;
+  /** Whole paise. */
+  total: number;
+  paymentStatus: PaymentStatus;
+  /** Whole paise still owed; none on a cancelled order (IMP-07). */
+  balanceDue: number;
+  createdAt: string;
+}

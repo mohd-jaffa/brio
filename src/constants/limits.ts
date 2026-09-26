@@ -29,3 +29,17 @@ export const MAX_PAGE_START = 100_000;
 
 /** What a list's search box may send. */
 export const MAX_SEARCH_LENGTH = 100;
+
+/**
+ * How much of each list Home shows before **View all** (plan §139.10): it is a
+ * glance at what needs doing, and the lists behind it are complete.
+ */
+export const HOME_LIST_LIMITS = {
+  due: 10,
+  lowStock: 5,
+  topProducts: 5,
+  recentCustomers: 5,
+} as const;
+
+/** The fewest days Home's sales chart shows, so today alone is still a trend. */
+export const HOME_MIN_TREND_DAYS = 7;

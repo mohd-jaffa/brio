@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatDate, formatDateTime, formatDayMonth, formatMonth } from '@/lib/format/date';
+import { formatDate, formatDateTime, formatDayMonth, formatLongDate, formatMonth } from '@/lib/format/date';
 
 describe('formatDate', () => {
   it('formats ISO calendar dates cleanly', () => {
@@ -37,5 +37,17 @@ describe('formatDayMonth', () => {
 
   it('returns a dash for nothing', () => {
     expect(formatDayMonth('')).toBe('—');
+  });
+});
+
+describe('formatLongDate', () => {
+  it('names the weekday before the date', () => {
+    expect(formatLongDate('2026-09-26')).toBe('Saturday, 26 Sep 2026');
+    expect(formatLongDate('2026-09-27')).toBe('Sunday, 27 Sep 2026');
+  });
+
+  it('shows a dash for a date it cannot read', () => {
+    expect(formatLongDate(undefined)).toBe('—');
+    expect(formatLongDate('26/09/2026')).toBe('—');
   });
 });

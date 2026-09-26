@@ -38,3 +38,12 @@ export function formatDayMonth(isoDate: string | null | undefined): string {
   if (!match) return '—';
   return `${Number(match[3])} ${MONTHS[Number(match[2]) - 1]}`;
 }
+
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+/** A day in full, for a heading: "Saturday, 26 Sep 2026". */
+export function formatLongDate(isoDate: string | null | undefined): string {
+  const day = formatDate(isoDate);
+  if (day === '—') return day;
+  return `${WEEKDAYS[new Date(`${isoDate}T00:00:00Z`).getUTCDay()]}, ${day}`;
+}

@@ -3,6 +3,8 @@
 import { Search, SlidersHorizontal } from "lucide-react";
 import { useId } from "react";
 
+import { cn } from "./cn";
+
 /**
  * The search box (plan §139.5; it replaces `search-input`). The placeholder
  * names the field for a screen reader too, since a placeholder stops being a
@@ -47,18 +49,39 @@ export function SearchField({
           className="w-full rounded-2xl border border-border bg-surface py-3 pl-11 pr-4 text-sm text-text shadow-card transition-colors placeholder:text-text-muted focus:border-primary"
         />
       </div>
-      {filter && (
-        <button
-          type="button"
-          aria-label={filter.label}
-          aria-pressed={filter.active ?? false}
-          onClick={filter.onClick}
-          className="touch-target relative inline-flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary-soft text-primary transition-colors hover:bg-surface-hover"
-        >
-          <SlidersHorizontal size={20} strokeWidth={1.75} aria-hidden="true" />
-          {filter.active && <span aria-hidden="true" className="absolute right-2.5 top-2.5 size-2 rounded-full bg-primary" />}
-        </button>
-      )}
+      {filter && <FilterButton {...filter} />}
     </div>
+  );
+}
+
+/**
+ * The square button that opens a list's filters, with a dot while any filter
+ * is on — beside a search box, or over a list that has none.
+ */
+export function FilterButton({
+  label,
+  onClick,
+  active = false,
+  size = "md",
+}: {
+  label: string;
+  onClick: () => void;
+  active?: boolean;
+  size?: "md" | "sm";
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      aria-pressed={active}
+      onClick={onClick}
+      className={cn(
+        "touch-target relative inline-flex shrink-0 items-center justify-center bg-primary-soft text-primary transition-colors hover:bg-surface-hover",
+        size === "md" ? "size-12 rounded-2xl" : "size-11 rounded-xl",
+      )}
+    >
+      <SlidersHorizontal size={size === "md" ? 20 : 18} strokeWidth={1.75} aria-hidden="true" />
+      {active && <span aria-hidden="true" className="absolute right-2.5 top-2.5 size-2 rounded-full bg-primary" />}
+    </button>
   );
 }

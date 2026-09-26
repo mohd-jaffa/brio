@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { SearchField } from "@/components/ui/search-field";
+import { FilterButton, SearchField } from "@/components/ui/search-field";
 
 describe("SearchField", () => {
   it("names itself for a screen reader, not only with a placeholder", async () => {
@@ -31,5 +31,12 @@ describe("SearchField", () => {
     );
     expect(button).toHaveAttribute("aria-pressed", "true");
     expect(button.querySelector("span")).toHaveClass("bg-primary");
+  });
+
+  it("comes smaller on its own, over a list with no search", () => {
+    render(<FilterButton label="Filter orders due" onClick={() => {}} size="sm" />);
+    const button = screen.getByRole("button", { name: "Filter orders due" });
+    expect(button).toHaveClass("size-11");
+    expect(button).toHaveAttribute("aria-pressed", "false");
   });
 });

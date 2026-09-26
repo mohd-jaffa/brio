@@ -35,6 +35,10 @@ export const DELIVERY_ONLY_STATUSES: readonly OrderStatus[] = ["IN_TRANSIT"];
 /** The finished statuses: nothing moves an order on from either (plan §139.11.8). */
 export const FINAL_STATUSES: readonly OrderStatus[] = ["DELIVERED", "CANCELLED"];
 
+/** The statuses of an order still being worked on, in the order it passes through them. */
+export const OPEN_STATUSES = ["PENDING", "IN_PROGRESS", "READY", "IN_TRANSIT"] as const satisfies readonly OrderStatus[];
+export type OpenStatus = (typeof OPEN_STATUSES)[number];
+
 /**
  * How a status reads. "Preparing" rather than "Baking", since not every
  * business bakes (Q3, §139.1); DELIVERED reads "Completed" for a pickup — use
