@@ -2140,3 +2140,22 @@ this entry grows with them.
 - None.
 - **Migrations:** `0022` and `0023` are applied locally; they need applying in other environments.
 - **Restart the worker:** one started before this change does not know the new kinds. It fails their jobs, which retry every 5 minutes and are set aside after 3 tries.
+
+## 2026-09-26 — Plan: Phase 9, Delight
+
+### Added
+- **Phase 9 — Delight** in the plan (§139.18, the Phase 9 tracker, and a new §139.21), at the user's request through `/impeccable delight`. It is recorded only; nothing is built.
+- **The four moments the user chose:**
+  - **Order milestones:** Order placed, Paid in full, and Delivered or Completed each get a card with the order's own illustration.
+  - **Empty states in the app's own art.**
+  - **The inbox caught up.**
+  - **Warmer system screens.**
+- **Tone:** warm and quiet, the user's choice over playful.
+- **Rules:** routine saves stay plain; at most one warm phrase per moment; motion of 400 ms or less that only fades under reduced motion; only the illustrations the app already ships; no sound.
+- **Android:** a light haptic on the milestones waits on the native layer (R8.3).
+
+### Validation
+- A plan change only; no code was touched.
+
+### Blockers
+- None. Phase 9 waits only on Phase 5, so it can start before Phases 6 – 8 whenever the user asks.

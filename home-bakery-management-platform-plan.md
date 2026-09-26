@@ -7508,6 +7508,7 @@ masters are the exception: they are app artwork, and they are committed under
   - **The bell carries the count** (the user suggested 1 to 10, then "10+"; the production choice is **1 to 9, then "9+"**, which keeps the badge a small two-character circle). Its name says the exact number to a screen reader.
   - **The tabs:** Orders holds orders and payments; Customers, new customers; System, stock alerts and anything else.
   - **Settings' Notifications row** is the Android permission, so it comes with push (R8.6); the inbox needs no permission.
+- **Delight becomes Phase 9** (the user, through `/impeccable delight`; recorded under §31, not yet built). Four moments get personality: **the order milestones**, **empty states in the app's own art**, **the inbox caught up**, and **warmer system screens**. The tone is **warm and quiet**, not playful, because the owner meets these many times a day. The specification is §139.21, and the rows are in the Phase 9 tracker.
 
 ---
 
@@ -8593,6 +8594,7 @@ green; the screens it touched are captured at every width in both themes;
 | **6 — Hardening** | The worker system completed, rate limiting, OpenAPI, CI with SonarQube, Playwright journeys, database integration tests, BugSnag, an accessibility pass. | 5 | CI runs the full §125 pipeline, and the E2E journey in AGENTS §26 passes, tenant isolation included. |
 | **7 — PWA** | Manifest, icons, the service worker, the offline page, install. | 6 | Installable on Android Chrome and iOS Safari; opens offline to the offline page. |
 | **8 — Android** | The Capacitor app (§139.17). | 7, Q9, Q10 | A signed build on the Play internal track passes the device matrix. |
+| **9 — Delight** | Personality at the moments that earn it, warm and quiet (§139.21): the order milestones, empty states in the app's own art, the inbox caught up, warmer system screens. | 5 (the milestone haptic: R8.3) | Each moment matches §139.21 at 360 – 1440 px in both themes and under reduced motion; routine saves are unchanged; the detector is clean; every changed component is at 100% coverage. |
 
 **The menu builder** (§45–§49) stays a later product phase and is not part of this
 roadmap.
@@ -8765,6 +8767,24 @@ Phase 5 closed on 2026-09-26 with R5.10.
 | R8.11 | Signing, versioning, the CI build, Play internal testing, data safety | §139.17.5 | — | TODO |
 | R8.12 | The device matrix | §139.17.5 | — | TODO |
 
+### Phase 9 — Delight
+
+Added 2026-09-26 by the user; not started. It waits only on Phase 5, so it
+may be taken up before Phases 6 – 8 if the user asks; its one haptic waits on
+the native layer (R8.3).
+
+| ID | Work | Source | Waits on | Status |
+|---|---|---|---|---|
+| R9.1 | The milestone card: the response card takes an illustration in place of its medallion, settling in | §139.21.2 | — | TODO |
+| R9.2 | Order placed: the order's own illustration, and one warm line | §139.21.3 | R9.1 | TODO |
+| R9.3 | Paid in full: its own card when a payment clears the balance | §139.21.3 | R9.1 | TODO |
+| R9.4 | Delivered and Completed: their own card when an order finishes | §139.21.3 | R9.1 | TODO |
+| R9.5 | Empty states in the app's own art | §139.21.4 | — | TODO |
+| R9.6 | The inbox caught up: the badge leaves, and the list says so | §139.21.5 | — | TODO |
+| R9.7 | Warmer system screens: not found, the error boundary, the global error | §139.21.6 | — | TODO |
+| R9.8 | A light haptic on the three milestones, on Android | §139.21.2 | R8.3 | TODO |
+| R9.9 | The exit test: captures, reduced motion, detector, coverage | §139.21.7 | R9.1 – R9.7 | TODO |
+
 ---
 
 ## 139.20 How this section relates to the ones before it
@@ -8775,3 +8795,116 @@ Phase 5 closed on 2026-09-26 with R5.10.
 - **§134 – §136:** folded into Phases 0, 1 and 5. Those sections remain as the record of what was found.
 - **§138:** the authentication screens are built; R2.8 re-tokens them, and §138.6.3's two open items become R1.6 and Q15.
 - **Superseded in the earlier plan:** §68 ("no payments table in V1") by §139.11.9; the bill timing in §70 and §72 by §139.1 #8; the customer-first order flow in AGENTS §12 by Q11.
+
+---
+
+## 139.21 Delight (Phase 9)
+
+*Added 2026-09-26 by the user, through `/impeccable delight`, and recorded
+under §31. Nothing here is built yet.*
+
+### 139.21.1 The thesis, and its rules
+
+**The owner should feel an order land.** Placing an order, taking the last of
+its payment, and handing it over are the moments a home business works for.
+The app marks those three moments, in the business's own bakes and gifts, and
+stays plainly out of the way everywhere else.
+
+- **Warm and quiet** (the user's choice over playful). The owner meets these
+  moments many times a day, so each must still feel good on the hundredth
+  order.
+- **Only where it is earned.** A routine save — a customer, a product, stock,
+  an expense, a setting — keeps today's plain check card. Nothing new appears
+  for an ordinary tap.
+- **One warm phrase at most** per moment. Titles stay plain and factual.
+  Every word lives in `messages.ts`.
+- **Motion:** an illustration settles in with a short drop, 400 ms at most, on
+  the kit's `--ease-out-expo`. Under reduced motion it only fades. Nothing
+  loops, bounces or plays a sound.
+- **Art:** only the illustration library the app already ships (§139.11.10).
+  There are no new assets and no new dependencies, and the licence check of
+  Q16 still applies. An illustration is decorative (`alt=""`); the card's
+  title and message carry the meaning.
+- **Nothing is delayed.** No moment holds up the task behind it, and the card
+  closes, or offers its next step, exactly as it does today.
+
+### 139.21.2 The milestone card (R9.1, R9.8)
+
+- **The kit:** the response card (§139.6) accepts an **illustration** — a
+  library key — in place of its medallion, drawn larger than the medallion. It
+  settles in as §139.21.1 says.
+- **Only three callers** pass one: §139.21.3's milestones.
+- **On Android**, a milestone card also plays one light haptic through the
+  native layer's `haptic(kind)` (§139.17.2). The web plays none.
+
+### 139.21.3 The three order milestones (R9.2 – R9.4)
+
+| Moment | When | Illustration | Title | Message |
+|---|---|---|---|---|
+| **Order placed** | The order is created (today's card) | The illustration of the order's first catalogue item; `default-product` for an order of custom items only | Order placed | "{ORD-1002} is on the counter." |
+| **Paid in full** | A recorded payment brings the balance to nothing | `gold-coins` | Paid in full | "{ORD-1002} is settled." |
+| **Delivered** / **Completed** | The order moves to `DELIVERED` (§139.11.8) | Delivery: `delivery-scooter`. Pickup: `gift-box` | Delivered / Completed | "{ORD-1002} is with {customer}." A Guest order reads "…is on its way home." |
+
+- **What does not change:**
+  - Order placed keeps its facts strip and its **View bill** and **New order**
+    actions.
+  - Paid in full shows the amount and the order's total as its facts. A part
+    payment keeps today's card, balance due and all.
+  - The routine moves — Preparing, Ready, Out for delivery — and Cancelled
+    keep their plain cards.
+  - Paid in full at the moment of placing is Order placed's moment, not a
+    second card.
+
+### 139.21.4 Empty states in the app's own art (R9.5)
+
+- **The kit:** `EmptyState` accepts an illustration in place of its lucide
+  icon. It keeps its title, its hint and its one action, and settles in with
+  the screen (`useSettle`).
+
+| Screen | Illustration | Title |
+|---|---|---|
+| Orders | `delivery-scooter` | unchanged |
+| Products, and the order screen's empty grid | `cupcake` | unchanged |
+| Customers | `heart-gift-box` | unchanged |
+| Expenses | `gold-coins` | unchanged |
+| Inventory | `cake-squares` | unchanged |
+| Notifications | `teddy-bear` | **All quiet** (in place of "Nothing yet") |
+
+- **Stays plain:** a search or a tab that matches nothing ("No customer
+  matches that") is not an empty state. It keeps its plain line.
+
+### 139.21.5 The inbox caught up (R9.6)
+
+- **The badge:** when the last unread notification is read — opened, or
+  **Mark all as read** — the bell's badge leaves with a short shrink and fade,
+  the reverse of its arrival, rather than vanishing. Under reduced motion it
+  only fades.
+- **The list:** on the All tab, an inbox with notifications and none unread
+  ends with a quiet line, **"You're all caught up."**
+- **No card:** marking all read stays self-evident, as it is today.
+
+### 139.21.6 Warmer system screens (R9.7)
+
+Recovery stays first: the way home and **Try again** remain the headline
+actions, and the words never make light of a failure.
+
+| Screen | Illustration | Title | Line |
+|---|---|---|---|
+| Not found | `donut` | This page didn't rise | "The link may be old, or the page has moved." |
+| The error boundary and the global error | none — the danger medallion stays | Something didn't bake right | "Try again, or head back home. Nothing you saved is lost." |
+
+- **"Nothing you saved is lost"** is a claim, so it is written only where it
+  is true. The boundary catches a screen that failed to draw; a save that
+  failed is reported on its own card (§139.6).
+- **The offline screen** (R8.9) is written in the same voice when it is built.
+
+### 139.21.7 The exit test (R9.9)
+
+- **Captures:** each milestone, each empty state, the inbox caught up and
+  both system screens, at 360, 390, 820, 1280 and 1440 px in Golden and Peach,
+  and once more under reduced motion.
+- **Unchanged:** a routine save still shows the plain check card.
+- **Detector:** the Impeccable detector is clean over the changed files.
+- **Coverage:** every changed component is at 100%, asserted through roles
+  and labels — never an illustration's file name.
+
