@@ -6557,7 +6557,7 @@ Every gap recorded here has been implemented. The entry is kept rather than dele
 | B1 | No bakery profile endpoint. The Settings name and phone fields were hard-coded and have been removed; the section says so. **Closed 2026-09-25 by R2.6:** `GET, PATCH /api/business` and Business details. | no `/api/bakery` route |
 | B2 | No logo upload: no storage bucket, no server-side size and content-type validation, no atomic replace-then-delete. **Closed 2026-09-25 by R2.7:** the private `business-logos` bucket, the size and first-bytes checks, and store → switch → delete. | §56, §118 |
 | B3 | `bakeries` has a SELECT policy only. An UPDATE policy is needed before profile editing can work at all. **Closed 2026-09-25 by R2.6** as §139.11.2 decided instead: `bakeries` stays SELECT-only, and edits go through owner-checked functions (`0008_business_profile.sql`). | `supabase/migrations/0001_auth_foundation.sql` |
-| B4 | The receipt header prints a hard-coded `"Ovenly Bakery"` instead of the bakery's own name. | `src/features/receipts/api.ts` |
+| B4 | **Closed 2026-09-26 by R4.1:** the bill is built from the business profile. The receipt header prints a hard-coded `"Ovenly Bakery"` instead of the bakery's own name. | `src/features/receipts/api.ts` |
 
 ---
 
@@ -6567,7 +6567,7 @@ Every gap recorded here has been implemented. The entry is kept rather than dele
 |---|-----|----------------|
 | C1 | **Closed 2026-09-25 by R3.1 (`create_order`, a691c58).** Order creation is **not transactional**. It inserts the order, then items, then adjustments, then ledger lines, and on failure compensates with a hard delete. A crash between steps leaves a partial order. §114 asks for one transaction — a Postgres function called over RPC. | Data integrity |
 | C2 | **Closed 2026-09-25 by R3.1 and R3.12 (an idempotency key on placing and on a payment, a691c58); the screen keeps its key through a refresh (R3.9, 2026-09-26).** **No idempotency** anywhere. A double-tapped Place Order creates two orders; a retried payment records twice. §24 of AGENTS.md requires critical mutations to be safe against duplicate submission. | Money |
-| C3 | **Partly closed 2026-09-26: the draft by R3.9 and the estimate by R3.13; the bill before saving is R4.3.** No cart/draft state and **no bill-preview step** before Confirm. The plan's flow is Cart → Bill → Confirm (§110–§112); the screen is one long form with a running total. | Approved UX |
+| C3 | **Closed 2026-09-26: the draft by R3.9, the estimate by R3.13 and the bill before saving by R4.3.** No cart/draft state and **no bill-preview step** before Confirm. The plan's flow is Cart → Bill → Confirm (§110–§112); the screen is one long form with a running total. | Approved UX |
 | C4 | **Closed 2026-09-25 by R3.3 (stocked products only, a691c58).** **Stock can be oversold.** Nothing reads the balance before an `ORDER_RESERVATION` is posted, so an order can reserve stock that is not there (§21). | Inventory truth |
 | C5 | **Closed 2026-09-24 by R0.7 (218d78d), and kept inside `change_order_status` by R3.4.** **A delivered order deducts its stock twice.** `checkout.ts` posts `ORDER_RESERVATION` at `-quantity` and `status.ts` posts `ORDER_CONSUMPTION` at `-quantity` on first delivery, and nothing ever releases the reservation. Every balance in the app is therefore short by the quantity of every delivered order. Consumption should release the reservation, not repeat it. | Inventory truth **Closed 2026-09-24 by R0.7.** |
 | C6 | **Closed 2026-09-25 by R3.4 (`change_order_status`, ca826b9).** **`updateOrderStatus` is not transactional either.** It persists the status, then the ledger line, then the audit row, then enqueues the notification. Observed on 2026-09-23: a failure at the last step left the status changed, the stock consumed and the audit written, and the retry then saw `before.status === 'DELIVERED'` and silently skipped the notification. Same fix as C1. | Data integrity |
@@ -6621,7 +6621,7 @@ The queue table and the claim/complete/fail helpers exist. Nothing runs them.
 
 | # | Gap |
 |---|-----|
-| H1 | The receipt is an on-screen HTML view with browser print. There is no PDF generation, no native share, no WhatsApp share and no download (§24). Generation stays on demand and nothing is stored — that part of §24 is respected and must stay that way. |
+| H1 | **Closed 2026-09-26 by R4.4 and R4.5:** Share sends the bill as a PNG, and Download PDF makes the PDF on demand; nothing is stored. The receipt is an on-screen HTML view with browser print. There is no PDF generation, no native share, no WhatsApp share and no download (§24). Generation stays on demand and nothing is stored — that part of §24 is respected and must stay that way. |
 | H2 | `/receipts` is in the navigation (§9) but no page exists, so the link 404s. Either build the screen or take the entry out of `src/constants/navigation.ts`. **Closed 2026-09-24 by R0.4** (the entry was removed). |
 
 ---
@@ -8359,7 +8359,7 @@ wrong but survivable · **S4** polish.
 | **BUG-24** | **S3** | **The search box's placeholder and icon fail contrast** (`text-muted/60`) — §138.6 C3 fixed the text field but not this one. | `src/components/ui/search-input.tsx:28, 36` | Full-strength muted | R1.12 · **fixed 2026-09-24** |
 | **BUG-25** | **S3** | **Dialogs do not keep focus.** Tab walks out of the form sheet and the More sheet into the page behind, which is not `inert`. The receipt view is **not a dialog at all** — no role, no Escape, no focus handling. | `form-sheet.tsx`, `MoreSheet.tsx`, `ReceiptPrintView.tsx` | §139.5 sheet/dialog | R1.9 · **fixed 2026-09-25** |
 | **BUG-26** | **S4** | **Notifications print raw values:** "Order #13-482 is now IN_PROGRESS"; "Payment of 50000 received" — paise, in inline English. | `status.ts:66`, `payments/api.ts:81` | Labels, `formatPaise`, `messages.ts` | R3.4 · **fixed 2026-09-26** |
-| **BUG-27** | **S4** | **The receipt prints raw enums** (`CASH`, `BANK_TRANSFER`) and "Tax ₹0.00" on every bill, and restores `body.style.overflow` to `'unset'` instead of its previous value. | `ReceiptPrintView.tsx:135, 27` | The new bill (§139.11.6) | R4.6 |
+| **BUG-27** | **S4** | **The receipt prints raw enums** (`CASH`, `BANK_TRANSFER`) and "Tax ₹0.00" on every bill, and restores `body.style.overflow` to `'unset'` instead of its previous value. | `ReceiptPrintView.tsx:135, 27` | The new bill (§139.11.6) | R4.6 · **fixed 2026-09-26** |
 | **BUG-28** | **S4** | **The new-order default date is fixed when the module loads,** so a tab left open overnight offers yesterday's "tomorrow". | `src/app/orders/new/page.tsx:47–51` | Compute it on mount | R3.16 · **fixed 2026-09-26** |
 | **BUG-29** | **S4** | **`console.error` in the order compensation** bypasses the structured logger and loses the request id (§11). | `src/features/orders/checkout.ts:104` | The logger | R3.16 · **fixed 2026-09-26** |
 | **BUG-30** | **S4** | **136 hard-coded UI strings** in JSX attributes alone (`label=`, `title=`, `placeholder=`) — AGENTS §5. | `src/app`, `src/components`, `src/features` | Swept screen by screen as each is rebuilt | R5.14 |
@@ -8558,7 +8558,7 @@ the row needs; without an answer it is built on that question's default
 | R1.5 | Type: Fraunces and Inter; Fredoka and Plus Jakarta Sans retired | §137.4 | — | DONE (2026-09-24 · 92eb1c5) |
 | R1.6 | The safe-area system: `viewport-fit`, `--safe-*`, `dvh`, keyboard, the five call sites | BUG-14; §138.6.3 | — | DONE (2026-09-24 · 86b7f6a) |
 | R1.7 | AppShell: business header, five-item bottom nav, icon rail, grouped sidebar, top bar | §139.5 | — | DONE (2026-09-25 · 4b77d0d, ebe8ea2; the business name with R2.6, the bell R5.10, search R5.12) |
-| R1.8 | The component kit | §139.5 | — | DONE (2026-09-25 · 81de82a…0930e1f; `sheet`/`dialog` with R1.9, the response card R1.10, `customer-picker` R3.6, `bill` R4.2, `illustration-picker` R5.6) |
+| R1.8 | The component kit | §139.5 | — | DONE (2026-09-25 · 81de82a…0930e1f; `sheet`/`dialog` with R1.9, the response card R1.10, `customer-picker` R3.6, the bill R4.2 — in `features/receipts`, `illustration-picker` R5.6) |
 | R1.9 | Sheets and dialogs trap focus, make the page `inert` and return focus. A form stays mounted while its sheet is closed, and every change is checked in the browser — a form mounted only while open lost its typed value under the React Compiler, which jsdom does not run (changelog, R0.3) | BUG-25 | — | DONE (2026-09-25 · 4010937; the receipt's dialog semantics with R4.6) |
 | R1.10 | The response card and provider; action outcomes moved onto it | §139.6 | Q13 | DONE (2026-09-25 · f0ce049; Q13 default; the haptic tick with R8.3) |
 | R1.11 | Input-hygiene primitives and the text-hygiene migration | §139.7 | — | DONE (2026-09-24 · edeea38) |
@@ -8609,13 +8609,13 @@ the row needs; without an answer it is built on that question's default
 
 | ID | Work | Source | Waits on | Status |
 |---|---|---|---|---|
-| R4.1 | The bill view-model, with the business profile | §133.2 B4 | — | TODO |
-| R4.2 | The bill component — estimate and confirmed | §139.11.6 | — | TODO |
-| R4.3 | View bill before saving, with Share | §139.11.5 | — | TODO |
-| R4.4 | Share as a PNG — Web Share with files, else download; **[Share]** inside the bill, the file named `{order number} - {business name}` (2026-09-26) | IMP-02 | — | TODO |
-| R4.5 | The PDF on demand, never stored | §133.8 H1; §15 | — | TODO |
-| R4.6 | ~~Print stylesheet;~~ dialog semantics; labels, not enums — print dropped (2026-09-26, the user: Share stands where Print was) | BUG-27 | — | TODO |
-| R4.7 | The footer: app name and web link | §139.1 #9 | — | TODO |
+| R4.1 | The bill view-model, with the business profile | §133.2 B4 | — | DONE (2026-09-26 · d806e56; `GET /api/orders/{id}/bill` replaces `/receipt`) |
+| R4.2 | The bill component — estimate and confirmed | §139.11.6 | — | DONE (2026-09-26 · d806e56; `BillView` and `BillSheet` live with the receipts feature, whose document they draw) |
+| R4.3 | View bill before saving, with Share | §139.11.5 | — | DONE (2026-09-26 · 48c3349; **View bill** sits beside the Order summary's title on each step, and on the Order placed card) |
+| R4.4 | Share as a PNG — Web Share with files, else download; **[Share]** inside the bill, the file named `{order number} - {business name}` (2026-09-26) | IMP-02 | — | DONE (2026-09-26 · a0dff8c; drawn on a canvas in the browser, the web half of `src/lib/native`) |
+| R4.5 | The PDF on demand, never stored | §133.8 H1; §15 | — | DONE (2026-09-26 · a0dff8c; `GET /api/orders/{id}/bill.pdf`, pdfkit, A5) |
+| R4.6 | ~~Print stylesheet;~~ dialog semantics; labels, not enums — print dropped (2026-09-26, the user: Share stands where Print was) | BUG-27 | — | DONE (2026-09-26 · d806e56) |
+| R4.7 | The footer: app name and web link | §139.1 #9 | — | DONE (2026-09-26 · d806e56) |
 
 ### Phase 5 — Screens
 

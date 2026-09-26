@@ -1512,3 +1512,59 @@ this entry grows with them.
 
 ### Blockers
 - None.
+
+## 2026-09-26 — Phase 4: The bill (tracker R4.1–R4.7)
+
+### Added
+- **The bill view-model (R4.1, `src/features/receipts`).** `GET /api/orders/{id}/bill` replaces `/receipt`.
+  - **What it carries:** the order, its payments, its customer (or Guest) and the **business profile**, so no bill says "Ovenly Bakery" any more (§133.2 B4).
+  - **The estimate:** the browser builds the same shape from `POST /api/orders/preview` and the business.
+  - **Wording:** one document (`document.ts`) writes the bill out in words, and all three renderings draw it. These are the screen, the image and the PDF, so they cannot disagree.
+- **The bill on screen (R4.2, R4.6, R4.7).** `BillView` sits in a real dialog, `BillSheet`, with a heading, and reads in order to a screen reader.
+  - **Look:** white paper with near-black ink in either theme. The theme's primary shows only in the header rule and the total. Business and total are in Fraunces, and money uses tabular figures.
+  - **Wording:** payment methods and delivery types appear as their labels, not enums (BUG-27). Tax appears only when there is some. Internal notes never appear.
+  - **Footer:** "Made with Ovenly · {host of NEXT_PUBLIC_APP_URL}".
+  - **Tokens:** new paper tokens `--color-paper`, `--color-ink`, `--color-ink-muted` and `--color-paper-rule`. A test holds the image and PDF palette (`palette.ts`) to them.
+- **Share (R4.4).** **Share** sits inside the bill where Print used to be (the user).
+  - **What it sends:** a PNG of the bill with a one-line caption. Web Share hands them to Android's share sheet, and so to WhatsApp.
+  - **Browsers that cannot share files:** the PNG is downloaded and the caption copied.
+  - **How it is drawn:** on a canvas in the browser, at up to 3×, from `layout.ts`, the layout the PDF also uses. It uses the app's own faces, shipped as static TrueType in `public/fonts/bill` (OFL; `npm run bill-fonts` fetches them).
+  - **Timing:** the image is drawn as soon as the bill opens, so the tap hands it over at once (Safari refuses a late share).
+  - **Where the code lives:** `share` and `saveFile` start the web half of `src/lib/native` (§139.17.2). The Android half is R8.3.
+- **Download PDF (R4.5).** `GET /api/orders/{id}/bill.pdf` makes the PDF on demand with pdfkit, in the page's theme, from the same layout and fonts.
+  - **Page:** A5 at receipt width. A bill slightly too long for one page is shrunk a little to stay on it; a long order runs on at block breaks, never through a line.
+  - **Links:** the map and the footer links can be clicked.
+  - **Logo:** a WebP logo is turned into a PNG with sharp for the PDF. A logo that cannot be read falls back to the cake mark.
+  - **Response:** `Cache-Control: private, no-store`.
+- **View bill before placing (R4.3).** **View bill** sits beside the Order summary's title on the details and payment steps and on the desktop panel.
+  - **What it opens:** the server's estimate, with no number, dated today and marked "Estimate · not yet confirmed" on a band.
+  - **Actions:** **Share** and **Place order**. Short stock is named above the estimate, and Place order waits until the draft changes.
+  - **After placing:** the Order placed card now offers **View bill** and **New order**.
+- **File names (the user):** `{order number} - {business name}.png` / `.pdf`, and `Estimate - {business name}.png` before there is a number. Characters a file name cannot hold are dropped.
+
+### Changed
+- **Browser API client:** `getFile` reads a file answer, with the same one-refresh retry and the same refusal handling as JSON calls.
+- **Proxy:** leaves `/fonts/` alone.
+- **Test setup:** runs in Node for the PDF's tests.
+- **`sharp`** moves to dependencies. Next already installs it as an optional dependency.
+- **View bill placement:** it was first put beside Proceed to payment in the phone's step bar. At 360 px that wrapped the main button onto two lines, and the see-through secondary fill showed the page through the bar. So it sits in the summary card instead, and the bar keeps its one dark action.
+
+### Removed
+- `ReceiptPrintView` and its print styles, and `GET /api/orders/{id}/receipt`.
+
+### Validation
+- `tsc`, `eslint` and `next build` are clean. 207 test files and 1301 tests pass, with every new file at 100% coverage.
+- **Exit test** on an emulated Pixel 7, with Web Share receiving what Android's sheet hands WhatsApp:
+  - A placed order's bill was shared as a valid PNG, `#1004 - Sweet Delights Home Bakery.png`, with its caption.
+  - Its PDF was downloaded as `#1004 - Sweet Delights Home Bakery.pdf`.
+  - An estimate was shared as `Estimate - Sweet Delights Home Bakery.png`.
+  - No Print button appeared anywhere.
+  - **Every row count in every `public` and `storage` table was the same before and after.**
+- **Captures:** the bill and the estimate at 360, 390, 820, 1280 and 1440 px in Golden and Peach, with no sideways scroll. The PDF was read back: one A5 page, real text, the logo, links.
+- The Impeccable detector reports nothing on the bill screens.
+- **Local test data removed:** the two orders placed while testing (ORD-1001, ORD-1002), with their lines, ledger lines and audit rows. The counter is back at 1001.
+
+### Blockers
+- None.
+- **Known limit:** the image and PDF fonts cover Latin, Latin Extended, general punctuation and ₹. A business name in another script (Devanagari, Malayalam) shows correctly on screen, but the PDF has no glyphs for it. Adding script faces would be a separate decision.
+- **Left to its row:** native sharing inside the Android app (R8.7).
