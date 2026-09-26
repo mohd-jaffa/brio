@@ -77,6 +77,7 @@ export {
 
 export { cursorParam, listQuerySchema, searchParam, type ListQuery } from "./schemas/list";
 export { dashboardQuerySchema, type DashboardQuery } from "./schemas/dashboard";
+export { MAX_RANGE_DAYS, rangeQuerySchema, type RangeQuery } from "./schemas/range";
 
 export {
   createExpenseSchema,

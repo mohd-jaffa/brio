@@ -6630,9 +6630,9 @@ The queue table and the claim/complete/fail helpers exist. Nothing runs them.
 
 | # | Gap |
 |---|-----|
-| I1 | Top Customers (§40) is not built. |
+| I1 | **Closed 2026-09-26 by R5.9:** the Customers tab lists the ten saved customers who spent most in the period, Guests left out. Top Customers (§40) is not built. |
 | I2 | **Closed 2026-09-26 by R5.15:** Home's orders due filter by preparation and payment, combined, in a sheet. Dashboard filters (§116–§117) are not built. |
-| I3 | `/api/analytics/overview` exists and nothing calls it. The Analytics screen fetches every order and expense and adds them up in the browser, which will not survive a real dataset. Move the aggregation to the endpoint and page the rest. |
+| I3 | **Closed 2026-09-26 by R5.9:** Analytics reads `GET /api/analytics/overview`, which works the period out on the server; the browser adds nothing up. `/api/analytics/overview` exists and nothing calls it. The Analytics screen fetches every order and expense and adds them up in the browser, which will not survive a real dataset. Move the aggregation to the endpoint and page the rest. |
 | I4 | No pagination anywhere. Every list fetches every row. |
 
 ---
@@ -7967,7 +7967,7 @@ As the references show: a compact photographic band, and a range picker. Tabs:
 **Overview · Sales · Orders · Customers · Products**. The charts follow
 §139.11.11.
 
-- **Overview:** four KPI tiles with deltas: **Total sales**, **Total orders**, **New customers** and **Average order value** (in rupees). Then **Sales trend**, a line with a soft fill, Daily / Weekly and a tooltip, with the previous period as a dashed comparison on desktop; **Top selling products**, with the illustration, name, orders and sales, and **View all**; and the quote block. (Sales by category was dropped with product categories, 2026-09-25.)
+- **Overview:** four KPI tiles with deltas: **Total sales**, **Total orders**, **New customers** and **Average order value** (in rupees). Then **Sales trend**, a line with a soft fill, Daily / Weekly and a tooltip, with the previous period as a dashed comparison on desktop; **Top selling products**, with the illustration, name, orders and sales, and **View all**; **Sales by product**, a donut of what each product brought in — the top five and Others, custom items as one "Custom items" slice, the items' total in its centre ("Item sales", since charges and discounts are not a product's) — where the reference has sales by category (the user, 2026-09-26); and the quote block. (Sales by category was dropped with product categories, 2026-09-25.)
 - **Sales:** the trend against the previous period; **Guest and customer** sales as a split; and collected against still to collect.
 - **Orders:** orders per day as bars; orders **by status** as a donut; and pickup against delivery.
 - **Customers:** new against returning; and **Top customers** (§133.9 I1), with guests left out.
@@ -8111,7 +8111,7 @@ line** — the ledger code must skip it, where today it would fail on
 
 - **Adding one:** **Add custom item** opens a small sheet with **Item name** (required, trimmed, 2–120 characters), a **Description** if one is needed (up to 500, printed under the line on the bill as its note — 2026-09-25) and **Amount**, the price of one (required, above ₹0, within the BUG-12 bounds). The quantity starts at 1 and uses the stepper like any other line.
 - **On screen** the line shows the `default-product` illustration and a "Custom" mark. **On the bill** it prints like any other line.
-- **In reports** custom lines count toward sales, and the Products tab's ranking shows them as one "Custom items" row (Sales by category was dropped with product categories, 2026-09-25). **Top products** lists catalogue products only.
+- **In reports** custom lines count toward sales, and the Products tab's ranking shows them as one "Custom items" row, as does Overview's Sales by product ring (Sales by category was dropped with product categories, 2026-09-25). **Top products** lists catalogue products only.
 
 ### 139.11.8 Order statuses and transitions
 
@@ -8252,7 +8252,7 @@ accessibility gaps (§2.2).
 |---|---|---|
 | `line-trend` | Analytics' sales trend; the Sales tab | A smooth monotone line with a soft fill beneath it, and horizontal gridlines only. Compact rupee ticks on the y axis (₹2K … ₹8K; lakh from ₹1,00,000). Five or six date ticks on the x axis. A tooltip bubble with the value and date on hover, tap or keyboard focus, with the chosen point marked. An optional **previous-period** series, dashed and muted, with a two-item legend. |
 | `bar-trend` | Expense trend; orders per day; the desktop Home sales overview | Round-topped bars. The peak or the chosen bar is in the strong tone and the rest in a lighter tone of it, with the same tooltip. Daily up to 31 days, and weekly beyond that or by the toggle. |
-| `donut` | Expenses by category; orders by status | A ring with the **total in its centre** in the serif, and a legend with a dot, the name and the share. The legend sits beside the ring on phones and beneath it below 360 px. The top five plus **Others**, with a 2 px surface-coloured gap between segments. |
+| `donut` | Expenses by category; sales by product; orders by status | A ring with the **total in its centre** in the serif, and a legend with a dot, the name and the share. The legend sits beside the ring once its longest name fits there in full, and beneath it until then (2026-09-26): short names sit beside it from a 360 px phone, a product's from a tablet. A name is never cut to a few letters. The top five plus **Others**, with a 2 px surface-coloured gap between segments. |
 | `sparkline` | Desktop stat tiles | A 2 px line with no axes and a dot on the last point. `aria-hidden`, because the tile states its delta in words. |
 
 - **Colour:** `--chart-1` to `--chart-6` per theme, taken from the references' browns and oranges. They are validated as §139.4's tokens were, and the line and the strong bar tone must be **≥ 3:1** against the card (WCAG 1.4.11). Donut segments need not be, because the legend carries every value as text.
@@ -8313,7 +8313,7 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `GET /api/customers` | `?search=` matches phone numbers on digits; pagination. |
 | `GET /api/customers/{id}/summary` | New — stats, and the delivery addresses taken from orders. |
 | `GET /api/guest-sales` | New — `?from&to`. |
-| `GET /api/analytics/overview` | `?from&to&interval=day\|week`. Returns the KPIs with their previous-period values, the sales series and the previous period's, top products (with their `iconKey`), orders by status, and the Guest split (§133.9 I3, §139.11.11). |
+| `GET /api/analytics/overview` | `?range&from&to&interval=DAY\|WEEK` — a preset, or `CUSTOM` with both dates (1–366 days). Returns the KPIs with their previous-period values, the sales series and the previous period's, the orders series, every product's sales (with their `iconKey`; custom items as one row), orders by status, pickup against delivery, the Guest split, collected against to collect, new against returning, and the top customers (§133.9 I1, I3, §139.11.11). Done 2026-09-26. |
 | `GET /api/expenses/summary` | New — `?from&to&interval=day\|week`. Returns the total and daily average, each with the previous period's; totals by category; the series; and the five most recent (§139.11.11). |
 | `GET /api/expense-categories`, `PATCH /api/expense-categories/{category}` | New — each category's illustration. The PATCH takes `{ iconKey }` and writes `bakeries.expense_category_icons` on the server (§139.11.10). |
 | `POST /api/products`, `PATCH /api/products/{id}` | Accept `iconKey`: a registry key, or null for the default. |
@@ -8385,7 +8385,7 @@ wrong but survivable · **S4** polish.
 | IMP-07 | **Balance due shown wherever money is owed** — order rows, order detail, customer detail and the bill. | R3.15, R5.2 |
 | IMP-08 | **An offline banner with retry** (PWA and Android). | R7.2, R8.9 |
 | IMP-09 | **Haptics** for success and error on Android. | R8.3 |
-| IMP-10 | **Deltas against the previous period** on every KPI. | R5.9 |
+| IMP-10 | **Deltas against the previous period** on every KPI. | R5.9 (done 2026-09-26) |
 | IMP-11 | **Pagination** or infinite scroll on every list (§133.9 I4). | R5.13 |
 | IMP-12 | **Money typed the way people write it** — "₹1,500" and "1,500" are both accepted. | R0.8 |
 
@@ -8630,7 +8630,7 @@ the row needs; without an answer it is built on that question's default
 | R5.6 | Products; neutral units; the **Icon** field and picker — the owner picks the product's illustration from the library; ~~managing categories~~ dropped (2026-09-25), and a migration removes the unused `categories` table and `products.category_id` | §139.11.10; §133.4 D1 (dropped) | Q8 | TODO |
 | R5.7 | Inventory | §139.10 | — | TODO |
 | R5.8 | Expenses as the reference shows: KPIs, the category donut, daily bars, recent expenses; the Categories and Transactions tabs; `GET /api/expenses/summary` | §139.10; §139.11.11 | — | TODO |
-| R5.9 | Analytics as the reference shows: KPIs with deltas, the sales-trend line, top products (custom items as one row in the Products tab); ~~sales by category~~ dropped with categories (2026-09-25); the Sales, Orders, Customers and Products tabs; server aggregation; Top Customers; the guest split | §133.9 I1, I3; IMP-10; §139.11.11 | — | TODO |
+| R5.9 | Analytics as the reference shows: KPIs with deltas, the sales-trend line, top products (custom items as one row in the Products tab); ~~sales by category~~ dropped with categories (2026-09-25), **sales by product** in its place (the user, 2026-09-26); the Sales, Orders, Customers and Products tabs; server aggregation; Top Customers; the guest split | §133.9 I1, I3; IMP-10; §139.11.11 | — | DONE (2026-09-26 · worked out on the server; the period is remembered on the device) |
 | R5.10 | Notifications inbox and bell; the `kind` column | §133.5 E1 | — | TODO |
 | R5.11 | More and Settings (Appearance, Account, About with the illustration credit); no Help | §139.10 | Q7 (answered), Q16 | TODO |
 | R5.12 | ~~Global search~~ | IMP-01 | — | DROPPED (2026-09-25, the user's decision: search stays in each list, R5.13) |

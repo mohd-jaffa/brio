@@ -52,6 +52,15 @@ describe("Donut", () => {
     expect(within(table).getByRole("row", { name: "Ingredients ₹5,210 58%" })).toBeInTheDocument();
   });
 
+  it("names long slices in full, the legend beneath the ring until they fit beside it", () => {
+    const slices = [
+      { label: "Chocolate Truffle Cake (1 kg)", value: 120_000 },
+      { label: "Red Velvet Cupcakes (Box of 6)", value: 45_000 },
+    ];
+    const { container } = donut({ slices });
+    expect(legend(container)).toEqual(["Chocolate Truffle Cake (1 kg)73%", "Red Velvet Cupcakes (Box of 6)27%"]);
+  });
+
   it("folds everything past the fifth slice into Others", () => {
     const slices = [7, 6, 5, 4, 3, 2, 1].map((value, index) => ({ label: `Status ${index + 1}`, value }));
     const { container } = donut({ slices, unit: "count", labelHeading: "Status" });

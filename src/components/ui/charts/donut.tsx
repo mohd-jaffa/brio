@@ -17,14 +17,32 @@ const GAP = 2;
 const CENTRE_FULL = 10;
 const CENTRE_LARGE = 7;
 
+// Beside the ring, a legend name has the card's inside less 234 px — the ring,
+// the gaps, the dot and the share — at some 7.5 px a character. Each tier is
+// the inside width at which names up to that long fit; longer ones wait for a
+// card with some 300 px to spare.
+const BESIDE = [
+  { upTo: 8, from: "@min-[294px]:flex-row" },
+  { upTo: 12, from: "@min-[324px]:flex-row" },
+  { upTo: 16, from: "@min-[360px]:flex-row" },
+] as const;
+const BESIDE_WIDE = "@min-[480px]:flex-row";
+
+function besideFrom(labels: readonly string[]): string {
+  const longest = Math.max(0, ...labels.map((label) => label.length));
+  return BESIDE.find((tier) => longest <= tier.upTo)?.from ?? BESIDE_WIDE;
+}
+
 /**
  * Shares of a whole as a ring (plan §139.11.11): expenses by category, sales
- * by category, orders by status. The total sits in the middle in the serif,
+ * by product, orders by status. The total sits in the middle in the serif,
  * the legend names each slice and its share, and past the fifth slice the
- * rest are folded into Others. The legend stands beside the ring once the
- * card is as wide as it is on a 360 px phone, and beneath it on anything
- * narrower: 294 px is that card's inside — 360, less the page's 16 px gutters,
- * the card's 16 px padding and its 1 px border, each side.
+ * rest are folded into Others. The legend stands beside the ring once its
+ * longest name fits there, and beneath it until then, so a name is read in
+ * full rather than cut short: short names sit beside it on a 360 px phone,
+ * whose card is 294 px inside — 360, less the page's 16 px gutters, the card's
+ * 16 px padding and its 1 px border, each side — and a product's wait for a
+ * tablet.
  */
 export function Donut({
   title,
@@ -74,7 +92,7 @@ export function Donut({
         ]),
       }}
     >
-      <div className="flex flex-col items-center gap-5 @min-[294px]:flex-row">
+      <div className={cn("flex flex-col items-center gap-5", besideFrom(shown.map((slice) => slice.label)))}>
         <div role="img" aria-label={summary} className="relative shrink-0" style={{ width: SIZE, height: SIZE }}>
           <svg width={SIZE} height={SIZE} className="chart-fade -rotate-90" aria-hidden="true">
             {segments.map((segment, index) => (

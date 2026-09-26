@@ -1664,3 +1664,38 @@ this entry grows with them.
 
 ### Blockers
 - None. The order row cuts off its longer lines at 360 px, but the number, the due date, the amount and the status stay whole.
+
+## 2026-09-26 — Analytics (R5.9)
+
+### Added
+- **`GET /api/analytics/overview?range=&from=&to=&interval=` (`src/features/analytics/api.ts`).** Analytics is worked out on the server, so the browser no longer reads every order to add it up (§133.9 I3).
+  - **Queries:** one for the period's orders and the period before, each with its customer, lines and payments embedded; one for the customers who joined.
+  - **Period:** a preset, or `CUSTOM` with both dates, 1 to 366 days (`rangeQuerySchema`). The period before is the same days of the month before for a month preset, and the same length just before otherwise (`src/lib/dates/range.ts`). Daily up to 31 days, weekly beyond, or as chosen.
+  - **Sums:** each is a pure function in `summary.ts`, tested on plain rows. A payment counts only up to its order's total.
+- **Analytics (`src/features/analytics/components`).** The compact band, the range picker and five tabs, as §139.10 lays them out.
+  - **Overview:** four tiles, each with its change on the period before (IMP-10); the sales trend, with the period before dashed beneath it on a desktop; the top selling products; **Sales by product**; and the quote.
+  - **Sales:** the trend against the period before; Guests against saved customers; collected against still to collect.
+  - **Orders:** orders per day or week; by status; pickup against delivery.
+  - **Customers:** new against returning; the ten top customers, Guests left out (§133.9 I1).
+  - **Products:** every product ranked by sales or by quantity, custom items as one row.
+- **Sales by product** (the user, 2026-09-26) stands where the reference has sales by category, which left with product categories.
+  - The ring shows the top five and Others, with custom items as one slice.
+  - Its centre says **Item sales**, because charges and discounts are no product's, so it can differ from Total sales.
+  - The top selling products list catalogue products only (§139.11.7).
+- **`useRememberedRange`:** each report screen comes back to the period last chosen there, on this device. **`useMediaQuery`:** for what CSS cannot decide, such as drawing the period before.
+
+### Changed
+- **Donut legend:** it stands beside the ring once its longest name fits in full, and beneath it until then.
+  - At 360 px, "Saved customers", "Preparing" and "To collect" had been cut to a few letters.
+  - A product's name waits for a tablet to sit beside the ring (§139.11.11 updated).
+
+### Removed
+- The old `getOverview` and the browser-side sums it stood beside.
+
+### Validation
+- `tsc`, `eslint` and the test-path check are clean. 227 test files and 1,441 tests pass.
+- Coverage is 100% for Analytics, its hooks, the chart kit, the range and its schema.
+- **Captures:** every tab at 360, 390, 820, 1280 and 1440 px, in Golden and Peach, with no sideways scroll and no errors on the page.
+
+### Blockers
+- None. §133.9 I1 and I3 are closed, and IMP-10 is done.
