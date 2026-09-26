@@ -48,6 +48,7 @@ function AppFrame({ children }: { children: ReactNode }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const closeMore = useCallback(() => setMoreOpen(false), []);
   // Whatever replaces a loading placeholder, on any screen, fades in over it.
+  // A screen with the round + (Fab) keeps its last row clear of it on a phone.
   const main = useRef<HTMLElement>(null);
   useSettle(main);
 
@@ -120,7 +121,7 @@ function AppFrame({ children }: { children: ReactNode }) {
 
         <main
           ref={main}
-          className="animate-settle mx-auto w-full overflow-x-clip max-w-[1200px] flex-1 space-y-6 p-4 pb-[calc(var(--nav-height)+var(--safe-bottom)+1.5rem)] md:p-6 md:pb-[calc(var(--safe-bottom)+2rem)] md:pr-[calc(var(--safe-right)+1.5rem)] lg:space-y-8 lg:p-8 lg:pr-[calc(var(--safe-right)+2rem)]"
+          className="animate-settle mx-auto w-full overflow-x-clip max-w-[1200px] flex-1 space-y-6 p-4 pb-[calc(var(--nav-height)+var(--safe-bottom)+1.5rem)] has-[[data-fab]]:pb-[calc(var(--nav-height)+var(--safe-bottom)+5.5rem)] md:p-6 md:pb-[calc(var(--safe-bottom)+2rem)] md:has-[[data-fab]]:pb-[calc(var(--safe-bottom)+2rem)] md:pr-[calc(var(--safe-right)+1.5rem)] lg:space-y-8 lg:p-8 lg:pr-[calc(var(--safe-right)+2rem)]"
         >
           {children}
         </main>

@@ -91,26 +91,31 @@ export function ItemsPanel({
           {text.noMatches(search.trim())}
         </p>
       ) : (
-        <ul role="list" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-4">
-          {shown.map((product) => {
-            const quantity = quantityOf(product.id);
-            return (
-              <li key={product.id}>
-                <ProductCard
-                  name={product.name}
-                  price={formatPaise(product.defaultPrice)}
-                  iconKey={product.iconKey}
-                  addLabel={text.add(product.name)}
-                  onAdd={() => onAdd(product.id)}
-                  quantity={quantity}
-                  quantityLabel={text.inOrder(quantity)}
-                  removeLabel={text.removeOne(product.name)}
-                  onRemove={() => onRemove(product.id)}
-                />
-              </li>
-            );
-          })}
-        </ul>
+        // Columns by the panel's own width: on a desktop the panel shares the
+        // screen with the order, so the window's width would pack four cards
+        // into it and cut their names short.
+        <div className="@container">
+          <ul role="list" className="grid grid-cols-2 gap-3 @lg:grid-cols-3 @3xl:grid-cols-4">
+            {shown.map((product) => {
+              const quantity = quantityOf(product.id);
+              return (
+                <li key={product.id}>
+                  <ProductCard
+                    name={product.name}
+                    price={formatPaise(product.defaultPrice)}
+                    iconKey={product.iconKey}
+                    addLabel={text.add(product.name)}
+                    onAdd={() => onAdd(product.id)}
+                    quantity={quantity}
+                    quantityLabel={text.inOrder(quantity)}
+                    removeLabel={text.removeOne(product.name)}
+                    onRemove={() => onRemove(product.id)}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       )}
 
       <MoreRow icon={ReceiptText} title={text.customItem} hint={text.customItemHint} onClick={onAddCustom} />

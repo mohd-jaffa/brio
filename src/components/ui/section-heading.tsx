@@ -21,7 +21,9 @@ export function SectionHeading({
   children?: ReactNode;
 }) {
   return (
-    <div className="mb-3 flex items-center justify-between gap-3">
+    // As tall as the View all link's target whether or not it has one, so
+    // headings side by side line up.
+    <div className="mb-3 flex min-h-11 items-center justify-between gap-3">
       <h2 id={id} className="font-heading text-lg font-medium text-text">
         {title}
       </h2>

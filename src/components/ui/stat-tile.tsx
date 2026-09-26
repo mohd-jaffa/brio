@@ -21,7 +21,7 @@ function DeltaLine({ delta }: { delta: StatDelta }) {
   const good = change === 0 ? undefined : (change > 0) === (up === "good");
   const Arrow = change > 0 ? ArrowUp : ArrowDown;
   return (
-    <dd className="order-4 mt-2 text-xs">
+    <dd className="col-span-2 row-start-3 mt-2 text-xs lg:row-start-4">
       <span
         className={cn(
           "inline-flex items-center gap-0.5 font-semibold tabular-nums",
@@ -49,6 +49,12 @@ function DeltaLine({ delta }: { delta: StatDelta }) {
  * how it moved on the previous period, and on a desktop the period's shape
  * as a sparkline. It is a label–value group, so it sits inside a `<dl>`, and
  * reads "Total sales, ₹45,280, up 12%".
+ *
+ * Below 1024 px the label sits beside the medallion, so a phone's two rows of
+ * tiles leave room for what follows them; the figure keeps the tile's whole
+ * width, so a long amount is not cut short. From 1024 px the label drops
+ * under the figure, and the sparkline takes the medallion's row — so a tile
+ * with one is exactly as tall as a tile without.
  */
 export function StatTile({
   label,
@@ -72,19 +78,28 @@ export function StatTile({
   trend?: number[];
 }) {
   return (
-    <div className="flex min-w-0 flex-col rounded-2xl border border-border bg-surface p-4 shadow-card">
-      {icon && <Medallion icon={icon} tone={tone} size="sm" className="order-1 mb-3" />}
-      <dt className="order-3 mt-0.5 text-sm text-text-muted">{label}</dt>
+    <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] content-start gap-x-3 rounded-2xl border border-border bg-surface p-4 shadow-card">
+      {icon && <Medallion icon={icon} tone={tone} size="sm" className="col-start-1 row-start-1" />}
+      <dt
+        className={cn(
+          "row-start-1 self-center text-sm text-text-muted lg:col-span-2 lg:col-start-1 lg:row-start-3 lg:mt-0.5 lg:self-auto",
+          icon ? "col-start-2" : "col-span-2 col-start-1",
+        )}
+      >
+        {label}
+      </dt>
       <dd
         className={cn(
-          "order-2 truncate text-2xl tabular-nums text-text",
+          "col-span-2 row-start-2 mt-2 truncate text-2xl tabular-nums text-text lg:mt-3",
           headline ? "font-heading font-medium" : "font-semibold",
         )}
       >
         {value}
       </dd>
       {delta && <DeltaLine delta={delta} />}
-      {trend && <Sparkline values={trend} className="order-5 mt-3 hidden lg:block" />}
+      {trend && (
+        <Sparkline values={trend} className="col-start-2 row-start-1 hidden w-24 self-center justify-self-end lg:block" />
+      )}
     </div>
   );
 }

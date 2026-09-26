@@ -14,7 +14,7 @@ const now = new Date("2026-09-26T06:00:00Z");
 beforeEach(() => push.mockReset());
 
 describe("OrdersTable", () => {
-  it("lays each order out under Order, Customer, Items, Amount, Status and Due (§139.10)", () => {
+  it("lays each order out under Order, Due, Customer, Items, Amount and Status (§139.10)", () => {
     render(
       <OrdersTable
         now={now}
@@ -27,20 +27,20 @@ describe("OrdersTable", () => {
     const table = screen.getByRole("table", { name: "Orders" });
     expect(within(table).getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual([
       "Order",
+      "Due",
       "Customer",
       "Items",
       "Amount",
       "Status",
-      "Due",
     ]);
     const [, first, second] = within(table).getAllByRole("row");
     expect(within(first).getAllByRole("cell").map((cell) => cell.textContent)).toEqual([
       "ORD-1006",
+      "27 Sep10:30 AM",
       "Meena Gupta",
       "Chocolate truffle cake +1 more",
       "₹1,250₹750 to pay",
       "Pending",
-      "27 Sep10:30 AM",
     ]);
     expect(within(first).getByRole("link", { name: "ORD-1006" })).toHaveAttribute("href", "/orders/o-1");
     expect(second).toHaveTextContent("Guest");

@@ -11,7 +11,9 @@ const WIDE =
  * dark circular + above the bottom nav, clear of the home indicator; from
  * 768 px, where the header has room, it is a button with its words instead.
  * Put it in the page header's action slot: the round one floats wherever it
- * is written. It goes to `href`, or opens something with `onClick`.
+ * is written, and the shell pads the screen's foot clear of it (`data-fab`),
+ * so the last row of a list never sits under it. It goes to `href`, or opens
+ * something with `onClick`.
  */
 export function Fab({ label, ...target }: { label: string } & ({ href: string } | { onClick: () => void })) {
   const round = <Plus size={24} strokeWidth={2} aria-hidden="true" />;
@@ -24,7 +26,7 @@ export function Fab({ label, ...target }: { label: string } & ({ href: string } 
   if ("href" in target) {
     return (
       <>
-        <Link href={target.href} aria-label={label} className={ROUND}>
+        <Link href={target.href} aria-label={label} className={ROUND} data-fab>
           {round}
         </Link>
         <Link href={target.href} className={WIDE}>
@@ -35,7 +37,7 @@ export function Fab({ label, ...target }: { label: string } & ({ href: string } 
   }
   return (
     <>
-      <button type="button" aria-label={label} onClick={target.onClick} className={ROUND}>
+      <button type="button" aria-label={label} onClick={target.onClick} className={ROUND} data-fab>
         {round}
       </button>
       <button type="button" onClick={target.onClick} className={WIDE}>

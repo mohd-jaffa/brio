@@ -7918,7 +7918,7 @@ the whole payload once.
 
 ### Home
 
-- **Phone:** the header band (business mark, name and catch phrase; bell; avatar); **"Good morning, {first name}"** with the time of day taken from the business's clock (§134 P2-1); the catch phrase or a neutral line beneath; the hero plate at the right. Then **four stat tiles** laid out as in the reference but **carrying the §20 priorities** — *orders due today*, *sales* (for the chosen period), *to collect* (balance due) and *low stock* — with a Today / Week / Month switch; **Orders due**, grouped Overdue / Today / Tomorrow and sorted by due date (§20, AGENTS §20), with "View all"; **Low stock**; the quote block; and the FAB for a new order.
+- **Phone:** the header band (business mark, name and catch phrase; bell; avatar); **"Good morning, {first name}"** with the time of day taken from the business's clock (§134 P2-1); the catch phrase or a neutral line beneath; the hero plate at the right (*2026-09-27, layout pass:* below 1024 px the greeting takes the kit's compact band, so the orders due start on a phone's first screen). Then **four stat tiles** laid out as in the reference but **carrying the §20 priorities** — *orders due today*, *sales* (for the chosen period), *to collect* (balance due) and *low stock* — with a Today / Week / Month switch; **Orders due**, grouped Overdue / Today / Tomorrow and sorted by due date (§20, AGENTS §20), with "View all"; **Low stock**; the quote block; and the FAB for a new order.
 - **Desktop:** a greeting row with the date and the quote; four tiles with sparklines; a sales bar chart for the period; top products; an order-status donut; recent customers.
 
 ### Orders

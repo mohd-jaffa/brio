@@ -2175,3 +2175,43 @@ this entry grows with them.
 
 ### Blockers
 - None.
+
+## 2026-09-27 — Layout pass (`/impeccable layout`)
+
+### Changed
+- **Guiding rule:** what is due and owed leads every screen. The title stands clear of the controls, the controls bind to their list, and desktop columns stack on their own.
+- **Home:**
+  - **Phones:** the orders due now start on the first screen of a 390 × 844 phone. The first overdue row sits at 654–739 px, above the tab bar at 776, where before it sat behind it. The greeting takes the kit's compact band below 1024 px, and the tiles run four across from 768 px.
+  - **Desktop:** the grid becomes two columns that stack independently: orders due and the sales overview; then low stock, order status, top products and recent customers. The one-row Low stock no longer leaves a hole, and the last row's column widths no longer flip.
+- **Stat tiles** (Home, Analytics, Expenses, Guest sales): below 1024 px the label sits beside the medallion, so a phone's two rows are about 26 px shorter each and a long amount keeps the tile's full width. From 1024 px the sparkline takes the medallion's row, so every tile is the same height and the others no longer show a dead band.
+- **The round +** on a phone no longer covers a list's last row. The shell pads the screen's foot clear of it whenever one is on the screen (`data-fab`): 33–46 px clear on Products, Orders and Customers.
+- **Page header:**
+  - a wide control (a range picker, Mark all as read) drops under the subtitle on a phone instead of squeezing the title;
+  - the header keeps 24 px below it on every screen, where list screens had 16.
+- **Inventory:** from 1024 px a counted product's stock sits in the row's right-hand column, where it can be compared down the list. Phones keep it on the second line, so names keep their width.
+- **Create order:** the product grid counts columns by the panel's own width, not the window's. On a desktop that is three cards with full names, not four cut short.
+- **Orders table:** Due sits beside the order number.
+- **Section headings** are the same height with or without View all, so headings side by side line up. The Expenses charts share a row height.
+
+### Not changed
+These are product or plan decisions rather than layout, and are left for the user:
+- grouping the Orders list by when things are due;
+- the band's place on Expenses and Analytics;
+- merging order detail's customer and handover cards;
+- a two-column Register on desktop;
+- Balance due first on customer detail;
+- where Add custom item sits.
+
+### Validation
+- **Before the pass:**
+  - an independent assessment of 17 screens at 390, 820 and 1280 px;
+  - the layout detector: no findings.
+- **After the pass:**
+  - the same 51 captures: no sideways scroll and no page errors;
+  - the fold and the button's clearance measured in Chromium;
+  - the design detector over the ten changed files: no findings.
+- `tsc`, `eslint` and the full suite (1,823 tests) pass. Every changed component is at 100% coverage.
+- The Expenses and Analytics trends that looked empty at 820 were captured before their bars grew in; they draw.
+
+### Blockers
+- None.

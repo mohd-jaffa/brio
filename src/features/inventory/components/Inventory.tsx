@@ -3,6 +3,7 @@
 import { Package } from "lucide-react";
 import { useState } from "react";
 
+import { cn } from "@/components/ui/cn";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ListScreen } from "@/components/ui/list-screen";
 import { PageHeader } from "@/components/ui/page-header";
@@ -99,9 +100,12 @@ export function Inventory() {
                 onClick={() => setOpen(line.product)}
                 leading={<ProductTile iconKey={line.product.iconKey} />}
                 title={line.product.name}
-                // The pill sits on the stock line, as on Products, so the name keeps the row's width.
+                // On a phone the pill sits on the stock line, as on Products, so the
+                // name keeps the row's width. From 1024 px, where the row is wide, a
+                // counted product's stock moves to the right-hand column, where the
+                // eye runs down the list to compare.
                 subtitle={
-                  <span className="flex items-center gap-2">
+                  <span className={cn("flex items-center gap-2", line.level?.stocked && "lg:hidden")}>
                     <span className="min-w-0 truncate">
                       {line.level?.stocked
                         ? text.inStock(formatQuantity(line.level.balance, line.product.unit))
@@ -109,6 +113,14 @@ export function Inventory() {
                     </span>
                     {low(line) && <StatusPill label={text.low} tone="cancelled" />}
                   </span>
+                }
+                trailing={
+                  line.level?.stocked ? (
+                    <span className="hidden flex-col items-end gap-1.5 lg:flex">
+                      <span className="tabular-nums">{text.inStock(formatQuantity(line.level.balance, line.product.unit))}</span>
+                      {low(line) && <StatusPill label={text.low} tone="cancelled" />}
+                    </span>
+                  ) : undefined
                 }
               />
             ))}

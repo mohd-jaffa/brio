@@ -110,8 +110,9 @@ export function Home() {
 
   return (
     <div className="space-y-6 lg:space-y-8">
+      {/* The compact band below 1024 px, so the orders due start on the first screen of a phone. */}
       <div className="lg:hidden">
-        <Hero as="h1" lines={[hello]} subtitle={line} plate="drip-cake" priority />
+        <Hero as="h1" variant="band" lines={[hello]} subtitle={line} plate="drip-cake" priority />
       </div>
       <header className="hidden items-end justify-between gap-8 lg:flex">
         <div className="min-w-0">
@@ -132,7 +133,7 @@ export function Home() {
           <Fab label={text.newOrder} href="/orders/new" />
         </div>
         {data ? (
-          <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+          <dl className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:gap-4">
             <StatTile label={text.dueToday} value={String(data.dueToday)} icon={CalendarClock} />
             <StatTile
               label={text.sales[data.period]}
@@ -155,111 +156,116 @@ export function Home() {
       </section>
 
       {data && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
-          <section aria-labelledby="home-due" className="lg:col-span-2">
-            <SectionHeading
-              id="home-due"
-              title={text.ordersDue}
-              viewAll={{ href: "/orders", label: text.viewAll, name: text.viewAllOf(text.ordersDue) }}
-            >
-              <FilterButton label={text.filter} onClick={() => setFiltering(true)} active={filtered} size="sm" />
-            </SectionHeading>
-            <OrdersDue dashboard={data} filtered={filtered} now={now} />
-          </section>
-
-          <section aria-labelledby="home-low">
-            <SectionHeading
-              id="home-low"
-              title={text.lowStock}
-              viewAll={{ href: "/inventory", label: text.viewAll, name: text.viewAllOf(text.lowStock) }}
-            />
-            {data.lowStock.length === 0 ? (
-              <p className="rounded-2xl border border-border bg-surface px-4 py-6 text-center text-sm text-text-muted shadow-card">
-                {text.noLowStock}
-              </p>
-            ) : (
-              <RowList label={text.lowStock}>
-                {data.lowStock.map((line) => (
-                  <Row
-                    key={line.productId}
-                    href="/inventory"
-                    leading={<ProductTile iconKey={line.iconKey} />}
-                    title={line.name}
-                    subtitle={text.left(formatQuantity(line.balance, line.unit))}
-                  />
-                ))}
-              </RowList>
-            )}
-          </section>
-
-          <div className="hidden lg:col-span-2 lg:block">
-            <BarTrend
-              title={text.salesOverview}
-              summary={text.salesSummary(
-                formatDayMonth(data.salesByDay[0]?.day),
-                formatDayMonth(data.salesByDay.at(-1)?.day),
-                formatPaise(data.sales),
+        // Two columns that stack on their own from 1024 px: what is due, and
+        // the period's sales, lead; the side keeps stock, status, the best
+        // sellers and the latest customers. Below it, one column, due first.
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start lg:gap-8">
+          <div className="lg:col-span-2 lg:space-y-8">
+            <section aria-labelledby="home-due">
+              <SectionHeading
+                id="home-due"
+                title={text.ordersDue}
+                viewAll={{ href: "/orders", label: text.viewAll, name: text.viewAllOf(text.ordersDue) }}
+              >
+                <FilterButton label={text.filter} onClick={() => setFiltering(true)} active={filtered} size="sm" />
+              </SectionHeading>
+              <OrdersDue dashboard={data} filtered={filtered} now={now} />
+            </section>
+            <div className="hidden lg:block">
+              <BarTrend
+                title={text.salesOverview}
+                summary={text.salesSummary(
+                  formatDayMonth(data.salesByDay[0]?.day),
+                  formatDayMonth(data.salesByDay.at(-1)?.day),
+                  formatPaise(data.sales),
+                )}
+                points={data.salesByDay.map((day) => ({ label: formatDayMonth(day.day), value: day.total }))}
+                emptyMessage={text.noSales}
+              />
+            </div>
+          </div>
+          {/* Below 1024 px each column shows one section, so only the desktop spaces them. */}
+          <div className="lg:space-y-8">
+            <section aria-labelledby="home-low">
+              <SectionHeading
+                id="home-low"
+                title={text.lowStock}
+                viewAll={{ href: "/inventory", label: text.viewAll, name: text.viewAllOf(text.lowStock) }}
+              />
+              {data.lowStock.length === 0 ? (
+                <p className="rounded-2xl border border-border bg-surface px-4 py-6 text-center text-sm text-text-muted shadow-card">
+                  {text.noLowStock}
+                </p>
+              ) : (
+                <RowList label={text.lowStock}>
+                  {data.lowStock.map((line) => (
+                    <Row
+                      key={line.productId}
+                      href="/inventory"
+                      leading={<ProductTile iconKey={line.iconKey} />}
+                      title={line.name}
+                      subtitle={text.left(formatQuantity(line.balance, line.unit))}
+                    />
+                  ))}
+                </RowList>
               )}
-              points={data.salesByDay.map((day) => ({ label: formatDayMonth(day.day), value: day.total }))}
-              emptyMessage={text.noSales}
-            />
+            </section>
+            <div className="hidden lg:block">
+              <Donut
+                title={text.orderStatus}
+                summary={text.orderStatusSummary(data.ordersByStatus.reduce((sum, entry) => sum + entry.count, 0))}
+                slices={data.ordersByStatus.map((entry) => ({ label: ORDER_STATUS_LABELS[entry.status], value: entry.count }))}
+                totalLabel={text.totalOrders}
+                unit="count"
+                labelHeading={UI_TEXT.charts.status}
+                emptyMessage={text.noOrders}
+              />
+            </div>
+            <section aria-labelledby="home-top" className="hidden lg:block">
+              <SectionHeading id="home-top" title={text.topProducts} />
+              {data.topProducts.length === 0 ? (
+                <p className="rounded-2xl border border-border bg-surface px-4 py-6 text-center text-sm text-text-muted shadow-card">
+                  {text.noTopProducts}
+                </p>
+              ) : (
+                <RowList label={text.topProducts}>
+                  {data.topProducts.map((product) => (
+                    <Row
+                      key={product.productId ?? "custom"}
+                      leading={<ProductTile iconKey={product.iconKey} />}
+                      title={product.name}
+                      subtitle={text.sold(product.quantity)}
+                      trailing={<span className="tabular-nums">{formatPaise(product.sales)}</span>}
+                    />
+                  ))}
+                </RowList>
+              )}
+            </section>
+            <section aria-labelledby="home-customers" className="hidden lg:block">
+              <SectionHeading
+                id="home-customers"
+                title={text.recentCustomers}
+                viewAll={{ href: "/customers", label: text.viewAll, name: text.viewAllOf(text.recentCustomers) }}
+              />
+              {data.recentCustomers.length === 0 ? (
+                <p className="rounded-2xl border border-border bg-surface px-4 py-6 text-center text-sm text-text-muted shadow-card">
+                  {text.noRecentCustomers}
+                </p>
+              ) : (
+                <RowList label={text.recentCustomers}>
+                  {data.recentCustomers.map((customer) => (
+                    <Row
+                      key={customer.id}
+                      href={`/customers/${customer.id}`}
+                      leading={<Avatar name={customer.name} />}
+                      title={customer.name}
+                      subtitle={text.orderCount(customer.orders)}
+                    />
+                  ))}
+                </RowList>
+              )}
+            </section>
           </div>
-          <div className="hidden lg:block">
-            <Donut
-              title={text.orderStatus}
-              summary={text.orderStatusSummary(data.ordersByStatus.reduce((sum, entry) => sum + entry.count, 0))}
-              slices={data.ordersByStatus.map((entry) => ({ label: ORDER_STATUS_LABELS[entry.status], value: entry.count }))}
-              totalLabel={text.totalOrders}
-              unit="count"
-              labelHeading={UI_TEXT.charts.status}
-              emptyMessage={text.noOrders}
-            />
-          </div>
-
-          <section aria-labelledby="home-top" className="hidden lg:block">
-            <SectionHeading id="home-top" title={text.topProducts} />
-            {data.topProducts.length === 0 ? (
-              <p className="rounded-2xl border border-border bg-surface px-4 py-6 text-center text-sm text-text-muted shadow-card">
-                {text.noTopProducts}
-              </p>
-            ) : (
-              <RowList label={text.topProducts}>
-                {data.topProducts.map((product) => (
-                  <Row
-                    key={product.productId ?? "custom"}
-                    leading={<ProductTile iconKey={product.iconKey} />}
-                    title={product.name}
-                    subtitle={text.sold(product.quantity)}
-                    trailing={<span className="tabular-nums">{formatPaise(product.sales)}</span>}
-                  />
-                ))}
-              </RowList>
-            )}
-          </section>
-          <section aria-labelledby="home-customers" className="hidden lg:col-span-2 lg:block">
-            <SectionHeading
-              id="home-customers"
-              title={text.recentCustomers}
-              viewAll={{ href: "/customers", label: text.viewAll, name: text.viewAllOf(text.recentCustomers) }}
-            />
-            {data.recentCustomers.length === 0 ? (
-              <p className="rounded-2xl border border-border bg-surface px-4 py-6 text-center text-sm text-text-muted shadow-card">
-                {text.noRecentCustomers}
-              </p>
-            ) : (
-              <RowList label={text.recentCustomers}>
-                {data.recentCustomers.map((customer) => (
-                  <Row
-                    key={customer.id}
-                    href={`/customers/${customer.id}`}
-                    leading={<Avatar name={customer.name} />}
-                    title={customer.name}
-                    subtitle={text.orderCount(customer.orders)}
-                  />
-                ))}
-              </RowList>
-            )}
-          </section>
         </div>
       )}
 

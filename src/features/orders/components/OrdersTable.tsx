@@ -16,9 +16,10 @@ import { itemsLine, listStatusPill } from "../view";
 const CELL = "px-4 py-3";
 
 /**
- * Orders as a desktop lists them (plan §139.10): Order, Customer, Items,
- * Amount, Status and Due, a row to an order. The number is the link, so the
- * keyboard reaches each order once; a click anywhere on the row follows it.
+ * Orders as a desktop lists them (plan §139.10): Order, Due, Customer,
+ * Items, Amount and Status, a row to an order — when it is due beside which
+ * it is, since that is what the list is read for. The number is the link, so
+ * the keyboard reaches each order once; a click anywhere on the row follows it.
  */
 export function OrdersTable({ orders, now }: { orders: readonly OrderListItem[]; now?: Date }) {
   const router = useRouter();
@@ -31,20 +32,20 @@ export function OrdersTable({ orders, now }: { orders: readonly OrderListItem[];
         <caption className="sr-only">{text.title}</caption>
         <colgroup>
           <col className="w-[6.5rem]" />
+          <col className="w-[6.5rem]" />
           <col className="w-[11rem]" />
           <col />
           <col className="w-[7.5rem]" />
           <col className="w-[9rem]" />
-          <col className="w-[6.5rem]" />
         </colgroup>
         <thead className="border-b border-border text-left text-xs font-medium text-text-muted">
           <tr>
             <th scope="col" className={CELL}>{columns.order}</th>
+            <th scope="col" className={CELL}>{columns.due}</th>
             <th scope="col" className={CELL}>{columns.customer}</th>
             <th scope="col" className={CELL}>{columns.items}</th>
             <th scope="col" className={`${CELL} text-right`}>{columns.amount}</th>
             <th scope="col" className={CELL}>{columns.status}</th>
-            <th scope="col" className={CELL}>{columns.due}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
@@ -61,6 +62,10 @@ export function OrdersTable({ orders, now }: { orders: readonly OrderListItem[];
                   <Link href={href} className="rounded font-semibold text-text">
                     {order.orderNumber}
                   </Link>
+                </td>
+                <td className={CELL}>
+                  <span className="block text-text">{formatDayMonth(dayKey(order.dueAt))}</span>
+                  <span className="block text-xs text-text-muted">{formatTime(order.dueAt)}</span>
                 </td>
                 <td className={`${CELL} truncate text-text`}>{order.customer?.name ?? UI_TEXT.orders.guest}</td>
                 <td className={CELL}>
@@ -79,10 +84,6 @@ export function OrdersTable({ orders, now }: { orders: readonly OrderListItem[];
                 </td>
                 <td className={CELL}>
                   <StatusPill label={pill.label} tone={pill.tone} />
-                </td>
-                <td className={CELL}>
-                  <span className="block text-text">{formatDayMonth(dayKey(order.dueAt))}</span>
-                  <span className="block text-xs text-text-muted">{formatTime(order.dueAt)}</span>
                 </td>
               </tr>
             );
