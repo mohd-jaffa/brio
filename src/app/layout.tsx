@@ -61,7 +61,10 @@ export default function RootLayout({
         {/* Sets the stored theme before anything paints (BUG-15). */}
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
       </head>
-      <body className="min-h-full flex flex-col">
+      {/* Extensions such as Grammarly write attributes onto <body> before React
+          hydrates. This ignores only <body>'s own attributes, one level deep;
+          a real mismatch anywhere below it is still reported. */}
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <ThemeProvider>
           {/* One place every outcome is reported, signed in or not (plan §139.6). */}
           <ResponseProvider>

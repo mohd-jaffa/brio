@@ -2244,3 +2244,16 @@ These are product or plan decisions rather than layout, and are left for the use
 ### Blockers
 - None.
 - **Migration:** `0024` is applied locally; it needs applying in other environments.
+
+## 2026-09-27 — A browser extension's attributes on `<body>`
+
+### Fixed
+- **"A tree hydrated but some attributes of the server rendered HTML didn't match"**, reported by the user. The attributes were `data-new-gr-c-s-check-loaded` and `data-gr-ext-installed` on `<body>`, which the Grammarly extension writes before React hydrates: not the app's markup.
+- `<body>` now carries `suppressHydrationWarning`, as `<html>` already did for the theme. It ignores only `<body>`'s own attributes, one level deep, so a real mismatch anywhere in the page is still reported.
+
+### Validation
+- In Chromium, a script writing Grammarly's two attributes onto `<body>` before hydration reproduced the warning without the change and raised none with it.
+- `tsc` and `eslint` are clean.
+
+### Blockers
+- None.
