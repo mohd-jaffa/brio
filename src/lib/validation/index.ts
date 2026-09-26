@@ -16,7 +16,6 @@ export {
   optionalLine,
   optionalLines,
   optionalUrl,
-  optionalUuid,
   paiseText,
   positiveWholeText,
   requiredEmail,
@@ -65,7 +64,6 @@ export {
 
 export {
   createProductSchema,
-  PRODUCT_UNIT_LABELS,
   PRODUCT_UNITS,
   productFormSchema,
   updateProductSchema,

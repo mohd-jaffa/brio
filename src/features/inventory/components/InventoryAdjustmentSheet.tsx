@@ -32,12 +32,10 @@ const EMPTY: StockAdjustmentFormValues = { type: "STOCK_IN", quantity: "" };
 function InventoryAdjustmentForm({
   isOpen,
   onClose,
-  onSuccess,
   product,
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
   product?: Product;
 }) {
   // Kept out of the React Compiler, as every react-hook-form sheet is (R1.9).
@@ -69,7 +67,6 @@ function InventoryAdjustmentForm({
     {
       revalidate: [apiRoutes.inventory.balances()],
       onSuccess: () => {
-        onSuccess();
         onClose();
         respond.success({ title: UI_TEXT.outcomes.stockRecorded });
       },

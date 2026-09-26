@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProductsClient } from "@/features/products/api.client";
-import { getJson, patchJson, postJson } from "@/lib/api/client";
+import { patchJson, postJson } from "@/lib/api/client";
 
 vi.mock("@/lib/api/client", () => ({
   getJson: vi.fn(),
@@ -19,10 +19,7 @@ beforeEach(() => vi.clearAllMocks());
  * the rest of the app reads from, so a write refreshes what a read showed.
  */
 describe("ProductsClient", () => {
-  it("reads and writes the products routes", async () => {
-    await ProductsClient.list();
-    expect(getJson).toHaveBeenCalledWith("/api/products");
-
+  it("writes the products routes", async () => {
     await ProductsClient.createProduct({ name: "Brownie", defaultPrice: 8000 });
     expect(postJson).toHaveBeenCalledWith("/api/products", { name: "Brownie", defaultPrice: 8000 });
 

@@ -11,7 +11,6 @@ import {
   optionalLine,
   optionalLines,
   optionalUrl,
-  optionalUuid,
   paiseAmount,
   paiseText,
   positiveWholeText,
@@ -21,8 +20,6 @@ import {
   requiredLines,
   wholeNumberText,
 } from "@/lib/validation/primitives";
-
-const UUID = "3f2504e0-4f89-11d3-9a0c-0305e82c3301";
 
 function messageOf(schema: z.ZodType, value: unknown): string | null {
   const result = schema.safeParse(value);
@@ -99,19 +96,6 @@ describe("optionalUrl", () => {
       expect(messageOf(schema, link)).toBe(VALIDATION_MESSAGES.url("Google Maps link"));
     }
     expect(schema.parse("http://maps.example.com/pin")).toBe("http://maps.example.com/pin");
-  });
-});
-
-describe("optionalUuid", () => {
-  const schema = optionalUuid("Category");
-
-  it("accepts an id and leaves an unset one null", () => {
-    expect(schema.parse(UUID)).toBe(UUID);
-    expect(schema.parse("")).toBeNull();
-  });
-
-  it("refuses something that is not an id", () => {
-    expect(messageOf(schema, "category-1")).toBe(VALIDATION_MESSAGES.invalid);
   });
 });
 

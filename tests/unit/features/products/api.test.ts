@@ -7,7 +7,6 @@ import { tenantOf } from "@tests/support/tenant";
 const row = (id: string) => ({
   id,
   bakery_id: "b-1",
-  category_id: null,
   name: "Cake",
   description: null,
   default_price: 125_000,

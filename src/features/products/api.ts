@@ -15,7 +15,6 @@ const products = (tenant: Tenant) =>
 export function toProduct(row: ProductRow): Product {
   return {
     id: row.id,
-    categoryId: row.category_id ?? undefined,
     name: row.name,
     description: row.description ?? undefined,
     defaultPrice: row.default_price,
@@ -29,7 +28,6 @@ export function toProduct(row: ProductRow): Product {
 
 function toColumns(input: UpdateProductPayload) {
   return definedOnly({
-    category_id: blankToNull(input.categoryId),
     name: input.name,
     description: blankToNull(input.description),
     default_price: input.defaultPrice,

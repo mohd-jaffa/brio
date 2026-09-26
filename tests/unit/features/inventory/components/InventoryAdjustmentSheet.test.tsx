@@ -7,6 +7,7 @@ import type { Product } from "@/features/products/types";
 
 import { InventoryClient } from "@/features/inventory/api.client";
 import { InventoryAdjustmentSheet } from "@/features/inventory/components/InventoryAdjustmentSheet";
+import { ApiError } from "@/lib/api/client";
 
 import { Providers } from "@tests/support/providers";
 
@@ -29,7 +30,7 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 function open(props: Partial<Parameters<typeof InventoryAdjustmentSheet>[0]> = {}) {
-  const all = { isOpen: true, onClose: vi.fn(), onSuccess: vi.fn(), product: flour, ...props };
+  const all = { isOpen: true, onClose: vi.fn(), product: flour, ...props };
   render(<InventoryAdjustmentSheet {...all} />, { wrapper });
   return all;
 }
@@ -39,7 +40,7 @@ beforeEach(() => vi.clearAllMocks());
 describe("InventoryAdjustmentSheet", () => {
   it("stays closed without a product to adjust, its form already in place", () => {
     const { container } = render(
-      <InventoryAdjustmentSheet isOpen onClose={vi.fn()} onSuccess={vi.fn()} />,
+      <InventoryAdjustmentSheet isOpen onClose={vi.fn()} />,
       { wrapper },
     );
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -74,7 +75,8 @@ describe("InventoryAdjustmentSheet", () => {
         referenceType: "MANUAL",
       }),
     );
-    expect(props.onSuccess).toHaveBeenCalledOnce();
+    // It closes once recorded; the stock it changed is read again by the mutation itself.
+    await waitFor(() => expect(props.onClose).toHaveBeenCalledOnce());
   });
 
   it("takes wastage off stock, from a plain count — nobody types a minus sign", async () => {
@@ -106,6 +108,15 @@ describe("InventoryAdjustmentSheet", () => {
 
     await waitFor(() => expect(screen.getAllByRole("alert").length).toBeGreaterThan(0));
     expect(InventoryClient.adjustStock).not.toHaveBeenCalled();
+  });
+
+  it("keeps the sheet open, and says why, when the movement is refused", async () => {
+    vi.mocked(InventoryClient.adjustStock).mockRejectedValue(new ApiError(422, "SAVE_FAILED", "Could not save."));
+    const props = open();
+    await userEvent.type(screen.getByLabelText(/Quantity/), "4");
+    await userEvent.click(screen.getByRole("button", { name: "Confirm Adjustment" }));
+    expect((await screen.findAllByText("Stock not recorded"))[0]).toBeInTheDocument();
+    expect(props.onClose).not.toHaveBeenCalled();
   });
 
   it("offers only the movements a baker records by hand", () => {

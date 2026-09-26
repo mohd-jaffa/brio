@@ -129,7 +129,6 @@ export default function InventoryPage() {
       <InventoryAdjustmentSheet
         isOpen={adjust.isOpen}
         onClose={adjust.close}
-        onSuccess={() => balances.mutate()}
         product={adjust.subject}
       />
     </AppShell>

@@ -1785,3 +1785,39 @@ this entry grows with them.
 
 ### Blockers
 - None. BUG-23 is fixed.
+
+## 2026-09-26 — Products (R5.6)
+
+### Added
+- **`0018_drop_categories.sql`.** It drops `products.category_id`, with its composite reference and index, then the unused `categories` table with its policy, trigger and checks. Products need no categories (2026-09-25). Expense categories are untouched.
+- **Products (`src/features/products/components/Products.tsx`).** Search by name.
+  - **Rows up to 1024 px:** tile, name, then price per unit with the Active or "Not on sale" pill, and each product's menu.
+  - **Cards from 1024 px:** the picture large, then the same facts.
+  - **The menu:** **Edit**; **Take off sale** or **Put back on sale**, which says what that means for the order screen; and **Record stock**, which opens the stock sheet for that product.
+- **`IllustrationPicker`** in the kit. The library in its groups, defaults first, each picture a choice named by its label, the one in use marked. Expense categories will use it in R5.16.
+- **The product form's Picture field:** the current illustration and **Change**. A stored key the library no longer has shows, and saves, as the price tag.
+- **Units:** set, bunch and pack (Q8). The unit names are now in `UI_TEXT.products.units`.
+
+### Changed
+- The product form and its copy moved into `messages.ts`.
+- The product form and the stock sheet no longer take an `onSuccess`: each refreshes what it changed itself.
+
+### Removed
+- `categoryId` from products, their schema and their editable columns.
+- The unused `optionalUuid` primitive, and `ProductsClient.list` and `get`.
+
+### Validation
+- `tsc`, `eslint` and the test-path check are clean. 241 test files and 1,557 tests pass. The changed components and the picker are at 100% coverage.
+- **Against local data:**
+  - PostgREST no longer finds `categories`, and `products.category_id` is gone.
+  - The menu, the form and the picker were followed in a browser; choosing "Glazed cake" set the field.
+- **Captures:** Products at 360, 390, 820, 1280 and 1440 px, in Golden and Peach, with no sideways scroll.
+
+### Blocker
+- Status: OPEN
+- Area: R5.13 (pagination) — Products
+- Description: The plan asks for paging on every list. Products is still read whole.
+- What was attempted: Orders, Customers, a customer's orders, Guest sales and the customer picker are paged, with search on the server.
+- Why it is blocked: the order screen prices its draft's lines, and shows their names and pictures, from the whole product read, and Order again checks what is still on sale against it. Paging products means a second way to read products by id for the draft, a change to the order screen beyond R5.6.
+- Required decision/input: keep the menu read whole, since a business's products are a menu rather than a growing ledger; or page Products too, and change the order screen to read its draft's products by id.
+- Temporary workaround: Products is read whole and searched in the browser, as before.

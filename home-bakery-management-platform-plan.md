@@ -7948,6 +7948,9 @@ its name and its illustration.
 
 Units add set, bunch and pack (Q8). The product form has an **Icon** field:
 the current illustration and **Change**, which opens the picker (§139.11.10).
+*As built (2026-09-26):* the field reads **Picture**; each product's menu offers
+**Edit**, **Take off sale** / **Put back on sale** and **Record stock**; the Active
+pill sits on the price line so the name keeps the row's width; cards from 1024 px.
 
 ### Inventory
 
@@ -8296,6 +8299,7 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `…_illustrations` | `products.image` is renamed **`icon_key`** (text; NULL means the default). Any existing value that is not a key's shape is cleared, and a CHECK allows only `^[a-z0-9]+(-[a-z0-9]+)*$` up to 64 characters. `bakeries.expense_category_icons` is `jsonb not null default '{}'`, with a CHECK that it is an object. The server checks keys against the registry, so a new illustration needs no migration. | 1 |
 | `…_text_hygiene` | Trimmed-length checks on customer, product and category names; categories unique per business on `lower(name)`. | 1 |
 | `…_list_views` | *Added 2026-09-26 as `0017_list_views` (R5.2, R5.3).* Two read-only, `security_invoker` views, so RLS still decides: **`order_search`** — each order beside its customer's name and phone, so one PostgREST `or` finds an order by its number, its customer or their phone digits (BUG-23), which it cannot do across an embed; and **`customer_stats`** — each customer with their order count and last order, cancelled ones not counted, so Customers can page and keep to Regular on the server. Select for `authenticated` only. No table. | 5 |
+| `…_drop_categories` | *Added 2026-09-26 as `0018_drop_categories` (R5.6).* Drops `products.category_id` with its composite reference and index, then the unused `categories` table with its policy, trigger and checks. Expense categories (`expenses.category`) are untouched. | 5 |
 | `…_notification_kind` | `notifications.kind` (`ORDER`, `PAYMENT`, `STOCK`, `CUSTOMER`, `SYSTEM`); index `(bakery_id, is_read, created_at desc)`. | 5 |
 | `…_audit_writes` | Revoke `INSERT` on `audit_logs` from `authenticated`; audit is written by the server with the acting user (§133.7 G1, BUG-20). | 2 |
 | `…_device_tokens` | The push-token registry (§133.5 E2). | 8 |
@@ -8636,14 +8640,14 @@ the row needs; without an answer it is built on that question's default
 | R5.3 | Customers: segments, the pinned Guest sales row, search on digits | §139.10; BUG-23 | — | DONE (2026-09-26 · paged on `customer_stats`; the order screen's picker searches the server too) |
 | R5.4 | Customer detail: stats, orders, notes, addresses, create order, order again | IMP-03, IMP-04 | — | DONE (2026-09-26 · `GET /api/customers/{id}/summary`; Order again sits on the order) |
 | R5.5 | Guest sales | §139.11.3 | — | DONE (2026-09-26 · `/customers/guest`; also from Orders' Guest filter and Analytics' Guest split) |
-| R5.6 | Products; neutral units; the **Icon** field and picker — the owner picks the product's illustration from the library; ~~managing categories~~ dropped (2026-09-25), and a migration removes the unused `categories` table and `products.category_id` | §139.11.10; §133.4 D1 (dropped) | Q8 | TODO |
+| R5.6 | Products; neutral units; the **Icon** field and picker — the owner picks the product's illustration from the library; ~~managing categories~~ dropped (2026-09-25), and a migration removes the unused `categories` table and `products.category_id` | §139.11.10; §133.4 D1 (dropped) | Q8 | DONE (2026-09-26 · `0018_drop_categories`; the picker is in the kit for R5.16) |
 | R5.7 | Inventory | §139.10 | — | TODO |
 | R5.8 | Expenses as the reference shows: KPIs, the category donut, daily bars, recent expenses; the Categories and Transactions tabs; `GET /api/expenses/summary` | §139.10; §139.11.11 | — | TODO |
 | R5.9 | Analytics as the reference shows: KPIs with deltas, the sales-trend line, top products (custom items as one row in the Products tab); ~~sales by category~~ dropped with categories (2026-09-25), **sales by product** in its place (the user, 2026-09-26); the Sales, Orders, Customers and Products tabs; server aggregation; Top Customers; the guest split | §133.9 I1, I3; IMP-10; §139.11.11 | — | DONE (2026-09-26 · worked out on the server; the period is remembered on the device) |
 | R5.10 | Notifications inbox and bell; the `kind` column | §133.5 E1 | — | TODO |
 | R5.11 | More and Settings (Appearance, Account, About with the illustration credit); no Help | §139.10 | Q7 (answered), Q16 | TODO |
 | R5.12 | ~~Global search~~ | IMP-01 | — | DROPPED (2026-09-25, the user's decision: search stays in each list, R5.13) |
-| R5.13 | Pagination on every list; each list's search runs on the server with it — debounced, tenant-scoped, with loading, empty and error states | §133.9 I4; IMP-11; IMP-01 (2026-09-25) | — | TODO |
+| R5.13 | Pagination on every list; each list's search runs on the server with it — debounced, tenant-scoped, with loading, empty and error states | §133.9 I4; IMP-11; IMP-01 (2026-09-25) | — | IN PROGRESS (2026-09-26 · the shared part, Orders, Customers, a customer's orders, Guest sales and the customer picker are paged. **Open question:** Products is read whole, because the order screen prices its draft's lines from that read — paging it too needs the user's word; see the changelog) |
 | R5.14 | Hard-coded strings swept, screen by screen | BUG-30 | — | TODO |
 | R5.15 | Dashboard filters | §133.9 I2 | — | DONE (2026-09-26 · with R5.1: preparation and payment, combined, on the orders due) |
 | R5.16 | Expense category illustrations: the Categories tab, the picker, the expense form's category field, `/api/expense-categories` | §139.11.10 | — | TODO |

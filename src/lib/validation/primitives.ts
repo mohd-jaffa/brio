@@ -28,7 +28,6 @@ import { normaliseLine, normaliseLines } from "@/lib/text/normalise";
  */
 z.config({ customError: () => VALIDATION_MESSAGES.invalid });
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // A shape check, not a delivery check: something@something.something.
 export const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -170,14 +169,6 @@ function isWebLink(value: string): boolean {
  */
 export function optionalIllustration(label: string) {
   return z.enum(ILLUSTRATION_KEYS, { error: VALIDATION_MESSAGES.chooseOne(label) }).nullable().optional();
-}
-
-/** A reference to another record that may be left unset; blank is null. */
-export function optionalUuid(label: string) {
-  return optionalString(label, 36, {
-    test: (value) => UUID.test(value),
-    message: VALIDATION_MESSAGES.invalid,
-  });
 }
 
 /** An amount typed into a text field ("499.50"), parsed to whole paise. */

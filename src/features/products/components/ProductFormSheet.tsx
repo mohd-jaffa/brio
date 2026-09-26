@@ -1,23 +1,27 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 
+import { Button } from "@/components/ui/button";
 import { FormSheet } from "@/components/ui/form-sheet";
+import { IllustrationPicker } from "@/components/ui/illustration-picker";
+import { ProductTile } from "@/components/ui/product-tile";
 import { useResponse } from "@/components/ui/response-card";
 import { optionsFrom, SelectField, TextAreaField, TextField } from "@/components/ui/text-field";
+import {
+  DEFAULT_PRODUCT_ILLUSTRATION,
+  ILLUSTRATIONS,
+  illustrationOr,
+  isIllustrationKey,
+} from "@/constants/illustrations";
 import { UI_TEXT } from "@/constants/messages";
 import { useOpeningKey } from "@/hooks/useOpeningKey";
 import { paiseToRupees } from "@/lib/money";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiMutation } from "@/lib/query/useApiMutation";
-import {
-  PRODUCT_UNIT_LABELS,
-  PRODUCT_UNITS,
-  productFormSchema,
-  type ProductFormPayload,
-  type ProductFormValues,
-} from "@/lib/validation";
+import { PRODUCT_UNITS, productFormSchema, type ProductFormPayload, type ProductFormValues } from "@/lib/validation";
 
 import { ProductsClient } from "../api.client";
 import type { Product } from "../types";
@@ -27,6 +31,7 @@ const EMPTY: ProductFormValues = {
   description: "",
   defaultPrice: "",
   unit: "piece",
+  iconKey: null,
   isActive: true,
 };
 
@@ -40,6 +45,8 @@ function valuesOf(product?: Product): ProductFormValues {
     unit: (PRODUCT_UNITS as readonly string[]).includes(product.unit)
       ? (product.unit as ProductFormValues["unit"])
       : "piece",
+    // A key the library no longer has is shown, and saved, as the default.
+    iconKey: isIllustrationKey(product.iconKey) ? product.iconKey : null,
     isActive: product.isActive,
   };
 }
@@ -47,25 +54,27 @@ function valuesOf(product?: Product): ProductFormValues {
 function ProductForm({
   isOpen,
   onClose,
-  onSuccess,
   initialData,
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
   initialData?: Product;
 }) {
   // Kept out of the React Compiler, as every react-hook-form sheet is (R1.9).
   "use no memo";
+  const text = UI_TEXT.products.form;
   const {
     register,
+    control,
+    setValue,
     handleSubmit,
     formState: { errors },
   } = useForm<ProductFormValues, unknown, ProductFormPayload>({
     resolver: zodResolver(productFormSchema),
     defaultValues: valuesOf(initialData),
   });
-
+  const [picking, setPicking] = useState(false);
+  const icon = illustrationOr(useWatch({ control, name: "iconKey" }), DEFAULT_PRODUCT_ILLUSTRATION);
 
   const respond = useResponse();
   const { submit, submitting } = useApiMutation<ProductFormPayload, Product>(
@@ -76,7 +85,6 @@ function ProductForm({
     {
       revalidate: [apiRoutes.products.list],
       onSuccess: () => {
-        onSuccess();
         onClose();
         respond.success({ title: UI_TEXT.outcomes.productSaved });
       },
@@ -87,59 +95,84 @@ function ProductForm({
   );
 
   return (
-    <FormSheet
-      open={isOpen}
-      title={initialData ? "Edit Product" : "New Product"}
-      onClose={onClose}
-      onSubmit={handleSubmit((values) => submit(values))}
-      submitLabel="Save Product"
-      submitting={submitting}
-    >
-      <TextField
-        label="Product Name"
-        required
-        placeholder="e.g. Chocolate Truffle Cake"
-        error={errors.name?.message}
-        {...register("name")}
-      />
+    <>
+      <FormSheet
+        open={isOpen}
+        title={initialData ? text.editTitle : text.newTitle}
+        onClose={onClose}
+        onSubmit={handleSubmit((values) => submit(values))}
+        submitLabel={text.save}
+        submitting={submitting}
+      >
+        <div>
+          <p className="mb-2 block text-sm font-medium text-text">{text.icon}</p>
+          <div className="flex items-center gap-3">
+            <ProductTile iconKey={icon} size="lg" />
+            <span className="min-w-0 flex-1 truncate text-sm text-text">{ILLUSTRATIONS[icon].label}</span>
+            <Button
+              label={text.change}
+              aria-label={text.changeName(ILLUSTRATIONS[icon].label)}
+              variant="secondary"
+              size="sm"
+              onClick={() => setPicking(true)}
+            />
+          </div>
+        </div>
 
-      <div className="grid grid-cols-2 gap-4">
         <TextField
-          label="Price (₹)"
+          label={text.name}
           required
-          inputMode="decimal"
-          placeholder="0.00"
-          error={errors.defaultPrice?.message}
-          {...register("defaultPrice")}
+          placeholder={text.namePlaceholder}
+          error={errors.name?.message}
+          {...register("name")}
         />
-        <SelectField
-          label="Unit"
-          required
-          options={optionsFrom(PRODUCT_UNITS, PRODUCT_UNIT_LABELS)}
-          error={errors.unit?.message}
-          {...register("unit")}
-        />
-      </div>
 
-      <TextAreaField
-        label="Description"
-        placeholder="Product details..."
-        error={errors.description?.message}
-        {...register("description")}
+        <div className="grid grid-cols-2 gap-4">
+          <TextField
+            label={text.price}
+            required
+            inputMode="decimal"
+            placeholder="0.00"
+            error={errors.defaultPrice?.message}
+            {...register("defaultPrice")}
+          />
+          <SelectField
+            label={text.unit}
+            required
+            options={optionsFrom(PRODUCT_UNITS, UI_TEXT.products.units)}
+            error={errors.unit?.message}
+            {...register("unit")}
+          />
+        </div>
+
+        <TextAreaField
+          label={text.description}
+          placeholder={text.descriptionPlaceholder}
+          error={errors.description?.message}
+          {...register("description")}
+        />
+
+        <div className="flex items-center gap-3 pt-2">
+          <input
+            type="checkbox"
+            id="product-is-active"
+            className="h-5 w-5 rounded border-border text-primary focus:ring-primary"
+            {...register("isActive")}
+          />
+          <label htmlFor="product-is-active" className="text-sm font-medium text-text">
+            {text.onSale}
+          </label>
+        </div>
+      </FormSheet>
+
+      <IllustrationPicker
+        open={picking}
+        onClose={() => setPicking(false)}
+        value={icon}
+        fallback={DEFAULT_PRODUCT_ILLUSTRATION}
+        onPick={(key) => setValue("iconKey", key, { shouldDirty: true })}
       />
-
-      <div className="flex items-center gap-3 pt-2">
-        <input
-          type="checkbox"
-          id="product-is-active"
-          className="h-5 w-5 rounded border-border text-primary focus:ring-primary"
-          {...register("isActive")}
-        />
-        <label htmlFor="product-is-active" className="text-sm font-medium text-text">
-          Available for orders
-        </label>
-      </div>
-    </FormSheet>
+    </>
   );
 }
 

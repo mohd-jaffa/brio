@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { VALIDATION_MESSAGES } from "@/constants/messages";
 
-import { createProductSchema, productFormSchema } from "@/lib/validation/index";
+import { createProductSchema, PRODUCT_UNITS, productFormSchema } from "@/lib/validation/index";
 
 
 describe("product", () => {
@@ -42,5 +42,26 @@ describe("a product's illustration", () => {
     const result = createProductSchema.safeParse({ ...base, iconKey: "javascript-alert" });
     expect(result.success).toBe(false);
     expect(result.error?.issues[0].message).toBe(VALIDATION_MESSAGES.chooseOne("picture"));
+  });
+});
+
+describe("product units and the form's picture", () => {
+  it("sells by the neutral units too — set, bunch and pack (Q8)", () => {
+    expect(PRODUCT_UNITS).toEqual(["piece", "kg", "gram", "box", "dozen", "set", "bunch", "pack"]);
+    const form = { name: "Roses", description: "", defaultPrice: "300", isActive: true };
+    expect(productFormSchema.parse({ ...form, unit: "bunch" }).unit).toBe("bunch");
+    expect(productFormSchema.safeParse({ ...form, unit: "litre" }).error?.issues[0].message).toBe(
+      VALIDATION_MESSAGES.chooseOne("unit"),
+    );
+  });
+
+  it("carries the picture chosen, or none for the default", () => {
+    const form = { name: "Roses", description: "", defaultPrice: "300", unit: "bunch", isActive: true } as const;
+    expect(productFormSchema.parse({ ...form, iconKey: "rose-bunch" }).iconKey).toBe("rose-bunch");
+    expect(productFormSchema.parse({ ...form, iconKey: null }).iconKey).toBeNull();
+  });
+
+  it("no longer knows a category", () => {
+    expect("categoryId" in createProductSchema.shape).toBe(false);
   });
 });

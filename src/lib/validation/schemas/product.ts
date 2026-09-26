@@ -1,9 +1,10 @@
 import { z } from "zod";
 
+import { VALIDATION_MESSAGES } from "@/constants/messages";
+
 import {
   optionalIllustration,
   optionalLines,
-  optionalUuid,
   paiseAmount,
   paiseText,
   requiredLine,
@@ -11,7 +12,6 @@ import {
 
 /** A product as the form holds it. Prices are whole paise — never a float (AGENTS.md §13). */
 export const createProductSchema = z.object({
-  categoryId: optionalUuid("Category"),
   name: requiredLine("Name", { max: 200 }),
   description: optionalLines("Description", 2000),
   defaultPrice: paiseAmount("Price", { allowZero: true }),
@@ -27,16 +27,13 @@ export type CreateProductPayload = z.output<typeof createProductSchema>;
 export type UpdateProductInput = z.input<typeof updateProductSchema>;
 export type UpdateProductPayload = z.output<typeof updateProductSchema>;
 
-/** The units a product can be sold in. */
-export const PRODUCT_UNITS = ["piece", "kg", "gram", "box", "dozen"] as const;
-
-export const PRODUCT_UNIT_LABELS: Record<(typeof PRODUCT_UNITS)[number], string> = {
-  piece: "Piece (pc)",
-  kg: "Kilogram (kg)",
-  gram: "Gram (g)",
-  box: "Box",
-  dozen: "Dozen",
-};
+/**
+ * The units a product can be sold in. Set, bunch and pack are neutral enough
+ * for hampers, flowers and gifts as well as bakes (Q8); their names are in
+ * UI_TEXT.products.units.
+ */
+export const PRODUCT_UNITS = ["piece", "kg", "gram", "box", "dozen", "set", "bunch", "pack"] as const;
+export type ProductUnit = (typeof PRODUCT_UNITS)[number];
 
 /**
  * A product as its form holds it: the price is typed in rupees and parsed to
@@ -46,7 +43,8 @@ export const productFormSchema = z.object({
   name: createProductSchema.shape.name,
   description: createProductSchema.shape.description,
   defaultPrice: paiseText("Price"),
-  unit: z.enum(PRODUCT_UNITS),
+  unit: z.enum(PRODUCT_UNITS, { error: VALIDATION_MESSAGES.chooseOne("unit") }),
+  iconKey: createProductSchema.shape.iconKey,
   isActive: z.boolean(),
 });
 

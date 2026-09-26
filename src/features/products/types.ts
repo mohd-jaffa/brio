@@ -1,7 +1,6 @@
 export interface ProductRow {
   id: string;
   bakery_id: string;
-  category_id: string | null;
   name: string;
   description: string | null;
   default_price: number;
@@ -14,7 +13,6 @@ export interface ProductRow {
 
 export interface Product {
   id: string;
-  categoryId?: string;
   name: string;
   description?: string;
   defaultPrice: number; // in paise

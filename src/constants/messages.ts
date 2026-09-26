@@ -207,6 +207,10 @@ export const UI_TEXT = {
     customerNotChosen: "Customer not chosen",
     productSaved: "Product saved",
     productNotSaved: "Product not saved",
+    productPaused: "Taken off sale",
+    productResumed: "Back on sale",
+    productOnSaleNote: (name: string) => `${name} can be ordered again.`,
+    productOffSaleNote: (name: string) => `${name} no longer shows on the order screen.`,
     expenseSaved: "Expense saved",
     expenseNotSaved: "Expense not saved",
     stockRecorded: "Stock recorded",
@@ -474,6 +478,55 @@ export const UI_TEXT = {
 
   /** Regular and New (plan §139.10), wherever a customer's segment is shown. */
   segments: { REGULAR: "Regular", NEW: "New" },
+
+  /** Products (plan §139.10): what the business sells, its illustration, unit and price. */
+  products: {
+    title: "Products",
+    subtitle: "What you sell, and what it costs.",
+    add: "Add product",
+    search: "Search products",
+    list: "Products",
+    emptyTitle: "No products yet",
+    emptyHint: "Add what you sell, and it shows on the order screen.",
+    active: "Active",
+    inactive: "Not on sale",
+    perUnit: (unit: string) => `per ${unit}`,
+    actions: (name: string) => `More for ${name}`,
+    edit: "Edit",
+    takeOff: "Take off sale",
+    putOn: "Put back on sale",
+    stock: "Record stock",
+    units: {
+      piece: "Piece",
+      kg: "Kilogram (kg)",
+      gram: "Gram (g)",
+      box: "Box",
+      dozen: "Dozen",
+      set: "Set",
+      bunch: "Bunch",
+      pack: "Pack",
+    },
+    form: {
+      newTitle: "New product",
+      editTitle: "Edit product",
+      save: "Save product",
+      name: "Product name",
+      namePlaceholder: "e.g. Chocolate truffle cake",
+      price: "Price (₹)",
+      unit: "Unit",
+      description: "Description",
+      descriptionPlaceholder: "What goes into it, sizes, flavours…",
+      icon: "Picture",
+      change: "Change",
+      changeName: (label: string) => `Picture: ${label}. Change`,
+      onSale: "On sale — shows on the order screen",
+    },
+  },
+
+  /** The illustration picker (plan §139.11.10): a picture for a product or an expense category. */
+  illustrationPicker: {
+    title: "Choose a picture",
+  },
 
   /** Guest sales (plan §139.11.3): what people bought without being saved as customers. */
   guestSales: {
