@@ -1,5 +1,5 @@
 import { HOME_LIST_LIMITS } from "@/constants/limits";
-import { OPEN_STATUSES, type InventoryTransactionType } from "@/constants/statuses";
+import { OPEN_STATUSES } from "@/constants/statuses";
 import { findPaidByOrder } from "@/features/orders/api";
 import { ORDER_LIST_COLUMNS, toOrderListItems, type OrderListRow } from "@/features/orders/list";
 import { addDaysKey, dayStart, daysFrom, todayKey } from "@/lib/dates/calendar";
@@ -47,7 +47,7 @@ export async function getDashboard(tenant: Tenant, query: DashboardQuery, now: D
     .lt("delivery_date", dayStart(addDaysKey(tomorrow, 1)));
   if (query.payment) dueQuery = dueQuery.eq("payment_status", query.payment);
 
-  const [periodResult, dueResult, dueTodayResult, owingResult, ledgerResult, productsResult, recentResult] =
+  const [periodResult, dueResult, dueTodayResult, owingResult, stockResult, productsResult, recentResult] =
     await Promise.all([
       client
         .from("orders")
@@ -72,7 +72,7 @@ export async function getDashboard(tenant: Tenant, query: DashboardQuery, now: D
         .eq("bakery_id", bakeryId)
         .neq("status", "CANCELLED")
         .neq("payment_status", "PAID"),
-      client.from("inventory_transactions").select("product_id, quantity, type").eq("bakery_id", bakeryId),
+      client.from("stock_levels").select("product_id, balance, stocked").eq("bakery_id", bakeryId),
       client.from("products").select("id, name, icon_key, unit").eq("bakery_id", bakeryId).eq("is_active", true),
       client
         .from("orders")
@@ -87,7 +87,7 @@ export async function getDashboard(tenant: Tenant, query: DashboardQuery, now: D
   const dueRows = rows<OrderListRow>(dueResult);
   if (dueTodayResult.error) throw fromPostgrestError(dueTodayResult.error);
   const owing = rows<{ id: string; total: number }>(owingResult);
-  const ledger = rows<{ product_id: string; quantity: number; type: InventoryTransactionType }>(ledgerResult);
+  const levels = rows<{ product_id: string; balance: number; stocked: boolean }>(stockResult);
   const products = rows<{ id: string; name: string; icon_key: string | null; unit: string }>(productsResult);
   const recent = rows<{ created_at: string; customers: { id: string; name: string } | null }>(recentResult);
 
@@ -114,7 +114,7 @@ export async function getDashboard(tenant: Tenant, query: DashboardQuery, now: D
 
   const counts = new Map<string, number>();
   for (const order of customerOrders) counts.set(order.customer_id, (counts.get(order.customer_id) ?? 0) + 1);
-  const low = lowStock(ledger, products);
+  const low = lowStock(levels, products);
 
   return {
     period: query.period,

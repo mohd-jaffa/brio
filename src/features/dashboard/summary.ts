@@ -2,7 +2,7 @@ import { HOME_LIST_LIMITS, HOME_MIN_TREND_DAYS } from "@/constants/limits";
 import { LOW_STOCK_THRESHOLD } from "@/constants/inventory";
 import { UI_TEXT } from "@/constants/messages";
 import type { HomePeriod } from "@/constants/ranges";
-import { ORDER_STATUSES, type InventoryTransactionType, type OrderStatus } from "@/constants/statuses";
+import { ORDER_STATUSES, type OrderStatus } from "@/constants/statuses";
 import { addDaysKey, dayKey, dueBucket, monthStartKey, weekStartKey } from "@/lib/dates/calendar";
 import type { OrderListItem } from "@/features/orders/types";
 
@@ -101,30 +101,22 @@ export function groupDue(orders: readonly OrderListItem[], now: Date = new Date(
     .filter((group) => group.orders.length > 0);
 }
 
-/** The ledger's types that mean a product's stock is kept: anything but an order's own lines (0015). */
-const STOCK_KEPT: readonly InventoryTransactionType[] = ["STOCK_IN", "ADJUSTMENT", "WASTAGE", "RETURN"];
-
 /**
  * Stocked products on sale at or under the low-stock mark, emptiest first
- * (plan §20). A product whose stock was never counted is not low — nobody
- * keeps its stock — the same rule the oversell guard uses (0015).
+ * (plan §20), from `stock_levels` (0019). A product whose stock was never
+ * counted is not low — nobody keeps its stock — the same rule the oversell
+ * guard uses (0015).
  */
 export function lowStock(
-  lines: readonly { product_id: string; quantity: number; type: InventoryTransactionType }[],
+  levels: readonly { product_id: string; balance: number; stocked: boolean }[],
   products: readonly { id: string; name: string; icon_key: string | null; unit: string }[],
 ): LowStockLine[] {
-  const stock = new Map<string, { balance: number; kept: boolean }>();
-  for (const line of lines) {
-    const entry = stock.get(line.product_id) ?? { balance: 0, kept: false };
-    entry.balance += line.quantity;
-    entry.kept ||= STOCK_KEPT.includes(line.type);
-    stock.set(line.product_id, entry);
-  }
+  const stock = new Map(levels.map((level) => [level.product_id, level]));
   return products
     .flatMap((product) => {
-      const entry = stock.get(product.id);
-      return entry?.kept
-        ? [{ productId: product.id, name: product.name, iconKey: product.icon_key, unit: product.unit, balance: entry.balance }]
+      const level = stock.get(product.id);
+      return level?.stocked
+        ? [{ productId: product.id, name: product.name, iconKey: product.icon_key, unit: product.unit, balance: level.balance }]
         : [];
     })
     .filter((line) => line.balance <= LOW_STOCK_THRESHOLD)

@@ -65,7 +65,8 @@ function InventoryAdjustmentForm({
         referenceType: "MANUAL",
       }),
     {
-      revalidate: [apiRoutes.inventory.balances()],
+      // The balances, and the product's history if it is open.
+      revalidate: [apiRoutes.inventory.balances(), apiRoutes.inventory.transactions],
       onSuccess: () => {
         onClose();
         respond.success({ title: UI_TEXT.outcomes.stockRecorded });

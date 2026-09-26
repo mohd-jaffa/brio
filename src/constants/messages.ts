@@ -523,6 +523,26 @@ export const UI_TEXT = {
     },
   },
 
+  /** Inventory (plan §139.10, §20): what is on the shelf per product, and each product's ledger. */
+  inventory: {
+    title: "Inventory",
+    subtitle: "What is on the shelf, and what came and went.",
+    search: "Search products on sale",
+    list: "Stock",
+    inStock: (quantity: string) => `${quantity} in stock`,
+    notCounted: "Made to order — stock not counted",
+    low: "Low stock",
+    emptyTitle: "No products on sale",
+    emptyHint: "Put products on sale in Products, and their stock shows here.",
+    history: "Stock history",
+    onShelf: "On the shelf",
+    record: "Record stock",
+    movements: (name: string) => `Movements of ${name}`,
+    noMovements: "Nothing recorded for it yet.",
+    viewOrder: "View order",
+    loading: "Loading stock",
+  },
+
   /** The illustration picker (plan §139.11.10): a picture for a product or an expense category. */
   illustrationPicker: {
     title: "Choose a picture",

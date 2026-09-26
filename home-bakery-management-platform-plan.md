@@ -7955,7 +7955,10 @@ pill sits on the price line so the name keeps the row's width; cards from 1024 p
 ### Inventory
 
 Stock per product with a low-stock pill; **Adjust** opens a sheet (and no longer
-crashes — §134 P0-1); each product's ledger.
+crashes — §134 P0-1); each product's ledger. *As built (2026-09-26):* a row opens
+the product's history — on the shelf now, then each movement signed and dated,
+an order's line opening that order — with **Record stock**; a product nobody
+counts reads "Made to order" and is never low.
 
 ### Expenses
 
@@ -8300,6 +8303,7 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `…_text_hygiene` | Trimmed-length checks on customer, product and category names; categories unique per business on `lower(name)`. | 1 |
 | `…_list_views` | *Added 2026-09-26 as `0017_list_views` (R5.2, R5.3).* Two read-only, `security_invoker` views, so RLS still decides: **`order_search`** — each order beside its customer's name and phone, so one PostgREST `or` finds an order by its number, its customer or their phone digits (BUG-23), which it cannot do across an embed; and **`customer_stats`** — each customer with their order count and last order, cancelled ones not counted, so Customers can page and keep to Regular on the server. Select for `authenticated` only. No table. | 5 |
 | `…_drop_categories` | *Added 2026-09-26 as `0018_drop_categories` (R5.6).* Drops `products.category_id` with its composite reference and index, then the unused `categories` table with its policy, trigger and checks. Expense categories (`expenses.category`) are untouched. | 5 |
+| `…_stock_levels` | *Added 2026-09-26 as `0019_stock_levels` (R5.7).* A read-only, `security_invoker` view adding each product's ledger up in the database — balance, `stocked` (the oversell guard's own test, 0015) and last movement — because a read of the lines stops at the API's 1,000-row limit and the sums were quietly short past it. Inventory and Home's low stock read it. No table. | 5 |
 | `…_notification_kind` | `notifications.kind` (`ORDER`, `PAYMENT`, `STOCK`, `CUSTOMER`, `SYSTEM`); index `(bakery_id, is_read, created_at desc)`. | 5 |
 | `…_audit_writes` | Revoke `INSERT` on `audit_logs` from `authenticated`; audit is written by the server with the acting user (§133.7 G1, BUG-20). | 2 |
 | `…_device_tokens` | The push-token registry (§133.5 E2). | 8 |
@@ -8641,7 +8645,7 @@ the row needs; without an answer it is built on that question's default
 | R5.4 | Customer detail: stats, orders, notes, addresses, create order, order again | IMP-03, IMP-04 | — | DONE (2026-09-26 · `GET /api/customers/{id}/summary`; Order again sits on the order) |
 | R5.5 | Guest sales | §139.11.3 | — | DONE (2026-09-26 · `/customers/guest`; also from Orders' Guest filter and Analytics' Guest split) |
 | R5.6 | Products; neutral units; the **Icon** field and picker — the owner picks the product's illustration from the library; ~~managing categories~~ dropped (2026-09-25), and a migration removes the unused `categories` table and `products.category_id` | §139.11.10; §133.4 D1 (dropped) | Q8 | DONE (2026-09-26 · `0018_drop_categories`; the picker is in the kit for R5.16) |
-| R5.7 | Inventory | §139.10 | — | TODO |
+| R5.7 | Inventory | §139.10 | — | DONE (2026-09-26 · `0019_stock_levels`; each product's history, a page at a time) |
 | R5.8 | Expenses as the reference shows: KPIs, the category donut, daily bars, recent expenses; the Categories and Transactions tabs; `GET /api/expenses/summary` | §139.10; §139.11.11 | — | TODO |
 | R5.9 | Analytics as the reference shows: KPIs with deltas, the sales-trend line, top products (custom items as one row in the Products tab); ~~sales by category~~ dropped with categories (2026-09-25), **sales by product** in its place (the user, 2026-09-26); the Sales, Orders, Customers and Products tabs; server aggregation; Top Customers; the guest split | §133.9 I1, I3; IMP-10; §139.11.11 | — | DONE (2026-09-26 · worked out on the server; the period is remembered on the device) |
 | R5.10 | Notifications inbox and bell; the `kind` column | §133.5 E1 | — | TODO |

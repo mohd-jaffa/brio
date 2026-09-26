@@ -1821,3 +1821,32 @@ this entry grows with them.
 - Why it is blocked: the order screen prices its draft's lines, and shows their names and pictures, from the whole product read, and Order again checks what is still on sale against it. Paging products means a second way to read products by id for the draft, a change to the order screen beyond R5.6.
 - Required decision/input: keep the menu read whole, since a business's products are a menu rather than a growing ledger; or page Products too, and change the order screen to read its draft's products by id.
 - Temporary workaround: Products is read whole and searched in the browser, as before.
+
+## 2026-09-26 — Inventory (R5.7)
+
+### Added
+- **`0019_stock_levels.sql`:** a read-only, `security_invoker` view that adds each product's ledger up in the database.
+  - **Columns:** the balance; `stocked`, which is the oversell guard's own test from 0015; and the last movement.
+  - **Readers:** Inventory's balances (`GET /api/inventory/balance`) and Home's low stock now read it.
+- **`GET /api/inventory?product={id}&cursor=`** (`listStockMovements`): one product's ledger, newest first, a page at a time.
+- **Inventory (`src/features/inventory/components/Inventory.tsx`).**
+  - **Rows:** each product on sale with what is in stock, or "Made to order — stock not counted", and **Low stock** at or under the mark.
+  - **Order:** products whose stock is kept come first, emptiest first.
+  - **History:** a row opens the product's history (`StockLedgerSheet`): on the shelf now, then each movement signed and dated, an order's line opening that order, with **Record stock**. Recording updates the history and the balance at once.
+
+### Fixed
+- **Stock figures past 1,000 ledger lines.** Inventory and Home read every ledger line and added them up in the server code, but a read stops at the API's row limit (`max_rows`, 1,000). Past that many movements the balances, and so low stock, were quietly wrong. They are now added up in the database.
+
+### Removed
+- `InventoryClient.balances`, which had no callers.
+
+### Validation
+- `tsc`, `eslint` and the test-path check are clean. 245 test files and 1,575 tests pass.
+- The Inventory components are at 100% coverage, and the inventory data functions have tests for the first time.
+- **Against local data:**
+  - The view's balances match the ledger.
+  - Recording 6 boxes moved Fudgy Brownie from 3 to 9, and out of Low stock, in a browser.
+- **Captures:** Inventory at 360, 390, 820, 1280 and 1440 px, in Golden and Peach, with no sideways scroll.
+
+### Blockers
+- None. Other reads that can pass the 1,000-row limit are fixed next, in their own change: a year of orders for Analytics, and Guest sales' totals.

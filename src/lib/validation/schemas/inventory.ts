@@ -12,6 +12,7 @@ import {
 import { MAX_STOCK_MOVEMENT } from "@/constants/limits";
 
 import { optionalLine, wholeNumberText } from "../primitives";
+import { cursorParam } from "./list";
 
 /** Which way a transaction of each type must move stock (AGENTS.md §14). */
 function signIsRight(type: InventoryTransactionType, quantity: number): boolean {
@@ -72,3 +73,11 @@ export function signedQuantity(type: StockAdjustmentFormPayload["type"], quantit
   if ((STOCK_DECREASING_TYPES as readonly string[]).includes(type)) return -Math.abs(quantity);
   return quantity;
 }
+
+/** `GET /api/inventory` (plan §139.10): one product's ledger, and where the page starts. */
+export const stockLedgerQuerySchema = z.object({
+  product: z.uuid({ error: VALIDATION_MESSAGES.invalid }),
+  cursor: cursorParam,
+});
+
+export type StockLedgerQuery = z.output<typeof stockLedgerQuerySchema>;

@@ -28,8 +28,7 @@ function answers(overrides: Partial<Record<string, unknown>> = {}) {
   return (query: RecordedQuery) => {
     const pick = (name: string, fallback: unknown) => ({ data: name in overrides ? overrides[name] : fallback });
     if (query.table === "payments") return pick("payments", [{ order_id: "owing", amount: 400 }]);
-    if (query.table === "inventory_transactions")
-      return pick("ledger", [{ product_id: "p-1", quantity: 2, type: "STOCK_IN" }]);
+    if (query.table === "stock_levels") return pick("ledger", [{ product_id: "p-1", balance: 2, stocked: true }]);
     if (query.table === "products") return pick("products", [{ id: "p-1", name: "Cake", icon_key: null, unit: "piece" }]);
     if (selects(query, ORDER_LIST_COLUMNS)) return pick("due", [listRow("a", "2026-09-25T05:00:00Z"), listRow("b", "2026-09-27T05:00:00Z")]);
     if (selects(query, "id")) return { count: 3 };

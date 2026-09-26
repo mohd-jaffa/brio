@@ -132,15 +132,15 @@ describe("lowStock", () => {
   ];
 
   it("lists stocked products at or under the mark, emptiest first, names breaking a tie", () => {
-    const lines = [
-      { product_id: "p-cake", quantity: 10, type: "STOCK_IN" as const },
-      { product_id: "p-cake", quantity: -7, type: "ORDER_RESERVATION" as const },
-      { product_id: "p-bun", quantity: 3, type: "ADJUSTMENT" as const },
-      { product_id: "p-bread", quantity: 3, type: "RETURN" as const },
-      { product_id: "p-flour", quantity: 50, type: "STOCK_IN" as const },
-      { product_id: "p-never", quantity: -2, type: "ORDER_RESERVATION" as const },
+    // As `stock_levels` (0019) adds them up; a product with no movements has no row.
+    const levels = [
+      { product_id: "p-cake", balance: 3, stocked: true },
+      { product_id: "p-bun", balance: 3, stocked: true },
+      { product_id: "p-bread", balance: 3, stocked: true },
+      { product_id: "p-flour", balance: 50, stocked: true },
+      { product_id: "p-never", balance: -2, stocked: false },
     ];
-    expect(lowStock(lines, products)).toEqual([
+    expect(lowStock(levels, products)).toEqual([
       { productId: "p-bread", name: "Bread", iconKey: null, unit: "piece", balance: 3 },
       { productId: "p-bun", name: "Bun", iconKey: null, unit: "piece", balance: 3 },
       { productId: "p-cake", name: "Cake", iconKey: "cake", unit: "piece", balance: 3 },

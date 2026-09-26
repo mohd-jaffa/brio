@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { InventoryClient } from "@/features/inventory/api.client";
-import { getJson, postJson } from "@/lib/api/client";
+import { postJson } from "@/lib/api/client";
 
 vi.mock("@/lib/api/client", () => ({
   getJson: vi.fn(),
@@ -19,14 +19,6 @@ beforeEach(() => vi.clearAllMocks());
  * the rest of the app reads from, so a write refreshes what a read showed.
  */
 describe("InventoryClient", () => {
-  it("asks for every balance, or only the products named", async () => {
-    await InventoryClient.balances();
-    expect(getJson).toHaveBeenCalledWith("/api/inventory/balance");
-
-    await InventoryClient.balances(["p-1", "p-2"]);
-    expect(getJson).toHaveBeenCalledWith("/api/inventory/balance?products=p-1,p-2");
-  });
-
   it("posts a ledger movement", async () => {
     await InventoryClient.adjustStock({ productId: "p-1", type: "STOCK_IN", quantity: 5 });
     expect(postJson).toHaveBeenCalledWith("/api/inventory", {

@@ -24,7 +24,14 @@ export interface InventoryTransaction {
   createdAt: string;
 }
 
+/**
+ * What is on the shelf for one product (`stock_levels`, 0019): the sum of its
+ * ledger, whether its stock is kept at all — a product nobody counts is made
+ * to order — and when it last moved.
+ */
 export interface InventoryBalance {
   productId: string;
   balance: number;
+  stocked: boolean;
+  lastMovedAt: string;
 }

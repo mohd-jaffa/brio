@@ -1,9 +1,10 @@
 import type { Tenant } from "@/lib/supabase/tenant";
 
+import { pageWindow, toPage, type Page } from "@/lib/api/pagination";
 import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
 import { definedOnly } from "@/lib/supabase/columns";
 import { tenantRecords } from "@/lib/supabase/records";
-import type { LogInventoryTransactionPayload } from "@/lib/validation";
+import type { LogInventoryTransactionPayload, StockLedgerQuery } from "@/lib/validation";
 
 import type { InventoryBalance, InventoryTransaction, InventoryTransactionRow } from "./types";
 
@@ -43,26 +44,53 @@ export async function logInventoryTransaction(
   return toTransaction(row);
 }
 
-/** What is in stock now, per product: the sum of its ledger lines. */
+/** A product's row of `stock_levels` (0019_stock_levels.sql). */
+interface StockLevelRow {
+  product_id: string;
+  balance: number;
+  stocked: boolean;
+  last_moved_at: string;
+}
+
+/**
+ * What is in stock now, per product, added up in the database (`stock_levels`),
+ * so it holds however long the ledger grows — a read of the lines themselves
+ * stops at the API's row limit. A product with no movements has no row.
+ */
 export async function getInventoryBalances(
   tenant: Tenant,
   productIds?: string[],
 ): Promise<InventoryBalance[]> {
   const { supabase: client, bakeryId } = tenant;
-  let query = client
-    .from("inventory_transactions")
-    .select("product_id, quantity")
-    .eq("bakery_id", bakeryId);
-
+  let query = client.from("stock_levels").select("product_id, balance, stocked, last_moved_at").eq("bakery_id", bakeryId);
   if (productIds && productIds.length > 0) query = query.in("product_id", productIds);
 
   const { data, error } = await query;
   if (error) throw fromPostgrestError(error);
+  return ((data ?? []) as StockLevelRow[]).map((row) => ({
+    productId: row.product_id,
+    balance: row.balance,
+    stocked: row.stocked,
+    lastMovedAt: row.last_moved_at,
+  }));
+}
 
-  const balances = new Map<string, number>();
-  for (const line of (data ?? []) as { product_id: string; quantity: number }[]) {
-    balances.set(line.product_id, (balances.get(line.product_id) ?? 0) + line.quantity);
-  }
-
-  return [...balances].map(([productId, balance]) => ({ productId, balance }));
+/**
+ * One product's ledger, newest first, a page at a time (plan §139.10): every
+ * movement that made its balance — what came in, what orders reserved, used
+ * or released, and what was adjusted or wasted.
+ */
+export async function listStockMovements(tenant: Tenant, query: StockLedgerQuery): Promise<Page<InventoryTransaction>> {
+  const { from, to } = pageWindow(query.cursor);
+  const { data, error } = await tenant.supabase
+    .from("inventory_transactions")
+    .select("*")
+    .eq("bakery_id", tenant.bakeryId)
+    .eq("product_id", query.product)
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: true })
+    .range(from, to);
+  if (error) throw fromPostgrestError(error);
+  const page = toPage((data ?? []) as InventoryTransactionRow[], query.cursor);
+  return { ...page, items: page.items.map(toTransaction) };
 }

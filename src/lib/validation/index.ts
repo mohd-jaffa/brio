@@ -104,10 +104,12 @@ export {
   logInventoryTransactionSchema,
   signedQuantity,
   stockAdjustmentFormSchema,
+  stockLedgerQuerySchema,
   type LogInventoryTransactionInput,
   type LogInventoryTransactionPayload,
   type StockAdjustmentFormPayload,
   type StockAdjustmentFormValues,
+  type StockLedgerQuery,
 } from "./schemas/inventory";
 
 export {
