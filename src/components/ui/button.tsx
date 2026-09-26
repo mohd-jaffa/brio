@@ -89,7 +89,7 @@ export function Button({
         onClick?.(event);
       }}
       className={cn(
-        "touch-target inline-flex items-center justify-center gap-2 font-bold transition-all",
+        "touch-target inline-flex items-center justify-center gap-2 font-bold transition",
         "active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none",
         "aria-disabled:cursor-progress aria-disabled:opacity-70",
         VARIANTS[variant],
@@ -139,7 +139,7 @@ export function LinkButton({
     href,
     "aria-label": accessibleName,
     className: cn(
-      "touch-target inline-flex items-center justify-center gap-2 font-bold transition-all active:scale-[0.98]",
+      "touch-target inline-flex items-center justify-center gap-2 font-bold transition active:scale-[0.98]",
       VARIANTS[variant],
       SIZES[size],
       SHAPES[shape],
@@ -176,7 +176,7 @@ export function IconButton({
       aria-label={label}
       title={label}
       className={cn(
-        "touch-target flex items-center justify-center rounded-full border transition-colors active:scale-95",
+        "touch-target flex items-center justify-center rounded-full border transition active:scale-95",
         tone === "danger"
           ? "border-danger/20 bg-danger-bg text-danger hover:bg-danger/10"
           : "border-border bg-background text-text-muted hover:bg-surface-hover hover:text-text",

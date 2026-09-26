@@ -2,7 +2,7 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 
 const ROUND =
-  "fixed right-[calc(var(--safe-right)+1rem)] bottom-[calc(var(--nav-height)+var(--safe-bottom)+1rem)] z-30 inline-flex size-14 items-center justify-center rounded-full bg-action text-action-text shadow-elevated transition-colors hover:bg-action-hover active:scale-95 md:hidden";
+  "fixed right-[calc(var(--safe-right)+1rem)] bottom-[calc(var(--nav-height)+var(--safe-bottom)+1rem)] z-30 inline-flex size-14 items-center justify-center rounded-full bg-action text-action-text shadow-elevated transition hover:bg-action-hover active:scale-95 md:hidden";
 const WIDE =
   "touch-target hidden items-center gap-2 rounded-xl bg-action px-4 py-2.5 text-sm font-semibold text-action-text shadow-elevated transition-colors hover:bg-action-hover md:inline-flex";
 

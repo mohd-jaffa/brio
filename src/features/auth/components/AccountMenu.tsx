@@ -39,7 +39,7 @@ export function AccountMenu({ onSignedOut }: { onSignedOut?: () => void } = {}) 
         onClick={onSignOut}
         disabled={signingOut}
         aria-busy={signingOut || undefined}
-        className="touch-target flex shrink-0 items-center gap-1.5 rounded-xl border border-border px-3 py-2 text-xs font-bold text-text-muted transition-all hover:bg-surface-hover hover:text-text active:scale-95 disabled:opacity-50"
+        className="touch-target flex shrink-0 items-center gap-1.5 rounded-xl border border-border px-3 py-2 text-xs font-bold text-text-muted transition hover:bg-surface-hover hover:text-text active:scale-95 disabled:opacity-50"
       >
         <LogOut size={16} strokeWidth={2.5} aria-hidden="true" />
         {UI_TEXT.auth.signOut}

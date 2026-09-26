@@ -35,7 +35,7 @@ export const PasswordField = forwardRef<
           onClick={() => setVisible((shown) => !shown)}
           aria-label={visible ? UI_TEXT.auth.hidePassword : UI_TEXT.auth.showPassword}
           aria-pressed={visible}
-          className="touch-target flex items-center justify-center rounded-lg px-2 text-text-muted transition-colors hover:text-text active:scale-95"
+          className="touch-target flex items-center justify-center rounded-lg px-2 text-text-muted transition hover:text-text active:scale-95"
         >
           {visible ? (
             <EyeOff size={18} strokeWidth={2} aria-hidden="true" />

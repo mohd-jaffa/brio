@@ -18,6 +18,7 @@ import {
 import { UI_TEXT, type ErrorMessageCode } from "@/constants/messages";
 import { ApiError } from "@/lib/api/client";
 import { errorMessage } from "@/lib/errors/errorMessage";
+import { EXIT_MS, canAnimate } from "@/lib/motion";
 
 import { cn } from "./cn";
 import { Medallion, type MedallionTone } from "./medallion";
@@ -72,6 +73,8 @@ interface Card extends OutcomeCard {
   tone?: "warning" | "danger";
   cancelLabel?: string;
   resolve?: (answer: boolean) => void;
+  /** It has been answered or closed, and is on its way off the screen. */
+  leaving?: boolean;
 }
 
 export interface Respond {
@@ -122,7 +125,8 @@ export function ResponseProvider({ children }: { children: ReactNode }) {
   const show = useCallback((card: Omit<Card, "id">) => {
     const next = { ...card, id: nextId.current++ };
     setCards((current) => {
-      const [shown, ...waiting] = current;
+      // A card on its way out has already gone, as far as a new one is concerned.
+      const [shown, ...waiting] = current.filter((card) => !card.leaving);
       if (!shown) return [next];
       if (same(shown, next) || waiting.some((card) => same(card, next))) {
         next.resolve?.(false);
@@ -136,9 +140,15 @@ export function ResponseProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  // The answer is given at once; the card then leaves the way it came
+  // (EXIT_MS), and the next one waiting follows it. A browser that cannot
+  // play the exit takes it off at once.
   const close = useCallback((card: Card, answer = false) => {
     card.resolve?.(answer);
-    setCards((current) => current.filter((waiting) => waiting.id !== card.id));
+    const remove = () => setCards((current) => current.filter((waiting) => waiting.id !== card.id));
+    if (!canAnimate(document.body)) return remove();
+    setCards((current) => current.map((shown) => (shown.id === card.id ? { ...shown, leaving: true } : shown)));
+    window.setTimeout(remove, EXIT_MS);
   }, []);
 
   const respond = useMemo<Respond>(
@@ -267,7 +277,7 @@ function ResponseCard({ card, onClose }: { card: Card; onClose: (answer?: boolea
 
   return (
     <Modal
-      open
+      open={!card.leaving}
       onDismiss={dismissible ? () => onClose(false) : undefined}
       labelledBy={titleId}
       role={card.kind === "success" || card.kind === "info" ? "dialog" : "alertdialog"}
@@ -362,7 +372,10 @@ function ResponseNotice({ card, onClose }: { card: Card; onClose: () => void }) 
       onPointerLeave={letGo}
       onFocus={hold}
       onBlur={letGo}
-      className="animate-response fixed inset-x-4 bottom-[calc(var(--bottom-bar-offset)+var(--safe-bottom)+0.75rem)] z-50 mx-auto max-w-[420px] overflow-hidden rounded-2xl border border-border bg-surface shadow-elevated md:bottom-6"
+      className={cn(
+        card.leaving ? "animate-leave pointer-events-none" : "animate-response",
+        "fixed inset-x-4 bottom-[calc(var(--bottom-bar-offset)+var(--safe-bottom)+0.75rem)] z-50 mx-auto max-w-[420px] overflow-hidden rounded-2xl border border-border bg-surface shadow-elevated md:bottom-6",
+      )}
     >
       <div className="flex items-start gap-3 p-4">
         <Medallion icon={icon} tone={tone} size="sm" />

@@ -18,6 +18,7 @@ import { StatusPill } from "@/components/ui/status-pill";
 import { UI_TEXT } from "@/constants/messages";
 import { InventoryAdjustmentSheet } from "@/features/inventory/components/InventoryAdjustmentSheet";
 import { useDisclosure } from "@/hooks/useDisclosure";
+import { useKept } from "@/hooks/useKept";
 import { formatPaise } from "@/lib/format/currency";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiMutation } from "@/lib/query/useApiMutation";
@@ -101,6 +102,8 @@ function ProductActions({
   onEdit: (product: Product) => void;
   onStock: (product: Product) => void;
 }) {
+  // It leaves showing the product it opened for.
+  const shown = useKept(product, product !== undefined);
   const respond = useResponse();
   const toggle = useApiMutation<Product, Product>(
     (subject) => ProductsClient.updateProduct(subject.id, { isActive: !subject.isActive }),
@@ -119,17 +122,17 @@ function ProductActions({
   );
 
   return (
-    <Sheet open={product !== undefined} onClose={onClose} title={product?.name ?? text.title}>
-      {product && (
+    <Sheet open={product !== undefined} onClose={onClose} title={shown?.name ?? text.title}>
+      {shown && (
         <ul className="space-y-2 pb-2">
           {[
-            { label: text.edit, icon: Pencil, run: () => onEdit(product) },
+            { label: text.edit, icon: Pencil, run: () => onEdit(shown) },
             {
-              label: product.isActive ? text.takeOff : text.putOn,
-              icon: product.isActive ? PauseCircle : PlayCircle,
-              run: () => void toggle.submit(product),
+              label: shown.isActive ? text.takeOff : text.putOn,
+              icon: shown.isActive ? PauseCircle : PlayCircle,
+              run: () => void toggle.submit(shown),
             },
-            { label: text.stock, icon: PackagePlus, run: () => onStock(product) },
+            { label: text.stock, icon: PackagePlus, run: () => onStock(shown) },
           ].map((action) => (
             <li key={action.label}>
               <Button

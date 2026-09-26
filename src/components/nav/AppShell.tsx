@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useState, type ReactNode } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 
 import { Avatar } from "@/components/ui/avatar";
 import { UI_TEXT } from "@/constants/messages";
 import { BOTTOM_NAV, isActivePath, NAV_GROUPS } from "@/constants/navigation";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { RequireAuth } from "@/features/auth/components/RequireAuth";
+import { useSettle } from "@/hooks/useSettle";
 
 import { cn } from "../ui/cn";
 import { AccountPopover } from "./AccountPopover";
@@ -45,6 +46,9 @@ function AppFrame({ children }: { children: ReactNode }) {
   const { profile } = useAuth();
   const [moreOpen, setMoreOpen] = useState(false);
   const closeMore = useCallback(() => setMoreOpen(false), []);
+  // Whatever replaces a loading placeholder, on any screen, fades in over it.
+  const main = useRef<HTMLElement>(null);
+  useSettle(main);
 
   return (
     <div className="flex min-h-dvh bg-background text-text">
@@ -109,7 +113,10 @@ function AppFrame({ children }: { children: ReactNode }) {
           <AccountPopover />
         </header>
 
-        <main className="animate-fade-in-up mx-auto w-full max-w-[1200px] flex-1 space-y-6 p-4 pb-[calc(var(--nav-height)+var(--safe-bottom)+1.5rem)] md:p-6 md:pb-[calc(var(--safe-bottom)+2rem)] md:pr-[calc(var(--safe-right)+1.5rem)] lg:space-y-8 lg:p-8 lg:pr-[calc(var(--safe-right)+2rem)]">
+        <main
+          ref={main}
+          className="animate-settle mx-auto w-full overflow-x-clip max-w-[1200px] flex-1 space-y-6 p-4 pb-[calc(var(--nav-height)+var(--safe-bottom)+1.5rem)] md:p-6 md:pb-[calc(var(--safe-bottom)+2rem)] md:pr-[calc(var(--safe-right)+1.5rem)] lg:space-y-8 lg:p-8 lg:pr-[calc(var(--safe-right)+2rem)]"
+        >
           {children}
         </main>
       </div>

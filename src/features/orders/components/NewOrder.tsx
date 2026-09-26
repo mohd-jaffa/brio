@@ -21,6 +21,7 @@ import type { Product } from "@/features/products/types";
 import { OrderBill } from "@/features/receipts/components/OrderBill";
 import { useArrived } from "@/hooks/useArrived";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useKept } from "@/hooks/useKept";
 import { useTravelMotion } from "@/hooks/useTravelMotion";
 import { ApiError } from "@/lib/api/client";
 import { formatPaise } from "@/lib/format/currency";
@@ -152,6 +153,8 @@ export function NewOrder() {
   const [estimating, setEstimating] = useState(false);
   const [estimate, setEstimate] = useState<OrderEstimate | undefined>();
   const [placedBill, setPlacedBill] = useState<{ id: string; orderNumber: string } | null>(null);
+  // The bill leaves showing the order it opened for.
+  const bill = useKept(placedBill, placedBill !== null);
 
   // What Try again repeats: the same request, so the same key (§133.3 C2).
   const lastAttempt = useRef<(() => void) | null>(null);
@@ -474,8 +477,8 @@ export function NewOrder() {
         }}
       />
       <OrderBill
-        orderId={placedBill?.id ?? ""}
-        orderNumber={placedBill?.orderNumber ?? ""}
+        orderId={bill?.id ?? ""}
+        orderNumber={bill?.orderNumber ?? ""}
         open={placedBill !== null}
         onClose={() => setPlacedBill(null)}
       />

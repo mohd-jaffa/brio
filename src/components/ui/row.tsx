@@ -1,20 +1,28 @@
+"use client";
+
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
+
+import { useListMotion } from "@/hooks/useListMotion";
 
 import { cn } from "./cn";
 
 /**
  * Rows share one card, split by hairlines (plan §139.5): a list of orders, of
- * customers, of expenses. Each child is a `Row`.
+ * customers, of expenses. Each child is a `Row`. Its rows keep their places as
+ * it changes — the gap one leaves closes, one that joins drops in
+ * (`useListMotion`).
  */
 export function RowList({ label, children, className }: { label?: string; children: ReactNode; className?: string }) {
+  const list = useListMotion<HTMLUListElement>();
   return (
     <ul
+      ref={list}
       role="list"
       aria-label={label}
       className={cn(
-        "divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface shadow-card",
+        "relative divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface shadow-card",
         className,
       )}
     >

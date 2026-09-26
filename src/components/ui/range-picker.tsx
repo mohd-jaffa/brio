@@ -9,7 +9,8 @@ import { DATE_RANGE_LABELS, DATE_RANGES, type DateRange, type DateRangePreset } 
 /**
  * The period a screen reads over — "Last 30 days" (plan §139.5). A native
  * select dressed as the references' pill, so it opens the phone's own picker
- * and needs no menu of its own. Choosing Custom shows two dates beneath it.
+ * and needs no menu of its own. Choosing Custom shows two dates beneath it,
+ * which drop into place.
  */
 export function RangePicker({ value, onChange }: { value: DateRange; onChange: (next: DateRange) => void }) {
   const id = useId();
@@ -45,7 +46,7 @@ export function RangePicker({ value, onChange }: { value: DateRange; onChange: (
         />
       </div>
       {value.preset === "CUSTOM" && (
-        <div className="flex gap-2">
+        <div className="animate-drop-in flex gap-2">
           {(["from", "to"] as const).map((end) => (
             <label key={end} className="flex flex-col text-xs font-medium text-text-muted">
               {UI_TEXT.range[end]}

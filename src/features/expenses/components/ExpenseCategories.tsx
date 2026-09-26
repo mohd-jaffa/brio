@@ -13,6 +13,7 @@ import { DEFAULT_EXPENSE_ILLUSTRATION, type IllustrationKey } from "@/constants/
 import { UI_TEXT } from "@/constants/messages";
 import { isDefaultExpenseCategory, type ExpenseCategory } from "@/constants/statuses";
 import { useDisclosure } from "@/hooks/useDisclosure";
+import { useKept } from "@/hooks/useKept";
 import { formatPaise } from "@/lib/format/currency";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiMutation } from "@/lib/query/useApiMutation";
@@ -40,6 +41,8 @@ function CategoryActions({
   onOpen: (category: ExpenseCategory) => void;
   onEdit: (category: ExpenseCategoryItem) => void;
 }) {
+  // It leaves showing the category it opened for.
+  const shown = useKept(category, category !== undefined);
   const respond = useResponse();
   const remove = useApiMutation<ExpenseCategory, { deleted: true }>((name) => ExpensesClient.deleteCategory(name), {
     revalidate: [apiRoutes.expenseCategories.list, apiRoutes.expenses.summary],
@@ -59,13 +62,13 @@ function CategoryActions({
   };
 
   return (
-    <Sheet open={category !== undefined} onClose={onClose} title={category?.category ?? text.categories}>
-      {category && (
+    <Sheet open={category !== undefined} onClose={onClose} title={shown?.category ?? text.categories}>
+      {shown && (
         <ul className="space-y-2 pb-2">
           {[
-            { label: text.categoryActions.see, icon: ListFilter, run: () => onOpen(category.category) },
-            { label: text.categoryActions.edit, icon: Pencil, run: () => onEdit(category) },
-            { label: text.categoryActions.delete, icon: Trash2, run: () => void confirmDelete(category.category) },
+            { label: text.categoryActions.see, icon: ListFilter, run: () => onOpen(shown.category) },
+            { label: text.categoryActions.edit, icon: Pencil, run: () => onEdit(shown) },
+            { label: text.categoryActions.delete, icon: Trash2, run: () => void confirmDelete(shown.category) },
           ].map((action) => (
             <li key={action.label}>
               <Button

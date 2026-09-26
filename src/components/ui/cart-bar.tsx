@@ -66,7 +66,7 @@ export function CartBar({
           aria-label={actionLabel}
           onClick={onAction}
           disabled={disabled}
-          className="touch-target inline-flex size-12 shrink-0 items-center justify-center rounded-xl bg-action text-action-text transition-colors hover:bg-action-hover active:scale-95 disabled:opacity-50"
+          className="touch-target inline-flex size-12 shrink-0 items-center justify-center rounded-xl bg-action text-action-text transition hover:bg-action-hover active:scale-95 disabled:opacity-50"
         >
           <ArrowRight size={22} strokeWidth={1.75} aria-hidden="true" />
         </button>

@@ -33,7 +33,12 @@ const SKELETON_BARS = [0.45, 0.7, 0.35, 0.8, 0.55, 0.9, 0.4, 0.65, 0.5, 0.75, 0.
 function ChartSkeleton({ shape, height }: { shape: ChartShape; height: number }) {
   if (shape === "donut") {
     return (
-      <div aria-hidden="true" className="flex animate-pulse items-center gap-5" style={{ minHeight: height }}>
+      <div
+        aria-hidden="true"
+        data-skeleton=""
+        className="flex animate-pulse items-center gap-5"
+        style={{ minHeight: height }}
+      >
         <div className="size-[148px] shrink-0 rounded-full border-[22px] border-sunken" />
         <div className="flex-1 space-y-3">
           {[0.8, 0.65, 0.7, 0.5].map((share) => (
@@ -44,7 +49,7 @@ function ChartSkeleton({ shape, height }: { shape: ChartShape; height: number })
     );
   }
   return (
-    <div aria-hidden="true" className="relative animate-pulse" style={{ height }}>
+    <div aria-hidden="true" data-skeleton="" className="relative animate-pulse" style={{ height }}>
       <div className="absolute inset-0 flex flex-col justify-between pb-6">
         {[0, 1, 2, 3].map((line) => (
           <div key={line} className="h-px bg-border" />

@@ -333,19 +333,12 @@
 
 /* ============================================================
    Motion
-   The two animations the app uses, declared once. They were
-   living in a <style> tag inside the More sheet, so a sheet
-   that opened without it simply appeared.
+   Only a change moves; nothing plays because a screen loaded,
+   and under reduced motion nothing travels — each movement
+   becomes a short fade, so the change is still there to see.
+   The motion played from script (lists, tabs) is in
+   src/lib/motion.ts, on the same curve.
    ============================================================ */
-@keyframes slide-up {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
 @keyframes fade-in-up {
   from {
     opacity: 0;
@@ -357,18 +350,8 @@
   }
 }
 
-.animate-slide-up {
-  animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.animate-fade-in-up {
-  animation: fade-in-up 0.25s ease-out;
-}
-
-/* Someone who asks for less motion gets none of it. */
+/* Someone who asks for less motion gets no pulse or spin either. */
 @media (prefers-reduced-motion: reduce) {
-  .animate-slide-up,
-  .animate-fade-in-up,
   .animate-pulse,
   .animate-spin {
     animation: none;
@@ -376,6 +359,95 @@
 
   [data-theme] {
     transition: none;
+  }
+}
+
+/* ------------------------------------------------------------
+   Sheets and cards (the kit's Modal)
+   A sheet slides up from the bottom edge of a phone and goes back
+   down it; from 768 px, where it is a centred card, it rises a
+   little and settles. The page dims in step. A closing one leaves
+   in 200 ms — faster than it came — where the browser can keep it
+   on top while it goes (the overlay property); elsewhere it closes
+   at once, as it always has. A response card (`modal-rise`) rises
+   and drops away the same short distance.
+   ------------------------------------------------------------ */
+@keyframes sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+}
+
+.modal-slide {
+  animation: sheet-in 320ms var(--ease-out-expo);
+}
+
+@media (min-width: 48rem) {
+  .modal-slide {
+    animation-name: dialog-in;
+    animation-duration: 260ms;
+  }
+}
+
+.modal-rise {
+  animation: response-rise 240ms var(--ease-out-expo);
+}
+
+:is(.modal-slide, .modal-rise)[open]::backdrop {
+  animation: fade-only 240ms ease-out;
+}
+
+@supports (overlay: auto) {
+  :is(.modal-slide, .modal-rise),
+  :is(.modal-slide, .modal-rise)::backdrop {
+    transition-property: transform, opacity, display, overlay;
+    transition-duration: 200ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+    transition-behavior: allow-discrete;
+  }
+
+  /* Closed: where each goes. The arrival stops, so a sheet closed while
+     still rising turns back from where it is. */
+  .modal-slide:not([open]) {
+    animation: none;
+    transform: translateY(100%);
+  }
+
+  .modal-rise:not([open]) {
+    animation: none;
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  :is(.modal-slide, .modal-rise):not([open])::backdrop {
+    opacity: 0;
+  }
+
+  @media (min-width: 48rem) {
+    .modal-slide:not([open]) {
+      opacity: 0;
+      transform: translateY(8px) scale(0.98);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-slide,
+  .modal-rise {
+    animation: fade-only 200ms ease-out;
+  }
+
+  .modal-slide:not([open]),
+  .modal-rise:not([open]) {
+    transform: none;
+    opacity: 0;
   }
 }
 
@@ -412,6 +484,31 @@
 @media (prefers-reduced-motion: reduce) {
   .animate-response {
     animation: response-fade 0.24s ease-out;
+  }
+}
+
+/* A notice that has closed drops away the way it rose, in 200 ms (EXIT_MS),
+   and stays gone until it is taken off the screen. */
+@keyframes response-leave {
+  to {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.animate-leave {
+  animation: response-leave 200ms cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-leave {
+    animation: fade-out 200ms ease-in forwards;
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
   }
 }
 
@@ -527,6 +624,12 @@
   @media (prefers-reduced-motion: reduce) {
     animation: fade-only 140ms ease-out;
   }
+}
+
+/* Content that replaces its placeholder fades in over it (useSettle). No
+   travel, so it reads the same under reduced motion. */
+@utility animate-settle {
+  animation: fade-only 200ms ease-out;
 }
 
 @utility animate-arrive {

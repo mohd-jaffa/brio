@@ -7708,6 +7708,20 @@ a shared component** (AGENTS §5).
 | Field kit | Update | **Sentence-case labels become the default** (the references use them everywhere); optional fields say "(Optional)" as the references do; the required asterisk stays (§138.5); a phone field gets a `+91` prefix adornment. |
 | `empty-state`, skeletons | Keep and restyle | — |
 
+**Motion** (2026-09-26). The kit moves only on a change, never because a screen loaded. Under reduced motion nothing travels; each move becomes a short fade.
+
+- **Sheets and cards** (`Modal`):
+  - **Arrive:** a sheet slides up from a phone's bottom edge. From 768 px it is a centred card that rises a little and settles. The page dims in step.
+  - **Leave:** the way it came, in 200 ms, faster than it arrived. This is a progressive enhancement: where the browser can keep a closing dialog on top (the `overlay` property), it plays; elsewhere the sheet closes at once.
+  - **While leaving:** focus returns and the page is live straight away, and a sheet keeps showing its record (`useKept`).
+  - **Response cards and notices:** the same exit, and the next card follows.
+- **Tabs:** one underline slides to the chosen tab. The tab's view comes in 8 px from that side.
+- **Lists** (`RowList`, `ListScreen`'s cards; `useListMotion`):
+  - **Changes:** when an item leaves, the rest close the gap, and the list's edge follows up. A reordered item slides to its new place, and a new one drops in.
+  - **When it doesn't play:** on a list's first showing, on a list that is hidden, or when more than six items change at once, which only fades in the new ones.
+- **Loading:** content fades in over the skeleton it replaces, on every screen, because the app's main region watches for it (`useSettle`). Cached content simply shows.
+- **Controls:** the Custom dates drop in, and a pressed control shrinks slightly and eases back. Only colour, shadow, opacity and transform animate, never layout.
+
 ---
 
 ## 139.6 The response card — one way to report an outcome, app-wide

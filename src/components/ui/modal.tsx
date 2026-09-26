@@ -23,6 +23,8 @@ const FOCUSABLE = "input, select, textarea, button, a[href], [tabindex]:not([tab
  *   drawn, so a form inside it keeps its state.
  * - **It fits the screen**: `dvh` heights, above the on-screen keyboard
  *   (`--keyboard-inset`), and the page does not scroll behind it.
+ * - **It leaves as it came.** Closing is immediate — focus is back and the
+ *   page live at once — while the browser plays it out on top.
  */
 export function Modal({
   open,
@@ -43,7 +45,12 @@ export function Modal({
   initialFocus?: RefObject<HTMLElement | null>;
   /** Where to look for the first field or control; the whole modal by default. */
   focusScope?: RefObject<HTMLElement | null>;
-  /** `rise` is the response card's shorter entrance, which only fades under reduced motion. */
+  /**
+   * `slide` comes up from a phone's bottom edge and goes back down it (a
+   * centred card rises and settles); `rise` is the response card's shorter
+   * move. Each leaves as it came, and only fades under reduced motion
+   * (`globals.css`, Sheets and cards).
+   */
   motion?: "slide" | "rise";
   className?: string;
   children: ReactNode;
@@ -105,7 +112,7 @@ export function Modal({
         }
       }}
       className={cn(
-        motion === "slide" ? "animate-slide-up" : "animate-response",
+        motion === "slide" ? "modal-slide" : "modal-rise",
         "m-0 w-full max-w-none border border-border bg-surface p-0 text-text shadow-elevated",
         "fixed inset-x-0 top-auto bottom-[var(--keyboard-inset)] max-h-[calc(90dvh-var(--keyboard-inset))] rounded-t-3xl",
         "md:inset-0 md:m-auto md:h-fit md:max-h-[85dvh] md:max-w-md md:rounded-2xl",

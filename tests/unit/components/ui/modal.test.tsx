@@ -27,7 +27,7 @@ describe("Modal", () => {
       </Modal>,
     );
     const dialog = screen.getByRole("alertdialog", { name: "Done" });
-    expect(dialog).toHaveClass("animate-response");
-    expect(dialog).not.toHaveClass("animate-slide-up");
+    expect(dialog).toHaveClass("modal-rise");
+    expect(dialog).not.toHaveClass("modal-slide");
   });
 });

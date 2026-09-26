@@ -1928,3 +1928,43 @@ this entry grows with them.
 
 ### Blockers
 - None. R5.13's question about paging Products stays open (above).
+
+## 2026-09-26 — Motion across the shared kit
+
+### Added
+- **Sheets and cards leave the way they came** (`globals.css`, `modal.tsx`):
+  - **On a phone:** a sheet slides back down in 200 ms and the dimmed page lifts.
+  - **From 768 px:** the centred card rises a little and settles, rather than travelling its whole height.
+  - **Response cards and notices:** they drop away, and the next waiting card follows.
+  - **Where it plays:** only where the browser can keep a closing dialog on top (`overlay`). Elsewhere a sheet closes at once, as before. Either way, focus returns straight away.
+- **Tabs:** one underline slides to the chosen tab, and the new view comes in 8 px from that side (`tabs.tsx`). The new-order steps' travel was moved into `travelIn` (`src/lib/motion.ts`), which both use.
+- **Lists keep their places** (`useListMotion`, on `RowList` and `ListScreen`'s cards):
+  - **When an item leaves:** the rest close the gap, and the list's edge follows up.
+  - **When the order changes:** each item slides to its new place, and a moved item that is interrupted carries on from where it is.
+  - **When one joins:** it drops in, a few staggered.
+  - **What never plays:** a first showing, a hidden list, or a search or new page, which only fades in the new items.
+- **Content fades in over its skeleton on every screen.** The main region watches for a skeleton leaving (`useSettle`, `data-skeleton`), so no screen's loading branch changed. Cached content simply shows.
+- **`useKept`:** a sheet that lets go of its record as it closes keeps showing it while it leaves. It is used in:
+  - a product's actions;
+  - a category's actions;
+  - a product's stock history;
+  - the placed order's bill.
+- **Custom dates** drop into place under the range picker.
+
+### Changed
+- A pressed button, round `+`, icon button, stepper or cart button now eases its shrink back instead of jumping. The kit animates only colour, shadow, opacity and transform: `transition-all` is gone.
+- The app's main region fades in on arrival instead of rising, and clips sideways overflow. The rise made it the containing block for the round `+` for 250 ms, so the button jumped into place.
+
+### Validation
+- `tsc`, `eslint` and the test-path check are clean. 263 test files and 1,689 tests pass. The new hooks, `src/lib/motion.ts` and the changed kit are at 100% line coverage. The only uncovered branches are three defensive branches that were already uncovered: two in `Modal`, one in the notice's Escape handler.
+- **In Chromium at 390 and 1280 px:**
+  - The underline slides from tab to tab.
+  - A sheet closed with Escape is still drawn 70 ms later, part way down, with focus already back on its opener, and is gone by 470 ms.
+  - A confirm card and a notice leave, then are removed.
+  - A new category's row drops in, and a deleted one's list draws its edge up.
+  - The Custom dates drop in, and nothing scrolls sideways.
+  - Under reduced motion, every one of these is a fade.
+
+### Blockers
+- None.
+

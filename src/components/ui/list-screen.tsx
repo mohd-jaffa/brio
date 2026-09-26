@@ -3,6 +3,7 @@
 import type { ReactElement, ReactNode } from "react";
 
 import { UI_TEXT, type ErrorMessageCode } from "@/constants/messages";
+import { useListMotion } from "@/hooks/useListMotion";
 import { errorMessage } from "@/lib/errors/errorMessage";
 
 import { Button } from "./button";
@@ -62,19 +63,35 @@ type ListBody<T> =
   | { keyOf: (item: T) => string; renderItem: (item: T) => ReactElement; renderList?: never }
   | { renderList: (items: readonly T[]) => ReactNode; keyOf?: never; renderItem?: never };
 
-function Items<T>({ items, body, columns }: { items: readonly T[]; body: ListBody<T>; columns: 1 | 2 }) {
-  if (body.renderList) return body.renderList(items);
-  const { keyOf, renderItem } = body;
+function Cards<T>({
+  items,
+  keyOf,
+  renderItem,
+  columns,
+}: {
+  items: readonly T[];
+  keyOf: (item: T) => string;
+  renderItem: (item: T) => ReactElement;
+  columns: 1 | 2;
+}) {
+  // The cards keep their places as the list changes, as a RowList's rows do.
+  const list = useListMotion<HTMLUListElement>();
   return (
     <ul
+      ref={list}
       role="list"
-      className={cn("grid gap-3 md:gap-4", columns === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1")}
+      className={cn("relative grid gap-3 md:gap-4", columns === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1")}
     >
       {items.map((item) => (
         <li key={keyOf(item)}>{renderItem(item)}</li>
       ))}
     </ul>
   );
+}
+
+function Items<T>({ items, body, columns }: { items: readonly T[]; body: ListBody<T>; columns: 1 | 2 }) {
+  if (body.renderList) return body.renderList(items);
+  return <Cards items={items} keyOf={body.keyOf} renderItem={body.renderItem} columns={columns} />;
 }
 
 export function ListScreen<T>({

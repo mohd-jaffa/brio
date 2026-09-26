@@ -271,3 +271,62 @@ describe("one card at a time", () => {
     expect(screen.getByRole("alertdialog", { name: "Delete?" })).toBeInTheDocument();
   });
 });
+
+describe("a card on its way out", () => {
+  const leaveWithMotion = () => {
+    vi.useFakeTimers();
+    HTMLElement.prototype.animate = vi.fn();
+  };
+  const settle = () => {
+    Reflect.deleteProperty(HTMLElement.prototype, "animate");
+    vi.useRealTimers();
+  };
+
+  it("drops away before it is taken off, a notice and a card alike", async () => {
+    leaveWithMotion();
+    const respond = mount();
+    act(() => respond.success({ title: "Stock recorded" }));
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(notice()).toHaveClass("animate-leave", "pointer-events-none");
+    act(() => vi.advanceTimersByTime(200));
+    expect(notice()).toBeNull();
+
+    let answer: Promise<boolean> | undefined;
+    act(() => {
+      answer = respond.confirm({ title: "Cancel this order?", confirmLabel: "Cancel order" });
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Cancel order" }));
+    // The answer is given at once; the card closes, and is gone once it has left.
+    await expect(answer).resolves.toBe(true);
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    expect(document.querySelector("dialog")).not.toBeNull();
+    act(() => vi.advanceTimersByTime(200));
+    expect(document.querySelector("dialog")).toBeNull();
+    settle();
+  });
+
+  it("lets the card waiting behind it follow once it has gone", () => {
+    leaveWithMotion();
+    const respond = mount();
+    act(() => respond.error({ title: "Order not placed", message: "Try again." }));
+    act(() => respond.success({ title: "Stock recorded" }));
+    fireEvent.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: "Close" }));
+    expect(notice()).toBeNull();
+    act(() => vi.advanceTimersByTime(200));
+    expect(notice()).toHaveTextContent("Stock recorded");
+    settle();
+  });
+
+  it("gives way at once to a new card, even one just like it", () => {
+    leaveWithMotion();
+    const respond = mount();
+    act(() => respond.success({ title: "Stock recorded" }));
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    act(() => respond.success({ title: "Stock recorded" }));
+    expect(notice()).not.toHaveClass("animate-leave");
+    expect(notice()).toHaveTextContent("Stock recorded");
+    act(() => vi.advanceTimersByTime(200));
+    expect(notice()).toHaveTextContent("Stock recorded");
+    settle();
+  });
+});

@@ -9,7 +9,7 @@ import { cn } from "./cn";
 import { ProductTile } from "./product-tile";
 import { RollingNumber } from "./rolling-number";
 
-const STEP = "hit-area inline-flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors active:scale-95";
+const STEP = "hit-area inline-flex size-8 shrink-0 items-center justify-center rounded-lg transition active:scale-95";
 
 /**
  * A product in a grid — the order screen's items (plan §139.5): its

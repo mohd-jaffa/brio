@@ -9,6 +9,7 @@ import { Sheet } from "@/components/ui/sheet";
 import { UI_TEXT } from "@/constants/messages";
 import { INVENTORY_TRANSACTION_LABELS } from "@/constants/statuses";
 import type { Product } from "@/features/products/types";
+import { useKept } from "@/hooks/useKept";
 import { formatDateTime } from "@/lib/format/date";
 import { formatQuantity } from "@/lib/format/quantity";
 import { apiRoutes, withQuery } from "@/lib/query/keys";
@@ -40,22 +41,25 @@ export function StockLedgerSheet({
   onRecord: (product: Product) => void;
 }) {
   const text = UI_TEXT.inventory;
+  // It leaves showing the product it opened for, its ledger with it.
+  const shown = useKept(product, product !== undefined);
+  const stock = useKept(level, product !== undefined);
   const movements = useApiPages<InventoryTransaction>(
-    product ? withQuery(apiRoutes.inventory.transactions, { product: product.id }) : null,
+    shown ? withQuery(apiRoutes.inventory.transactions, { product: shown.id }) : null,
   );
 
   return (
-    <Sheet open={product !== undefined} onClose={onClose} title={product?.name ?? text.history}>
-      {product && (
+    <Sheet open={product !== undefined} onClose={onClose} title={shown?.name ?? text.history}>
+      {shown && (
         <div className="space-y-4 pb-2">
           <div className="flex items-end justify-between gap-3 rounded-2xl bg-sunken p-4">
             <div>
               <p className="text-xs text-text-muted">{text.onShelf}</p>
               <p className="font-heading text-2xl font-medium tabular-nums text-text">
-                {level?.stocked ? formatQuantity(level.balance, product.unit) : text.notCounted}
+                {stock?.stocked ? formatQuantity(stock.balance, shown.unit) : text.notCounted}
               </p>
             </div>
-            <Button label={text.record} icon={PackagePlus} variant="secondary" size="sm" onClick={() => onRecord(product)} />
+            <Button label={text.record} icon={PackagePlus} variant="secondary" size="sm" onClick={() => onRecord(shown)} />
           </div>
           <ListScreen
             query={movements}
@@ -63,7 +67,7 @@ export function StockLedgerSheet({
             data={movements.data}
             empty={<p className="py-6 text-center text-sm text-text-muted">{text.noMovements}</p>}
             renderList={(items) => (
-              <ul role="list" aria-label={text.movements(product.name)} className="divide-y divide-border">
+              <ul role="list" aria-label={text.movements(shown.name)} className="divide-y divide-border">
                 {items.map((movement) => (
                   <li key={movement.id} className="flex items-center justify-between gap-3 py-3">
                     <div className="min-w-0">
@@ -81,7 +85,7 @@ export function StockLedgerSheet({
                       </p>
                     </div>
                     <p className="shrink-0 text-sm font-semibold tabular-nums text-text">
-                      {signed(movement.quantity, product.unit)}
+                      {signed(movement.quantity, shown.unit)}
                     </p>
                   </li>
                 ))}
