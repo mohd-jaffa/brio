@@ -50,8 +50,9 @@ describe("InventoryAdjustmentSheet", () => {
 
   it("names the product and its unit, so the count is unambiguous", () => {
     open();
-    expect(screen.getByRole("heading", { name: /Flour/ })).toBeInTheDocument();
-    expect(screen.getByLabelText(/Quantity \(in kgs\)/)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Record stock — Flour" })).toBeInTheDocument();
+    // A measure keeps its form: never "kgs".
+    expect(screen.getByLabelText(/^Quantity \(kg\)/)).toBeInTheDocument();
   });
 
   it("adds stock in as a positive movement", async () => {
@@ -65,7 +66,7 @@ describe("InventoryAdjustmentSheet", () => {
     const props = open();
 
     await userEvent.type(screen.getByLabelText(/Quantity/), "10");
-    await userEvent.click(screen.getByRole("button", { name: "Confirm Adjustment" }));
+    await userEvent.click(screen.getByRole("button", { name: "Record stock" }));
 
     await waitFor(() =>
       expect(InventoryClient.adjustStock).toHaveBeenCalledWith({
@@ -89,9 +90,9 @@ describe("InventoryAdjustmentSheet", () => {
     });
     open();
 
-    await userEvent.selectOptions(screen.getByLabelText(/Adjustment Type/), "WASTAGE");
+    await userEvent.selectOptions(screen.getByLabelText(/What happened/), "WASTAGE");
     await userEvent.type(screen.getByLabelText(/Quantity/), "3");
-    await userEvent.click(screen.getByRole("button", { name: "Confirm Adjustment" }));
+    await userEvent.click(screen.getByRole("button", { name: "Record stock" }));
 
     await waitFor(() =>
       expect(InventoryClient.adjustStock).toHaveBeenCalledWith(
@@ -104,7 +105,7 @@ describe("InventoryAdjustmentSheet", () => {
     open();
 
     await userEvent.type(screen.getByLabelText(/Quantity/), "0");
-    await userEvent.click(screen.getByRole("button", { name: "Confirm Adjustment" }));
+    await userEvent.click(screen.getByRole("button", { name: "Record stock" }));
 
     await waitFor(() => expect(screen.getAllByRole("alert").length).toBeGreaterThan(0));
     expect(InventoryClient.adjustStock).not.toHaveBeenCalled();
@@ -114,7 +115,7 @@ describe("InventoryAdjustmentSheet", () => {
     vi.mocked(InventoryClient.adjustStock).mockRejectedValue(new ApiError(422, "SAVE_FAILED", "Could not save."));
     const props = open();
     await userEvent.type(screen.getByLabelText(/Quantity/), "4");
-    await userEvent.click(screen.getByRole("button", { name: "Confirm Adjustment" }));
+    await userEvent.click(screen.getByRole("button", { name: "Record stock" }));
     expect((await screen.findAllByText("Stock not recorded"))[0]).toBeInTheDocument();
     expect(props.onClose).not.toHaveBeenCalled();
   });

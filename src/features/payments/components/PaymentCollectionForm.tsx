@@ -22,6 +22,8 @@ import {
 import { PaymentsClient } from "../api.client";
 import type { Payment } from "../types";
 
+const text = UI_TEXT.paymentForm;
+
 /**
  * Collects a payment against an order. What is still owed is worked out in
  * paise and offered as the amount, so the common case is one tap.
@@ -82,32 +84,32 @@ export function PaymentCollectionForm({
   return (
     <FormSheet
       open
-      title="Collect Payment"
+      title={text.title}
       onClose={onCancel}
       onSubmit={handleSubmit((values) => submit(values))}
-      submitLabel="Record Payment"
+      submitLabel={text.save}
       submitting={submitting}
     >
-      <p className="text-sm text-text-muted">Still owed: {formatPaise(remaining)}</p>
+      <p className="text-sm text-text-muted">{text.owed(formatPaise(remaining))}</p>
 
       <TextField
-        label="Amount (₹)"
+        label={text.amount}
         required
         inputMode="decimal"
-        placeholder="e.g. 500"
+        placeholder={text.amountPlaceholder}
         error={errors.amount?.message}
         {...register("amount")}
       />
       <SelectField
-        label="Payment Method"
+        label={text.method}
         required
         options={optionsFrom(PAYMENT_METHODS, PAYMENT_METHOD_LABELS)}
         error={errors.payment_method?.message}
         {...register("payment_method")}
       />
       <TextField
-        label="Reference"
-        placeholder="Transaction ID, cheque number…"
+        label={text.reference}
+        placeholder={text.referencePlaceholder}
         error={errors.reference?.message}
         {...register("reference")}
       />

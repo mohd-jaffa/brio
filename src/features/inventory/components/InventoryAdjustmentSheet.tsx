@@ -9,6 +9,7 @@ import { optionsFrom, SelectField, TextField } from "@/components/ui/text-field"
 import { UI_TEXT } from "@/constants/messages";
 import { useOpeningKey } from "@/hooks/useOpeningKey";
 import { INVENTORY_TRANSACTION_LABELS, MANUAL_INVENTORY_TYPES } from "@/constants/statuses";
+import { pluralUnit } from "@/lib/format/quantity";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiMutation } from "@/lib/query/useApiMutation";
 import {
@@ -21,6 +22,8 @@ import {
 import { InventoryClient } from "../api.client";
 import type { InventoryTransaction } from "../types";
 import type { Product } from "@/features/products/types";
+
+const text = UI_TEXT.inventory.form;
 
 const EMPTY: StockAdjustmentFormValues = { type: "STOCK_IN", quantity: "" };
 
@@ -82,25 +85,25 @@ function InventoryAdjustmentForm({
   return (
     <FormSheet
       open={isOpen && product !== undefined}
-      title={product ? `Adjust Stock — ${product.name}` : "Adjust Stock"}
+      title={product ? text.titleFor(product.name) : text.title}
       onClose={onClose}
       onSubmit={handleSubmit((values) => submit(values))}
-      submitLabel="Confirm Adjustment"
+      submitLabel={text.save}
       submitting={submitting}
     >
       <SelectField
-        label="Adjustment Type"
+        label={text.type}
         required
         options={optionsFrom(MANUAL_INVENTORY_TYPES, INVENTORY_TRANSACTION_LABELS)}
         error={errors.type?.message}
         {...register("type")}
       />
       <TextField
-        label={product ? `Quantity (in ${product.unit}s)` : "Quantity"}
+        label={product ? text.quantityIn(pluralUnit(product.unit)) : text.quantity}
         required
         inputMode="numeric"
-        placeholder="0"
-        hint="Enter a plain count. Wastage is taken off stock; an adjustment may be negative."
+        placeholder={UI_TEXT.fields.countPlaceholder}
+        hint={text.quantityHint}
         error={errors.quantity?.message}
         {...register("quantity")}
       />

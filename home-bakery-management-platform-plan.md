@@ -7493,6 +7493,8 @@ masters are the exception: they are app artwork, and they are committed under
   - **Only the business that made a category sees it.** Another business sees only the defaults and its own.
   - **Editing and deleting.** The owner can rename one of its own or change its picture; a rename takes its expenses with it. The owner can delete one **only while no expense is filed under it** — the database refuses otherwise.
 - **An expense can be edited and deleted.** Tapping it opens the form, which also offers **Delete expense**, confirmed first.
+- **Products stays one read** (the user; R5.13). A business's products are a menu, not a growing ledger. The order screen prices its draft from that read, and Order again checks what is still on sale against it. So Products, and Inventory's list of the same products, are read whole and searched on the device. Every list that grows with the business is paged, with its search on the server.
+- **About credits the app's maker, not the illustrations** (the user; R5.11). Settings → About reads **Crafted by · jaFFa**, in place of Q16's "Illustrations: Vecteezy.com". Q16's other half stands: the licence of every illustration is confirmed before the Play release (Phase 8), since Vecteezy's free licence asks for a credit and only its Pro licence does not.
 
 ---
 
@@ -7550,7 +7552,7 @@ tracker rows that waited on them no longer wait.
 | **Q13** | **Success cards:** close on their own after about 3 seconds when they offer no next step, or always need a tap? | Close on their own | Close on their own (errors and confirmations never do) | R1.10 |
 | **Q14** | **Theme choice:** remembered per device (today, `localStorage`), or saved on the account so it follows the user into the Android app (one column on `profiles`)? | Per device | Per account | R1.4 |
 | **Q15** | **A theme switch on the signed-out screens** (§138.6.3 left this open). | None — the stored choice is honoured | None | R2.9 |
-| **Q16** | **The illustrations' licence.** Three of the files are Vecteezy downloads. `IMG_2470` is the same picture as one of them, so the `IMG_` files are probably from Vecteezy too. Vecteezy's free licence asks for a credit; its Pro licence does not. | A credit, "Illustrations: Vecteezy.com", in Settings → About | Confirm the licence for every file before the Play release (Phase 8) | R1.15, R5.11 |
+| **Q16** | **The illustrations' licence.** Three of the files are Vecteezy downloads. `IMG_2470` is the same picture as one of them, so the `IMG_` files are probably from Vecteezy too. Vecteezy's free licence asks for a credit; its Pro licence does not. | ~~A credit, "Illustrations: Vecteezy.com", in Settings → About~~ — **no credit in the app** (the user, 2026-09-26: About shows "Crafted by · jaFFa") | Confirm the licence for every file before the Play release (Phase 8) | R1.15, R5.11 |
 
 ---
 
@@ -8038,7 +8040,8 @@ with a medallion icon and a chevron. There is no Help entry (Q7).
 A profile card (initials, name, "Owner · {business}", the catch phrase as a
 quote). Then **Business details**; **Account** (name, email, the sign-in number,
 change password); **Appearance** (Golden or Peach); **Notifications** (the
-Android permission); **About** (the version, the privacy policy, and the illustration credit if Q16 needs one); **Sign out**.
+Android permission); **About** (the version, the privacy policy, and **Crafted by · jaFFa** — the user, 2026-09-26, in place of the illustration credit); **Sign out**.
+The Notifications row joins with R5.10, and the privacy policy with its page (R8.10); until then About shows the version and the maker.
 The reference's separate Profile screen is folded in here.
 
 ### Business details
@@ -8684,10 +8687,10 @@ the row needs; without an answer it is built on that question's default
 | R5.8 | Expenses as the reference shows: KPIs, the category donut, daily bars, recent expenses; the Categories and Transactions tabs; `GET /api/expenses/summary`; expenses edited and deleted (the user, 2026-09-26) | §139.10; §139.11.11 | — | DONE (2026-09-26 · summed on the server; Transactions a page at a time) |
 | R5.9 | Analytics as the reference shows: KPIs with deltas, the sales-trend line, top products (custom items as one row in the Products tab); ~~sales by category~~ dropped with categories (2026-09-25), **sales by product** in its place (the user, 2026-09-26); the Sales, Orders, Customers and Products tabs; server aggregation; Top Customers; the guest split | §133.9 I1, I3; IMP-10; §139.11.11 | — | DONE (2026-09-26 · worked out on the server; the period is remembered on the device) |
 | R5.10 | Notifications inbox and bell; the `kind` column | §133.5 E1 | — | TODO |
-| R5.11 | More and Settings (Appearance, Account, About with the illustration credit); no Help | §139.10 | Q7 (answered), Q16 | TODO |
+| R5.11 | More and Settings (Appearance, Account, About with ~~the illustration credit~~ the maker, the user 2026-09-26); no Help | §139.10 | Q7 (answered), Q16 | DONE (2026-09-26 · the profile folded into Settings; the theme moved there from More and the account menu; the Notifications row waits for R5.10, the privacy policy for R8.10) |
 | R5.12 | ~~Global search~~ | IMP-01 | — | DROPPED (2026-09-25, the user's decision: search stays in each list, R5.13) |
-| R5.13 | Pagination on every list; each list's search runs on the server with it — debounced, tenant-scoped, with loading, empty and error states | §133.9 I4; IMP-11; IMP-01 (2026-09-25) | — | IN PROGRESS (2026-09-26 · the shared part, Orders, Customers, a customer's orders, Guest sales and the customer picker are paged. **Open question:** Products is read whole, because the order screen prices its draft's lines from that read — paging it too needs the user's word; see the changelog) |
-| R5.14 | Hard-coded strings swept, screen by screen | BUG-30 | — | TODO |
+| R5.13 | Pagination on every list; each list's search runs on the server with it — debounced, tenant-scoped, with loading, empty and error states | §133.9 I4; IMP-11; IMP-01 (2026-09-25) | — | DONE (2026-09-26 · Orders, Customers, a customer's orders, Guest sales, the customer picker, Expenses' transactions and each product's stock history are paged. Products — and Inventory's list of the same products — stays one read: a menu, not a ledger (the user, 2026-09-26)) |
+| R5.14 | Hard-coded strings swept, screen by screen | BUG-30 | — | DONE (2026-09-26 · the customer, stock and payment forms, the four sign-in screens' placeholders and hints, the nav's names, the page's title and description; field labels in sentence case) |
 | R5.15 | Dashboard filters | §133.9 I2 | — | DONE (2026-09-26 · with R5.1: preparation and payment, combined, on the orders due) |
 | R5.16 | Expense category illustrations: the Categories tab, the picker, the expense form's category field, `/api/expense-categories`; **the business's own categories** — made, renamed, pictured and deleted while unused, the eight defaults fixed (the user, 2026-09-26) | §139.11.10 | — | DONE (2026-09-26 · `0020_expense_categories`) |
 

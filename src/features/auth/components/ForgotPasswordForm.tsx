@@ -58,7 +58,7 @@ export function ForgotPasswordForm() {
         type="email"
         inputMode="email"
         autoComplete="email"
-        placeholder="priya@example.com"
+        placeholder={UI_TEXT.auth.emailPlaceholder}
         required
         leading={<Mail size={18} strokeWidth={1.8} />}
         error={errors.email?.message}

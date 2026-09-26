@@ -29,21 +29,27 @@ describe("MoreSheet", () => {
     expect(container.querySelector("dialog")).not.toHaveAttribute("open");
   });
 
-  it("lists what the bottom bar does not hold, each with its medallion", () => {
+  it("lists what the bottom bar does not hold, each with its medallion and a line on what it holds", () => {
     sheet({ isOpen: true });
     const places = within(screen.getByRole("navigation", { name: "Secondary navigation" })).getAllByRole("link");
-    expect(places.map((link) => link.textContent)).toEqual(MORE_NAV.map((item) => item.label));
+    expect(places.map((link) => link.querySelector(".font-semibold")?.textContent)).toEqual(
+      MORE_NAV.map((item) => item.label),
+    );
     for (const item of MORE_NAV) {
-      const link = screen.getByRole("link", { name: item.label });
+      const link = screen.getByRole("link", { name: new RegExp(`^${item.label}`) });
       expect(link).toHaveAttribute("href", item.href);
       expect(link.querySelector(".bg-primary-soft")).toBeInTheDocument();
     }
+    expect(screen.getByRole("link", { name: /^Analytics/ })).toHaveTextContent("How the business is doing");
   });
 
-  it("carries the theme and the account", () => {
-    sheet({ isOpen: true });
-    expect(screen.getByRole("radiogroup", { name: "Theme" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Sign out/ })).toBeInTheDocument();
+  it("ends with Sign out, which closes it; the theme is on Settings", async () => {
+    const onClose = vi.fn();
+    sheet({ isOpen: true, onClose });
+    expect(screen.queryByRole("radiogroup", { name: "Theme" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /^Sign out/ }));
+    expect(onClose).toHaveBeenCalled();
+    expect(auth.current.signOut).toHaveBeenCalledOnce();
   });
 
   it("closes on Escape and from its close button", async () => {
@@ -60,7 +66,7 @@ describe("MoreSheet", () => {
     const stopNavigation = (event: MouseEvent) => event.preventDefault();
     document.addEventListener("click", stopNavigation);
     sheet({ isOpen: true, onClose });
-    await userEvent.click(screen.getByRole("link", { name: "Settings" }));
+    await userEvent.click(screen.getByRole("link", { name: /^Settings/ }));
     document.removeEventListener("click", stopNavigation);
     expect(onClose).toHaveBeenCalled();
   });

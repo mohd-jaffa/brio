@@ -49,18 +49,18 @@ describe("CustomerFormSheet", () => {
 
   it("opens blank for a new customer", () => {
     open();
-    expect(screen.getByRole("heading", { name: "New Customer" })).toBeInTheDocument();
-    expect(screen.getByLabelText(/Full Name/)).toHaveValue("");
+    expect(screen.getByRole("heading", { name: "New customer" })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Full name/)).toHaveValue("");
   });
 
   it("opens filled in for one being edited", () => {
     open({ initialData: meena });
 
-    expect(screen.getByRole("heading", { name: "Edit Customer" })).toBeInTheDocument();
-    expect(screen.getByLabelText(/Full Name/)).toHaveValue("Meena Gupta");
+    expect(screen.getByRole("heading", { name: "Edit customer" })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Full name/)).toHaveValue("Meena Gupta");
     expect(screen.getByLabelText("Email (Optional)")).toHaveValue("meena@example.com");
     // The field carries +91 itself, and is read out with it.
-    const phone = screen.getByLabelText(/Phone Number/);
+    const phone = screen.getByLabelText(/Phone number/);
     expect(phone).toHaveValue("98765 43210");
     expect(phone).toHaveAttribute("inputmode", "numeric");
     expect(phone).toHaveAccessibleDescription("+91");
@@ -87,22 +87,22 @@ describe("CustomerFormSheet", () => {
       <CustomerFormSheet onClose={vi.fn()} onSuccess={vi.fn()} {...props} />
     );
     const { rerender } = render(sheet({ isOpen: true }), { wrapper });
-    await userEvent.type(screen.getByLabelText(/Full Name/), "Kavya");
+    await userEvent.type(screen.getByLabelText(/Full name/), "Kavya");
     rerender(sheet({ isOpen: true }));
-    expect(screen.getByLabelText(/Full Name/)).toHaveValue("Kavya");
+    expect(screen.getByLabelText(/Full name/)).toHaveValue("Kavya");
 
     rerender(sheet({ isOpen: false }));
     rerender(sheet({ isOpen: true }));
-    expect(screen.getByLabelText(/Full Name/)).toHaveValue("");
+    expect(screen.getByLabelText(/Full name/)).toHaveValue("");
 
     rerender(sheet({ isOpen: false, initialData: meena }));
     rerender(sheet({ isOpen: true, initialData: meena }));
-    expect(screen.getByLabelText(/Full Name/)).toHaveValue("Meena Gupta");
+    expect(screen.getByLabelText(/Full name/)).toHaveValue("Meena Gupta");
   });
 
   it("refuses to save without the fields the database requires", async () => {
     open();
-    await userEvent.click(screen.getByRole("button", { name: "Save Customer" }));
+    await userEvent.click(screen.getByRole("button", { name: "Save customer" }));
 
     await waitFor(() => expect(screen.getAllByRole("alert").length).toBeGreaterThan(0));
     expect(CustomersClient.createCustomer).not.toHaveBeenCalled();
@@ -112,9 +112,9 @@ describe("CustomerFormSheet", () => {
     vi.mocked(CustomersClient.createCustomer).mockResolvedValue(meena);
     const props = open();
 
-    await userEvent.type(screen.getByLabelText(/Full Name/), "Meena Gupta");
-    await userEvent.type(screen.getByLabelText(/Phone Number/), "98765 43210");
-    await userEvent.click(screen.getByRole("button", { name: "Save Customer" }));
+    await userEvent.type(screen.getByLabelText(/Full name/), "Meena Gupta");
+    await userEvent.type(screen.getByLabelText(/Phone number/), "98765 43210");
+    await userEvent.click(screen.getByRole("button", { name: "Save customer" }));
 
     await waitFor(() =>
       expect(CustomersClient.createCustomer).toHaveBeenCalledWith(
@@ -129,9 +129,9 @@ describe("CustomerFormSheet", () => {
     vi.mocked(CustomersClient.createCustomer).mockResolvedValue(meena);
     open();
 
-    await userEvent.type(screen.getByLabelText(/Full Name/), "Anu");
-    await userEvent.type(screen.getByLabelText(/Phone Number/), "9876543210");
-    await userEvent.click(screen.getByRole("button", { name: "Save Customer" }));
+    await userEvent.type(screen.getByLabelText(/Full name/), "Anu");
+    await userEvent.type(screen.getByLabelText(/Phone number/), "9876543210");
+    await userEvent.click(screen.getByRole("button", { name: "Save customer" }));
 
     await waitFor(() =>
       expect(CustomersClient.createCustomer).toHaveBeenCalledWith(
@@ -144,9 +144,9 @@ describe("CustomerFormSheet", () => {
     vi.mocked(CustomersClient.updateCustomer).mockResolvedValue(meena);
     open({ initialData: meena });
 
-    await userEvent.clear(screen.getByLabelText(/Full Name/));
-    await userEvent.type(screen.getByLabelText(/Full Name/), "Meena G");
-    await userEvent.click(screen.getByRole("button", { name: "Save Customer" }));
+    await userEvent.clear(screen.getByLabelText(/Full name/));
+    await userEvent.type(screen.getByLabelText(/Full name/), "Meena G");
+    await userEvent.click(screen.getByRole("button", { name: "Save customer" }));
 
     await waitFor(() =>
       expect(CustomersClient.updateCustomer).toHaveBeenCalledWith(
@@ -162,9 +162,9 @@ describe("CustomerFormSheet", () => {
     );
     const props = open();
 
-    await userEvent.type(screen.getByLabelText(/Full Name/), "Meena");
-    await userEvent.type(screen.getByLabelText(/Phone Number/), "9876543210");
-    await userEvent.click(screen.getByRole("button", { name: "Save Customer" }));
+    await userEvent.type(screen.getByLabelText(/Full name/), "Meena");
+    await userEvent.type(screen.getByLabelText(/Phone number/), "9876543210");
+    await userEvent.click(screen.getByRole("button", { name: "Save customer" }));
 
     await waitFor(() =>
       expect(screen.getByText("That phone number is already taken.")).toBeInTheDocument(),
@@ -177,9 +177,9 @@ describe("CustomerFormSheet", () => {
       new ApiError(409, "CUSTOMER_PHONE_ALREADY_EXISTS", "That phone number is already taken.", "req_1", details);
 
     async function saveMeena() {
-      await userEvent.type(screen.getByLabelText(/Full Name/), "Meena");
-      await userEvent.type(screen.getByLabelText(/Phone Number/), "9876543210");
-      await userEvent.click(screen.getByRole("button", { name: "Save Customer" }));
+      await userEvent.type(screen.getByLabelText(/Full name/), "Meena");
+      await userEvent.type(screen.getByLabelText(/Phone number/), "9876543210");
+      await userEvent.click(screen.getByRole("button", { name: "Save customer" }));
       return screen.findByRole("alertdialog", { name: "Customer not saved" });
     }
 
@@ -203,7 +203,7 @@ describe("CustomerFormSheet", () => {
       await userEvent.click(within(card).getByRole("button", { name: "Edit" }));
       expect(props.onUseExisting).not.toHaveBeenCalled();
       expect(props.onClose).not.toHaveBeenCalled();
-      expect(screen.getByLabelText(/Phone Number/)).toHaveValue("9876543210");
+      expect(screen.getByLabelText(/Phone number/)).toHaveValue("9876543210");
     });
 
     it("shows the refusal as it is where there is no one to use, or no one named", async () => {

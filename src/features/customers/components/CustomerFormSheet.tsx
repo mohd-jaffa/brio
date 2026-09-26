@@ -17,6 +17,8 @@ import { createCustomerSchema, type CreateCustomerInput, type CreateCustomerPayl
 import { CustomersClient } from "../api.client";
 import type { Customer } from "../types";
 
+const text = UI_TEXT.customerForm;
+
 const EMPTY: CreateCustomerInput = {
   name: "",
   phone: "",
@@ -118,41 +120,41 @@ function CustomerForm({
   return (
     <FormSheet
       open={isOpen}
-      title={initialData ? "Edit Customer" : "New Customer"}
+      title={initialData ? text.editTitle : text.newTitle}
       onClose={onClose}
       onSubmit={handleSubmit((values) => submit(values))}
-      submitLabel="Save Customer"
+      submitLabel={text.save}
       submitting={submitting}
     >
       <TextField
-        label="Full Name"
+        label={text.name}
         required
-        placeholder="e.g. Meena Gupta"
+        placeholder={text.namePlaceholder}
         error={errors.name?.message}
         {...register("name")}
       />
       <TextField
-        label="Phone Number"
+        label={text.phone}
         required
         type="tel"
         inputMode="numeric"
-        placeholder="98765 43210"
+        placeholder={UI_TEXT.fields.phonePlaceholder}
         prefix={UI_TEXT.fields.phonePrefix}
         error={errors.phone?.message}
         {...register("phone")}
       />
       <TextField
-        label="Email"
+        label={text.email}
         optional
         type="email"
-        placeholder="meena@example.com"
+        placeholder={text.emailPlaceholder}
         error={errors.email?.message}
         {...register("email")}
       />
       <TextAreaField
-        label="Address"
+        label={text.address}
         optional
-        placeholder="Delivery address..."
+        placeholder={text.addressPlaceholder}
         error={errors.address?.message}
         {...register("address")}
       />
@@ -160,14 +162,14 @@ function CustomerForm({
         label={UI_TEXT.fields.mapLink}
         optional
         type="url"
-        placeholder="https://maps.app.goo.gl/..."
+        placeholder={UI_TEXT.fields.mapLinkPlaceholder}
         error={errors.googleMapsLink?.message}
         {...register("googleMapsLink")}
       />
       <TextAreaField
-        label="Notes"
+        label={text.notes}
         optional
-        placeholder="Preferences, allergies..."
+        placeholder={text.notesPlaceholder}
         error={errors.notes?.message}
         {...register("notes")}
       />

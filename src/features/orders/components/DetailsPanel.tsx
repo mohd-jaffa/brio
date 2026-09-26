@@ -229,7 +229,7 @@ export function DetailsPanel({
               optional
               type="url"
               inputMode="url"
-              placeholder="https://maps.app.goo.gl/…"
+              placeholder={UI_TEXT.fields.mapLinkPlaceholder}
               value={delivery.googleMapsLink}
               error={errors["delivery.googleMapsLink"]}
               onChange={(event) => update((current) => setDelivery(current, { googleMapsLink: event.target.value }))}

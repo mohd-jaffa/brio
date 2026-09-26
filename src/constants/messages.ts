@@ -109,6 +109,10 @@ export const VALIDATION_MESSAGES = {
 export const UI_TEXT = {
   appName: "Ovenly",
   appTagline: "Home Business",
+  /** What a browser tab, a search result and a shared link say of the app. */
+  appTitle: "Ovenly — Home Business Management",
+  appDescription:
+    "Mobile-first management for home businesses — bakers, hamper makers, florists and gift makers. Orders, customers, stock, expenses and bills in one place.",
 
   /**
    * The words the four authentication screens share. They are the first thing
@@ -119,6 +123,7 @@ export const UI_TEXT = {
     signIn: "Sign in",
     signingIn: "Signing in…",
     signOut: "Sign out",
+    signingOut: "Signing out…",
     createAccount: "Create account",
     creatingAccount: "Creating account…",
     forgotPassword: "Forgot password?",
@@ -133,8 +138,16 @@ export const UI_TEXT = {
     setNewPassword: "Set new password",
     confirmPasswordLabel: "Confirm password",
     emailLabel: "Email address",
+    emailPlaceholder: "your@email.com",
+    emailHint: "Where your confirmation and password resets are sent.",
     nameLabel: "Your name",
+    namePlaceholder: "Enter your full name",
+    phoneSignInHint: "You will sign in with this number.",
+    passwordPlaceholder: "Enter your password",
+    newPasswordPlaceholder: "Create a password",
+    confirmPasswordPlaceholder: "Repeat your password",
     businessNameLabel: "Business name",
+    businessNamePlaceholder: "e.g. Sweet Delights",
     // Registration's two steps (plan §139.10).
     stepYou: "You",
     stepBusiness: "Your business",
@@ -264,6 +277,27 @@ export const UI_TEXT = {
     secondary: "Secondary navigation",
     theme: "Theme",
     account: (name: string) => `Account: ${name}`,
+    /** Every place in the app, by its nav id. */
+    places: {
+      home: "Home",
+      orders: "Orders",
+      products: "Products",
+      customers: "Customers",
+      analytics: "Analytics",
+      expenses: "Expenses",
+      inventory: "Inventory",
+      business: "Business details",
+      settings: "Settings",
+      more: "More",
+    },
+    /** What each place behind More holds, under its name (plan §139.10). */
+    hints: {
+      analytics: "How the business is doing",
+      expenses: "What the business spends",
+      inventory: "What is on the shelf",
+      business: "Name, address and logo",
+      settings: "Account, look and about",
+    } as Record<string, string>,
   },
 
   /** The field kit (plan §139.5). */
@@ -271,7 +305,11 @@ export const UI_TEXT = {
     optional: "(Optional)",
     /** Any maps service will do, so it is not named (plan §139.11.4). */
     mapLink: "Map link",
+    mapLinkPlaceholder: "https://maps.app.goo.gl/…",
     phonePrefix: "+91",
+    phonePlaceholder: "98765 43210",
+    amountPlaceholder: "0.00",
+    countPlaceholder: "0",
   },
 
   /** The quantity stepper (plan §139.5). */
@@ -460,6 +498,22 @@ export const UI_TEXT = {
     guestSalesList: "Guest sales for the period",
   },
 
+  /** A customer added or edited (plan §139.10). */
+  customerForm: {
+    newTitle: "New customer",
+    editTitle: "Edit customer",
+    save: "Save customer",
+    name: "Full name",
+    namePlaceholder: "e.g. Meena Gupta",
+    phone: "Phone number",
+    email: "Email",
+    emailPlaceholder: "meena@example.com",
+    address: "Address",
+    addressPlaceholder: "Where orders go",
+    notes: "Notes",
+    notesPlaceholder: "Preferences, allergies",
+  },
+
   /** One customer (plan §139.10): who they are, what they have ordered, and a new order for them. */
   customerDetail: {
     title: "Customer",
@@ -553,6 +607,16 @@ export const UI_TEXT = {
     noMovements: "Nothing recorded for it yet.",
     viewOrder: "View order",
     loading: "Loading stock",
+    /** Stock recorded by hand (plan §14): what happened, and how much. */
+    form: {
+      title: "Record stock",
+      titleFor: (name: string) => `Record stock — ${name}`,
+      save: "Record stock",
+      type: "What happened",
+      quantity: "Quantity",
+      quantityIn: (units: string) => `Quantity (${units})`,
+      quantityHint: "A plain count. Wastage comes off stock; an adjustment may be negative.",
+    },
   },
 
   /** Expenses (plan §139.10, §139.11.11): what the business spends, by category and over time. */
@@ -719,6 +783,18 @@ export const UI_TEXT = {
     billNotBuilt: "Bill not ready",
   },
 
+  /** A payment taken on an order (plan §139.10). */
+  paymentForm: {
+    title: "Collect payment",
+    save: "Record payment",
+    owed: (amount: string) => `Still owed: ${amount}`,
+    amount: "Amount (₹)",
+    amountPlaceholder: "e.g. 500",
+    method: "Payment method",
+    reference: "Reference",
+    referencePlaceholder: "Transaction ID, cheque number…",
+  },
+
   /** The bill (plan §139.11.6): what it says, and the dialog it opens in. */
   bill: {
     title: (orderNumber: string) => `Bill ${orderNumber}`,
@@ -883,8 +959,26 @@ export const UI_TEXT = {
     noLogo: "No logo yet",
     preview: "Bill header preview",
     previewNote: "This is how the top of your bills will read.",
-    settingsRow: "Business details",
-    settingsRowHint: "Name, address and logo",
+  },
+
+  /** Settings (plan §139.10, R5.11): the profile, the account, the look and about. */
+  settings: {
+    title: "Settings",
+    subtitle: "Your account, how the app looks, and about it.",
+    owner: (role: string, business: string) => `${role} · ${business}`,
+    business: "Business",
+    account: "Account",
+    name: "Name",
+    phone: "Sign-in number",
+    email: "Email address",
+    changePassword: "Change password",
+    changePasswordHint: "Choose the one you sign in with",
+    appearance: "Appearance",
+    appearanceHint: "Kept on this device.",
+    about: "About",
+    version: "Version",
+    craftedBy: "Crafted by",
+    maker: "jaFFa",
   },
 
   /** The screens shown when a route is missing or a screen fails (plan §134 P0-2, P1-1). */

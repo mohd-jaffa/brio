@@ -186,14 +186,14 @@ describe("OrderDetail: payment and the bill", () => {
     open();
     await loaded();
     await userEvent.click(screen.getByRole("button", { name: "Collect payment" }));
-    const sheet = screen.getByRole("dialog", { name: "Collect Payment" });
+    const sheet = screen.getByRole("dialog", { name: "Collect payment" });
     expect(within(sheet).getByLabelText(/Amount/)).toHaveValue("750.00");
     await userEvent.click(within(sheet).getByRole("button", { name: "Close" }));
-    expect(screen.queryByRole("dialog", { name: "Collect Payment" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Collect payment" })).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "Collect payment" }));
-    await userEvent.click(screen.getByRole("button", { name: "Record Payment" }));
-    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Collect Payment" })).not.toBeInTheDocument());
+    await userEvent.click(screen.getByRole("button", { name: "Record payment" }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Collect payment" })).not.toBeInTheDocument());
     expect(PaymentsClient.createPayment).toHaveBeenCalledOnce();
   });
 

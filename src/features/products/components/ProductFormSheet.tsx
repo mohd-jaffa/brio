@@ -113,7 +113,7 @@ function ProductForm({
           label={text.price}
           required
           inputMode="decimal"
-          placeholder="0.00"
+          placeholder={UI_TEXT.fields.amountPlaceholder}
           error={errors.defaultPrice?.message}
           {...register("defaultPrice")}
         />

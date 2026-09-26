@@ -148,7 +148,7 @@ export function RegisterForm() {
               <TextField
                 label={UI_TEXT.auth.nameLabel}
                 autoComplete="name"
-                placeholder="Enter your full name"
+                placeholder={UI_TEXT.auth.namePlaceholder}
                 required
                 leading={<User size={18} strokeWidth={1.8} />}
                 error={errors.name?.message}
@@ -159,8 +159,8 @@ export function RegisterForm() {
                 type="tel"
                 inputMode="numeric"
                 autoComplete="tel"
-                placeholder="98765 43210"
-                hint="You will sign in with this number."
+                placeholder={UI_TEXT.fields.phonePlaceholder}
+                hint={UI_TEXT.auth.phoneSignInHint}
                 required
                 leading={<Smartphone size={18} strokeWidth={1.8} />}
                 prefix={UI_TEXT.fields.phonePrefix}
@@ -172,8 +172,8 @@ export function RegisterForm() {
                 type="email"
                 inputMode="email"
                 autoComplete="email"
-                placeholder="your@email.com"
-                hint="Where your confirmation and password resets are sent."
+                placeholder={UI_TEXT.auth.emailPlaceholder}
+                hint={UI_TEXT.auth.emailHint}
                 required
                 leading={<Mail size={18} strokeWidth={1.8} />}
                 error={errors.email?.message}
@@ -182,7 +182,7 @@ export function RegisterForm() {
               <PasswordField
                 label={UI_TEXT.auth.passwordLabel}
                 autoComplete="new-password"
-                placeholder="Create a password"
+                placeholder={UI_TEXT.auth.newPasswordPlaceholder}
                 hint={UI_TEXT.auth.passwordHint}
                 required
                 leading={<Lock size={18} strokeWidth={1.8} />}
@@ -192,7 +192,7 @@ export function RegisterForm() {
               <PasswordField
                 label={UI_TEXT.auth.confirmPasswordLabel}
                 autoComplete="new-password"
-                placeholder="Repeat your password"
+                placeholder={UI_TEXT.auth.confirmPasswordPlaceholder}
                 required
                 leading={<Lock size={18} strokeWidth={1.8} />}
                 error={errors.confirmPassword?.message}
@@ -214,7 +214,7 @@ export function RegisterForm() {
               <TextField
                 label={UI_TEXT.auth.businessNameLabel}
                 autoComplete="organization"
-                placeholder="Sweet Delights"
+                placeholder={UI_TEXT.auth.businessNamePlaceholder}
                 required
                 leading={<Store size={18} strokeWidth={1.8} />}
                 error={errors.businessName?.message}

@@ -240,10 +240,10 @@ describe("NewOrder: details", () => {
     await userEvent.click(button("Add new customer"));
     await userEvent.click(button("Close"));
     await userEvent.click(button("New customer"));
-    const sheet = screen.getByRole("dialog", { name: "New Customer" });
-    await userEvent.type(within(sheet).getByLabelText(/Full Name/), "Anu");
-    await userEvent.type(within(sheet).getByLabelText(/Phone Number/), "9000000001");
-    await userEvent.click(within(sheet).getByRole("button", { name: "Save Customer" }));
+    const sheet = screen.getByRole("dialog", { name: "New customer" });
+    await userEvent.type(within(sheet).getByLabelText(/Full name/), "Anu");
+    await userEvent.type(within(sheet).getByLabelText(/Phone number/), "9000000001");
+    await userEvent.click(within(sheet).getByRole("button", { name: "Save customer" }));
 
     await waitFor(() => expect(button("Customer: Anu. Change")).toBeInTheDocument());
   });
@@ -260,9 +260,9 @@ describe("NewOrder: details", () => {
     open("step=details");
 
     await userEvent.click(button("New customer"));
-    await userEvent.type(screen.getByLabelText(/Full Name/), "Meena");
-    await userEvent.type(screen.getByLabelText(/Phone Number/), "9876543210");
-    await userEvent.click(button("Save Customer"));
+    await userEvent.type(screen.getByLabelText(/Full name/), "Meena");
+    await userEvent.type(screen.getByLabelText(/Phone number/), "9876543210");
+    await userEvent.click(button("Save customer"));
     await userEvent.click(
       within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Use that customer" }),
     );
@@ -283,9 +283,9 @@ describe("NewOrder: details", () => {
     open("step=details");
 
     await userEvent.click(button("New customer"));
-    await userEvent.type(screen.getByLabelText(/Full Name/), "Meena");
-    await userEvent.type(screen.getByLabelText(/Phone Number/), "9876543210");
-    await userEvent.click(button("Save Customer"));
+    await userEvent.type(screen.getByLabelText(/Full name/), "Meena");
+    await userEvent.type(screen.getByLabelText(/Phone number/), "9876543210");
+    await userEvent.click(button("Save customer"));
     await userEvent.click(
       within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Use that customer" }),
     );

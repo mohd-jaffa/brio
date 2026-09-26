@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { ThemeProvider } from "@/lib/theme/ThemeProvider";
 
-import { ThemeSwitch } from "@/components/nav/ThemeSwitch";
+import { ThemeSwitch } from "@/components/ui/theme-switch";
 
 describe("ThemeSwitch", () => {
   it("chooses between Golden and Peach", async () => {

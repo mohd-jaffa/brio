@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import { ResponseProvider } from "@/components/ui/response-card";
+import { UI_TEXT } from "@/constants/messages";
 import { AuthProvider } from "@/features/auth/AuthProvider";
 import { ThemeProvider } from "@/lib/theme/ThemeProvider";
 import { KeyboardInset } from "@/lib/viewport/KeyboardInset";
@@ -28,9 +29,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Ovenly — Home Business Management",
-  description:
-    "Mobile-first management for home businesses — bakers, hamper makers, florists and gift makers. Orders, customers, stock, expenses and bills in one place.",
+  title: UI_TEXT.appTitle,
+  description: UI_TEXT.appDescription,
 };
 
 export const viewport: Viewport = {

@@ -60,7 +60,7 @@ export function SignInForm() {
         type="tel"
         inputMode="numeric"
         autoComplete="tel"
-        placeholder="98765 43210"
+        placeholder={UI_TEXT.fields.phonePlaceholder}
         required
         leading={<Smartphone size={18} strokeWidth={1.8} />}
         prefix={UI_TEXT.fields.phonePrefix}
@@ -71,7 +71,7 @@ export function SignInForm() {
       <PasswordField
         label={UI_TEXT.auth.passwordLabel}
         autoComplete="current-password"
-        placeholder="Enter your password"
+        placeholder={UI_TEXT.auth.passwordPlaceholder}
         required
         leading={<Lock size={18} strokeWidth={1.8} />}
         error={errors.password?.message}

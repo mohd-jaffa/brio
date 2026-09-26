@@ -63,7 +63,7 @@ describe("PaymentCollectionForm", () => {
     const amount = screen.getByLabelText(/Amount/);
     await userEvent.clear(amount);
     await userEvent.type(amount, "500");
-    await userEvent.click(screen.getByRole("button", { name: "Record Payment" }));
+    await userEvent.click(screen.getByRole("button", { name: "Record payment" }));
 
     await waitFor(() =>
       expect(PaymentsClient.createPayment).toHaveBeenCalledWith(
@@ -79,7 +79,7 @@ describe("PaymentCollectionForm", () => {
     vi.mocked(PaymentsClient.createPayment).mockRejectedValue(new ApiError(503, "EXTERNAL_SERVICE_ERROR", "Offline"));
     open();
 
-    const record = screen.getByRole("button", { name: "Record Payment" });
+    const record = screen.getByRole("button", { name: "Record payment" });
     await userEvent.click(record);
     const card = await screen.findByRole("alertdialog");
     await userEvent.click(within(card).getByRole("button", { name: "Close" }));
@@ -96,7 +96,7 @@ describe("PaymentCollectionForm", () => {
     const amount = screen.getByLabelText(/Amount/);
     await userEvent.clear(amount);
     await userEvent.type(amount, "a lot");
-    await userEvent.click(screen.getByRole("button", { name: "Record Payment" }));
+    await userEvent.click(screen.getByRole("button", { name: "Record payment" }));
 
     await waitFor(() => expect(screen.getAllByRole("alert").length).toBeGreaterThan(0));
     expect(PaymentsClient.createPayment).not.toHaveBeenCalled();
@@ -108,7 +108,7 @@ describe("PaymentCollectionForm", () => {
     );
     const props = open();
 
-    await userEvent.click(screen.getByRole("button", { name: "Record Payment" }));
+    await userEvent.click(screen.getByRole("button", { name: "Record payment" }));
 
     await waitFor(() =>
       expect(screen.getByText("This action conflicts with existing data.")).toBeInTheDocument(),

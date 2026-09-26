@@ -66,7 +66,7 @@ export function ChangePasswordForm() {
       <PasswordField
         label={UI_TEXT.auth.newPasswordLabel}
         autoComplete="new-password"
-        placeholder="Create a password"
+        placeholder={UI_TEXT.auth.newPasswordPlaceholder}
         hint={UI_TEXT.auth.passwordHint}
         required
         leading={<Lock size={18} strokeWidth={1.8} />}
@@ -77,7 +77,7 @@ export function ChangePasswordForm() {
       <PasswordField
         label={UI_TEXT.auth.confirmPasswordLabel}
         autoComplete="new-password"
-        placeholder="Repeat your password"
+        placeholder={UI_TEXT.auth.confirmPasswordPlaceholder}
         required
         leading={<Lock size={18} strokeWidth={1.8} />}
         error={errors.confirmPassword?.message}

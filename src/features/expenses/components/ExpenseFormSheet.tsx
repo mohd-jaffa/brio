@@ -169,7 +169,7 @@ function ExpenseForm({
             label={text.amount}
             required
             inputMode="decimal"
-            placeholder="0.00"
+            placeholder={UI_TEXT.fields.amountPlaceholder}
             error={errors.amount?.message}
             {...register("amount")}
           />

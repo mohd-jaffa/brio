@@ -8,12 +8,10 @@ import { UI_TEXT } from "@/constants/messages";
 import { AccountMenu } from "@/features/auth/components/AccountMenu";
 import { useAuth } from "@/features/auth/AuthProvider";
 
-import { ThemeSwitch } from "./ThemeSwitch";
-
 /**
  * The account, at the right of the top bar from 768 px (plan §139.5): the
- * initials, and the name from 1024 px, opening who is signed in, the theme
- * and Sign out. A disclosure — Escape or a click elsewhere closes it, and
+ * initials, and the name from 1024 px, opening who is signed in and Sign
+ * out. The theme is chosen on Settings → Appearance (R5.11). A disclosure — Escape or a click elsewhere closes it, and
  * focus goes back to the button.
  */
 export function AccountPopover() {
@@ -64,7 +62,6 @@ export function AccountPopover() {
         className="absolute right-0 top-full z-40 mt-2 w-72 space-y-4 rounded-2xl border border-border bg-surface p-4 shadow-elevated"
       >
         <AccountMenu onSignedOut={() => setOpen(false)} />
-        <ThemeSwitch />
       </div>
     </div>
   );

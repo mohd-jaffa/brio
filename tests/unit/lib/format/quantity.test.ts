@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatQuantity } from "@/lib/format/quantity";
+import { formatQuantity, pluralUnit } from "@/lib/format/quantity";
 
 describe("formatQuantity", () => {
   it("says a count the way it is said", () => {
@@ -18,5 +18,13 @@ describe("formatQuantity", () => {
   it("groups large counts the Indian way, and keeps a unit it does not know", () => {
     expect(formatQuantity(25000, "gram")).toBe("25,000 grams");
     expect(formatQuantity(3, "tray")).toBe("3 tray");
+  });
+});
+
+describe("pluralUnit", () => {
+  it("names several of a countable unit, and leaves a measure as it is", () => {
+    expect(pluralUnit("box")).toBe("boxes");
+    expect(pluralUnit("piece")).toBe("pieces");
+    expect(pluralUnit("kg")).toBe("kg");
   });
 });

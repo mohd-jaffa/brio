@@ -1968,3 +1968,49 @@ this entry grows with them.
 ### Blockers
 - None.
 
+## 2026-09-26 — More and Settings (R5.11), paging settled (R5.13), strings swept (R5.14)
+
+### Decision
+- **Products stays one read** (the user). A business's products are a menu, not a growing ledger, and the order screen prices its draft from that read. Products and Inventory's list are read whole and searched on the device; every list that grows with the business is paged.
+- **About credits the app's maker, not the illustrations** (the user). Settings → About reads **Crafted by · jaFFa**, in place of Q16's Vecteezy credit.
+
+### Added
+- **Settings** (`src/features/auth/components/Settings.tsx`), with the reference's Profile screen folded in:
+  - **Profile:** the initials, name, "Owner · {business}" and the catch phrase, under a photographic band. It stays beside the rest on a desktop.
+  - **Business details.**
+  - **Account:** name, sign-in number (written `+91 98765 43210`, not as stored) and email; **Change password**; and, while the email is unconfirmed, the notice and **Resend confirmation**.
+  - **Appearance:** Golden or Peach, kept on the device.
+  - **About:** the version, which the build takes from `package.json`, and Crafted by · jaFFa.
+  - **Sign out.**
+- **More** gives each place a line on what it holds, and ends with a **Sign out** row (`SignOutRow`, shared with Settings). A second tap while signing out does nothing.
+- `pluralUnit` in `src/lib/format/quantity.ts`.
+
+### Changed
+- The theme switch moved from the More sheet and the account menu to Settings → Appearance, and into the kit (`src/components/ui/theme-switch.tsx`).
+- **Every remaining piece of copy is in `messages.ts`:**
+  - the customer, stock and payment forms;
+  - the sign-in, register, forgot-password and change-password screens' placeholders and hints;
+  - the nav's place names;
+  - the page's title and description;
+  - the map-link, phone and amount examples each screen repeated.
+- The swept forms' labels are in sentence case: "Save customer", "Phone number", "Record payment".
+- **The stock form:**
+  - It is now **Record stock — {product}**, matching the button that opens it.
+  - "Adjustment Type" is now **What happened**.
+
+### Removed
+- `AccountSummary`; Settings' account section replaces it.
+- The `settingsRow` copy under `business`.
+
+### Fixed
+- **The stock form's quantity label** added "s" to any unit ("in kgs", "in boxs"). It now reads "Quantity (kg)", "Quantity (boxes)" (§134 P4-3).
+- **The sign-in number** was shown raw on Settings (§134 P4-6).
+
+### Validation
+- `tsc`, `eslint` and the test-path check are clean. 264 test files and 1,697 tests pass.
+- Settings, `SignOutRow`, the More sheet and the theme switch are at 100% coverage. The auth forms and `messages.ts` have the same uncovered branches they had before.
+- **Captures:** Settings at 360, 390, 820 and 1280 px, and More at 360 and 390, in Golden and Peach, with no sideways scroll. Every More line fits a 360 px phone.
+
+### Blockers
+- None. R5.13's question about Products is answered, and its blocker is resolved.
+

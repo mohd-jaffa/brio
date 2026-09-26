@@ -25,15 +25,15 @@ const popover = () =>
 const button = () => screen.getByRole("button", { name: "Account: Asha Baker" });
 
 describe("AccountPopover", () => {
-  it("names the account and opens who is signed in, the theme and Sign out", async () => {
+  it("names the account and opens who is signed in and Sign out", async () => {
     popover();
     expect(button()).toHaveAttribute("aria-expanded", "false");
     expect(button()).toHaveTextContent("AB");
-    expect(screen.queryByRole("radiogroup", { name: "Theme" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Sign out/ })).not.toBeInTheDocument();
 
     await userEvent.click(button());
     expect(button()).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByRole("radiogroup", { name: "Theme" })).toBeInTheDocument();
+    expect(screen.queryByRole("radiogroup", { name: "Theme" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Sign out/ })).toBeInTheDocument();
     expect(document.getElementById(button().getAttribute("aria-controls")!)).not.toHaveAttribute("hidden");
 
@@ -49,7 +49,7 @@ describe("AccountPopover", () => {
     expect(button()).toHaveFocus();
 
     await userEvent.click(button());
-    await userEvent.click(screen.getByRole("radio", { name: "Peach" }));
+    await userEvent.click(screen.getByText("Owner"));
     expect(button()).toHaveAttribute("aria-expanded", "true");
     await userEvent.click(screen.getByText("Outside"));
     expect(button()).toHaveAttribute("aria-expanded", "false");

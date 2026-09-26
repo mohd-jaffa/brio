@@ -6,3 +6,8 @@
 export function publicAppUrl(): string {
   return process.env.NEXT_PUBLIC_APP_URL ?? "";
 }
+
+/** The app's version, which the build takes from package.json (next.config.ts); Settings → About shows it. */
+export function publicAppVersion(): string {
+  return process.env.NEXT_PUBLIC_APP_VERSION ?? "";
+}
