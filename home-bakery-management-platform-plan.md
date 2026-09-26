@@ -8675,6 +8675,15 @@ the row needs; without an answer it is built on that question's default
 
 ### Phase 5 — Screens
 
+**Status (2026-09-26):** every row is done except **R5.10 Notifications**, which the user set aside for later. The exit test holds for every screen that is built:
+
+- **Screens:** 16 routes at 360, 390, 414, 820, 1280 and 1440 px in Golden and Peach, with no sideways scroll and no page errors.
+- **Charts:** they follow §139.11.11.
+- **Copy:** no hard-coded strings remain.
+- **Build:** `next build` passes.
+
+Phase 5 closes when R5.10 is done.
+
 | ID | Work | Source | Waits on | Status |
 |---|---|---|---|---|
 | R5.1 | Home | §139.10; IMP-05 | — | DONE (2026-09-26 · Home; `GET /api/dashboard` works it out on the server, so Home no longer reads every order) |

@@ -2014,3 +2014,16 @@ this entry grows with them.
 ### Blockers
 - None. R5.13's question about Products is answered, and its blocker is resolved.
 
+## 2026-09-26 — Phase 5 checked, Notifications aside
+
+### Fixed
+- **Analytics scrolled sideways by 25 px on a 360 px phone.** The chart's screen-reader table grew past the screen: a table ignores the one-pixel width that hides it. It is now hidden inside a box that keeps that width (`ChartTable`, `chart-frame.tsx`).
+
+### Validation
+- **Every screen was checked in Chromium:** 16 routes at 360, 390, 414, 820, 1280 and 1440 px, in Golden and Peach, 192 captures in all. After the fix, nothing scrolls sideways and no page logs an error.
+- `next build` passes, and the version is written into the page.
+- **Tracker:** Phase 5 is done except R5.10 Notifications, which the user set aside. The exit test holds for every built screen.
+
+### Blockers
+- None.
+

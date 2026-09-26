@@ -76,35 +76,40 @@ function ChartSkeleton({ shape, height }: { shape: ChartShape; height: number })
   );
 }
 
+// A table grows to fit its cells whatever width it is given, so it is hidden
+// inside a box that keeps to one pixel rather than hidden itself: on its own it
+// reached past a 360 px screen and let the page scroll sideways.
 export function ChartTable({ caption, table }: { caption: string; table: ChartTableData }) {
   return (
-    <table className="sr-only">
-      <caption>{caption}</caption>
-      <thead>
-        <tr>
-          {table.columns.map((column) => (
-            <th key={column} scope="col">
-              {column}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {table.rows.map((row, index) => (
-          <tr key={index}>
-            {row.map((cell, column) =>
-              column === 0 ? (
-                <th key={column} scope="row">
-                  {cell}
-                </th>
-              ) : (
-                <td key={column}>{cell}</td>
-              ),
-            )}
+    <div className="sr-only">
+      <table>
+        <caption>{caption}</caption>
+        <thead>
+          <tr>
+            {table.columns.map((column) => (
+              <th key={column} scope="col">
+                {column}
+              </th>
+            ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {table.rows.map((row, index) => (
+            <tr key={index}>
+              {row.map((cell, column) =>
+                column === 0 ? (
+                  <th key={column} scope="row">
+                    {cell}
+                  </th>
+                ) : (
+                  <td key={column}>{cell}</td>
+                ),
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
