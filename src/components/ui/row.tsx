@@ -13,7 +13,10 @@ export function RowList({ label, children, className }: { label?: string; childr
     <ul
       role="list"
       aria-label={label}
-      className={cn("divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface shadow-card", className)}
+      className={cn(
+        "divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface shadow-card",
+        className,
+      )}
     >
       {children}
     </ul>
@@ -36,6 +39,7 @@ export function Row({
   href,
   onClick,
   chevron = href !== undefined || onClick !== undefined,
+  arriving = false,
 }: {
   leading?: ReactNode;
   title: ReactNode;
@@ -45,6 +49,8 @@ export function Row({
   href?: string;
   onClick?: () => void;
   chevron?: boolean;
+  /** It has just joined the list — a payment recorded a moment ago — and drops into place. */
+  arriving?: boolean;
 }) {
   const body = (
     <>
@@ -54,7 +60,9 @@ export function Row({
         {subtitle && <span className="mt-0.5 block truncate text-sm text-text-muted">{subtitle}</span>}
         {meta && <span className="mt-0.5 block truncate text-xs text-text-muted">{meta}</span>}
       </span>
-      {trailing && <span className="flex shrink-0 flex-col items-end gap-1.5 text-sm font-semibold text-text">{trailing}</span>}
+      {trailing && (
+        <span className="flex shrink-0 flex-col items-end gap-1.5 text-sm font-semibold text-text">{trailing}</span>
+      )}
       {chevron && <ChevronRight size={18} strokeWidth={1.75} className="shrink-0 text-text-muted" aria-hidden="true" />}
     </>
   );
@@ -62,7 +70,7 @@ export function Row({
   const interactive = "focus-inset transition-colors hover:bg-surface-hover";
 
   return (
-    <li>
+    <li className={arriving ? "animate-drop-in" : undefined}>
       {href !== undefined ? (
         <Link href={href} onClick={onClick} className={cn(layout, interactive)}>
           {body}

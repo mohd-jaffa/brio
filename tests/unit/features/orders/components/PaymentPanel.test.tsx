@@ -50,4 +50,10 @@ describe("PaymentPanel", () => {
     expect(latest().payment).toMatchObject({ status: "PARTIALLY_PAID", amount: "500" });
     expect(screen.getByText("Enter the amount paid.")).toBeInTheDocument();
   });
+
+  it("drops the payment's fields into place when they are chosen, and not when the draft brought them", async () => {
+    render(<Screen />);
+    await userEvent.click(choice("Part paid"));
+    expect(screen.getByLabelText(/Amount paid/).closest(".animate-drop-in")).not.toBeNull();
+  });
 });

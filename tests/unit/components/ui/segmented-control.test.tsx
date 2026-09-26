@@ -16,7 +16,7 @@ describe("SegmentedControl", () => {
 
     expect(screen.getByRole("radiogroup", { name: "Which orders to show" })).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "Active" })).toBeChecked();
-    expect(screen.getByRole("radio", { name: "Active" })).toHaveClass("bg-surface");
+    expect(screen.getByRole("radio", { name: "Active" })).toHaveClass("text-text");
 
     await userEvent.click(screen.getByRole("radio", { name: "Past" }));
     expect(onChange).toHaveBeenCalledWith("PAST");
@@ -28,5 +28,24 @@ describe("SegmentedControl", () => {
     screen.getByRole("radio", { name: "Active" }).focus();
     await userEvent.keyboard("{ArrowRight}");
     expect(onChange).toHaveBeenCalledWith("PAST");
+  });
+
+  it("glides the raised tile to the choice, one option's width at a time", () => {
+    const three = [...OPTIONS, { value: "ALL", label: "All" }] as const;
+    const { container, rerender } = render(
+      <SegmentedControl label="Orders" value="ACTIVE" options={three} onChange={vi.fn()} />,
+    );
+    const tile = container.querySelector<HTMLElement>("[aria-hidden=true]");
+    expect(tile?.style.width).toMatch(/0\.333.*100% - 0\.5rem/);
+    expect(tile?.style.transform).toBe("translateX(0%)");
+    rerender(<SegmentedControl label="Orders" value="ALL" options={three} onChange={vi.fn()} />);
+    expect(tile?.style.transform).toBe("translateX(200%)");
+  });
+
+  it("raises no tile when the value is none of the options", () => {
+    const { container } = render(
+      <SegmentedControl label="Orders" value={"GONE" as "ACTIVE"} options={OPTIONS} onChange={vi.fn()} />,
+    );
+    expect(container.querySelector("[aria-hidden=true]")).toBeNull();
   });
 });

@@ -87,6 +87,9 @@
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
+
+  /* The app's one arrival curve: quick to move, slow to settle. */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 :root,
@@ -172,7 +175,11 @@
   body {
     background-color: var(--color-background);
     color: var(--color-text);
-    font-family: var(--font-body), system-ui, -apple-system, sans-serif;
+    font-family:
+      var(--font-body),
+      system-ui,
+      -apple-system,
+      sans-serif;
     min-height: 100dvh;
     -webkit-tap-highlight-color: transparent;
     -webkit-font-smoothing: antialiased;
@@ -181,8 +188,17 @@
 
   /* A default, not a verdict: unlayered, this beat every utility, so no
      heading could ever be given a different family by a class. */
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-heading), system-ui, -apple-system, sans-serif;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family:
+      var(--font-heading),
+      system-ui,
+      -apple-system,
+      sans-serif;
   }
 }
 
@@ -280,7 +296,10 @@
    Smooth transitions for theme switching
    ============================================================ */
 [data-theme] {
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 /* ============================================================
@@ -416,6 +435,111 @@
 }
 
 /* ============================================================
+   The till ticks (the order flow's motion)
+   Building an order is counting: every count and running total
+   rolls the way it moved — up as items land, down as they come
+   off — and what arrives in a list or a form settles into place.
+   Only a change moves; nothing animates because a screen loaded.
+   Under reduced motion nothing travels: each becomes a short fade,
+   so the acknowledgement is still there to see.
+   ============================================================ */
+@keyframes tick-up {
+  from {
+    opacity: 0;
+    transform: translateY(0.7em);
+  }
+}
+
+@keyframes tick-down {
+  from {
+    opacity: 0;
+    transform: translateY(-0.7em);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+@keyframes fade-only {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Utilities rather than plain classes, so a breakpoint can take them
+   (`lg:animate-drop-in`): a list hidden behind another step on a phone
+   should not replay its arrivals the moment the step is shown. */
+@utility animate-tick-up {
+  animation: tick-up 220ms var(--ease-out-expo);
+  @media (prefers-reduced-motion: reduce) {
+    animation: fade-only 140ms ease-out;
+  }
+}
+
+@utility animate-tick-down {
+  animation: tick-down 220ms var(--ease-out-expo);
+  @media (prefers-reduced-motion: reduce) {
+    animation: fade-only 140ms ease-out;
+  }
+}
+
+@utility animate-pop {
+  animation: pop-in 260ms var(--ease-out-expo);
+  @media (prefers-reduced-motion: reduce) {
+    animation: fade-only 140ms ease-out;
+  }
+}
+
+@utility animate-drop-in {
+  animation: drop-in 240ms var(--ease-out-expo);
+  @media (prefers-reduced-motion: reduce) {
+    animation: fade-only 140ms ease-out;
+  }
+}
+
+@utility animate-arrive {
+  animation: arrive 320ms var(--ease-out-expo);
+  @media (prefers-reduced-motion: reduce) {
+    animation: fade-only 140ms ease-out;
+  }
+}
+
+/* A step of the new order that a phone is not on (below 1024 px, where
+   each step has the screen to itself). Out of sight, out of the layout and
+   out of reach — invisible, so Tab and a screen reader skip it — but still
+   rendered. display: none would restart every animation inside when the step
+   came back: the cart bar would rise again and every badge pop again. What
+   moves while a step is away plays out unseen. */
+@utility step-away {
+  @media (width < 64rem) {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+  }
+}
+
+/* ============================================================
    Browser surfaces
    The parts nobody draws still ship with somebody's design.
    These take the palette so selection, the caret, scrollbars
@@ -504,16 +628,10 @@ a {
       transparent 95%
     ),
     /* the shadow the frame casts between them */
-    linear-gradient(
-      104deg,
-      transparent 32%,
-      rgb(var(--shadow-tone) / 0.05) 40%,
-      transparent 48%
-    ),
+    linear-gradient(104deg, transparent 32%, rgb(var(--shadow-tone) / 0.05) 40%, transparent 48%),
     /* the warmth a bake would throw, lower right */
     radial-gradient(108% 76% at 88% 72%, color-mix(in oklab, var(--color-primary) 10%, transparent), transparent 66%),
-    /* daylight, upper left */
-    radial-gradient(84% 60% at 6% -2%, rgba(255, 254, 250, 0.95), transparent 62%),
+    /* daylight, upper left */ radial-gradient(84% 60% at 6% -2%, rgba(255, 254, 250, 0.95), transparent 62%),
     linear-gradient(180deg, transparent 52%, var(--auth-ground-deep) 100%);
 }
 

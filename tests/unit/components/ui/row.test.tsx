@@ -54,4 +54,16 @@ describe("RowList and Row", () => {
     );
     expect(screen.getByRole("link").querySelector("svg")).toBeNull();
   });
+
+  it("drops a row into place when it has just joined the list", () => {
+    render(
+      <RowList label="Payments">
+        <Row title="Cash" arriving />
+        <Row title="UPI" />
+      </RowList>,
+    );
+    const [cash, upi] = screen.getAllByRole("listitem");
+    expect(cash).toHaveClass("animate-drop-in");
+    expect(upi).not.toHaveClass("animate-drop-in");
+  });
 });

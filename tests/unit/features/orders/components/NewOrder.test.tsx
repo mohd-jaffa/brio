@@ -146,6 +146,18 @@ describe("NewOrder: items", () => {
     await waitFor(() => expect(screen.getByText("1 item")).toBeInTheDocument());
     expect(screen.getByText("Name topper")).toBeInTheDocument();
   });
+
+  it("raises the cart bar with the first item, and not when a kept order loads", async () => {
+    const { unmount } = open();
+    await userEvent.click(await screen.findByRole("button", { name: "Add Chocolate truffle cake" }));
+    const bar = () => screen.getByRole("button", { name: "Continue to order details" }).parentElement;
+    expect(bar()).toHaveClass("animate-arrive");
+    unmount();
+
+    open();
+    await screen.findByRole("button", { name: "Continue to order details" });
+    expect(bar()).not.toHaveClass("animate-arrive");
+  });
 });
 
 describe("NewOrder: details", () => {

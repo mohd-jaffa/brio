@@ -140,6 +140,25 @@ describe("DetailsPanel: the items", () => {
     expect(screen.getByText("Choose a product.")).toBeInTheDocument();
   });
 
+  it("lands a line added on the grid beside it, on a wide screen, and leaves the ones already there still", () => {
+    const panel = (draft: OrderDraft) => (
+      <DetailsPanel
+        draft={draft}
+        products={products}
+        errors={{}}
+        update={vi.fn()}
+        onChooseCustomer={vi.fn()}
+        onNewCustomer={vi.fn()}
+      />
+    );
+    const start = addProduct(newDraft(), "p-cake");
+    const { rerender } = render(panel(start));
+    rerender(panel(addCustom(start, { name: "Name topper", unitPrice: 15000 })));
+    const [kept, added] = items();
+    expect(kept).not.toHaveClass("lg:animate-drop-in");
+    expect(added).toHaveClass("lg:animate-drop-in");
+  });
+
   it("offers a way back to the grid only where the grid is not beside it", async () => {
     const onAddMore = vi.fn();
     const { unmount } = render(<Screen start={withItems()} onAddMore={onAddMore} />);
@@ -162,8 +181,8 @@ describe("DetailsPanel: the delivery", () => {
     await userEvent.click(screen.getByRole("radio", { name: "Delivery" }));
     expect(screen.getByLabelText(/Delivery address/)).toHaveValue("Flat 302");
 
-    fireEvent.change(screen.getByLabelText(/Date and time/), { target: { value: "2026-09-27T10:00" } });
-    expect(latest().delivery.date).toBe("2026-09-27T10:00");
+    fireEvent.change(screen.getByLabelText(/Date and time/), { target: { value: "2099-12-31T18:30" } });
+    expect(latest().delivery.date).toBe("2099-12-31T18:30");
     await userEvent.type(screen.getByLabelText(/Map link/), "https://maps.app.goo.gl/x");
     expect(latest().delivery.googleMapsLink).toBe("https://maps.app.goo.gl/x");
   });
@@ -176,6 +195,17 @@ describe("DetailsPanel: the delivery", () => {
     await userEvent.click(screen.getByRole("button", { name: "Use Anu’s address" }));
     expect(latest().delivery.address).toBe("Flat 302");
     expect(screen.queryByRole("button", { name: "Use Anu’s address" })).not.toBeInTheDocument();
+  });
+
+  it("settles the delivery fields in when Delivery is chosen, and leaves the lines already there still", async () => {
+    const { unmount } = render(<Screen start={setDeliveryType(withItems(), "DELIVERY")} />);
+    expect(screen.getByLabelText(/Delivery address/).closest(".animate-drop-in")).toBeNull();
+    unmount();
+
+    render(<Screen start={withItems()} />);
+    await userEvent.click(screen.getByRole("radio", { name: "Delivery" }));
+    expect(screen.getByLabelText(/Delivery address/).closest(".animate-drop-in")).not.toBeNull();
+    expect(items()[0]).not.toHaveClass("lg:animate-drop-in");
   });
 });
 
@@ -210,5 +240,13 @@ describe("DetailsPanel: discounts, charges and notes", () => {
     await userEvent.type(screen.getByLabelText(/Internal notes/), "Ring twice");
     expect(latest().notes).toBe("Ring twice");
     expect(screen.getByText("Too long.")).toBeInTheDocument();
+  });
+
+  it("drops a discount added here into place, but not one the draft already had", async () => {
+    render(<Screen start={addAdjustment(newDraft(), "DISCOUNT", "Festive")} />);
+    await userEvent.click(screen.getByRole("button", { name: "Add charge" }));
+    const [kept, added] = screen.getAllByLabelText("Kind").map((select) => select.closest("li"));
+    expect(kept).not.toHaveClass("animate-drop-in");
+    expect(added).toHaveClass("animate-drop-in");
   });
 });

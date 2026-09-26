@@ -54,4 +54,14 @@ describe("OrderPayments", () => {
     show({ error: new ApiError(404, "NOT_FOUND", "That order doesn’t exist.") });
     expect(screen.getByRole("alert")).toHaveTextContent("That order doesn’t exist.");
   });
+
+  it("drops in a payment recorded after the list showed, and not the ones already there", () => {
+    const props = { loading: false, onRetry: vi.fn(), canCollect: false, onCollect: vi.fn() };
+    const { rerender } = render(<OrderPayments {...props} />);
+    rerender(<OrderPayments {...props} payments={[aPayment()]} />);
+    rerender(<OrderPayments {...props} payments={[aPayment(), aPayment({ id: "pay-2", amount: 20000 })]} />);
+    const [first, second] = within(screen.getByRole("list", { name: "Payments" })).getAllByRole("listitem");
+    expect(first).not.toHaveClass("animate-drop-in");
+    expect(second).toHaveClass("animate-drop-in");
+  });
 });

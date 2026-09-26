@@ -3,12 +3,15 @@
 import { ChevronRight, PackageOpen, ReceiptText, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 
+import { cn } from "@/components/ui/cn";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ProductCard } from "@/components/ui/product-card";
+import { RollingNumber } from "@/components/ui/rolling-number";
 import { SearchField } from "@/components/ui/search-field";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { UI_TEXT } from "@/constants/messages";
 import type { Product } from "@/features/products/types";
+import { useArrived } from "@/hooks/useArrived";
 import { formatPaise } from "@/lib/format/currency";
 
 /** A way to add what the grid does not have: a custom item. */
@@ -41,6 +44,30 @@ function MoreRow({
       </span>
       <ChevronRight size={18} strokeWidth={1.75} aria-hidden="true" className="shrink-0 text-text-muted" />
     </button>
+  );
+}
+
+/**
+ * How many of a product are in the order, on its card: it pops in with the
+ * first one added and ticks with each after (the till ticks, globals.css).
+ * One already there when the screen opens simply shows.
+ */
+function InOrderBadge({ count }: { count: number }) {
+  const arrived = useArrived(count > 0);
+  if (count === 0) return null;
+  return (
+    <>
+      <span
+        aria-hidden="true"
+        className={cn(
+          "absolute right-3 top-3 inline-flex min-w-6 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold tabular-nums text-primary-text",
+          arrived && "animate-pop",
+        )}
+      >
+        <RollingNumber value={count} />
+      </span>
+      <span className="sr-only">{UI_TEXT.newOrder.inOrder(count)}</span>
+    </>
   );
 }
 
@@ -89,31 +116,18 @@ export function ItemsPanel({
         </p>
       ) : (
         <ul role="list" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
-          {shown.map((product) => {
-            const count = quantityOf(product.id);
-            return (
-              <li key={product.id} className="relative">
-                <ProductCard
-                  name={product.name}
-                  price={formatPaise(product.defaultPrice)}
-                  iconKey={product.iconKey}
-                  addLabel={text.add(product.name)}
-                  onAdd={() => onAdd(product.id)}
-                />
-                {count > 0 && (
-                  <>
-                    <span
-                      aria-hidden="true"
-                      className="absolute right-3 top-3 inline-flex min-w-6 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold tabular-nums text-primary-text"
-                    >
-                      {count}
-                    </span>
-                    <span className="sr-only">{text.inOrder(count)}</span>
-                  </>
-                )}
-              </li>
-            );
-          })}
+          {shown.map((product) => (
+            <li key={product.id} className="relative">
+              <ProductCard
+                name={product.name}
+                price={formatPaise(product.defaultPrice)}
+                iconKey={product.iconKey}
+                addLabel={text.add(product.name)}
+                onAdd={() => onAdd(product.id)}
+              />
+              <InOrderBadge count={quantityOf(product.id)} />
+            </li>
+          ))}
         </ul>
       )}
 

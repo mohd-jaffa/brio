@@ -1,10 +1,11 @@
 "use client";
 
 import { ChevronRight, MapPin, Plus, Trash2, UserPlus, UserRound } from "lucide-react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import { Avatar } from "@/components/ui/avatar";
 import { Button, IconButton } from "@/components/ui/button";
+import { cn } from "@/components/ui/cn";
 import { FieldError } from "@/components/ui/field-error";
 import { ProductTile } from "@/components/ui/product-tile";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
@@ -13,6 +14,7 @@ import { SelectField, TextAreaField, TextField } from "@/components/ui/text-fiel
 import { UI_TEXT } from "@/constants/messages";
 import { ADJUSTMENT_TYPES, DELIVERY_TYPE_LABELS, DELIVERY_TYPES, type AdjustmentType } from "@/constants/statuses";
 import type { Product } from "@/features/products/types";
+import { useArrived } from "@/hooks/useArrived";
 import { formatPaise } from "@/lib/format/currency";
 import { formatPhoneDigits } from "@/lib/phone";
 
@@ -72,6 +74,14 @@ export function DetailsPanel({
 }) {
   const text = UI_TEXT.newOrder;
   const { customer, delivery } = draft;
+  // What was already in the order when the screen opened just shows; a line,
+  // a discount or the delivery fields added since drop into place.
+  const [opened] = useState(() => new Set([...draft.lines, ...draft.adjustments].map((entry) => entry.key)));
+  const added = (key: string) => !opened.has(key) && "animate-drop-in";
+  // A line is added on the grid, which a phone shows instead of this list;
+  // only the wide screen, with both in view, sees it land.
+  const addedLine = (key: string) => !opened.has(key) && "lg:animate-drop-in";
+  const deliveryArrived = useArrived(delivery.type === "DELIVERY");
 
   const customerCard =
     customer === null
@@ -135,7 +145,10 @@ export function DetailsPanel({
             const name = line.custom?.name ?? product?.name ?? text.unavailable;
             const price = line.custom?.unitPrice ?? product?.defaultPrice;
             return (
-              <li key={line.key} className="rounded-2xl border border-border bg-surface p-3 shadow-card">
+              <li
+                key={line.key}
+                className={cn("rounded-2xl border border-border bg-surface p-3 shadow-card", addedLine(line.key))}
+              >
                 <div className="flex items-center gap-3">
                   <ProductTile iconKey={line.custom ? null : product?.iconKey} size="md" />
                   <div className="min-w-0 flex-1">
@@ -203,7 +216,7 @@ export function DetailsPanel({
           onChange={(event) => update((current) => setDelivery(current, { date: event.target.value }))}
         />
         {delivery.type === "DELIVERY" && (
-          <>
+          <div className={cn("space-y-3", deliveryArrived && "animate-drop-in")}>
             <TextAreaField
               label={text.address}
               placeholder={text.addressPlaceholder}
@@ -230,7 +243,7 @@ export function DetailsPanel({
                 onClick={() => update(takeCustomerPlace)}
               />
             )}
-          </>
+          </div>
         )}
       </Block>
 
@@ -240,7 +253,10 @@ export function DetailsPanel({
             {draft.adjustments.map((entry, index) => (
               <li
                 key={entry.key}
-                className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 sm:grid-cols-[9rem_minmax(0,1fr)_8rem_auto]"
+                className={cn(
+                  "grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 sm:grid-cols-[9rem_minmax(0,1fr)_8rem_auto]",
+                  added(entry.key),
+                )}
               >
                 <div className="col-span-2 sm:col-span-1">
                   <SelectField

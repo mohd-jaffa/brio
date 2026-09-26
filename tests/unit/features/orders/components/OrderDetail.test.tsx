@@ -133,14 +133,21 @@ describe("OrderDetail: reading", () => {
 });
 
 describe("OrderDetail: moving it on", () => {
-  it("moves it to the next step, and says where it is now", async () => {
-    vi.mocked(OrdersClient.updateStatus).mockResolvedValue(anOrder({ status: "IN_PROGRESS" }));
+  it("moves it to the next step, says where it is now, and pops the new status into place", async () => {
+    vi.mocked(OrdersClient.updateStatus).mockImplementation(async () => {
+      answers["/api/orders/o-1"] = anOrder({ status: "IN_PROGRESS" });
+      return anOrder({ status: "IN_PROGRESS" });
+    });
     open();
     await loaded();
+    const summary = screen.getByRole("region", { name: "ORD-1006" });
+    expect(within(summary).getByText("Pending").parentElement).not.toHaveClass("animate-pop");
+
     await userEvent.click(screen.getByRole("button", { name: "Mark as Preparing" }));
     expect(OrdersClient.updateStatus).toHaveBeenCalledWith("o-1", { status: "IN_PROGRESS" });
     expect(await screen.findByText("ORD-1006 is now Preparing.")).toBeInTheDocument();
     expect(screen.getByText("Order updated")).toBeInTheDocument();
+    await waitFor(() => expect(within(summary).getByText("Preparing").parentElement).toHaveClass("animate-pop"));
   });
 
   it("says it was cancelled once a cancel is confirmed", async () => {

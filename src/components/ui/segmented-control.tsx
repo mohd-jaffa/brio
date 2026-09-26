@@ -25,13 +25,28 @@ export function SegmentedControl<T extends string>({
     value,
     onChange,
   );
+  const chosen = options.findIndex((option) => option.value === value);
   return (
     <div
       role="radiogroup"
       aria-label={label}
       onKeyDown={keys.onKeyDown}
-      className="flex rounded-xl bg-sunken p-1"
+      className="relative flex rounded-xl bg-sunken p-1"
     >
+      {/* The raised tile under the choice. It glides to a new one, so the
+          change reads as a move from one to the other; under reduced motion it
+          simply is there. The options share the width equally, so one tile's
+          width is one step. */}
+      {chosen >= 0 && (
+        <span
+          aria-hidden="true"
+          className="absolute inset-y-1 left-1 rounded-lg bg-surface shadow-card transition-transform duration-300 ease-[var(--ease-out-expo)] motion-reduce:transition-none"
+          style={{
+            width: `calc((100% - 0.5rem) / ${options.length})`,
+            transform: `translateX(${chosen * 100}%)`,
+          }}
+        />
+      )}
       {options.map((option) => {
         const selected = option.value === value;
         return (
@@ -44,8 +59,8 @@ export function SegmentedControl<T extends string>({
             tabIndex={keys.tabIndex(option.value)}
             onClick={() => onChange(option.value)}
             className={cn(
-              "touch-target flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-all",
-              selected ? "bg-surface text-text shadow-card" : "text-text-muted hover:text-text",
+              "touch-target relative flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors duration-200",
+              selected ? "text-text" : "text-text-muted hover:text-text",
             )}
           >
             {option.label}

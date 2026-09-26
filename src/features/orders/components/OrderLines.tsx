@@ -1,3 +1,4 @@
+import { RollingNumber } from "@/components/ui/rolling-number";
 import { UI_TEXT } from "@/constants/messages";
 import { formatPaise } from "@/lib/format/currency";
 
@@ -8,7 +9,7 @@ import { balanceDue } from "../view";
  * What was ordered and what it comes to (plan §139.10, IMP-07): each line in
  * full — never cut short (§136 D5-5) — with its note for the bill, then the
  * subtotal, each discount and charge, the total, what has been paid and the
- * balance due.
+ * balance due — the last two tick when a payment is recorded.
  */
 export function OrderLines({ order }: { order: Order }) {
   const text = UI_TEXT.orderDetail;
@@ -69,11 +70,15 @@ export function OrderLines({ order }: { order: Order }) {
         </div>
         <div className="flex items-center justify-between">
           <dt className="text-text-muted">{text.paid}</dt>
-          <dd className="tabular-nums text-text">{formatPaise(order.payment.paid)}</dd>
+          <dd className="tabular-nums text-text">
+            <RollingNumber value={order.payment.paid}>{formatPaise(order.payment.paid)}</RollingNumber>
+          </dd>
         </div>
         <div className="flex items-center justify-between">
           <dt className="font-semibold text-text">{text.balanceDue}</dt>
-          <dd className="font-semibold tabular-nums text-text">{formatPaise(balanceDue(order))}</dd>
+          <dd className="font-semibold tabular-nums text-text">
+            <RollingNumber value={balanceDue(order)}>{formatPaise(balanceDue(order))}</RollingNumber>
+          </dd>
         </div>
       </dl>
     </section>

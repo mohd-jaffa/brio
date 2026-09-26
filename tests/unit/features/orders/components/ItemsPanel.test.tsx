@@ -73,4 +73,15 @@ describe("ItemsPanel", () => {
     expect(screen.getByText("No products yet")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Add custom item/ })).toBeInTheDocument();
   });
+
+  it("pops the count in with the first add, and ticks it after; a count there from the start just shows", () => {
+    const props = { products: [cake, brownie], loading: false, onAdd: vi.fn(), onAddCustom: vi.fn() };
+    const { rerender } = render(<ItemsPanel {...props} quantityOf={(id) => (id === "p-cake" ? 2 : 0)} />);
+    const badge = (name: string) => within(screen.getByText(name).closest("li")!).queryByText(/^\d+$/);
+    expect(badge("Chocolate truffle cake")?.closest(".animate-pop")).toBeNull();
+
+    rerender(<ItemsPanel {...props} quantityOf={(id) => (id === "p-cake" ? 3 : 1)} />);
+    expect(badge("Walnut brownie")?.closest(".animate-pop")).not.toBeNull();
+    expect(badge("Chocolate truffle cake")).toHaveClass("animate-tick-up");
+  });
 });

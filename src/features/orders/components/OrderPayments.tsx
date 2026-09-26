@@ -1,6 +1,7 @@
 "use client";
 
 import { Wallet } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Row, RowList } from "@/components/ui/row";
@@ -35,6 +36,9 @@ export function OrderPayments({
   onCollect: () => void;
 }) {
   const text = UI_TEXT.orderDetail;
+  // The payments there when the list first showed; one recorded since drops in.
+  const [known, setKnown] = useState<ReadonlySet<string> | null>(null);
+  if (payments && known === null) setKnown(new Set(payments.map((payment) => payment.id)));
 
   const list = payments ? (
     payments.length === 0 ? (
@@ -48,6 +52,7 @@ export function OrderPayments({
             subtitle={formatDateTime(payment.paid_at)}
             meta={payment.reference ?? undefined}
             trailing={<span className="tabular-nums">{formatPaise(payment.amount)}</span>}
+            arriving={known !== null && !known.has(payment.id)}
           />
         ))}
       </RowList>

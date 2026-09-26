@@ -1462,3 +1462,42 @@ this entry grows with them.
 
 ### Blockers
 - None.
+
+## 2026-09-26 — Motion on the order flow (`/impeccable animate`, the user)
+
+### Added
+- **The till ticks: an order's numbers roll the way they moved, and what is added drops into place.** New order and order detail only (the user's choice). Nothing moves when a page loads; only a change moves.
+  - **Numbers** (`RollingNumber`, `src/components/ui`): the cart bar's count and total, the grid card's "in order" count, the order summary, and Paid and Balance due on the order detail. Each rolls up when it grows and down when it shrinks.
+  - **Arrivals** (`useArrived`, `src/hooks`):
+    - the cart bar rises in with the first item, but not when a saved draft is reopened;
+    - a card's count badge pops in;
+    - a discount or charge added on the details step drops in;
+    - on a wide screen, a line added from the grid drops in beside it;
+    - the delivery fields drop in when Delivery is chosen;
+    - the payment fields drop in when Paid or Part paid is chosen;
+    - a payment recorded on the order detail drops into the list;
+    - the status pill pops when the order moves on.
+  - **The steps travel** (`useTravelMotion`, `src/hooks`): on a phone, the next step comes in from the right and the way back comes in from the left. On a wide screen, where every step is in view, nothing slides. The animation uses Web Animations, so nothing inside is remounted and nothing typed is lost.
+  - **The segmented control** (`src/components/ui`): the chosen tile slides to the option picked instead of jumping.
+  - **Timing:** 220–320 ms on one ease-out curve, `--ease-out-expo` in `globals.css`. Only transform and opacity animate.
+- **Reduced motion:** every one of these becomes a short fade (140–160 ms), and the tile moves without sliding.
+
+### Changed
+- **`CartBar` takes its total in paise** and formats it itself, so the digits can roll.
+- **The new order's steps are put away with `step-away` instead of `hidden`.** `display: none` restarts a CSS animation when the element is shown again, so going back a step replayed the cart bar, the badges and the numbers. The step now stays mounted, invisible and zero height, on a phone.
+- **A DetailsPanel test no longer depends on today's date.** It set the date to tomorrow at 10:00, which is the new draft's own default, so on some days nothing changed and the handler went untested.
+
+### Validation
+- `tsc` and `eslint` clean. 193 test files and 1230 tests pass, with 100% coverage on every file touched.
+- **In the browser:**
+  - **Emulated Pixel 7, both motion settings:**
+    - the bar rises in on the first add and ticks on the second;
+    - the tile lines up with the chosen option;
+    - the address drops in and the discount ticks the total down;
+    - forward enters from the right (`translateX(24px)`) and back from the left, with no animation replayed on the way back;
+    - with reduced motion, all of these are a fade.
+  - **At 1280 px in Golden and Peach:** a new line lands in the side panel, and nothing slides between steps.
+- The Impeccable detector reports nothing on the changed files.
+
+### Blockers
+- None.

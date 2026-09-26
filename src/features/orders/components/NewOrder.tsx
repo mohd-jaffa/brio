@@ -18,6 +18,8 @@ import { CustomersClient } from "@/features/customers/api.client";
 import { CustomerFormSheet } from "@/features/customers/components/CustomerFormSheet";
 import type { Customer } from "@/features/customers/types";
 import type { Product } from "@/features/products/types";
+import { useArrived } from "@/hooks/useArrived";
+import { useTravelMotion } from "@/hooks/useTravelMotion";
 import { ApiError } from "@/lib/api/client";
 import { formatPaise } from "@/lib/format/currency";
 import { parseRupees } from "@/lib/money";
@@ -165,6 +167,13 @@ export function NewOrder() {
     },
   );
 
+  // The cart bar rises in with the first item, not when a kept draft loads.
+  const cartArrived = useArrived(draft !== null && itemCount(draft) > 0, draft !== null);
+  // On a phone each step comes in from the side it lies on (the grid shows
+  // them all from 1024 px, and stays still).
+  const stepRegion = useRef<HTMLDivElement>(null);
+  useTravelMotion(stepRegion, STEPS.indexOf(step), "(min-width: 1024px)");
+
   if (!draft) {
     return (
       <div role="status" aria-busy="true" aria-label={text.title}>
@@ -294,8 +303,11 @@ export function NewOrder() {
         {header.title}
       </p>
 
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-start">
-        <div className={cn("space-y-4", step !== "items" && "hidden lg:block")}>
+      <div
+        ref={stepRegion}
+        className="relative grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-start"
+      >
+        <div className={cn("space-y-4", step !== "items" && "step-away")}>
           <ItemsPanel
             products={onSale}
             loading={products.isLoading}
@@ -309,7 +321,8 @@ export function NewOrder() {
                 count={count}
                 countLabel={text.itemsCount(count)}
                 label={text.viewOrder}
-                total={formatPaise(totals.total)}
+                total={totals.total}
+                arriving={cartArrived}
                 actionLabel={text.continueToDetails}
                 onAction={() => passes("items") && goTo("details")}
               />
@@ -321,7 +334,7 @@ export function NewOrder() {
           aria-label={text.detailsTitle}
           className={cn(
             "space-y-8 lg:sticky lg:top-6 lg:max-h-[calc(100dvh-3rem)] lg:overflow-y-auto lg:rounded-3xl lg:border lg:border-border lg:bg-surface lg:p-6 lg:shadow-card",
-            step === "items" && "hidden lg:block",
+            step === "items" && "step-away",
           )}
         >
           <div className="hidden items-center justify-between lg:flex">
@@ -337,7 +350,7 @@ export function NewOrder() {
             )}
           </div>
 
-          <div className={cn(step === "payment" && "hidden lg:block")}>
+          <div className={cn(step === "payment" && "step-away")}>
             <DetailsPanel
               draft={draft}
               products={productsById}
@@ -349,7 +362,7 @@ export function NewOrder() {
             />
           </div>
 
-          <div className={cn(step !== "payment" && "hidden lg:block")}>
+          <div className={cn(step !== "payment" && "step-away")}>
             <PaymentPanel payment={draft.payment} errors={errors} update={update} />
           </div>
 

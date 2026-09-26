@@ -4,8 +4,10 @@ import { ReceiptText } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/components/ui/cn";
 import { PageHeader } from "@/components/ui/page-header";
 import { useResponse } from "@/components/ui/response-card";
+import { RollingNumber } from "@/components/ui/rolling-number";
 import { ScreenNotice } from "@/components/ui/screen-notice";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { StatusPill } from "@/components/ui/status-pill";
@@ -44,6 +46,8 @@ export function OrderDetail({ id }: { id: string }) {
   const respond = useResponse();
   const [collecting, setCollecting] = useState(false);
   const [billOpen, setBillOpen] = useState(false);
+  // The status it opened on: a move away from it pops the pill, a load does not.
+  const [openedOn, setOpenedOn] = useState<OrderStatus | null>(null);
 
   const order = useApiQuery<Order>(apiRoutes.orders.detail(id));
   // A Guest order has no customer to read.
@@ -94,6 +98,7 @@ export function OrderDetail({ id }: { id: string }) {
   }
 
   const current = order.data;
+  if (openedOn === null) setOpenedOn(current.status);
   const status = statusPill(current);
   const payment = paymentPill(current);
   const owed = balanceDue(current);
@@ -122,7 +127,12 @@ export function OrderDetail({ id }: { id: string }) {
         >
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="flex flex-wrap gap-2">
-              <StatusPill label={status.label} tone={status.tone} />
+              <span
+                key={current.status}
+                className={cn("inline-flex", openedOn !== null && current.status !== openedOn && "animate-pop")}
+              >
+                <StatusPill label={status.label} tone={status.tone} />
+              </span>
               <StatusPill label={payment.label} tone={payment.tone} />
             </div>
             <div className="text-right">
@@ -131,7 +141,7 @@ export function OrderDetail({ id }: { id: string }) {
               </p>
               {owed > 0 && (
                 <p className="text-sm font-semibold tabular-nums text-text">
-                  {text.balanceDue} {formatPaise(owed)}
+                  {text.balanceDue} <RollingNumber value={owed}>{formatPaise(owed)}</RollingNumber>
                 </p>
               )}
             </div>

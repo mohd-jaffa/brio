@@ -1,10 +1,12 @@
 "use client";
 
 import { ChoiceChips } from "@/components/ui/choice-chips";
+import { cn } from "@/components/ui/cn";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TextField } from "@/components/ui/text-field";
 import { UI_TEXT } from "@/constants/messages";
 import { PAYMENT_CHOICES_AT_PLACING, PAYMENT_METHOD_LABELS, PAYMENT_METHODS } from "@/constants/statuses";
+import { useArrived } from "@/hooks/useArrived";
 
 import { setPayment, type OrderDraft } from "../draft";
 
@@ -25,6 +27,9 @@ export function PaymentPanel({
 }) {
   const text = UI_TEXT.newOrder;
   const change = (changes: Partial<OrderDraft["payment"]>) => update((current) => setPayment(current, changes));
+  // Chosen here, rather than restored with the draft: they settle into place.
+  const paying = useArrived(payment.status !== "UNPAID");
+  const parting = useArrived(payment.status === "PARTIALLY_PAID");
 
   return (
     <section aria-labelledby="order-payment-heading" className="space-y-4">
@@ -41,16 +46,18 @@ export function PaymentPanel({
         onChange={(status) => change({ status })}
       />
       {payment.status !== "UNPAID" && (
-        <>
+        <div className={cn("space-y-4", paying && "animate-drop-in")}>
           {payment.status === "PARTIALLY_PAID" && (
-            <TextField
-              label={text.amountPaid}
-              required
-              inputMode="decimal"
-              value={payment.amount}
-              error={errors["payment.amount"]}
-              onChange={(event) => change({ amount: event.target.value })}
-            />
+            <div className={cn(parting && "animate-drop-in")}>
+              <TextField
+                label={text.amountPaid}
+                required
+                inputMode="decimal"
+                value={payment.amount}
+                error={errors["payment.amount"]}
+                onChange={(event) => change({ amount: event.target.value })}
+              />
+            </div>
           )}
           <div className="space-y-2">
             <p className="text-sm font-semibold text-text">{text.paymentMethod}</p>
@@ -72,7 +79,7 @@ export function PaymentPanel({
             error={errors["payment.reference"]}
             onChange={(event) => change({ reference: event.target.value })}
           />
-        </>
+        </div>
       )}
     </section>
   );
