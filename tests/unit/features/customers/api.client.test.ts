@@ -20,9 +20,6 @@ beforeEach(() => vi.clearAllMocks());
  */
 describe("CustomersClient", () => {
   it("reads and writes the customers routes", async () => {
-    await CustomersClient.list();
-    expect(getJson).toHaveBeenCalledWith("/api/customers");
-
     await CustomersClient.get("c-1");
     expect(getJson).toHaveBeenCalledWith("/api/customers/c-1");
 

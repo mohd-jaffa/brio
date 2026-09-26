@@ -1,12 +1,12 @@
-import { createCustomer, getAllCustomers } from "@/features/customers/api";
 import { withBakeryRoute } from "@/features/auth/guard";
-import { readJson } from "@/lib/api/handler";
-import { createCustomerSchema } from "@/lib/validation";
+import { createCustomer, listCustomers } from "@/features/customers/api";
+import { readJson, readQuery } from "@/lib/api/handler";
+import { createCustomerSchema, customerListQuerySchema } from "@/lib/validation";
 
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  return withBakeryRoute(request, (tenant) => getAllCustomers(tenant));
+  return withBakeryRoute(request, (tenant) => listCustomers(tenant, readQuery(request, customerListQuerySchema)));
 }
 
 export async function POST(request: Request) {

@@ -1,9 +1,10 @@
 "use client";
 
-import { MapPin, MessageCircle, Phone, UserRound } from "lucide-react";
+import { MapPin, MessageCircle, Phone } from "lucide-react";
 
 import { Avatar } from "@/components/ui/avatar";
 import { LinkButton } from "@/components/ui/button";
+import { GuestMark } from "@/components/ui/guest-mark";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { UI_TEXT } from "@/constants/messages";
 import type { Customer } from "@/features/customers/types";
@@ -38,12 +39,7 @@ export function OrderContact({
   const who =
     order.customerId === null ? (
       <div className="flex items-center gap-3">
-        <span
-          aria-hidden="true"
-          className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-sunken text-text-muted"
-        >
-          <UserRound size={20} strokeWidth={1.75} />
-        </span>
+        <GuestMark />
         <div className="min-w-0">
           <p className="text-sm font-semibold text-text">{UI_TEXT.orders.guest}</p>
           <p className="text-sm text-text-muted">{UI_TEXT.customerPicker.guestHint}</p>

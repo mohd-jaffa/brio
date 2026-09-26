@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { formatDate, formatDateTime, formatDayMonth, formatLongDate, formatMonth, formatTime } from '@/lib/format/date';
+import {
+  formatDate,
+  formatDateTime,
+  formatDayMonth,
+  formatDaysAgo,
+  formatLongDate,
+  formatMonth,
+  formatTime,
+} from '@/lib/format/date';
 
 describe('formatDate', () => {
   it('formats ISO calendar dates cleanly', () => {
@@ -64,5 +72,25 @@ describe('formatLongDate', () => {
   it('shows a dash for a date it cannot read', () => {
     expect(formatLongDate(undefined)).toBe('—');
     expect(formatLongDate('26/09/2026')).toBe('—');
+  });
+});
+
+describe('formatDaysAgo', () => {
+  const now = new Date('2026-09-26T06:00:00Z'); // 11:30 in India
+
+  it('counts the business days since, in words', () => {
+    expect(formatDaysAgo('2026-09-25T20:00:00Z', now)).toBe('today'); // 1:30 on the 26th in India
+    expect(formatDaysAgo('2026-09-25T05:00:00Z', now)).toBe('yesterday');
+    expect(formatDaysAgo('2026-09-21T05:00:00Z', now)).toBe('5 days ago');
+    expect(formatDaysAgo('2026-09-19T05:00:00Z', now)).toBe('a week ago');
+    expect(formatDaysAgo('2026-09-05T05:00:00Z', now)).toBe('3 weeks ago');
+    expect(formatDaysAgo('2026-08-20T05:00:00Z', now)).toBe('a month ago');
+    expect(formatDaysAgo('2026-06-01T05:00:00Z', now)).toBe('3 months ago');
+    expect(formatDaysAgo('2025-09-01T05:00:00Z', now)).toBe('a year ago');
+    expect(formatDaysAgo('2023-09-01T05:00:00Z', now)).toBe('3 years ago');
+  });
+
+  it('never reads a later instant as the future', () => {
+    expect(formatDaysAgo('2026-09-28T05:00:00Z', now)).toBe('today');
   });
 });

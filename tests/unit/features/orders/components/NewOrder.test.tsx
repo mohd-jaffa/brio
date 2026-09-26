@@ -110,7 +110,9 @@ beforeEach(() => {
     if (key === "/api/products") return products;
     if (key === "/api/business") return aBusiness();
     if (key === "/api/orders/o-1/bill") return aBill({ orderNumber: "ORD-1001" });
-    return [meena, rahul];
+    // Customers come a page at a time, matched on the server.
+    if (key.startsWith("/api/customers?search=")) return { items: [rahul], nextCursor: null };
+    return { items: [meena, rahul], nextCursor: null };
   });
 });
 
@@ -207,6 +209,19 @@ describe("NewOrder: details", () => {
     expect(screen.getByRole("radio", { name: /Rahul/ })).toHaveAttribute("aria-checked", "true");
     await userEvent.click(screen.getByRole("radio", { name: /Guest/ }));
     expect(button("Customer: Guest. Change")).toBeInTheDocument();
+  });
+
+  it("reads customers only once the picker opens, and searches them on the server", async () => {
+    store(withCake());
+    open("step=details");
+    await loaded();
+    expect(fetcher).not.toHaveBeenCalledWith(expect.stringContaining("/api/customers"));
+    await userEvent.click(button("Choose a customer"));
+    expect(await screen.findByRole("radio", { name: /Meena Gupta/ })).toBeInTheDocument();
+    expect(fetcher).toHaveBeenCalledWith("/api/customers");
+    await userEvent.type(within(screen.getByRole("dialog", { name: "Select customer" })).getByRole("searchbox"), "Rah");
+    await waitFor(() => expect(screen.queryByRole("radio", { name: /Meena Gupta/ })).not.toBeInTheDocument());
+    expect(fetcher).toHaveBeenCalledWith("/api/customers?search=Rah");
   });
 
   it("goes back to the grid for more items", async () => {

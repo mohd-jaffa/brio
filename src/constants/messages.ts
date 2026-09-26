@@ -408,6 +408,39 @@ export const UI_TEXT = {
     toPay: (amount: string) => `${amount} to pay`,
   },
 
+  /** How long ago something happened, by the business's calendar: "2 days ago". */
+  ago: {
+    today: "today",
+    yesterday: "yesterday",
+    days: (count: number) => `${count} days ago`,
+    weeks: (count: number) => (count === 1 ? "a week ago" : `${count} weeks ago`),
+    months: (count: number) => (count === 1 ? "a month ago" : `${count} months ago`),
+    years: (count: number) => (count === 1 ? "a year ago" : `${count} years ago`),
+  },
+
+  /** Customers (plan §139.10): the segments, search, the Guest sales row, and the list. */
+  customersScreen: {
+    title: "Customers",
+    subtitle: "The people who order from you.",
+    newCustomer: "New customer",
+    search: "Search by name or phone",
+    tabs: "Customers by segment",
+    tabNames: { ALL: "All", REGULAR: "Regular", NEW: "New" },
+    list: "Customers",
+    orders: (count: number) => `${count} ${count === 1 ? "order" : "orders"}`,
+    lastOrder: (when: string) => `last order ${when}`,
+    noOrders: "No orders yet",
+    emptyTitle: "No customers yet",
+    emptyHint: "Add the people who order from you — or add them as you take an order.",
+    noneInSegment: {
+      REGULAR: "No regulars yet. Three orders make one.",
+      NEW: "No one added in the last 30 days.",
+    },
+    guestSales: "Guest sales",
+    guestSalesLine: (orders: string, amount: string, period: string) => `${orders} · ${amount} · ${period}`,
+    guestSalesList: "Guest sales for the period",
+  },
+
   /** One customer (plan §139.10): who they are, what they have ordered, and a new order for them. */
   customerDetail: {
     title: "Customer",
@@ -661,6 +694,7 @@ export const UI_TEXT = {
     guestHint: "A walk-in; the bill reads “Guest”",
     addNew: "Add new customer",
     noMatches: "No customer matches that",
+    loading: "Loading customers",
   },
 
   /** What a notification says, written when it is sent (BUG-26). */

@@ -1752,3 +1752,36 @@ this entry grows with them.
 - None.
 - **Plan addition:** `0017_list_views` adds two read-only views (no table), recorded in the plan's migrations table.
 - **Still open:** order rows at 360 px cut the customer's name short, as before; the number, amount and status stay whole.
+
+## 2026-09-26 — Customers (R5.3)
+
+### Added
+- **`GET /api/customers?segment=REGULAR|NEW&search=&cursor=`** (`listCustomers`), a page by name from `customer_stats` (0017).
+  - **Regular:** three or more orders, cancelled ones not counted.
+  - **New:** added in the last 30 days and not yet Regular.
+  - **Search:** the name, or the phone on its digits however it was typed (BUG-23).
+  - **Each row:** the customer with their orders, last order and segment (`CustomerListItem`).
+- **Customers (`src/features/customers/components/Customers.tsx`).**
+  - **Tabs:** All · Regular · New.
+  - **Search:** runs once typing pauses.
+  - **Pinned Guest sales row:** the count, total and period Guest sales was last read for, from the same request, so opening it shows the same figures at once.
+  - **Rows:** initials, name and segment, then "12 orders · last order 2 days ago".
+  - **Adding:** **+** for a new customer, whose screen opens once saved.
+- **`formatDaysAgo`:** "today", "yesterday", "5 days ago", then weeks, months and years, by the business's calendar.
+- **`GuestMark`** in the kit, for a Guest wherever initials would be: the picker, Order detail and Customers.
+
+### Changed
+- **The customer picker searches on the server.**
+  - The order screen reads customers only while the picker is open, a page at a time, with **Show more**, rather than every customer when the screen opens.
+  - The picker's own browser-side filter is gone; it shows what the screen hands it.
+
+### Removed
+- `getAllCustomers` and `CustomersClient.list`. No screen reads every customer now.
+
+### Validation
+- `tsc`, `eslint` and the test-path check are clean. 238 test files and 1,535 tests pass. The new and changed modules are at 100% coverage.
+- **Against local data:** paging, both segments, and search by name and by "98234 56789" were checked. The picker's server search was followed in a browser.
+- **Captures:** Customers at 360, 390, 820, 1280 and 1440 px, in Golden and Peach, with no sideways scroll.
+
+### Blockers
+- None. BUG-23 is fixed.

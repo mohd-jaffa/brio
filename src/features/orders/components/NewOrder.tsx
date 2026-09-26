@@ -16,16 +16,18 @@ import { UI_TEXT } from "@/constants/messages";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { CustomersClient } from "@/features/customers/api.client";
 import { CustomerFormSheet } from "@/features/customers/components/CustomerFormSheet";
-import type { Customer } from "@/features/customers/types";
+import type { Customer, CustomerListItem } from "@/features/customers/types";
 import type { Product } from "@/features/products/types";
 import { OrderBill } from "@/features/receipts/components/OrderBill";
 import { useArrived } from "@/hooks/useArrived";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useTravelMotion } from "@/hooks/useTravelMotion";
 import { ApiError } from "@/lib/api/client";
 import { formatPaise } from "@/lib/format/currency";
 import { parseRupees } from "@/lib/money";
-import { apiRoutes } from "@/lib/query/keys";
+import { apiRoutes, withQuery } from "@/lib/query/keys";
 import { useApiMutation } from "@/lib/query/useApiMutation";
+import { useApiPages } from "@/lib/query/useApiPages";
 import { useApiQuery } from "@/lib/query/useApiQuery";
 import { orderFormSchema, type OrderFormPayload } from "@/lib/validation";
 
@@ -129,7 +131,13 @@ export function NewOrder() {
   const { draft, update, clear, keyFor } = useOrderDraft(profile?.id ?? null);
 
   const products = useApiQuery<Product[]>(apiRoutes.products.list);
-  const customers = useApiQuery<Customer[]>(apiRoutes.customers.list);
+  // Customers are read only while the picker is open, searched on the server, a page at a time.
+  const [picking, setPicking] = useState(false);
+  const [customerSearch, setCustomerSearch] = useState("");
+  const searchedCustomers = useDebouncedValue(customerSearch.trim());
+  const customers = useApiPages<CustomerListItem>(
+    picking ? withQuery(apiRoutes.customers.list, { search: searchedCustomers }) : null,
+  );
   const productsById = useMemo(
     () => new Map((products.data ?? []).map((product) => [product.id, product])),
     [products.data],
@@ -138,7 +146,6 @@ export function NewOrder() {
 
   // The furthest step whose checks have been run: its fields show their issues.
   const [tried, setTried] = useState<Step | null>(null);
-  const [picking, setPicking] = useState(false);
   const [addingCustomer, setAddingCustomer] = useState(false);
   const [addingCustom, setAddingCustom] = useState(false);
   // The estimate's bill while it is open (§139.11.5), and the bill of the order just placed.
@@ -431,7 +438,10 @@ export function NewOrder() {
       <CustomerPicker
         open={picking}
         onClose={() => setPicking(false)}
-        customers={customers.data ?? []}
+        customers={customers.data}
+        search={customerSearch}
+        onSearch={setCustomerSearch}
+        more={customers}
         value={
           draft.customer &&
           (draft.customer.kind === "GUEST" ? { kind: "GUEST" } : { kind: "CUSTOMER", id: draft.customer.id })

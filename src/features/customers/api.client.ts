@@ -6,7 +6,6 @@ import type { Customer } from "./types";
 
 /** What the browser may ask the API about customers. */
 export const CustomersClient = {
-  list: () => getJson<Customer[]>(apiRoutes.customers.list),
   get: (id: string) => getJson<Customer>(apiRoutes.customers.detail(id)),
   createCustomer: (payload: CreateCustomerInput) =>
     postJson<Customer>(apiRoutes.customers.list, payload),

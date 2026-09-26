@@ -8,7 +8,8 @@ vi.mock("@/lib/supabase/records", () => ({
   tenantRecords: () => ({ insert, update, list: vi.fn(), find, remove: vi.fn() }),
 }));
 
-import { createCustomer, getCustomerSummary, updateCustomer } from "@/features/customers/api";
+import { PAGE_SIZE } from "@/constants/limits";
+import { createCustomer, getCustomerSummary, listCustomers, updateCustomer } from "@/features/customers/api";
 import { fakeSupabase } from "@tests/support/supabase";
 import { tenantOf } from "@tests/support/tenant";
 
@@ -118,5 +119,70 @@ describe("getCustomerSummary", () => {
     expect((await getCustomerSummary(tenantOf(fakeSupabase(() => ({ data: null })).client), "c-1", now)).orders).toBe(0);
     const refused = fakeSupabase(() => ({ error: { code: "PGRST000", message: "down" } }));
     await expect(getCustomerSummary(tenantOf(refused.client), "c-1", now)).rejects.toBeInstanceOf(AppError);
+  });
+});
+
+describe("listCustomers", () => {
+  const now = new Date("2026-09-26T06:00:00Z");
+  const stats = (id: string, name: string, orders: number, created = "2026-01-01T00:00:00Z") => ({
+    ...row(id, name),
+    created_at: created,
+    order_count: orders,
+    last_order_at: orders ? "2026-09-24T05:00:00Z" : null,
+  });
+
+  it("reads a page of the business's customers by name, each with their orders and segment", async () => {
+    const fake = fakeSupabase(() => ({ data: [stats("c-1", "Anu", 4), stats("c-2", "Bina", 0, "2026-09-20T00:00:00Z"), stats("c-3", "Chitra", 1)] }));
+    const page = await listCustomers(tenantOf(fake.client), { search: null }, now);
+
+    const [query] = fake.queries;
+    expect(query.table).toBe("customer_stats");
+    expect(fake.argsOf(query, "eq")).toEqual([["bakery_id", "b-1"]]);
+    expect(fake.argsOf(query, "order")).toEqual([
+      ["name", { ascending: true }],
+      ["id", { ascending: true }],
+    ]);
+    expect(fake.argsOf(query, "range")).toEqual([[0, PAGE_SIZE]]);
+    expect(page.nextCursor).toBeNull();
+    expect(page.items.map(({ name, orders, lastOrderAt, segment }) => ({ name, orders, lastOrderAt, segment }))).toEqual([
+      { name: "Anu", orders: 4, lastOrderAt: "2026-09-24T05:00:00Z", segment: "REGULAR" },
+      { name: "Bina", orders: 0, lastOrderAt: null, segment: "NEW" },
+      { name: "Chitra", orders: 1, lastOrderAt: "2026-09-24T05:00:00Z", segment: null },
+    ]);
+    expect(page.items[0]).toMatchObject({ id: "c-1", phone: "+919876543210" });
+  });
+
+  it("keeps to the Regulars, or the New who are not yet Regular, in the database", async () => {
+    const regular = fakeSupabase(() => ({ data: [] }));
+    await listCustomers(tenantOf(regular.client), { search: null, segment: "REGULAR" }, now);
+    expect(regular.argsOf(regular.queries[0], "gte")).toEqual([["order_count", 3]]);
+
+    const fresh = fakeSupabase(() => ({ data: [] }));
+    await listCustomers(tenantOf(fresh.client), { search: null, segment: "NEW" }, now);
+    expect(fresh.argsOf(fresh.queries[0], "lt")).toEqual([["order_count", 3]]);
+    expect(fresh.argsOf(fresh.queries[0], "gte")).toEqual([["created_at", "2026-08-27T18:30:00.000Z"]]);
+  });
+
+  it("searches the name, and the phone on its digits however typed (BUG-23), and pages on", async () => {
+    const rows = Array.from({ length: PAGE_SIZE + 1 }, (_, index) => stats(`c-${index}`, `Name ${index}`, 0));
+    const fake = fakeSupabase(() => ({ data: rows }));
+    const page = await listCustomers(tenantOf(fake.client), { search: "98765 43210", cursor: 20 }, now);
+    expect(fake.argsOf(fake.queries[0], "or")).toEqual([['name.ilike."%98765 43210%",phone.like."%9876543210%"']]);
+    expect(fake.argsOf(fake.queries[0], "range")).toEqual([[20, 20 + PAGE_SIZE]]);
+    expect(page.items).toHaveLength(PAGE_SIZE);
+    expect(page.nextCursor).toBe(String(20 + PAGE_SIZE));
+
+    const byName = fakeSupabase(() => ({ data: null }));
+    expect((await listCustomers(tenantOf(byName.client), { search: "Anu" }, now)).items).toEqual([]);
+    expect(byName.argsOf(byName.queries[0], "or")).toEqual([['name.ilike."%Anu%"']]);
+
+    const nothing = fakeSupabase(() => ({ data: [] }));
+    await listCustomers(tenantOf(nothing.client), { search: "%" }, now);
+    expect(nothing.argsOf(nothing.queries[0], "or")).toEqual([]);
+  });
+
+  it("passes on a refusal in the app's own words", async () => {
+    const fake = fakeSupabase(() => ({ error: { code: "PGRST000", message: "down" } }));
+    await expect(listCustomers(tenantOf(fake.client), { search: null }, now)).rejects.toBeInstanceOf(AppError);
   });
 });

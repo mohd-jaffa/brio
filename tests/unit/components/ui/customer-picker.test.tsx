@@ -9,17 +9,27 @@ const customers = [
   { id: "c-1", name: "Meena Gupta", phone: "+919876543210" },
   { id: "c-2", name: "Rahul Nair", phone: "+919812345678" },
 ];
+type Pickable = (typeof customers)[number];
 
+/**
+ * The screen around the picker: it holds the search and hands in what the
+ * server matched — here, by name, which is enough to see the picker show it.
+ */
 function Screen({
   value = null,
   onPick = vi.fn(),
   onAddNew = vi.fn(),
+  answer = (search: string) => customers.filter((customer) => customer.name.toLowerCase().includes(search.toLowerCase())),
+  more = { hasMore: false, loadingMore: false, loadMore: vi.fn() },
 }: {
   value?: CustomerChoice | null;
-  onPick?: (picked: PickedCustomer<(typeof customers)[number]>) => void;
+  onPick?: (picked: PickedCustomer<Pickable>) => void;
   onAddNew?: () => void;
+  answer?: (search: string) => Pickable[] | undefined;
+  more?: { hasMore: boolean; loadingMore: boolean; loadMore: () => void };
 }) {
   const [open, setOpen] = useState(true);
+  const [search, setSearch] = useState("");
   return (
     <>
       <button type="button" onClick={() => setOpen(true)}>
@@ -28,7 +38,10 @@ function Screen({
       <CustomerPicker
         open={open}
         onClose={() => setOpen(false)}
-        customers={customers}
+        customers={answer(search.trim())}
+        search={search}
+        onSearch={setSearch}
+        more={more}
         value={value}
         onPick={onPick}
         onAddNew={onAddNew}
@@ -41,7 +54,7 @@ const choices = () => within(screen.getByRole("radiogroup", { name: "Select cust
 const search = () => screen.getByLabelText("Search by name or phone…");
 
 describe("CustomerPicker", () => {
-  it("lists Guest first, then every customer with their number", () => {
+  it("lists Guest first, then the customers it is handed, each with their number", () => {
     render(<Screen />);
     expect(screen.getByRole("dialog", { name: "Select customer" })).toBeInTheDocument();
     const [guest, meena, rahul] = choices();
@@ -61,21 +74,12 @@ describe("CustomerPicker", () => {
     expect(choices().map((choice) => choice.getAttribute("aria-checked"))).toEqual(["false", "false", "true"]);
   });
 
-  it("finds a customer by name, or by their number however it is typed (BUG-23)", async () => {
+  it("hands the search to the screen, and shows what comes back", async () => {
     render(<Screen />);
     await userEvent.type(search(), "meena");
+    expect(search()).toHaveValue("meena");
     expect(choices()).toHaveLength(2);
     expect(choices()[1]).toHaveAccessibleName(/Meena Gupta/);
-
-    await userEvent.clear(search());
-    await userEvent.type(search(), "+91 98123");
-    expect(choices()).toHaveLength(2);
-    expect(choices()[1]).toHaveAccessibleName(/Rahul Nair/);
-
-    await userEvent.clear(search());
-    await userEvent.type(search(), "   ");
-    expect(choices()).toHaveLength(3);
-    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
   it("says when no one matches, and keeps Guest on offer", async () => {
@@ -83,6 +87,21 @@ describe("CustomerPicker", () => {
     await userEvent.type(search(), "zzz");
     expect(choices()).toHaveLength(1);
     expect(screen.getByRole("status")).toHaveTextContent("No customer matches that");
+  });
+
+  it("holds the list's place until the first page comes, with Guest already on offer", () => {
+    render(<Screen answer={() => undefined} />);
+    expect(choices()).toHaveLength(1);
+    expect(screen.getByRole("status", { name: "Loading customers" })).toHaveAttribute("aria-busy", "true");
+  });
+
+  it("shows more while another page follows", async () => {
+    const loadMore = vi.fn();
+    const { rerender } = render(<Screen more={{ hasMore: true, loadingMore: false, loadMore }} />);
+    await userEvent.click(screen.getByRole("button", { name: "Show more" }));
+    expect(loadMore).toHaveBeenCalledOnce();
+    rerender(<Screen more={{ hasMore: false, loadingMore: false, loadMore }} />);
+    expect(screen.queryByRole("button", { name: "Show more" })).not.toBeInTheDocument();
   });
 
   it("closes on a choice, and opens again on the whole list", async () => {
@@ -95,6 +114,7 @@ describe("CustomerPicker", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Choose" }));
     expect(search()).toHaveValue("");
+    expect(choices()).toHaveLength(3);
     await userEvent.click(choices()[0]);
     expect(onPick).toHaveBeenLastCalledWith({ kind: "GUEST" });
   });

@@ -1,14 +1,17 @@
 import type { Tenant } from "@/lib/supabase/tenant";
 
 import { EDITABLE_COLUMNS } from "@/constants/editableColumns";
+import { REGULAR_MIN_ORDERS } from "@/constants/limits";
+import { pageWindow, toPage, type Page } from "@/lib/api/pagination";
 import { conflictError, isAppError } from "@/lib/errors";
 import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
 import { blankToNull, definedOnly } from "@/lib/supabase/columns";
 import { tenantRecords } from "@/lib/supabase/records";
-import type { CreateCustomerPayload, UpdateCustomerPayload } from "@/lib/validation";
+import { containsPattern, ilikeFilter, phoneDigits } from "@/lib/supabase/search";
+import type { CreateCustomerPayload, CustomerListQuery, UpdateCustomerPayload } from "@/lib/validation";
 
-import { summarise, type SummaryOrder } from "./summary";
-import type { Customer, CustomerRow, CustomerSummary } from "./types";
+import { customerSegment, newCustomersSince, summarise, type SummaryOrder } from "./summary";
+import type { Customer, CustomerListItem, CustomerRow, CustomerSummary } from "./types";
 
 /**
  * A bakery's customers. Tenant scoping, refusals and audit are the record
@@ -47,9 +50,44 @@ function toColumns(input: UpdateCustomerPayload) {
   });
 }
 
-export async function getAllCustomers(tenant: Tenant): Promise<Customer[]> {
-  const rows = await customers(tenant).list([{ column: "name" }]);
-  return rows.map(toCustomer);
+/** A customer's row with the counts `customer_stats` adds (0017_list_views.sql). */
+type CustomerStatsRow = CustomerRow & { order_count: number; last_order_at: string | null };
+
+/**
+ * A page of customers (plan §139.10, §133.9 I4), by name: all of them, the
+ * Regulars (three or more orders), or the New (added in the last 30 days, not
+ * yet Regular) — worked out in the database from `customer_stats`, so a
+ * segment pages like any list. A search matches the name, or the phone on
+ * its digits however it was typed (BUG-23).
+ */
+export async function listCustomers(
+  tenant: Tenant,
+  query: CustomerListQuery,
+  now: Date = new Date(),
+): Promise<Page<CustomerListItem>> {
+  const { from, to } = pageWindow(query.cursor);
+  let request = tenant.supabase.from("customer_stats").select("*").eq("bakery_id", tenant.bakeryId);
+  if (query.segment === "REGULAR") request = request.gte("order_count", REGULAR_MIN_ORDERS);
+  if (query.segment === "NEW") request = request.lt("order_count", REGULAR_MIN_ORDERS).gte("created_at", newCustomersSince(now));
+  const pattern = query.search ? containsPattern(query.search) : null;
+  if (query.search && pattern) {
+    const digits = phoneDigits(query.search);
+    request = request.or([ilikeFilter("name", pattern), ...(digits ? [`phone.like."%${digits}%"`] : [])].join(","));
+  }
+
+  const { data, error } = await request.order("name", { ascending: true }).order("id", { ascending: true }).range(from, to);
+  if (error) throw fromPostgrestError(error);
+
+  const page = toPage((data ?? []) as CustomerStatsRow[], query.cursor);
+  return {
+    ...page,
+    items: page.items.map((row) => ({
+      ...toCustomer(row),
+      orders: row.order_count,
+      lastOrderAt: row.last_order_at,
+      segment: customerSegment(row.order_count, row.created_at, now),
+    })),
+  };
 }
 
 export async function getCustomerById(

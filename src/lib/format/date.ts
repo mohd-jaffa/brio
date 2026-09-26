@@ -1,3 +1,6 @@
+import { UI_TEXT } from '@/constants/messages';
+import { dayKey, todayKey } from '@/lib/dates/calendar';
+
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const PARTS = new Intl.DateTimeFormat('en-US', {
@@ -57,4 +60,22 @@ export function formatLongDate(isoDate: string | null | undefined): string {
   const day = formatDate(isoDate);
   if (day === '—') return day;
   return `${WEEKDAYS[new Date(`${isoDate}T00:00:00Z`).getUTCDay()]}, ${day}`;
+}
+
+const DAY_MS = 86_400_000;
+
+/**
+ * How long ago an instant was, counted in the business's days (plan
+ * §139.10): "today", "yesterday", "2 days ago", then weeks, months and years
+ * — enough to say how recently someone ordered, not when to the minute.
+ */
+export function formatDaysAgo(iso: string, now: Date = new Date()): string {
+  const text = UI_TEXT.ago;
+  const days = Math.max(0, Math.round((Date.parse(todayKey(now)) - Date.parse(dayKey(iso))) / DAY_MS));
+  if (days === 0) return text.today;
+  if (days === 1) return text.yesterday;
+  if (days < 7) return text.days(days);
+  if (days < 30) return text.weeks(Math.floor(days / 7));
+  if (days < 365) return text.months(Math.floor(days / 30));
+  return text.years(Math.floor(days / 365));
 }

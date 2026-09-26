@@ -7915,7 +7915,11 @@ or more orders; *New* is created in the last 30 days. **A pinned "Guest sales"
 row** at the top — its count and total for the period — opens Guest sales. Rows:
 initials avatar · name · "12 orders · last order 2 days ago" · segment pill ·
 chevron. Search by name, or by phone in **any** format (BUG-23). The `+` button
-creates a customer.
+creates a customer. *As built (2026-09-26):* the pill sits beside the name, so
+the order line has the row's width at 360 px; *New* is added in the last 30 days
+and not yet Regular, since Regular wins; the Guest sales row reads the period
+Guest sales was last read for on the device; and a new customer's screen opens
+once they are saved.
 
 ### Customer detail
 
@@ -8315,7 +8319,7 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `GET /api/orders/{id}/bill` | Replaces `/receipt`: the bill view-model, including the business profile. |
 | `GET /api/orders/{id}/bill.pdf` | New — generated on demand, never stored. |
 | `POST /api/orders/{id}/payments` | Fixed amount handling (BUG-01); `Idempotency-Key`. |
-| `GET /api/customers` | `?search=` matches phone numbers on digits; pagination. |
+| `GET /api/customers` | `?search=` matches phone numbers on digits; pagination. Done 2026-09-26 (R5.3): `?segment=REGULAR\|NEW&search=&cursor=`, a page by name from `customer_stats`, each with their orders, last order and segment. |
 | `GET /api/customers/{id}/summary` | New — stats, and the delivery addresses taken from orders. Done 2026-09-26 (R5.4): orders and spend (cancelled not counted), balance due, last order, segment, and the distinct delivery places, most recent first. |
 | `GET /api/guest-sales` | New — `?range&from&to&cursor`, a period as Analytics takes it. Done 2026-09-26 (R5.5): the count and total of the period's Guest orders, cancelled left out, and a page of them. |
 | `GET /api/analytics/overview` | `?range&from&to&interval=DAY\|WEEK` — a preset, or `CUSTOM` with both dates (1–366 days). Returns the KPIs with their previous-period values, the sales series and the previous period's, the orders series, every product's sales (with their `iconKey`; custom items as one row), orders by status, pickup against delivery, the Guest split, collected against to collect, new against returning, and the top customers (§133.9 I1, I3, §139.11.11). Done 2026-09-26. |
@@ -8361,7 +8365,7 @@ wrong but survivable · **S4** polish.
 | **BUG-20** | **S3** | **The audit trail can be forged:** `authenticated` may INSERT into `audit_logs`, so any signed-in user can write audit rows for their business directly. | `supabase/migrations/0004_api_role_grants.sql:34` | The server writes audit (G1) | R2.10 · **fixed 2026-09-25** |
 | **BUG-21** | **S3** | **`payments` has no amount check and no method check**, unlike `orders` and `expenses`. | `0003` | Constraints | R0.13 · **fixed 2026-09-24** |
 | **BUG-22** | **S3** | **A delivery order is accepted with neither an address nor a map link**, against §96. | `src/lib/validation/schemas/order.ts:43–48` | A refinement on the delivery type | R3.8 · **fixed 2026-09-26** |
-| **BUG-23** | **S3** | **Customer search misses numbers as they are written.** Phones are stored as `+919876543210`, so typing "98765 43210" finds nothing. | `src/app/customers/page.tsx:23` | Match on digits | R5.3 |
+| **BUG-23** | **S3** | **Customer search misses numbers as they are written.** Phones are stored as `+919876543210`, so typing "98765 43210" finds nothing. | `src/app/customers/page.tsx:23` | Match on digits | R5.3 — **fixed 2026-09-26**: Customers, the order screen's picker and Orders match a phone on its digits, on the server |
 | **BUG-24** | **S3** | **The search box's placeholder and icon fail contrast** (`text-muted/60`) — §138.6 C3 fixed the text field but not this one. | `src/components/ui/search-input.tsx:28, 36` | Full-strength muted | R1.12 · **fixed 2026-09-24** |
 | **BUG-25** | **S3** | **Dialogs do not keep focus.** Tab walks out of the form sheet and the More sheet into the page behind, which is not `inert`. The receipt view is **not a dialog at all** — no role, no Escape, no focus handling. | `form-sheet.tsx`, `MoreSheet.tsx`, `ReceiptPrintView.tsx` | §139.5 sheet/dialog | R1.9 · **fixed 2026-09-25** |
 | **BUG-26** | **S4** | **Notifications print raw values:** "Order #13-482 is now IN_PROGRESS"; "Payment of 50000 received" — paise, in inline English. | `status.ts:66`, `payments/api.ts:81` | Labels, `formatPaise`, `messages.ts` | R3.4 · **fixed 2026-09-26** |
@@ -8629,7 +8633,7 @@ the row needs; without an answer it is built on that question's default
 |---|---|---|---|---|
 | R5.1 | Home | §139.10; IMP-05 | — | DONE (2026-09-26 · Home; `GET /api/dashboard` works it out on the server, so Home no longer reads every order) |
 | R5.2 | Orders list | §139.10; IMP-07 | — | DONE (2026-09-26 · tabs with counts, server search and filters, a page at a time; `0017_list_views`) |
-| R5.3 | Customers: segments, the pinned Guest sales row, search on digits | §139.10; BUG-23 | — | TODO |
+| R5.3 | Customers: segments, the pinned Guest sales row, search on digits | §139.10; BUG-23 | — | DONE (2026-09-26 · paged on `customer_stats`; the order screen's picker searches the server too) |
 | R5.4 | Customer detail: stats, orders, notes, addresses, create order, order again | IMP-03, IMP-04 | — | DONE (2026-09-26 · `GET /api/customers/{id}/summary`; Order again sits on the order) |
 | R5.5 | Guest sales | §139.11.3 | — | DONE (2026-09-26 · `/customers/guest`; also from Orders' Guest filter and Analytics' Guest split) |
 | R5.6 | Products; neutral units; the **Icon** field and picker — the owner picks the product's illustration from the library; ~~managing categories~~ dropped (2026-09-25), and a migration removes the unused `categories` table and `products.category_id` | §139.11.10; §133.4 D1 (dropped) | Q8 | TODO |

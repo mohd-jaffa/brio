@@ -54,9 +54,11 @@ export {
 
 export {
   createCustomerSchema,
+  customerListQuerySchema,
   updateCustomerSchema,
   type CreateCustomerInput,
   type CreateCustomerPayload,
+  type CustomerListQuery,
   type UpdateCustomerInput,
   type UpdateCustomerPayload,
 } from "./schemas/customer";

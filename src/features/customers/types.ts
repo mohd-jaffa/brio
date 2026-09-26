@@ -40,6 +40,17 @@ export interface GuestSales {
   nextCursor: string | null;
 }
 
+/**
+ * A customer as Customers and the order screen's picker list them (plan
+ * §139.10): who they are, with how many orders they have placed — cancelled
+ * ones not counted — when they last ordered, and their segment.
+ */
+export interface CustomerListItem extends Customer {
+  orders: number;
+  lastOrderAt: string | null;
+  segment: CustomerSegment | null;
+}
+
 /** Regular, New, or neither (plan §139.10). */
 export type { CustomerSegment } from "@/constants/statuses";
 
