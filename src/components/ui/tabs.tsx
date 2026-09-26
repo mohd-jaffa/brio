@@ -73,8 +73,13 @@ export function Tabs<T extends string>({
   const tabs = options.map((option) => option.value).join();
   useEffect(() => {
     const element = list.current!;
+    const underline = bar.current!;
     if (typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(() => placeUnderline(element, bar.current!, placed));
+    // Both are held from here: React lets go of its refs as the tabs leave,
+    // before this effect is cleaned up, and a resize can land in between.
+    const observer = new ResizeObserver(() => {
+      if (element.isConnected) placeUnderline(element, underline, placed);
+    });
     element.querySelectorAll('[role="tab"]').forEach((tab) => observer.observe(tab));
     return () => observer.disconnect();
   }, [tabs]);

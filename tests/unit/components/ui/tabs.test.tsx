@@ -111,6 +111,25 @@ describe("Tabs' underline", () => {
     unmount();
     expect(disconnect).toHaveBeenCalled();
   });
+
+  it("lets a resize that lands as the tabs leave pass by", () => {
+    layTabsOut();
+    let resized = () => {};
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        constructor(callback: () => void) {
+          resized = callback;
+        }
+        observe() {}
+        // Still delivered after the tabs have gone, as a browser may between React letting go of its refs and this cleanup.
+        disconnect() {}
+      },
+    );
+    const { unmount } = render(<Screen />);
+    unmount();
+    expect(() => resized()).not.toThrow();
+  });
 });
 
 describe("TabPanel", () => {

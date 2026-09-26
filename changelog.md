@@ -2078,3 +2078,15 @@ this entry grows with them.
 ### Blockers
 - None. A worker process started before this change must be restarted to take the new job.
 
+## 2026-09-26 — Tabs: a resize as they leave
+
+### Fixed
+- **"Cannot set properties of null (setting 'hidden')"** in `placeUnderline` (`tabs.tsx`), reported by the user from the web. As a screen with tabs left, React let go of its refs before the effect watching the tabs' sizes was cleaned up, and a resize arriving in between found no underline. The watcher now holds the tabs and the underline from its start, and does nothing once the tabs are gone.
+
+### Validation
+- A new test delivers a resize after the tabs have gone; the tabs are at 100% coverage.
+- **In Chromium:** four rounds through Expenses, Orders, Analytics and Customers, switching a tab and resizing the window on each, raised no page error.
+
+### Blockers
+- None.
+
