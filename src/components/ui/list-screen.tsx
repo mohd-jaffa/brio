@@ -18,33 +18,59 @@ import { SkeletonRows } from "./skeleton";
  * in which states they bothered with.
  *
  * What a list needs to know about its query is exactly what SWR returns, so a
- * screen passes its `useSWR` result straight in.
+ * screen passes its `useSWR` result straight in. A paged one (`useApiPages`)
+ * also gets **Show more** under its rows while another page follows.
  */
 export interface ListQuery {
   isLoading: boolean;
   error?: unknown;
   mutate?: () => unknown;
   isValidating?: boolean;
+  /** A paged list (`useApiPages`): whether another page follows, and how to ask for it. */
+  hasMore?: boolean;
+  loadingMore?: boolean;
+  loadMore?: () => void;
+}
+
+/**
+ * Each item as a card of its own in the list's grid — or, with `renderList`
+ * instead, the screen draws the whole list itself: hairline rows on a phone,
+ * a table on a desktop.
+ */
+type ListBody<T> =
+  | { keyOf: (item: T) => string; renderItem: (item: T) => ReactElement; renderList?: never }
+  | { renderList: (items: readonly T[]) => ReactNode; keyOf?: never; renderItem?: never };
+
+function Items<T>({ items, body, columns }: { items: readonly T[]; body: ListBody<T>; columns: 1 | 2 }) {
+  if (body.renderList) return body.renderList(items);
+  const { keyOf, renderItem } = body;
+  return (
+    <ul
+      role="list"
+      className={cn("grid gap-3 md:gap-4", columns === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1")}
+    >
+      {items.map((item) => (
+        <li key={keyOf(item)}>{renderItem(item)}</li>
+      ))}
+    </ul>
+  );
 }
 
 export function ListScreen<T>({
   query,
   loadFailed,
   data,
-  keyOf,
-  renderItem,
   empty,
   noMatches,
   columns = 1,
   children,
-}: {
+  ...body
+}: ListBody<T> & {
   query: ListQuery;
   /** The message shown when loading fails and the failure carries none of its own. */
   loadFailed: ErrorMessageCode;
   /** undefined until the first load has an answer; already filtered by the screen. */
   data: readonly T[] | undefined;
-  keyOf: (item: T) => string;
-  renderItem: (item: T) => ReactElement;
   /** Shown when the bakery has none of these yet — usually an EmptyState. */
   empty: ReactNode;
   /** Shown when there are some, but none match the current search. */
@@ -85,14 +111,17 @@ export function ListScreen<T>({
 
   return (
     <section>
-      <ul
-        role="list"
-        className={cn("grid gap-3 md:gap-4", columns === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1")}
-      >
-        {data.map((item) => (
-          <li key={keyOf(item)}>{renderItem(item)}</li>
-        ))}
-      </ul>
+      <Items items={data} body={body as ListBody<T>} columns={columns} />
+      {query.hasMore && query.loadMore && (
+        <div className="mt-4 flex justify-center">
+          <Button
+            label={UI_TEXT.actions.showMore}
+            variant="secondary"
+            loading={query.loadingMore}
+            onClick={query.loadMore}
+          />
+        </div>
+      )}
       {children}
     </section>
   );

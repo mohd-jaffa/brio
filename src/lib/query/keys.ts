@@ -51,3 +51,18 @@ export const apiRoutes = {
     logo: "/api/business/logo",
   },
 } as const;
+
+/**
+ * A route with its query: the values given, in the order given, and nothing
+ * for one left empty — so a list with no search asks for exactly its route,
+ * and shares its cache with every other screen that does.
+ */
+export function withQuery(route: string, params: Record<string, string | null | undefined>): string {
+  const query = new URLSearchParams();
+  for (const [name, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && value !== "") query.set(name, value);
+  }
+  const text = query.toString();
+  if (text === "") return route;
+  return `${route}${route.includes("?") ? "&" : "?"}${text}`;
+}

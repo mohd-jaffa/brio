@@ -1,11 +1,18 @@
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { SWRConfig } from "swr";
+import useSWR, { SWRConfig } from "swr";
 import { describe, expect, it, vi } from "vitest";
 
 import { ApiError } from "@/lib/api/client";
 
+const pagedFetcher = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/api/client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/api/client")>()),
+  fetcher: pagedFetcher,
+}));
+
 import { useApiMutation } from "@/lib/query/useApiMutation";
+import { useApiPages } from "@/lib/query/useApiPages";
 
 function wrapper({ children }: { children: ReactNode }) {
   return <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>;
@@ -82,5 +89,37 @@ describe("useApiMutation", () => {
     });
 
     expect(order.at(-1)).toBe("success");
+  });
+
+  it("refreshes every read of a stale route — searched and paged ones too — and leaves the rest", async () => {
+    const reads: string[] = [];
+    const fetcher = vi.fn(async (key: string) => {
+      reads.push(key);
+      return key.includes("search=y") ? { items: [], nextCursor: null } : [];
+    });
+    pagedFetcher.mockImplementation(fetcher);
+    const run = vi.fn().mockResolvedValue("ok");
+    const { result } = renderHook(
+      () => {
+        useSWR("/api/customers?search=x");
+        useSWR("/api/products");
+        useApiPages("/api/customers?search=y");
+        return useApiMutation(run, { revalidate: ["/api/customers"] });
+      },
+      {
+        wrapper: ({ children }: { children: ReactNode }) => (
+          <SWRConfig value={{ provider: () => new Map(), fetcher, dedupingInterval: 0 }}>{children}</SWRConfig>
+        ),
+      },
+    );
+    await waitFor(() => expect(reads).toHaveLength(3));
+    reads.length = 0;
+
+    await act(async () => {
+      await result.current.submit(undefined);
+    });
+
+    await waitFor(() => expect(reads).toEqual(expect.arrayContaining(["/api/customers?search=x", "/api/customers?search=y"])));
+    expect(reads).not.toContain("/api/products");
   });
 });

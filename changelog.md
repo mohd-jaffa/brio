@@ -1598,3 +1598,26 @@ this entry grows with them.
 - Why it is blocked: it does not reproduce under emulation.
 - Required decision/input: the device, the browser and a screen recording, or how the page is opened (phone over the network, or DevTools device mode).
 - Temporary workaround: none needed to use the page.
+
+## 2026-09-26 — Phase 5 begins: paging and server search for every list (R5.13, foundation)
+
+### Added
+- **The page shape (`src/lib/api/pagination.ts`).** Every paged route answers `{ items, nextCursor }`.
+  - The cursor is where the next page starts, as digits. A route asks for one row more than a page (`PAGE_SIZE`, 20) to know whether another follows, so no count is needed.
+  - `cursor` and `search` are parsed once, by `listQuerySchema` (`src/lib/validation/schemas/list.ts`). The search is normalised and bounded like any line.
+- **Search that is safe to hand to PostgREST (`src/lib/supabase/search.ts`).** `containsPattern` drops LIKE wildcards and the characters that end or nest a filter; `ilikeFilter` quotes the pattern for an `or` filter.
+  - `phoneDigits` matches a phone however it was typed, "98765 43210" or "+91-98765-43210" (BUG-23).
+- **`useApiPages` (`src/lib/query`).** A paged list on SWR's infinite loader, in the shape `ListScreen` reads.
+  - A new search or tab starts again from its first page, while the last rows stay on screen until the new ones arrive.
+  - Every page shown is read again when the list is refreshed.
+- **`withQuery`** builds a route with its query and leaves out empty values, so a list with no search shares its cache with every other reader of the route.
+- **`ListScreen`:** **Show more** under a paged list while another page follows. `renderList` lets a screen draw the whole list itself, as hairline rows or a table.
+
+### Changed
+- **`useApiMutation`** refreshes every cached read of a stale route: searched, filtered and paged ones as well as the bare route. SWR's own key filter skips paged lists, so the hook walks the cache itself.
+
+### Validation
+- `tsc` and `eslint` are clean. The new modules are at 100% coverage.
+
+### Blockers
+- None. Screens move onto paging one by one as they are rebuilt. `GET /api/orders` switches last, after Home, Analytics and Customer detail stop reading every order.

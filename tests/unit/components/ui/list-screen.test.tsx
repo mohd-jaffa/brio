@@ -73,9 +73,56 @@ describe("ListScreen", () => {
     expect(screen.getByText("Meena")).toBeInTheDocument();
   });
 
+  it("sets the cards two to a row from a tablet when asked", () => {
+    list({ data: [{ id: "1", name: "Meena" }], columns: 2 });
+    expect(screen.getByRole("list")).toHaveClass("md:grid-cols-2");
+  });
+
   it("keeps the rows up when a refresh fails after they have loaded", () => {
     list({ query: { isLoading: false, error: new Error("offline"), mutate: vi.fn() }, data: [{ id: "1", name: "Meena" }] });
     expect(screen.getByText("Meena")).toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("lets the screen draw the whole list itself", () => {
+    render(
+      <ListScreen<Row>
+        query={{ isLoading: false }}
+        loadFailed="CUSTOMERS_LOAD_FAILED"
+        data={[{ id: "1", name: "Meena" }]}
+        renderList={(rows) => <table aria-label="Customers"><tbody><tr><td>{rows[0].name}</td></tr></tbody></table>}
+        empty={null}
+      />,
+    );
+    expect(screen.getByRole("table", { name: "Customers" })).toHaveTextContent("Meena");
+    expect(screen.queryByRole("list")).not.toBeInTheDocument();
+  });
+
+  it("offers the next page while there is one, and asks for it", async () => {
+    const loadMore = vi.fn();
+    const { rerender } = render(
+      <ListScreen<Row>
+        query={{ isLoading: false, hasMore: true, loadMore, loadingMore: false }}
+        loadFailed="CUSTOMERS_LOAD_FAILED"
+        data={[{ id: "1", name: "Meena" }]}
+        keyOf={(row) => row.id}
+        renderItem={(row) => <span>{row.name}</span>}
+        empty={null}
+      />,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Show more" }));
+    expect(loadMore).toHaveBeenCalledOnce();
+
+    rerender(
+      <ListScreen<Row>
+        query={{ isLoading: false, hasMore: false, loadMore }}
+        loadFailed="CUSTOMERS_LOAD_FAILED"
+        data={[{ id: "1", name: "Meena" }]}
+        keyOf={(row) => row.id}
+        renderItem={(row) => <span>{row.name}</span>}
+        empty={null}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: "Show more" })).not.toBeInTheDocument();
   });
 });

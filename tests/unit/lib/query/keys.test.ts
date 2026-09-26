@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { apiRoutes } from "@/lib/query/keys";
+import { apiRoutes, withQuery } from "@/lib/query/keys";
 
 describe("apiRoutes", () => {
   it("names every endpoint the browser calls", () => {
@@ -23,5 +23,22 @@ describe("apiRoutes", () => {
   it("gives a mutation the same key its query used, so nothing goes stale", () => {
     expect(apiRoutes.products.list).toBe(apiRoutes.products.list);
     expect(apiRoutes.orders.detail("o-1")).toBe(apiRoutes.orders.detail("o-1"));
+  });
+});
+
+describe("withQuery", () => {
+  it("adds the values given, and nothing for one left empty", () => {
+    expect(withQuery("/api/orders", { status: "PENDING", search: "", payment: null, from: undefined })).toBe(
+      "/api/orders?status=PENDING",
+    );
+    expect(withQuery("/api/orders", { search: "Anu Sharma" })).toBe("/api/orders?search=Anu+Sharma");
+  });
+
+  it("asks for exactly the route when nothing is given", () => {
+    expect(withQuery("/api/orders", { search: "" })).toBe("/api/orders");
+  });
+
+  it("adds to a query the route already has", () => {
+    expect(withQuery("/api/orders?status=PENDING", { cursor: "20" })).toBe("/api/orders?status=PENDING&cursor=20");
   });
 });

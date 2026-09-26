@@ -184,6 +184,7 @@ export const UI_TEXT = {
     delete: "Delete",
     edit: "Edit",
     search: "Search…",
+    showMore: "Show more",
   },
 
   states: {
