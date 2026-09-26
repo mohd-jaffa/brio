@@ -18,6 +18,7 @@ import { CustomersClient } from "@/features/customers/api.client";
 import { CustomerFormSheet } from "@/features/customers/components/CustomerFormSheet";
 import type { Customer } from "@/features/customers/types";
 import type { Product } from "@/features/products/types";
+import { OrderBill } from "@/features/receipts/components/OrderBill";
 import { useArrived } from "@/hooks/useArrived";
 import { useTravelMotion } from "@/hooks/useTravelMotion";
 import { ApiError } from "@/lib/api/client";
@@ -39,11 +40,12 @@ import {
   quantityOf,
   type DraftCustomer,
 } from "../draft";
-import type { StockShortfall } from "../estimate";
+import type { OrderEstimate, StockShortfall } from "../estimate";
 import { useOrderDraft } from "../hooks/useOrderDraft";
 import type { Order } from "../types";
 import { CustomItemSheet } from "./CustomItemSheet";
 import { DetailsPanel } from "./DetailsPanel";
+import { EstimateBill } from "./EstimateBill";
 import { ItemsPanel } from "./ItemsPanel";
 import { OrderSummary } from "./OrderSummary";
 import { PaymentPanel } from "./PaymentPanel";
@@ -148,6 +150,10 @@ export function NewOrder() {
   const [picking, setPicking] = useState(false);
   const [addingCustomer, setAddingCustomer] = useState(false);
   const [addingCustom, setAddingCustom] = useState(false);
+  // The estimate's bill while it is open (§139.11.5), and the bill of the order just placed.
+  const [estimating, setEstimating] = useState(false);
+  const [estimate, setEstimate] = useState<OrderEstimate | undefined>();
+  const [placedBill, setPlacedBill] = useState<{ id: string; orderNumber: string } | null>(null);
 
   // What Try again repeats: the same request, so the same key (§133.3 C2).
   const lastAttempt = useRef<(() => void) | null>(null);
@@ -166,6 +172,13 @@ export function NewOrder() {
       },
     },
   );
+
+  const preview = useApiMutation<OrderFormPayload, OrderEstimate>((payload) => OrdersClient.preview(payload), {
+    onError: (failure) => {
+      setEstimating(false);
+      respond.failure(failure, { title: UI_TEXT.orderDetail.billNotBuilt, fallback: "RECEIPT_LOAD_FAILED" });
+    },
+  });
 
   // The cart bar rises in with the first item, not when a kept draft loads.
   const cartArrived = useArrived(draft !== null && itemCount(draft) > 0, draft !== null);
@@ -232,13 +245,24 @@ export function NewOrder() {
     }
   };
 
+  /** Shows every issue, and on a phone goes back to the first step that has one. */
+  const putRight = () => {
+    setTried("payment");
+    const first = STEPS.find((at) => Object.keys(within(issues, at)).length > 0);
+    if (first && first !== step && window.matchMedia?.("(min-width: 1024px)").matches !== true) goTo(first);
+  };
+
+  /** The bill before the order exists: the server prices the draft and stores nothing (§139.11.5). */
+  const viewBill = async () => {
+    if (!parsed.success) return putRight();
+    setEstimate(undefined);
+    setEstimating(true);
+    const priced = await preview.submit(parsed.data);
+    if (priced) setEstimate(priced);
+  };
+
   const place = async () => {
-    if (!passes("payment") || !parsed.success) {
-      // Send them back to the first step that has something to put right.
-      const first = STEPS.find((at) => Object.keys(within(issues, at)).length > 0);
-      if (first && first !== "payment" && window.matchMedia?.("(min-width: 1024px)").matches !== true) goTo(first);
-      return;
-    }
+    if (!parsed.success) return putRight();
     const who = draft.customer?.kind === "CUSTOMER" ? draft.customer.name : UI_TEXT.orders.guest;
     const payload = parsed.data;
     const attempt = async () => {
@@ -256,7 +280,10 @@ export function NewOrder() {
           { label: text.factCustomer, value: who },
           { label: text.factTotal, value: formatPaise(order.pricing.total) },
         ],
-        primary: { label: text.viewOrder, href: `/orders/${order.id}` },
+        primary: {
+          label: UI_TEXT.bill.view,
+          onClick: () => setPlacedBill({ id: order.id, orderNumber: order.orderNumber }),
+        },
         secondary: { label: text.newOrder },
         autoClose: false,
       });
@@ -371,6 +398,7 @@ export function NewOrder() {
             totals={totals}
             adjustments={draft.adjustments}
             paid={step === "payment" || draft.payment.status !== "UNPAID" ? paidNow : undefined}
+            onViewBill={count > 0 ? () => void viewBill() : undefined}
           />
 
           {/* Always in reach while the panel scrolls. */}
@@ -432,6 +460,22 @@ export function NewOrder() {
         open={addingCustom}
         onClose={() => setAddingCustom(false)}
         onAdd={(item) => update((current) => addCustom(current, item))}
+      />
+      <EstimateBill
+        open={estimating}
+        estimate={estimate}
+        onClose={() => setEstimating(false)}
+        placing={create.submitting}
+        onPlace={() => {
+          setEstimating(false);
+          void place();
+        }}
+      />
+      <OrderBill
+        orderId={placedBill?.id ?? ""}
+        orderNumber={placedBill?.orderNumber ?? ""}
+        open={placedBill !== null}
+        onClose={() => setPlacedBill(null)}
       />
     </>
   );

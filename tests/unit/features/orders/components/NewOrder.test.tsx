@@ -12,6 +12,7 @@ import type { Product } from "@/features/products/types";
 import { ApiError } from "@/lib/api/client";
 import { clearUserItems } from "@/lib/storage/userStorage";
 
+import { aBill, aBusiness } from "@tests/support/bills";
 import { Providers } from "@tests/support/providers";
 
 /** The address bar: `?step=` is read from it, and push and replace change it. */
@@ -51,7 +52,9 @@ vi.mock("@/lib/api/client", async (original) => ({
   ...(await original<typeof import("@/lib/api/client")>()),
   fetcher,
 }));
-vi.mock("@/features/orders/api.client", () => ({ OrdersClient: { createOrder: vi.fn() } }));
+vi.mock("@/features/orders/api.client", () => ({ OrdersClient: { createOrder: vi.fn(), preview: vi.fn() } }));
+// The bill's image is drawn on a canvas, which jsdom has not got: it is its own module's test.
+vi.mock("@/features/receipts/image", () => ({ billImage: vi.fn(() => new Promise(() => undefined)) }));
 vi.mock("@/features/customers/api.client", () => ({
   CustomersClient: { get: vi.fn(), createCustomer: vi.fn(), updateCustomer: vi.fn() },
 }));
@@ -103,7 +106,12 @@ const loaded = () => screen.findByRole("button", { name: "Remove Chocolate truff
 
 beforeEach(() => {
   auth.profile = { id: "u-1" };
-  fetcher.mockImplementation(async (key: string) => (key === "/api/products" ? products : [meena, rahul]));
+  fetcher.mockImplementation(async (key: string) => {
+    if (key === "/api/products") return products;
+    if (key === "/api/business") return aBusiness();
+    if (key === "/api/orders/o-1/bill") return aBill({ orderNumber: "ORD-1001" });
+    return [meena, rahul];
+  });
 });
 
 afterEach(() => {
@@ -301,9 +309,16 @@ describe("NewOrder: payment and placing", () => {
     expect(done).toHaveTextContent("ORD-1001 is saved.");
     expect(done).toHaveTextContent("Guest");
     expect(done).toHaveTextContent("₹1,250");
-    expect(within(done).getByRole("link", { name: "View order" })).toHaveAttribute("href", "/orders/o-1");
     expect(nav.router.replace).toHaveBeenCalledWith("/orders/new");
     expect(localStorage.getItem("ovenly_user:u-1:order_draft")).toContain('"lines":[]');
+
+    // The card's next step is the bill of the order just placed.
+    await userEvent.click(within(done).getByRole("button", { name: "View bill" }));
+    const bill = await screen.findByRole("dialog", { name: "Bill ORD-1001" });
+    expect(await within(bill).findByRole("article", { name: "Bill ORD-1001" })).toBeInTheDocument();
+    expect(fetcher).toHaveBeenCalledWith("/api/orders/o-1/bill");
+    await userEvent.click(within(bill).getByRole("button", { name: "Close" }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Bill ORD-1001" })).not.toBeInTheDocument());
   });
 
   it("names the customer on the card", async () => {
@@ -402,6 +417,94 @@ describe("NewOrder: payment and placing", () => {
     await userEvent.click(screen.getAllByRole("button", { name: "Place order" })[0]);
     expect(nav.router.push).not.toHaveBeenCalled();
     expect(button("Choose a customer")).toHaveAccessibleDescription("Choose a customer.");
+  });
+});
+
+describe("NewOrder: the bill before placing (§139.11.5)", () => {
+  const ready = (draft = withCake()) => chooseCustomer(draft, { kind: "GUEST" });
+  const estimate = {
+    customer: { kind: "GUEST" as const },
+    lines: [
+      {
+        productId: CAKE,
+        name: "Chocolate truffle cake",
+        unitPrice: 125000,
+        quantity: 1,
+        subtotal: 125000,
+        notes: null,
+      },
+    ],
+    adjustments: [],
+    totals: { subtotal: 125000, discount: 0, deliveryCharge: 0, tax: 0, total: 125000 },
+    delivery: { type: "PICKUP" as const, date: "2026-09-27T04:30:00.000Z", address: null, googleMapsLink: null },
+    payment: { status: "UNPAID" as const, paid: 0, method: null, reference: null },
+    balanceDue: 125000,
+    shortfalls: [],
+    issuedAt: "2026-09-26T06:00:00.000Z",
+  };
+  const viewBill = async () => {
+    const summary = await screen.findByRole("region", { name: "Order summary" });
+    await userEvent.click(within(summary).getByRole("button", { name: "View bill" }));
+  };
+
+  it("shows the server's estimate of the draft, and places the order from it", async () => {
+    vi.mocked(OrdersClient.preview).mockResolvedValue(estimate);
+    vi.mocked(OrdersClient.createOrder).mockResolvedValue(placed);
+    store(ready());
+    open("step=details");
+    await loaded();
+    await viewBill();
+
+    const sheet = screen.getByRole("dialog", { name: "Estimate" });
+    expect(await within(sheet).findByRole("heading", { name: "Estimate · not yet confirmed" })).toBeInTheDocument();
+    expect(OrdersClient.preview).toHaveBeenCalledWith(
+      expect.objectContaining({ customer: { kind: "GUEST" }, items: [{ productId: CAKE, quantity: 1, notes: null }] }),
+    );
+    expect(within(sheet).getByRole("button", { name: "Share" })).toBeEnabled();
+
+    await userEvent.click(within(sheet).getByRole("button", { name: "Place order" }));
+    expect(await screen.findByRole("dialog", { name: "Order placed" })).toBeInTheDocument();
+    expect(OrdersClient.createOrder).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("dialog", { name: "Estimate" })).not.toBeInTheDocument();
+  });
+
+  it("closes, and says why, when the draft cannot be priced", async () => {
+    vi.mocked(OrdersClient.preview).mockRejectedValue(
+      new ApiError(422, "ORDER_TOTAL_NEGATIVE", "The discounts come to more than the order.", "req_7"),
+    );
+    store(ready());
+    open("step=details");
+    await loaded();
+    await viewBill();
+
+    expect(await screen.findByRole("alertdialog", { name: "Bill not ready" })).toHaveTextContent(
+      "The discounts come to more than the order.",
+    );
+    expect(screen.queryByRole("dialog", { name: "Estimate" })).not.toBeInTheDocument();
+  });
+
+  it("closes the estimate and prices the draft afresh when it is opened again", async () => {
+    vi.mocked(OrdersClient.preview).mockResolvedValue(estimate);
+    store(ready());
+    open("step=details");
+    await loaded();
+    await viewBill();
+    const sheet = screen.getByRole("dialog", { name: "Estimate" });
+    await within(sheet).findByRole("article");
+    await userEvent.click(within(sheet).getByRole("button", { name: "Close" }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Estimate" })).not.toBeInTheDocument());
+
+    await viewBill();
+    expect(OrdersClient.preview).toHaveBeenCalledTimes(2);
+  });
+
+  it("asks for what is missing first, on the step that has it", async () => {
+    store(withCake());
+    open("step=payment");
+    await loaded();
+    await viewBill();
+    expect(nav.router.push).toHaveBeenCalledWith("/orders/new?step=details");
+    expect(OrdersClient.preview).not.toHaveBeenCalled();
   });
 });
 

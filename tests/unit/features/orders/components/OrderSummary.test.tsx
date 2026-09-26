@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 
 import { OrderSummary } from "@/features/orders/components/OrderSummary";
 import type { DraftAdjustment } from "@/features/orders/draft";
@@ -34,5 +35,15 @@ describe("OrderSummary", () => {
 
     rerender(<OrderSummary itemCount={1} totals={totals} adjustments={[]} paid={300000} />);
     expect(row("Balance due")).toHaveTextContent("₹0");
+  });
+
+  it("opens the bill from beside its title, once there is something to bill", async () => {
+    const onViewBill = vi.fn();
+    const { rerender } = render(<OrderSummary itemCount={0} totals={totals} adjustments={[]} />);
+    expect(screen.queryByRole("button", { name: "View bill" })).not.toBeInTheDocument();
+
+    rerender(<OrderSummary itemCount={3} totals={totals} adjustments={[]} onViewBill={onViewBill} />);
+    await userEvent.click(screen.getByRole("button", { name: "View bill" }));
+    expect(onViewBill).toHaveBeenCalledOnce();
   });
 });

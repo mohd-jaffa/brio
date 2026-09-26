@@ -57,7 +57,13 @@ export function BillView({ document }: { document: BillDocument }) {
           >
             {heading.note ? `${heading.label} · ${heading.note}` : heading.label}
           </span>
-          {heading.number && <span className="ml-2 font-semibold tabular-nums">{heading.number}</span>}
+          {/* A real space, so a screen reader says "Bill ORD-1006", not one word. */}
+          {heading.number && (
+            <>
+              {" "}
+              <span className="ml-1 font-semibold tabular-nums">{heading.number}</span>
+            </>
+          )}
         </h3>
         <p className="shrink-0 text-sm tabular-nums text-ink-muted">{heading.date}</p>
       </div>

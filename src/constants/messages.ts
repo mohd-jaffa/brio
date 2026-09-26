@@ -333,6 +333,7 @@ export const UI_TEXT = {
   bill: {
     title: (orderNumber: string) => `Bill ${orderNumber}`,
     estimateTitle: "Estimate",
+    view: "View bill",
     loading: "Building the bill",
     ribbon: "Bill",
     estimateRibbon: "Estimate",
