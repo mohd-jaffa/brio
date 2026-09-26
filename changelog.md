@@ -2159,3 +2159,19 @@ this entry grows with them.
 
 ### Blockers
 - None. Phase 9 waits only on Phase 5, so it can start before Phases 6 – 8 whenever the user asks.
+
+## 2026-09-27 — PRODUCT.md
+
+### Added
+- **`PRODUCT.md`** at the root, through `/impeccable init`: the product record that Impeccable's design work reads. It covers users, purpose, positioning, operating context, capabilities and constraints, brand commitments, evidence on hand, principles and accessibility.
+- **The user's answers:**
+  - the owner runs the business from the phone day to day, and sits down at a desk weekly for accounts and analytics, so desktop matters as much as the phone;
+  - Ovenly replaces WhatsApp with a notebook, general billing apps and spreadsheets;
+  - it launches publicly on the Play Store, with no users or testimonials yet, and none may be invented.
+- **Drawn from the plan and marked as such:** the out-of-scope list (Q7), the open decisions (Q9, Q10, Q16) and the platform. The platform is `web`: the Android app wraps the same web app.
+
+### Validation
+- A documentation change only. Every path it cites exists.
+
+### Blockers
+- None.
