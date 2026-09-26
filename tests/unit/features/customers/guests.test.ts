@@ -26,7 +26,7 @@ describe("getGuestSales", () => {
   it("counts and totals the period's Guest orders, cancelled ones left out, and reads the first page", async () => {
     const fake = fakeSupabase((query) => {
       if (query.table === "payments") return { data: [{ order_id: "1", amount: 38000 }] };
-      if (selects(query, "total")) return { data: [{ total: 38000 }, { total: 76000 }] };
+      if (selects(query, "id, total")) return { data: [{ id: "1", total: 38000 }, { id: "2", total: 76000 }] };
       return { data: [listRow("1")] };
     });
     const sales = await getGuestSales(tenantOf(fake.client), { range: "LAST_7_DAYS" }, now);

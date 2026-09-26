@@ -51,3 +51,10 @@ export const HOME_MIN_TREND_DAYS = 7;
  */
 export const REGULAR_MIN_ORDERS = 3;
 export const NEW_CUSTOMER_DAYS = 30;
+
+/**
+ * The most rows the API answers in one read (`max_rows` in
+ * supabase/config.toml, and Supabase's default): a longer read stops there
+ * without saying so. `readAll` reads past it, a window at a time.
+ */
+export const API_MAX_ROWS = 1000;

@@ -1,9 +1,10 @@
 import { HOME_LIST_LIMITS } from "@/constants/limits";
 import { OPEN_STATUSES } from "@/constants/statuses";
-import { findPaidByOrder } from "@/features/orders/api";
 import { ORDER_LIST_COLUMNS, toOrderListItems, type OrderListRow } from "@/features/orders/list";
 import { addDaysKey, dayStart, daysFrom, todayKey } from "@/lib/dates/calendar";
 import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
+import { sumPaise } from "@/lib/money";
+import { readAll } from "@/lib/supabase/readAll";
 import type { Tenant } from "@/lib/supabase/tenant";
 import type { DashboardQuery } from "@/lib/validation";
 
@@ -28,9 +29,11 @@ function rows<T>({ data, error }: { data: unknown; error: import("@supabase/supa
 
 /**
  * Home (plan §139.10, §20), worked out on the server so the browser never
- * reads every order (§133.9 I4). The period's orders are read once and summed
- * for the tiles and the charts; the orders due, what is owed, the stock and
- * the recent customers each have their own bounded query. Every read goes
+ * reads every order (§133.9 I4). The period's orders are read — a window at a
+ * time past the API's row limit — and summed for the tiles and the charts;
+ * what is owed is read the same way, each order with its payments. The
+ * orders due, the stock (`stock_levels`) and the recent customers
+ * (`customer_stats`) each have their own bounded query. Every read goes
  * through the caller's client, so RLS keeps it to their own business.
  */
 export async function getDashboard(tenant: Tenant, query: DashboardQuery, now: Date = new Date()): Promise<Dashboard> {
@@ -47,14 +50,20 @@ export async function getDashboard(tenant: Tenant, query: DashboardQuery, now: D
     .lt("delivery_date", dayStart(addDaysKey(tomorrow, 1)));
   if (query.payment) dueQuery = dueQuery.eq("payment_status", query.payment);
 
-  const [periodResult, dueResult, dueTodayResult, owingResult, stockResult, productsResult, recentResult] =
+  // The period's orders and what is still owed are read a window at a time,
+  // since either can pass the API's row limit; the rest are bounded.
+  const [periodOrders, dueResult, dueTodayResult, owing, stockResult, productsResult, recentResult] =
     await Promise.all([
-      client
-        .from("orders")
-        .select("total, status, created_at, order_items(product_id, product_name, quantity, subtotal, products(icon_key))")
-        .eq("bakery_id", bakeryId)
-        .gte("created_at", dayStart(chartStart))
-        .lt("created_at", dayStart(tomorrow)),
+      readAll<PeriodOrder>((from, to) =>
+        client
+          .from("orders")
+          .select("id, total, status, created_at, order_items(product_id, product_name, quantity, subtotal, products(icon_key))")
+          .eq("bakery_id", bakeryId)
+          .gte("created_at", dayStart(chartStart))
+          .lt("created_at", dayStart(tomorrow))
+          .order("id", { ascending: true })
+          .range(from, to),
+      ),
       dueQuery
         .order("delivery_date", { ascending: true })
         .order("id", { ascending: true })
@@ -66,12 +75,16 @@ export async function getDashboard(tenant: Tenant, query: DashboardQuery, now: D
         .in("status", [...OPEN_STATUSES])
         .gte("delivery_date", dayStart(today))
         .lt("delivery_date", dayStart(tomorrow)),
-      client
-        .from("orders")
-        .select("id, total")
-        .eq("bakery_id", bakeryId)
-        .neq("status", "CANCELLED")
-        .neq("payment_status", "PAID"),
+      readAll<{ id: string; total: number; payments: { amount: number }[] }>((from, to) =>
+        client
+          .from("orders")
+          .select("id, total, payments(amount)")
+          .eq("bakery_id", bakeryId)
+          .neq("status", "CANCELLED")
+          .neq("payment_status", "PAID")
+          .order("id", { ascending: true })
+          .range(from, to),
+      ),
       client.from("stock_levels").select("product_id, balance, stocked").eq("bakery_id", bakeryId),
       client.from("products").select("id, name, icon_key, unit").eq("bakery_id", bakeryId).eq("is_active", true),
       client
@@ -83,10 +96,8 @@ export async function getDashboard(tenant: Tenant, query: DashboardQuery, now: D
         .limit(HOME_LIST_LIMITS.recentCustomers * 10),
     ]);
 
-  const periodOrders = rows<PeriodOrder>(periodResult);
   const dueRows = rows<OrderListRow>(dueResult);
   if (dueTodayResult.error) throw fromPostgrestError(dueTodayResult.error);
-  const owing = rows<{ id: string; total: number }>(owingResult);
   const levels = rows<{ product_id: string; balance: number; stocked: boolean }>(stockResult);
   const products = rows<{ id: string; name: string; icon_key: string | null; unit: string }>(productsResult);
   const recent = rows<{ created_at: string; customers: { id: string; name: string } | null }>(recentResult);
@@ -95,32 +106,29 @@ export async function getDashboard(tenant: Tenant, query: DashboardQuery, now: D
     0,
     HOME_LIST_LIMITS.recentCustomers,
   );
-  const [due, paid, customerOrders] = await Promise.all([
+  // Each recent customer's order count, as `customer_stats` (0017) keeps it.
+  const [due, customerStats] = await Promise.all([
     toOrderListItems(tenant, dueRows.slice(0, HOME_LIST_LIMITS.due)),
-    findPaidByOrder(
-      tenant,
-      owing.map((order) => order.id),
-    ),
     recentIds.length === 0
       ? Promise.resolve([])
       : client
-          .from("orders")
-          .select("customer_id")
+          .from("customer_stats")
+          .select("id, order_count")
           .eq("bakery_id", bakeryId)
-          .neq("status", "CANCELLED")
-          .in("customer_id", recentIds)
-          .then((result) => rows<{ customer_id: string }>(result)),
+          .in("id", recentIds)
+          .then((result) => rows<{ id: string; order_count: number }>(result)),
   ]);
 
-  const counts = new Map<string, number>();
-  for (const order of customerOrders) counts.set(order.customer_id, (counts.get(order.customer_id) ?? 0) + 1);
+  const counts = new Map(customerStats.map((customer) => [customer.id, customer.order_count]));
   const low = lowStock(levels, products);
 
   return {
     period: query.period,
     dueToday: dueTodayResult.count ?? 0,
     sales: periodSales(periodOrders, start),
-    toCollect: owing.reduce((sum, order) => sum + Math.max(0, order.total - (paid.get(order.id) ?? 0)), 0),
+    toCollect: sumPaise(
+      owing.map((order) => Math.max(0, order.total - sumPaise(order.payments.map((payment) => payment.amount)))),
+    ),
     lowStockCount: low.length,
     salesByDay: salesByDay(periodOrders, daysFrom(chartStart, today)),
     due: groupDue(due, now),

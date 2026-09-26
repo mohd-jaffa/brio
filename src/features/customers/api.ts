@@ -6,6 +6,7 @@ import { pageWindow, toPage, type Page } from "@/lib/api/pagination";
 import { conflictError, isAppError } from "@/lib/errors";
 import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
 import { blankToNull, definedOnly } from "@/lib/supabase/columns";
+import { readAll } from "@/lib/supabase/readAll";
 import { tenantRecords } from "@/lib/supabase/records";
 import { containsPattern, ilikeFilter, phoneDigits } from "@/lib/supabase/search";
 import type { CreateCustomerPayload, CustomerListQuery, UpdateCustomerPayload } from "@/lib/validation";
@@ -148,18 +149,21 @@ async function findByPhone(tenant: Tenant, phone: string): Promise<{ id: string;
 }
 
 /**
- * A customer's summary (plan §139.10, R5.4): their orders read once, with only
- * the columns the sums need and each order's payments embedded, then summed
- * on the server. Reading the customer first refuses one from another business
+ * A customer's summary (plan §139.10, R5.4): their orders, with only the
+ * columns the sums need and each order's payments embedded — a window at a
+ * time, for a regular of many years — then summed on the server. Reading the customer first refuses one from another business
  * or that does not exist, as their detail does.
  */
 export async function getCustomerSummary(tenant: Tenant, id: string, now: Date = new Date()): Promise<CustomerSummary> {
   const customer = await customers(tenant).find(id);
-  const { data, error } = await tenant.supabase
-    .from("orders")
-    .select("total, status, created_at, delivery_type, delivery_address, delivery_google_maps_link, payments(amount)")
-    .eq("bakery_id", tenant.bakeryId)
-    .eq("customer_id", id);
-  if (error) throw fromPostgrestError(error);
-  return summarise((data ?? []) as SummaryOrder[], customer.created_at, now);
+  const orders = await readAll<SummaryOrder>((from, to) =>
+    tenant.supabase
+      .from("orders")
+      .select("id, total, status, created_at, delivery_type, delivery_address, delivery_google_maps_link, payments(amount)")
+      .eq("bakery_id", tenant.bakeryId)
+      .eq("customer_id", id)
+      .order("id", { ascending: true })
+      .range(from, to),
+  );
+  return summarise(orders, customer.created_at, now);
 }

@@ -8,7 +8,7 @@ vi.mock("@/lib/supabase/records", () => ({
   tenantRecords: () => ({ insert, update, list: vi.fn(), find, remove: vi.fn() }),
 }));
 
-import { PAGE_SIZE } from "@/constants/limits";
+import { API_MAX_ROWS, PAGE_SIZE } from "@/constants/limits";
 import { createCustomer, getCustomerSummary, listCustomers, updateCustomer } from "@/features/customers/api";
 import { fakeSupabase } from "@tests/support/supabase";
 import { tenantOf } from "@tests/support/tenant";
@@ -111,6 +111,8 @@ describe("getCustomerSummary", () => {
       ["bakery_id", "b-1"],
       ["customer_id", "c-1"],
     ]);
+    // A regular of many years can pass the API's row limit: read a window at a time.
+    expect(fake.argsOf(orders, "range")).toEqual([[0, API_MAX_ROWS - 1]]);
     expect(summary).toMatchObject({ orders: 1, spent: 100000, balanceDue: 60000, segment: "NEW", addresses: [] });
   });
 

@@ -1850,3 +1850,21 @@ this entry grows with them.
 
 ### Blockers
 - None. Other reads that can pass the 1,000-row limit are fixed next, in their own change: a year of orders for Analytics, and Guest sales' totals.
+
+## 2026-09-26 — Reads past the 1,000-row limit (BUG-31)
+
+### Fixed
+- **Sums over a read that stopped at 1,000 rows.** The API answers at most `max_rows` (1,000) rows a read, without saying so. Every screen that added up what came back was quietly short past that many rows.
+  - **Analytics:** a year of orders and the year before, and the customers added over them, are now read a window at a time.
+  - **Guest sales:** the period's totals, read a window at a time.
+  - **Home:** the period's orders, and what is still owed, each order now read with its payments embedded. This also removes a second query whose URL listed every owing order's id. The recent customers' order counts now come from `customer_stats` rather than from every order they placed.
+  - **A customer's summary:** their orders, read a window at a time.
+  - **Stock:** fixed by `0019_stock_levels` in the Inventory change.
+- **`readAll`** (`src/lib/supabase/readAll.ts`) reads window after window of `API_MAX_ROWS`, each ordered by id, until one comes back short.
+
+### Validation
+- `tsc`, `eslint` and the test-path check are clean. 246 test files and 1,578 tests pass. `readAll` is tested across several windows.
+- Home, a year-long custom Analytics period, Guest sales and a customer's summary were read against local data.
+
+### Blockers
+- None.

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { API_MAX_ROWS } from "@/constants/limits";
 import { getAnalytics } from "@/features/analytics/api";
 import { AppError } from "@/lib/errors/AppError";
 import { fakeSupabase } from "@tests/support/supabase";
@@ -42,6 +43,9 @@ describe("getAnalytics", () => {
       expect(fake.argsOf(query, "eq")).toContainEqual(["bakery_id", "b-1"]);
       expect(fake.argsOf(query, "gte")).toEqual([["created_at", "2026-07-31T18:30:00.000Z"]]);
       expect(fake.argsOf(query, "lt")).toEqual([["created_at", "2026-09-26T18:30:00.000Z"]]);
+      // A window at a time: a year and the year before can pass the API's row limit.
+      expect(fake.argsOf(query, "order")).toEqual([["id", { ascending: true }]]);
+      expect(fake.argsOf(query, "range")).toEqual([[0, API_MAX_ROWS - 1]]);
     }
   });
 

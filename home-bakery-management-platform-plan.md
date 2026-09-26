@@ -8381,6 +8381,7 @@ wrong but survivable · **S4** polish.
 | **BUG-28** | **S4** | **The new-order default date is fixed when the module loads,** so a tab left open overnight offers yesterday's "tomorrow". | `src/app/orders/new/page.tsx:47–51` | Compute it on mount | R3.16 · **fixed 2026-09-26** |
 | **BUG-29** | **S4** | **`console.error` in the order compensation** bypasses the structured logger and loses the request id (§11). | `src/features/orders/checkout.ts:104` | The logger | R3.16 · **fixed 2026-09-26** |
 | **BUG-30** | **S4** | **136 hard-coded UI strings** in JSX attributes alone (`label=`, `title=`, `placeholder=`) — AGENTS §5. | `src/app`, `src/components`, `src/features` | Swept screen by screen as each is rebuilt | R5.14 |
+| **BUG-31** | **S2** | **Sums over a read that stops at 1,000 rows.** The API answers at most `max_rows` (1,000) rows a read without saying so; Home, Inventory, Analytics, Guest sales and a customer's summary added up what came back, so past that many ledger lines or orders their figures were quietly short. Found 2026-09-26. | `src/features/{dashboard,inventory,analytics,customers}` | Stock added up in the database (`0019_stock_levels`), order counts from `customer_stats`, and every other long read done a window at a time (`readAll`) | R5.7 · **fixed 2026-09-26** |
 
 **Still open from earlier passes when this was written, and closed by Phase 0:**
 §134 **P0-1** (the `/inventory` crash — R0.3) and **P0-2** (no `error.tsx`,

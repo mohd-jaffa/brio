@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { HOME_LIST_LIMITS } from "@/constants/limits";
+import { API_MAX_ROWS, HOME_LIST_LIMITS } from "@/constants/limits";
 import { getDashboard } from "@/features/dashboard/api";
 import { ORDER_LIST_COLUMNS } from "@/features/orders/list";
 import { AppError } from "@/lib/errors/AppError";
@@ -27,22 +27,21 @@ const listRow = (id: string, dueAt: string) => ({
 function answers(overrides: Partial<Record<string, unknown>> = {}) {
   return (query: RecordedQuery) => {
     const pick = (name: string, fallback: unknown) => ({ data: name in overrides ? overrides[name] : fallback });
-    if (query.table === "payments") return pick("payments", [{ order_id: "owing", amount: 400 }]);
     if (query.table === "stock_levels") return pick("ledger", [{ product_id: "p-1", balance: 2, stocked: true }]);
     if (query.table === "products") return pick("products", [{ id: "p-1", name: "Cake", icon_key: null, unit: "piece" }]);
     if (selects(query, ORDER_LIST_COLUMNS)) return pick("due", [listRow("a", "2026-09-25T05:00:00Z"), listRow("b", "2026-09-27T05:00:00Z")]);
     if (selects(query, "id")) return { count: 3 };
-    if (selects(query, "id, total"))
+    if (selects(query, "id, total, payments(amount)"))
       return pick("owing", [
-        { id: "owing", total: 1000 },
-        { id: "unpaid", total: 250 },
+        { id: "owing", total: 1000, payments: [{ amount: 400 }] },
+        { id: "unpaid", total: 250, payments: [] },
       ]);
     if (selects(query, "created_at, customers(id, name)"))
       return pick("recent", [
         { created_at: "2026-09-26T05:00:00Z", customers: { id: "c-1", name: "Anu" } },
         { created_at: "2026-09-25T05:00:00Z", customers: null },
       ]);
-    if (selects(query, "customer_id")) return pick("counts", [{ customer_id: "c-1" }, { customer_id: "c-1" }]);
+    if (query.table === "customer_stats") return pick("counts", [{ id: "c-1", order_count: 2 }]);
     return pick("period", [
       { total: 800, status: "PENDING", created_at: "2026-09-26T05:00:00Z", order_items: [] },
       { total: 200, status: "PENDING", created_at: "2026-09-21T05:00:00Z", order_items: [] },
@@ -89,6 +88,13 @@ describe("getDashboard", () => {
     expect(fake.argsOf(due, "lt")).toEqual([["delivery_date", "2026-09-27T18:30:00.000Z"]]);
     expect(fake.argsOf(due, "in")).toEqual([["status", ["PENDING", "IN_PROGRESS", "READY", "IN_TRANSIT"]]]);
     expect(fake.argsOf(due, "limit")).toEqual([[HOME_LIST_LIMITS.due + 1]]);
+    // The period's orders and what is owed are read a window at a time, past the API's row limit.
+    expect(fake.argsOf(period!, "range")).toEqual([[0, API_MAX_ROWS - 1]]);
+    const owing = fake.queries.find((query) => selects(query, "id, total, payments(amount)"))!;
+    expect(fake.argsOf(owing, "range")).toEqual([[0, API_MAX_ROWS - 1]]);
+    // The recent customers' counts come from customer_stats (0017), not from their orders.
+    const stats = fake.queries.find((query) => query.table === "customer_stats")!;
+    expect(fake.argsOf(stats, "in")).toEqual([["id", ["c-1"]]]);
   });
 
   it("narrows the orders due by status and payment together (§116)", async () => {
@@ -110,7 +116,7 @@ describe("getDashboard", () => {
     const fake = fakeSupabase(answers({ recent: [] }));
     const dashboard = await getDashboard(tenantOf(fake.client), { period: "TODAY" }, now);
     expect(dashboard.recentCustomers).toEqual([]);
-    expect(fake.queries.some((query) => selects(query, "customer_id"))).toBe(false);
+    expect(fake.queries.some((query) => query.table === "customer_stats")).toBe(false);
   });
 
   it("reads an empty answer as none", async () => {

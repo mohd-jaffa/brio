@@ -6,6 +6,7 @@ import { addDaysKey, dayStart, todayKey } from "@/lib/dates/calendar";
 import { resolvePeriod } from "@/lib/dates/range";
 import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
 import { sumPaise } from "@/lib/money";
+import { readAll } from "@/lib/supabase/readAll";
 import type { Tenant } from "@/lib/supabase/tenant";
 import type { PagedRangeQuery } from "@/lib/validation";
 
@@ -36,12 +37,12 @@ export async function getGuestSales(tenant: Tenant, query: PagedRangeQuery, now:
       .gte("created_at", dayStart(period.from))
       .lt("created_at", dayStart(addDaysKey(period.to, 1)));
 
-  const [pageResult, totalsResult] = await Promise.all([
+  const [pageResult, totals] = await Promise.all([
     placed(ORDER_LIST_COLUMNS).order("created_at", { ascending: false }).order("id", { ascending: true }).range(window.from, window.to),
-    placed("total"),
+    // Every Guest order's total, a window at a time: a year of them can pass the API's row limit.
+    readAll<{ total: number }>((from, to) => placed("id, total").order("id", { ascending: true }).range(from, to)),
   ]);
   const page = toPage(rows<OrderListRow>(pageResult), query.cursor);
-  const totals = rows<{ total: number }>(totalsResult);
 
   return {
     period,
