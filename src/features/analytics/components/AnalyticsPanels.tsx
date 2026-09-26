@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 import { Avatar } from "@/components/ui/avatar";
@@ -177,6 +178,14 @@ export function SalesPanel({ report, onInterval }: { report: AnalyticsReport; on
           { label: text.guests, value: guestSplit.guest },
         ]}
         totalLabel={text.totalSalesShort}
+        action={
+          <Link
+            href="/customers/guest"
+            className="touch-target inline-flex items-center rounded-lg px-2 text-sm font-medium text-primary transition-colors hover:bg-surface-hover"
+          >
+            {text.viewGuestSales}
+          </Link>
+        }
         emptyMessage={text.noSales}
       />
       <Donut

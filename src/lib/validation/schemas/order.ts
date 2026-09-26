@@ -11,6 +11,8 @@ import {
   PAYMENT_STATUSES,
 } from "@/constants/statuses";
 
+import { cursorParam, searchParam } from "./list";
+import { dayParam } from "./range";
 import {
   optionalLine,
   optionalLines,
@@ -157,10 +159,36 @@ export const orderPaymentFormSchema = z
     return { status, amount: amount.data, method, reference };
   });
 
-/** What `GET /api/orders?customer=` accepts: `guest`, or one customer's id. */
-export const orderListQuerySchema = z.object({
-  customer: z.union([z.literal("guest"), z.string().uuid()]).optional(),
+/**
+ * What narrows a list of orders (plan §139.10): whose they are — `guest`, or
+ * one customer's id — how paid, when due, and what was searched for. The
+ * dates are days in the business's calendar, either or both; the first may
+ * not come after the second.
+ */
+const orderFilterFields = z.object({
+  customer: z.union([z.literal("guest"), z.uuid()], { error: VALIDATION_MESSAGES.invalid }).optional(),
+  payment: z.enum(PAYMENT_STATUSES, { error: VALIDATION_MESSAGES.invalid }).optional(),
+  from: dayParam.optional(),
+  to: dayParam.optional(),
+  search: searchParam,
 });
+
+function datesInOrder(query: { from?: string; to?: string }, ctx: z.core.$RefinementCtx<{ from?: string; to?: string }>) {
+  if (query.from && query.to && query.from > query.to) {
+    ctx.addIssue({ code: "custom", path: ["to"], message: VALIDATION_MESSAGES.invalid });
+  }
+}
+
+/** `GET /api/orders`: the filters, the tab's status, and where the page starts. */
+export const orderListQuerySchema = orderFilterFields
+  .extend({
+    status: z.enum(ORDER_STATUSES, { error: VALIDATION_MESSAGES.invalid }).optional(),
+    cursor: cursorParam,
+  })
+  .superRefine(datesInOrder);
+
+/** `GET /api/orders/counts`: the same filters, counted for every tab at once. */
+export const orderCountsQuerySchema = orderFilterFields.superRefine(datesInOrder);
 
 /**
  * A whole order as the checkout builds it (AGENTS.md §12). The server recalculates
@@ -256,3 +284,4 @@ export type OrderCustomer = z.output<typeof orderCustomerSchema>;
 export type OrderPayment = z.output<typeof orderPaymentSchema>;
 export type OrderPaymentFormValues = z.input<typeof orderPaymentFormSchema>;
 export type OrderListQuery = z.output<typeof orderListQuerySchema>;
+export type OrderCountsQuery = z.output<typeof orderCountsQuerySchema>;

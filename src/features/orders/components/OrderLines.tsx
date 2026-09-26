@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { RollingNumber } from "@/components/ui/rolling-number";
 import { UI_TEXT } from "@/constants/messages";
 import { formatPaise } from "@/lib/format/currency";
@@ -11,7 +13,7 @@ import { balanceDue } from "../view";
  * subtotal, each discount and charge, the total, what has been paid and the
  * balance due — the last two tick when a payment is recorded.
  */
-export function OrderLines({ order }: { order: Order }) {
+export function OrderLines({ order, action }: { order: Order; /** Beside the heading: Order again. */ action?: ReactNode }) {
   const text = UI_TEXT.orderDetail;
   const { pricing } = order;
   return (
@@ -19,9 +21,12 @@ export function OrderLines({ order }: { order: Order }) {
       aria-labelledby="order-lines-heading"
       className="rounded-2xl border border-border bg-surface p-4 shadow-card"
     >
-      <h2 id="order-lines-heading" className="mb-2 font-heading text-lg font-medium text-text">
-        {text.items}
-      </h2>
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <h2 id="order-lines-heading" className="font-heading text-lg font-medium text-text">
+          {text.items}
+        </h2>
+        {action}
+      </div>
       <ul role="list" className="divide-y divide-border">
         {order.items.map((item) => (
           <li key={item.id} className="flex items-start justify-between gap-3 py-3">

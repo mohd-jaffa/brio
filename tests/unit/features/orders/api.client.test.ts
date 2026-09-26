@@ -21,9 +21,6 @@ beforeEach(() => vi.clearAllMocks());
  */
 describe("OrdersClient", () => {
   it("reads and writes the orders routes", async () => {
-    await OrdersClient.list();
-    expect(getJson).toHaveBeenCalledWith("/api/orders");
-
     await OrdersClient.getOrder("o-1");
     expect(getJson).toHaveBeenCalledWith("/api/orders/o-1");
 

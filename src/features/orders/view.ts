@@ -71,15 +71,6 @@ export function deliveryLabel(order: Order): string {
   return labels[order.delivery.type] ?? codeAsWords(order.delivery.type);
 }
 
-/** Open orders soonest first; finished ones most recent first (plan §20). */
-export function byDueDate(orders: readonly Order[], open: boolean): Order[] {
-  return [...orders].sort((a, b) => {
-    const left = new Date(a.delivery.date).getTime();
-    const right = new Date(b.delivery.date).getTime();
-    return open ? left - right : right - left;
-  });
-}
-
 /**
  * What is still owed on an order, in whole paise: its total less what has been
  * paid. The payments are the truth (plan §139.11.9): an order placed as paid
@@ -88,4 +79,12 @@ export function byDueDate(orders: readonly Order[], open: boolean): Order[] {
 export function balanceDue(order: Order): number {
   if (order.status === "CANCELLED") return 0;
   return Math.max(0, order.pricing.total - order.payment.paid);
+}
+
+/** What an order in a list holds, in a line: "Truffle cake +2 more" (plan §139.10). */
+export function itemsLine(order: OrderListItem): string {
+  const text = UI_TEXT.orderList;
+  if (!order.firstItem) return text.noItems;
+  const more = order.lineCount - 1;
+  return more > 0 ? `${order.firstItem.name} ${text.moreItems(more)}` : order.firstItem.name;
 }

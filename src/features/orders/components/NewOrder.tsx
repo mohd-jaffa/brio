@@ -34,6 +34,7 @@ import {
   addCustom,
   addProduct,
   chooseCustomer,
+  customerForDraft,
   draftForm,
   draftTotals,
   itemCount,
@@ -83,17 +84,6 @@ function within(issues: Record<string, string>, step: Step): Record<string, stri
       STEP_PATHS[step].some((prefix) => path === prefix || path.startsWith(`${prefix}.`)),
     ),
   );
-}
-
-function toDraftCustomer(customer: Customer): DraftCustomer {
-  return {
-    kind: "CUSTOMER",
-    id: customer.id,
-    name: customer.name,
-    phone: customer.phone,
-    address: customer.address ?? "",
-    googleMapsLink: customer.googleMapsLink ?? "",
-  };
 }
 
 /**
@@ -219,12 +209,12 @@ export function NewOrder() {
   const choose = (customer: DraftCustomer) => update((current) => chooseCustomer(current, customer));
 
   const pick = (picked: PickedCustomer<Customer>) =>
-    choose(picked.kind === "GUEST" ? picked : toDraftCustomer(picked.customer));
+    choose(picked.kind === "GUEST" ? picked : customerForDraft(picked.customer));
 
   // The customer who already has the number typed for a new one.
   const takeExisting = async (customerId: string) => {
     try {
-      choose(toDraftCustomer(await CustomersClient.get(customerId)));
+      choose(customerForDraft(await CustomersClient.get(customerId)));
     } catch (failure) {
       respond.failure(failure, { title: UI_TEXT.outcomes.customerNotChosen, fallback: "CUSTOMER_LOAD_FAILED" });
     }
@@ -455,7 +445,7 @@ export function NewOrder() {
       <CustomerFormSheet
         isOpen={addingCustomer}
         onClose={() => setAddingCustomer(false)}
-        onSuccess={(customer) => choose(toDraftCustomer(customer))}
+        onSuccess={(customer) => choose(customerForDraft(customer))}
         onUseExisting={(customerId) => void takeExisting(customerId)}
       />
       <CustomItemSheet

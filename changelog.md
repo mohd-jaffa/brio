@@ -1699,3 +1699,56 @@ this entry grows with them.
 
 ### Blockers
 - None. §133.9 I1 and I3 are closed, and IMP-10 is done.
+
+## 2026-09-26 — Orders (R5.2), Customer detail (R5.4) and Guest sales (R5.5)
+
+### Added
+- **`0017_list_views.sql`.** Two read-only views. Both are `security_invoker`, so row-level security still decides what anyone sees; `authenticated` may select, `anon` may not. No table.
+  - **`order_search`** puts each order beside its customer's name and phone. PostgREST cannot `or` across an embedded table, and fetching matching customers first would put an unbounded list of ids in the URL.
+  - **`customer_stats`** counts each customer's orders and their last one, cancelled ones not counted. It is used by Customers (R5.3), next.
+- **`GET /api/orders`** is now paged (`src/features/orders/list.ts`), with `status`, `payment`, `customer=guest|{id}`, due-day `from`/`to`, `search` and `cursor`.
+  - **Search:** by the order number, the customer's name, or their phone as typed (BUG-23).
+  - **Order:** All is newest first; an open status is soonest due first; delivered and cancelled are most recently due first.
+- **`GET /api/orders/counts`** counts every tab under the same filters, in the database, at once.
+- **Orders (`src/features/orders/components/Orders.tsx`).**
+  - Tabs with counts, search once typing pauses, and a filter sheet for due dates, payment and Guest orders only. **Show more** follows the pages.
+  - Rows up to 1280 px, and from there a table: Order, Customer, Items, Amount, Status, Due.
+- **Guest sales (`/customers/guest`, `GET /api/guest-sales`).**
+  - For a period kept on this device: how many orders Guests placed and what they came to, then the orders, a page at a time. Cancelled orders are left out of both.
+  - It is reached from Analytics' Guest split, and from Customers in R5.3.
+- **Customer detail (`/customers/{id}`, `GET /api/customers/{id}/summary`).** It replaces the old profile, which read every order to add one customer's up.
+  - **Contact:** initials, segment, phone, email and address, with Call, WhatsApp, Map and Edit.
+  - **Figures:** orders, spend, customer since, and balance due.
+  - **Tabs:** Orders (a page at a time), Notes, and Addresses, the distinct places their deliveries went.
+  - **Create order** starts the order being built with them chosen, keeping what it holds (IMP-04).
+- **Order again (IMP-03)**, on each order beside its items.
+  - It rebuilds the draft from that order: items, notes, customer and hand-over.
+  - It asks before replacing an order being built, and says what was left out because it is no longer on sale.
+- **Segments:** Regular from three orders; New while added in the last 30 days; Regular wins.
+- **Smaller pieces:**
+  - `useApiPages` hands back its first page for a route that sends more than rows.
+  - `formatTime` gives "11:50 PM" on the business's clock.
+  - `itemsLine` is shared by the row and the table.
+  - `customerForDraft` and `repeatOrder` join the draft.
+
+### Changed
+- The date formatters read the clock once through one helper.
+- `OrderRow` can leave the customer's name off, on that customer's own screen.
+
+### Removed
+- `getAllOrders`, `findAllOrders`, `findOrderLines`, `OrdersClient.list` and `byDueDate`: the browser no longer reads every order to list, filter or sort them.
+- The old Orders page and `CustomerProfileClient`.
+
+### Validation
+- `tsc`, `eslint`, the test-path check and `next build` are clean. 236 test files and 1,514 tests pass.
+- The new and changed modules are at 100% coverage. The last uncovered branch in `order.ts` is the payment form's, from before this change.
+- **Against local data:**
+  - The paged route, the tabs and their counts, search by name and by phone digits, and the refusal of a backwards date range were all checked.
+  - A signed-out caller is refused both views.
+  - Order again and Create order were followed in a browser.
+- **Captures:** Orders, Guest sales and Customer detail at 360, 390, 820, 1280 and 1440 px, in Golden and Peach, with no sideways scroll. Order detail was captured at 360 and 1280.
+
+### Blockers
+- None.
+- **Plan addition:** `0017_list_views` adds two read-only views (no table), recorded in the plan's migrations table.
+- **Still open:** order rows at 360 px cut the customer's name short, as before; the number, amount and status stay whole.

@@ -1,8 +1,10 @@
 import type { AdjustmentType, DeliveryType, PaymentMethod, PaymentStatus } from "@/constants/statuses";
 import { parseRupees } from "@/lib/money";
+import type { Customer } from "@/features/customers/types";
 import type { OrderFormValues } from "@/lib/validation";
 
 import { orderTotals, type OrderTotals } from "./totals";
+import type { Order } from "./types";
 
 /**
  * An order before it is placed (plan §110, §139.10): items first, then who it
@@ -214,6 +216,57 @@ function autofill(delivery: DraftDelivery, customer: DraftCustomer | null): Draf
 
 export function chooseCustomer(draft: OrderDraft, customer: DraftCustomer): OrderDraft {
   return { ...draft, customer, delivery: autofill(draft.delivery, customer) };
+}
+
+/** A saved customer as the draft holds them: with what the delivery autofill needs. */
+export function customerForDraft(customer: Customer): DraftCustomer {
+  return {
+    kind: "CUSTOMER",
+    id: customer.id,
+    name: customer.name,
+    phone: customer.phone,
+    address: customer.address ?? "",
+    googleMapsLink: customer.googleMapsLink ?? "",
+  };
+}
+
+/**
+ * **Order again** (IMP-03): a new draft from a past order — its items, each
+ * line's note, who it was for, and how and where it was handed over — due
+ * tomorrow at this hour, with its payment, charges and discounts left to be
+ * settled afresh. A product no longer on sale is left out, and counted, so
+ * the screen can say so; a custom item is taken as it was.
+ */
+export function repeatOrder(
+  order: Order,
+  customer: DraftCustomer,
+  onSale: ReadonlySet<string>,
+  now: Date = new Date(),
+): { draft: OrderDraft; left: number } {
+  const fresh = newDraft(now);
+  const kept = order.items.filter((item) => item.custom || (item.productId !== undefined && onSale.has(item.productId)));
+  const lines: DraftLine[] = kept.map((item) => ({
+    key: newKey(),
+    ...(item.custom ? { custom: { name: item.productName, unitPrice: item.unitPrice } } : { productId: item.productId }),
+    quantity: item.quantity,
+    notes: item.notes ?? "",
+  }));
+  const filled = placeOf(customer);
+  return {
+    draft: {
+      ...fresh,
+      lines,
+      customer,
+      delivery: {
+        ...fresh.delivery,
+        type: order.delivery.type,
+        address: order.delivery.address ?? "",
+        googleMapsLink: order.delivery.googleMapsLink ?? "",
+        filled,
+      },
+    },
+    left: order.items.length - kept.length,
+  };
 }
 
 export function setDeliveryType(draft: OrderDraft, type: DeliveryType): OrderDraft {

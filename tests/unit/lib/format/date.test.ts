@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatDate, formatDateTime, formatDayMonth, formatLongDate, formatMonth } from '@/lib/format/date';
+import { formatDate, formatDateTime, formatDayMonth, formatLongDate, formatMonth, formatTime } from '@/lib/format/date';
 
 describe('formatDate', () => {
   it('formats ISO calendar dates cleanly', () => {
@@ -14,9 +14,24 @@ describe('formatDate', () => {
 
 describe('formatDateTime', () => {
   it('formats full ISO timestamp to Indian date and time', () => {
-    const result = formatDateTime('2026-09-22T10:30:00Z');
-    expect(result).toContain('2026');
-    expect(result).not.toBe('—');
+    expect(formatDateTime('2026-09-22T10:30:00Z')).toBe('22 Sep 2026, 4:00 PM');
+  });
+
+  it('says nothing for a missing or unreadable time', () => {
+    expect(formatDateTime(undefined)).toBe('—');
+    expect(formatDateTime('soon')).toBe('—');
+  });
+});
+
+describe('formatTime', () => {
+  it('gives the time of day in the business clock', () => {
+    expect(formatTime('2026-09-25T18:20:00Z')).toBe('11:50 PM');
+    expect(formatTime('2026-09-26T03:30:00Z')).toBe('9:00 AM');
+  });
+
+  it('says nothing for a missing or unreadable time', () => {
+    expect(formatTime(null)).toBe('—');
+    expect(formatTime('not a time')).toBe('—');
   });
 });
 

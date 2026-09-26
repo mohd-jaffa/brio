@@ -6,7 +6,6 @@ import type { OrderEstimate } from "./estimate";
 import type { Order } from "./types";
 
 export const OrdersClient = {
-  list: () => getJson<Order[]>(apiRoutes.orders.list),
   getOrder: (id: string) => getJson<Order>(apiRoutes.orders.detail(id)),
   /** The same key sent again returns the order the first made (§133.3 C2). */
   createOrder: (payload: CreateOrderInput, idempotencyKey: string) =>

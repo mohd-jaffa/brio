@@ -39,6 +39,10 @@ export const FINAL_STATUSES: readonly OrderStatus[] = ["DELIVERED", "CANCELLED"]
 export const OPEN_STATUSES = ["PENDING", "IN_PROGRESS", "READY", "IN_TRANSIT"] as const satisfies readonly OrderStatus[];
 export type OpenStatus = (typeof OPEN_STATUSES)[number];
 
+/** Orders' tabs (plan §139.10): every order, then one status each. */
+export const ORDER_TABS = ["ALL", ...ORDER_STATUSES] as const;
+export type OrderTab = (typeof ORDER_TABS)[number];
+
 /**
  * How a status reads. "Preparing" rather than "Baking", since not every
  * business bakes (Q3, §139.1); DELIVERED reads "Completed" for a pickup — use
@@ -164,4 +168,17 @@ export const PAYMENT_STATUS_TONES: Record<PaymentStatus, StatusTone> = {
   UNPAID: "cancelled",
   PARTIALLY_PAID: "pending",
   PAID: "delivered",
+};
+
+/**
+ * A customer's segment (plan §139.10), worked out from their orders and when
+ * they were added — never stored. Regular reads green, like a delivered
+ * order; New like a ready one.
+ */
+export const CUSTOMER_SEGMENTS = ["REGULAR", "NEW"] as const;
+export type CustomerSegment = (typeof CUSTOMER_SEGMENTS)[number];
+
+export const CUSTOMER_SEGMENT_TONES: Record<CustomerSegment, StatusTone> = {
+  REGULAR: "delivered",
+  NEW: "ready",
 };

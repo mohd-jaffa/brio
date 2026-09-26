@@ -17,10 +17,13 @@ import { withQuery } from "./keys";
  * list being searched does not flash empty with every letter. Every page shown
  * is read again whenever the list is refreshed, so a change to one row cannot
  * leave a stale copy of it further down.
+ *
+ * A route whose page carries more than its rows — Guest sales' count and
+ * total — names its shape as `P`, and reads it from `first`.
  */
-export function useApiPages<T>(key: string | null) {
-  const { data, error, isLoading, isValidating, mutate, size, setSize } = useSWRInfinite<Page<T>>(
-    (index, previous: Page<T> | null) => {
+export function useApiPages<T, P extends Page<T> = Page<T>>(key: string | null) {
+  const { data, error, isLoading, isValidating, mutate, size, setSize } = useSWRInfinite<P>(
+    (index, previous: P | null) => {
       if (key === null) return null;
       if (index === 0) return key;
       return previous?.nextCursor ? withQuery(key, { cursor: previous.nextCursor }) : null;
@@ -32,6 +35,7 @@ export function useApiPages<T>(key: string | null) {
   const hasMore = Boolean(data?.[data.length - 1]?.nextCursor);
   return {
     data: data?.flatMap((page) => page.items),
+    first: data?.[0],
     error,
     isLoading,
     isValidating,

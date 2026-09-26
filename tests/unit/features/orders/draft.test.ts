@@ -5,6 +5,7 @@ import {
   addCustom,
   addProduct,
   chooseCustomer,
+  customerForDraft,
   draftForm,
   draftTotals,
   itemCount,
@@ -16,6 +17,7 @@ import {
   removeAdjustment,
   removeLine,
   removeProduct,
+  repeatOrder,
   setAdjustment,
   setDelivery,
   setDeliveryType,
@@ -29,6 +31,7 @@ import {
   type OrderDraft,
 } from "@/features/orders/draft";
 import { orderFormSchema } from "@/lib/validation";
+import { anOrder } from "@tests/support/orders";
 
 const anu: DraftCustomer = {
   kind: "CUSTOMER",
@@ -226,5 +229,52 @@ describe("totals and the request", () => {
   it("sends a Guest as a Guest, and no one as a missing customer", () => {
     expect(draftForm(chooseCustomer(newDraft(), { kind: "GUEST" })).customer).toEqual({ kind: "GUEST" });
     expect(draftForm(newDraft()).customer).toBeNull();
+  });
+});
+
+describe("a customer, and a past order, as a draft (IMP-03, IMP-04)", () => {
+  it("carries a saved customer's place for the autofill, blank where they have none", () => {
+    const customer = { id: "c-1", name: "Anu", phone: "+919812345678", createdAt: "", updatedAt: "" };
+    expect(customerForDraft({ ...customer, address: "Flat 302", googleMapsLink: "https://maps/anu" })).toEqual({
+      kind: "CUSTOMER",
+      id: "c-1",
+      name: "Anu",
+      phone: "+919812345678",
+      address: "Flat 302",
+      googleMapsLink: "https://maps/anu",
+    });
+    expect(customerForDraft(customer)).toMatchObject({ address: "", googleMapsLink: "" });
+  });
+
+  it("takes a past order's items, notes, customer and hand-over, due tomorrow, with payment afresh", () => {
+    const now = new Date("2026-09-26T06:00:00Z");
+    const { draft, left } = repeatOrder(anOrder(), anu, new Set(["p-1"]), now);
+
+    expect(left).toBe(0);
+    expect(draft.lines).toEqual([
+      { key: expect.any(String), productId: "p-1", quantity: 2, notes: "" },
+      { key: expect.any(String), custom: { name: "Name topper", unitPrice: 15000 }, quantity: 1, notes: "Gold, ‘Anu’" },
+    ]);
+    expect(draft.customer).toBe(anu);
+    expect(draft.delivery).toEqual({
+      type: "DELIVERY",
+      date: tomorrowAtThisHour(now),
+      address: "Block B-404, Green Park",
+      googleMapsLink: "https://maps.app.goo.gl/meena",
+      filled: { address: anu.address, googleMapsLink: anu.googleMapsLink },
+    });
+    // It was sent somewhere other than the customer's own place, so the owner is offered theirs.
+    expect(offersCustomerPlace(draft)).toBe(true);
+    expect(draft.adjustments).toEqual([]);
+    expect(draft.payment.status).toBe("UNPAID");
+  });
+
+  it("leaves out what is no longer on sale, and counts it; a Guest pickup stays one", () => {
+    const pickup = anOrder({ customerId: null, delivery: { type: "PICKUP", date: "2026-09-27T05:00:00Z" } });
+    const { draft, left } = repeatOrder(pickup, { kind: "GUEST" }, new Set());
+    expect(left).toBe(1);
+    expect(draft.lines).toHaveLength(1);
+    expect(draft.lines[0].custom?.name).toBe("Name topper");
+    expect(draft.delivery).toMatchObject({ type: "PICKUP", address: "", googleMapsLink: "" });
   });
 });

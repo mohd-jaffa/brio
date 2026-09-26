@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { MAX_RANGE_DAYS, rangeQuerySchema } from "@/lib/validation";
+import { dayParam, MAX_RANGE_DAYS, pagedRangeQuerySchema, rangeQuerySchema } from "@/lib/validation";
 
 describe("rangeQuerySchema", () => {
   it("reads the last 30 days when nothing is asked", () => {
@@ -33,5 +33,25 @@ describe("rangeQuerySchema", () => {
     for (const query of [{ range: "YEAR" }, { range: "CUSTOM", from: "1/1/2026", to: "2026-01-02" }, { interval: "HOUR" }]) {
       expect(rangeQuerySchema.safeParse(query).success).toBe(false);
     }
+  });
+});
+
+describe("pagedRangeQuerySchema", () => {
+  it("takes a period and where its page starts, checking a custom period the same way", () => {
+    expect(pagedRangeQuerySchema.parse({ cursor: "20" })).toEqual({ range: "LAST_30_DAYS", cursor: 20 });
+    expect(pagedRangeQuerySchema.parse({ range: "CUSTOM", from: "2026-09-01", to: "2026-09-02" })).toEqual({
+      range: "CUSTOM",
+      from: "2026-09-01",
+      to: "2026-09-02",
+    });
+    expect(pagedRangeQuerySchema.safeParse({ range: "CUSTOM", from: "2026-09-02" }).success).toBe(false);
+    expect(pagedRangeQuerySchema.safeParse({ cursor: "next" }).success).toBe(false);
+  });
+});
+
+describe("dayParam", () => {
+  it("is a day written as YYYY-MM-DD", () => {
+    expect(dayParam.parse("2026-09-26")).toBe("2026-09-26");
+    expect(dayParam.safeParse("26/09/2026").success).toBe(false);
   });
 });

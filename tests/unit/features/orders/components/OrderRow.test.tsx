@@ -9,10 +9,10 @@ import { anOrderListItem } from "@tests/support/orders";
 
 const now = new Date("2026-09-26T06:00:00Z");
 
-function show(order: OrderListItem) {
+function show(order: OrderListItem, showCustomer?: boolean) {
   render(
     <RowList>
-      <OrderRow order={order} now={now} />
+      <OrderRow order={order} now={now} showCustomer={showCustomer} />
     </RowList>,
   );
   return screen.getByRole("link");
@@ -40,5 +40,13 @@ describe("OrderRow", () => {
     const row = show(anOrderListItem({ dueAt: "2026-09-24T05:00:00Z", firstItem: null, lineCount: 0 }));
     expect(row).toHaveTextContent("Overdue");
     expect(row).toHaveTextContent("No items");
+  });
+});
+
+describe("OrderRow on a customer's own screen", () => {
+  it("leaves their name off, since every order there is theirs", () => {
+    const row = show(anOrderListItem(), false);
+    expect(row).toHaveTextContent(/^ORD-1006Chocolate/);
+    expect(row).not.toHaveTextContent("Meena Gupta");
   });
 });

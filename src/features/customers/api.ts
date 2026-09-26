@@ -7,7 +7,8 @@ import { blankToNull, definedOnly } from "@/lib/supabase/columns";
 import { tenantRecords } from "@/lib/supabase/records";
 import type { CreateCustomerPayload, UpdateCustomerPayload } from "@/lib/validation";
 
-import type { Customer, CustomerRow } from "./types";
+import { summarise, type SummaryOrder } from "./summary";
+import type { Customer, CustomerRow, CustomerSummary } from "./types";
 
 /**
  * A bakery's customers. Tenant scoping, refusals and audit are the record
@@ -106,4 +107,21 @@ async function findByPhone(tenant: Tenant, phone: string): Promise<{ id: string;
     .maybeSingle();
   if (error) throw fromPostgrestError(error);
   return data;
+}
+
+/**
+ * A customer's summary (plan §139.10, R5.4): their orders read once, with only
+ * the columns the sums need and each order's payments embedded, then summed
+ * on the server. Reading the customer first refuses one from another business
+ * or that does not exist, as their detail does.
+ */
+export async function getCustomerSummary(tenant: Tenant, id: string, now: Date = new Date()): Promise<CustomerSummary> {
+  const customer = await customers(tenant).find(id);
+  const { data, error } = await tenant.supabase
+    .from("orders")
+    .select("total, status, created_at, delivery_type, delivery_address, delivery_google_maps_link, payments(amount)")
+    .eq("bakery_id", tenant.bakeryId)
+    .eq("customer_id", id);
+  if (error) throw fromPostgrestError(error);
+  return summarise((data ?? []) as SummaryOrder[], customer.created_at, now);
 }

@@ -373,6 +373,7 @@ export const UI_TEXT = {
     salesBySourceSummary: (guest: string, customers: string) => `Guests bought ${guest}; saved customers, ${customers}.`,
     guests: "Guests",
     savedCustomers: "Saved customers",
+    viewGuestSales: "Guest sales",
     collection: "Collected and to collect",
     collectionSummary: (collected: string, owed: string) => `${collected} collected; ${owed} still to collect.`,
     collected: "Collected",
@@ -407,6 +408,76 @@ export const UI_TEXT = {
     toPay: (amount: string) => `${amount} to pay`,
   },
 
+  /** One customer (plan §139.10): who they are, what they have ordered, and a new order for them. */
+  customerDetail: {
+    title: "Customer",
+    loading: "Loading customer",
+    call: "Call",
+    callName: (name: string) => `Call ${name}`,
+    whatsApp: "WhatsApp",
+    whatsAppName: (name: string) => `WhatsApp ${name}`,
+    map: "Map",
+    mapName: (name: string) => `${name}’s place on a map`,
+    edit: "Edit",
+    editName: (name: string) => `Edit ${name}`,
+    totalOrders: "Total orders",
+    totalSpent: "Total spent",
+    since: "Customer since",
+    balanceDue: "Balance due",
+    about: "About this customer",
+    tabNames: { ORDERS: "Orders", NOTES: "Notes", ADDRESSES: "Addresses" },
+    ordersList: (name: string) => `${name}’s orders`,
+    noOrders: "No orders yet. Create one below.",
+    notesHint: "Only you see these; they are never on a bill.",
+    noNotes: "No notes yet.",
+    editNotes: "Edit notes",
+    addressesHint: "Every place their deliveries went, most recent first.",
+    noAddresses: "No deliveries yet, so no addresses.",
+    lastUsed: (date: string) => `Last delivered ${date}`,
+    mapOnly: "A map link",
+    createOrder: "Create order",
+    createOrderName: (name: string) => `Create an order for ${name}`,
+  },
+
+  /** Regular and New (plan §139.10), wherever a customer's segment is shown. */
+  segments: { REGULAR: "Regular", NEW: "New" },
+
+  /** Guest sales (plan §139.11.3): what people bought without being saved as customers. */
+  guestSales: {
+    title: "Guest sales",
+    subtitle: "Orders placed without a saved customer.",
+    orders: "Guest orders",
+    sales: "Guest sales",
+    list: "Guest orders in this period",
+    none: "No Guest orders in this period.",
+    loading: "Loading Guest sales",
+  },
+
+  /** Orders (plan §139.10): the tabs with their counts, search, the filters, and the list. */
+  ordersScreen: {
+    title: "Orders",
+    subtitle: "Track every order, from placed to handed over.",
+    newOrder: "New order",
+    search: "Search orders, customers or phone",
+    filter: "Filter orders",
+    tabs: "Orders by status",
+    all: "All",
+    emptyTitle: "No orders yet",
+    emptyHint: "Orders you create show up here, newest first.",
+    noneHere: "No orders here.",
+    filterTitle: "Filter orders",
+    dueFrom: "Due from",
+    dueTo: "Due until",
+    payment: "Payment",
+    anyPayment: "Any",
+    whose: "Customer",
+    everyone: "Everyone",
+    guestsOnly: "Guests only",
+    apply: "Apply filters",
+    clear: "Clear filters",
+    columns: { order: "Order", customer: "Customer", items: "Items", amount: "Amount", status: "Status", due: "Due" },
+  },
+
   /** Moving an order along (plan §139.11.8). */
   orders: {
     overdue: "Overdue",
@@ -421,6 +492,15 @@ export const UI_TEXT = {
   /** One order (plan §139.10): who, what, how it is handed over, and the money. */
   orderDetail: {
     loading: "Loading order",
+    orderAgain: "Order again",
+    orderAgainName: (orderNumber: string) => `Order ${orderNumber} again`,
+    replaceTitle: "Start again from this order?",
+    replaceBody: "The order you are building will be replaced.",
+    replaceConfirm: "Start again",
+    keepBuilding: "Keep building",
+    leftOutTitle: "Some items are no longer on sale",
+    leftOut: (count: number) =>
+      `${count} ${count === 1 ? "item was" : "items were"} left out. Add something in their place if you need to.`,
     due: (handOver: string, when: string) => `${handOver} · due ${when}`,
     moveTo: (status: string) => `Mark as ${status}`,
     moreMoves: "More actions",

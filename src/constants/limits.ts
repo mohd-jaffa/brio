@@ -43,3 +43,11 @@ export const HOME_LIST_LIMITS = {
 
 /** The fewest days Home's sales chart shows, so today alone is still a trend. */
 export const HOME_MIN_TREND_DAYS = 7;
+
+/**
+ * A customer's segment (plan §139.10): Regular once they have placed this
+ * many orders, cancelled ones not counted; New while they were added within
+ * this many days. Regular wins when both hold.
+ */
+export const REGULAR_MIN_ORDERS = 3;
+export const NEW_CUSTOMER_DAYS = 30;

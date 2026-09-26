@@ -3,12 +3,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AppError } from "@/lib/errors";
 
-const { insert, update } = vi.hoisted(() => ({ insert: vi.fn(), update: vi.fn() }));
+const { insert, update, find } = vi.hoisted(() => ({ insert: vi.fn(), update: vi.fn(), find: vi.fn() }));
 vi.mock("@/lib/supabase/records", () => ({
-  tenantRecords: () => ({ insert, update, list: vi.fn(), find: vi.fn(), remove: vi.fn() }),
+  tenantRecords: () => ({ insert, update, list: vi.fn(), find, remove: vi.fn() }),
 }));
 
-import { createCustomer, updateCustomer } from "@/features/customers/api";
+import { createCustomer, getCustomerSummary, updateCustomer } from "@/features/customers/api";
+import { fakeSupabase } from "@tests/support/supabase";
 import { tenantOf } from "@tests/support/tenant";
 
 const row = (id: string, name: string) => ({
@@ -78,5 +79,44 @@ describe("a customer's phone number, already taken (§139.6, §139.11.4)", () =>
     insert.mockResolvedValue(row("c-1", "Priya Menon"));
     const client = { from: () => { throw new Error("no lookup"); } } as unknown as SupabaseClient;
     await expect(createCustomer(tenantOf(client), input)).resolves.toMatchObject({ id: "c-1", name: "Priya Menon" });
+  });
+});
+
+describe("getCustomerSummary", () => {
+  const now = new Date("2026-09-26T06:00:00Z");
+
+  it("reads the customer, then their orders once with only what the sums need", async () => {
+    find.mockResolvedValue(row("c-1", "Anu Sharma"));
+    const fake = fakeSupabase(() => ({
+      data: [
+        {
+          total: 100000,
+          status: "DELIVERED",
+          created_at: "2026-09-20T05:00:00Z",
+          delivery_type: "PICKUP",
+          delivery_address: null,
+          delivery_google_maps_link: null,
+          payments: [{ amount: 40000 }],
+        },
+      ],
+    }));
+    const summary = await getCustomerSummary(tenantOf(fake.client), "c-1", now);
+
+    expect(find).toHaveBeenCalledWith("c-1");
+    const [orders] = fake.queries;
+    expect(orders.table).toBe("orders");
+    expect(fake.argsOf(orders, "select")[0][0]).toContain("payments(amount)");
+    expect(fake.argsOf(orders, "eq")).toEqual([
+      ["bakery_id", "b-1"],
+      ["customer_id", "c-1"],
+    ]);
+    expect(summary).toMatchObject({ orders: 1, spent: 100000, balanceDue: 60000, segment: "NEW", addresses: [] });
+  });
+
+  it("reads a customer with no orders, and passes on a refusal", async () => {
+    find.mockResolvedValue(row("c-1", "Anu Sharma"));
+    expect((await getCustomerSummary(tenantOf(fakeSupabase(() => ({ data: null })).client), "c-1", now)).orders).toBe(0);
+    const refused = fakeSupabase(() => ({ error: { code: "PGRST000", message: "down" } }));
+    await expect(getCustomerSummary(tenantOf(refused.client), "c-1", now)).rejects.toBeInstanceOf(AppError);
   });
 });

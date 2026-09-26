@@ -77,7 +77,14 @@ export {
 
 export { cursorParam, listQuerySchema, searchParam, type ListQuery } from "./schemas/list";
 export { dashboardQuerySchema, type DashboardQuery } from "./schemas/dashboard";
-export { MAX_RANGE_DAYS, rangeQuerySchema, type RangeQuery } from "./schemas/range";
+export {
+  dayParam,
+  MAX_RANGE_DAYS,
+  pagedRangeQuerySchema,
+  rangeQuerySchema,
+  type PagedRangeQuery,
+  type RangeQuery,
+} from "./schemas/range";
 
 export {
   createExpenseSchema,
@@ -113,6 +120,7 @@ export {
   orderCustomerSchema,
   orderFormSchema,
   orderItemSchema,
+  orderCountsQuerySchema,
   orderListQuerySchema,
   orderPaymentFormSchema,
   orderPaymentSchema,
@@ -127,6 +135,7 @@ export {
   type OrderCustomer,
   type OrderFormPayload,
   type OrderFormValues,
+  type OrderCountsQuery,
   type OrderListQuery,
   type OrderPayment,
   type OrderPaymentFormValues,

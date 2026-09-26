@@ -19,13 +19,16 @@ export const apiRoutes = {
   customers: {
     list: "/api/customers",
     detail: (id: string) => `/api/customers/${id}`,
+    summary: (id: string) => `/api/customers/${id}/summary`,
   },
+  guestSales: "/api/guest-sales",
   products: {
     list: "/api/products",
     detail: (id: string) => `/api/products/${id}`,
   },
   orders: {
     list: "/api/orders",
+    counts: "/api/orders/counts",
     preview: "/api/orders/preview",
     detail: (id: string) => `/api/orders/${id}`,
     payments: (id: string) => `/api/orders/${id}/payments`,

@@ -27,6 +27,7 @@ import { useApiQuery } from "@/lib/query/useApiQuery";
 import { OrdersClient } from "../api.client";
 import type { Order } from "../types";
 import { balanceDue, deliveryLabel, paymentPill, statusPill } from "../view";
+import { OrderAgain } from "./OrderAgain";
 import { OrderContact } from "./OrderContact";
 import { OrderLines } from "./OrderLines";
 import { OrderPayments } from "./OrderPayments";
@@ -156,7 +157,7 @@ export function OrderDetail({ id }: { id: string }) {
         </div>
 
         <div className="lg:col-start-1">
-          <OrderLines order={current} />
+          <OrderLines order={current} action={<OrderAgain order={current} customer={customer.data} />} />
         </div>
 
         <div className="lg:col-start-1">

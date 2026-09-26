@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it } from "vitest";
 
-import { findAllOrders, findPaidByOrder } from "@/features/orders/api";
+import { findPaidByOrder } from "@/features/orders/api";
 import { tenantOf } from "@tests/support/tenant";
 
 /**
@@ -29,26 +29,6 @@ function recordingClient(answer: { data: unknown; error: unknown }) {
   const client = { from: () => builder } as unknown as SupabaseClient;
   return { client, filters };
 }
-
-describe("findAllOrders", () => {
-  it("reads every order of the business when nothing narrows it", async () => {
-    const { client, filters } = recordingClient({ data: [], error: null });
-    await findAllOrders(tenantOf(client));
-    expect(filters).toEqual([["bakery_id", "b-1"]]);
-  });
-
-  it("reads only the Guest orders for customer=guest (§139.11.3)", async () => {
-    const { client, filters } = recordingClient({ data: [], error: null });
-    await findAllOrders(tenantOf(client), { customer: "guest" });
-    expect(filters).toEqual([["bakery_id", "b-1"], ["customer_id is", null]]);
-  });
-
-  it("reads one customer's orders for their id", async () => {
-    const { client, filters } = recordingClient({ data: [], error: null });
-    await findAllOrders(tenantOf(client), { customer: "c-1" });
-    expect(filters).toEqual([["bakery_id", "b-1"], ["customer_id", "c-1"]]);
-  });
-});
 
 describe("findPaidByOrder", () => {
   it("adds up each order's payments", async () => {

@@ -90,6 +90,8 @@ describe("SalesPanel", () => {
     expect(container.querySelector('[data-series="previous"]')).not.toBeNull();
     expect(screen.getByRole("img", { name: "Guests bought ₹500; saved customers, ₹4,000." })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "₹3,000 collected; ₹1,500 still to collect." })).toBeInTheDocument();
+    const split = screen.getByRole("figure", { name: "Guest and customer sales" });
+    expect(within(split).getByRole("link", { name: "Guest sales" })).toHaveAttribute("href", "/customers/guest");
   });
 });
 

@@ -2,6 +2,7 @@ import type {
   AdjustmentType,
   DeliveryType,
   OrderStatus,
+  OrderTab,
   PaymentMethod,
   PaymentStatus,
 } from "@/constants/statuses";
@@ -130,3 +131,6 @@ export interface OrderListItem {
   balanceDue: number;
   createdAt: string;
 }
+
+/** How many orders each of Orders' tabs holds, under the filters and search in force. */
+export type OrderCounts = Record<OrderTab, number>;

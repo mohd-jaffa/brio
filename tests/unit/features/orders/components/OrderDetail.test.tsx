@@ -20,6 +20,12 @@ vi.mock("@/lib/api/client", async (original) => ({
 }));
 vi.mock("@/features/orders/api.client", () => ({ OrdersClient: { updateStatus: vi.fn() } }));
 vi.mock("@/features/payments/api.client", () => ({ PaymentsClient: { createPayment: vi.fn() } }));
+// Order again reads the signed-in user's draft; it has its own test (OrderAgain.test.tsx).
+vi.mock("@/features/orders/components/OrderAgain", () => ({
+  OrderAgain: ({ order, customer }: { order: Order; customer?: Customer }) => (
+    <button type="button">{`Order again ${order.orderNumber} for ${customer?.name ?? "Guest"}`}</button>
+  ),
+}));
 
 const meena: Customer = {
   id: "c-1",
@@ -89,7 +95,9 @@ describe("OrderDetail: reading", () => {
     expect(within(summary).getByRole("button", { name: "Mark as Preparing" })).toBeInTheDocument();
 
     expect(await screen.findByRole("link", { name: "Call Meena Gupta" })).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "Items" })).toHaveTextContent("Name topper");
+    const items = screen.getByRole("region", { name: "Items" });
+    expect(items).toHaveTextContent("Name topper");
+    expect(within(items).getByRole("button", { name: "Order again ORD-1006 for Meena Gupta" })).toBeInTheDocument();
     expect(await screen.findByRole("list", { name: "Payments" })).toHaveTextContent("₹500");
     expect(screen.queryByRole("region", { name: "Internal notes" })).not.toBeInTheDocument();
   });

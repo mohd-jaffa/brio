@@ -3,13 +3,14 @@ import { describe, expect, it } from "vitest";
 import type { Order, OrderStatus, PaymentStatus } from "@/features/orders/types";
 import {
   balanceDue,
-  byDueDate,
   deliveryLabel,
   isOpen,
   isOverdue,
+  itemsLine,
   paymentPill,
   statusPill,
 } from "@/features/orders/view";
+import { anOrderListItem } from "@tests/support/orders";
 
 function order(
   id: string,
@@ -94,27 +95,6 @@ describe("paymentPill", () => {
   });
 });
 
-describe("byDueDate", () => {
-  const orders = [
-    order("late", "PENDING", "2026-09-25T10:00:00Z"),
-    order("soon", "PENDING", "2026-09-23T10:00:00Z"),
-  ];
-
-  it("puts what is due soonest first for open orders", () => {
-    expect(byDueDate(orders, true).map((entry) => entry.id)).toEqual(["soon", "late"]);
-  });
-
-  it("puts the most recent first for finished ones", () => {
-    expect(byDueDate(orders, false).map((entry) => entry.id)).toEqual(["late", "soon"]);
-  });
-
-  it("does not disturb the list it was given", () => {
-    const original = [...orders];
-    byDueDate(orders, true);
-    expect(orders).toEqual(original);
-  });
-});
-
 describe("balanceDue", () => {
   function owing(status: OrderStatus, paymentStatus: PaymentStatus, total: number, paid: number) {
     const base = order("1", status, now.toISOString(), paymentStatus);
@@ -151,5 +131,14 @@ describe("deliveryLabel", () => {
     const pickup = order("1", "PENDING", now.toISOString());
     const unknown = { ...pickup, delivery: { ...pickup.delivery, type: "SAME_DAY" } } as unknown as Order;
     expect(deliveryLabel(unknown)).toBe("Same day");
+  });
+});
+
+describe("itemsLine", () => {
+  it("names the first item, and how many more there are", () => {
+    const first = { name: "Truffle cake", iconKey: null, custom: false };
+    expect(itemsLine(anOrderListItem({ firstItem: first, lineCount: 1 }))).toBe("Truffle cake");
+    expect(itemsLine(anOrderListItem({ firstItem: first, lineCount: 3 }))).toBe("Truffle cake +2 more");
+    expect(itemsLine(anOrderListItem({ firstItem: null, lineCount: 0 }))).toBe("No items");
   });
 });

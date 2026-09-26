@@ -5,6 +5,7 @@ import {
   createOrderSchema,
   customItemFormSchema,
   orderFormSchema,
+  orderCountsQuerySchema,
   orderListQuerySchema,
   orderPaymentFormSchema,
   orderPaymentSchema,
@@ -90,10 +91,43 @@ describe("order", () => {
   });
 
   it("filters the list by guest, or by one customer, and nothing else", () => {
-    expect(orderListQuerySchema.parse({ customer: "guest" })).toEqual({ customer: "guest" });
-    expect(orderListQuerySchema.parse({ customer: UUID })).toEqual({ customer: UUID });
-    expect(orderListQuerySchema.parse({})).toEqual({});
-    expect(orderListQuerySchema.safeParse({ customer: "everyone" }).success).toBe(false);
+    expect(orderListQuerySchema.parse({ customer: "guest" })).toEqual({ customer: "guest", search: null });
+    expect(orderListQuerySchema.parse({ customer: UUID })).toEqual({ customer: UUID, search: null });
+    expect(orderListQuerySchema.parse({})).toEqual({ search: null });
+    expect(orderListQuerySchema.safeParse({ customer: "everyone" }).error?.issues[0].message).toBe(VALIDATION_MESSAGES.invalid);
+  });
+
+  it("takes a list's status, payment, due dates, search and page (§139.10)", () => {
+    expect(
+      orderListQuerySchema.parse({
+        status: "READY",
+        payment: "UNPAID",
+        from: "2026-09-01",
+        to: "2026-09-30",
+        search: "  Anu  ",
+        cursor: "20",
+      }),
+    ).toEqual({ status: "READY", payment: "UNPAID", from: "2026-09-01", to: "2026-09-30", search: "Anu", cursor: 20 });
+    expect(orderListQuerySchema.parse({ from: "2026-09-01", to: "2026-09-01" }).to).toBe("2026-09-01");
+    // Either end alone is a date to start from, or one to stop at.
+    expect(orderListQuerySchema.parse({ from: "2026-09-01" }).from).toBe("2026-09-01");
+    expect(orderListQuerySchema.parse({ to: "2026-09-30" }).to).toBe("2026-09-30");
+    for (const query of [{ status: "BAKING" }, { payment: "OWED" }, { from: "1/9/2026" }, { cursor: "-1" }]) {
+      expect(orderListQuerySchema.safeParse(query).success).toBe(false);
+    }
+  });
+
+  it("refuses due dates that run backwards, at the second of them", () => {
+    const result = orderListQuerySchema.safeParse({ from: "2026-09-30", to: "2026-09-01" });
+    expect(result.error?.issues[0].path).toEqual(["to"]);
+    expect(orderCountsQuerySchema.safeParse({ from: "2026-09-30", to: "2026-09-01" }).success).toBe(false);
+  });
+
+  it("counts under the same filters, without a tab or a page", () => {
+    expect(orderCountsQuerySchema.parse({ customer: "guest", status: "READY", cursor: "20" })).toEqual({
+      customer: "guest",
+      search: null,
+    });
   });
 
   it("takes a custom line — a name and the price of one — beside catalogue lines (§139.11.7)", () => {

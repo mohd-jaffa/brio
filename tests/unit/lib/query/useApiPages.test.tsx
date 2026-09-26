@@ -42,6 +42,16 @@ describe("useApiPages", () => {
     expect(result.current.loadingMore).toBe(false);
   });
 
+  it("hands back the first page whole, for a route that sends more than its rows", async () => {
+    pages["/api/guest-sales"] = { items: ["g"], nextCursor: null, orders: 1 } as never;
+    const { result } = renderHook(
+      () => useApiPages<string, { items: string[]; nextCursor: string | null; orders: number }>("/api/guest-sales"),
+      { wrapper },
+    );
+    await waitFor(() => expect(result.current.first?.orders).toBe(1));
+    expect(result.current.data).toEqual(["g"]);
+  });
+
   it("does not ask for a page after the last", async () => {
     const { result } = renderHook(() => useApiPages<string>("/api/orders?status=PENDING&cursor=2"), { wrapper });
     await waitFor(() => expect(result.current.data).toEqual(["c"]));

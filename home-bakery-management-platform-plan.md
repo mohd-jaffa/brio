@@ -7884,7 +7884,7 @@ Tabs with counts: All · Pending · Preparing · Ready · Out for delivery ·
 Delivered · Cancelled. Search, and a filter for dates, payment status and Guest.
 
 - **Phone rows:** the first item's illustration (or the Guest mark) · `ORD-1028` · the first item "+2 more" · the customer or "Guest" · due date · status pill · amount · chevron.
-- **Desktop:** a table — Order, Customer, Items, Amount, Status, Due — with **New order** in the header.
+- **Desktop:** a table — Order, Customer, Items, Amount, Status, Due — with **New order** in the header. The table starts at 1280 px, where its six columns have room; rows below that (2026-09-26).
 
 ### Create order (§139.11.3 – §139.11.5)
 
@@ -7924,7 +7924,10 @@ with the map link. Actions: Call · WhatsApp · Map · Edit. Stats: orders, tota
 spent, customer since, **balance due**. Tabs: **Orders · Notes · Addresses** —
 Addresses are **the distinct delivery addresses from this customer's orders**,
 so no new table is needed. A sticky **Create order** with this customer already
-selected.
+selected — it keeps whatever the order being built already holds (IMP-04). **Order
+again** sits on each order, beside its items: it rebuilds the draft from that order,
+asking first if one is being built, and says what is no longer on sale (IMP-03,
+2026-09-26).
 
 ### Guest sales
 
@@ -8288,6 +8291,7 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `…_status_ready` | Add `READY` to the status CHECK (Q3, answered). | 3 |
 | `…_illustrations` | `products.image` is renamed **`icon_key`** (text; NULL means the default). Any existing value that is not a key's shape is cleared, and a CHECK allows only `^[a-z0-9]+(-[a-z0-9]+)*$` up to 64 characters. `bakeries.expense_category_icons` is `jsonb not null default '{}'`, with a CHECK that it is an object. The server checks keys against the registry, so a new illustration needs no migration. | 1 |
 | `…_text_hygiene` | Trimmed-length checks on customer, product and category names; categories unique per business on `lower(name)`. | 1 |
+| `…_list_views` | *Added 2026-09-26 as `0017_list_views` (R5.2, R5.3).* Two read-only, `security_invoker` views, so RLS still decides: **`order_search`** — each order beside its customer's name and phone, so one PostgREST `or` finds an order by its number, its customer or their phone digits (BUG-23), which it cannot do across an embed; and **`customer_stats`** — each customer with their order count and last order, cancelled ones not counted, so Customers can page and keep to Regular on the server. Select for `authenticated` only. No table. | 5 |
 | `…_notification_kind` | `notifications.kind` (`ORDER`, `PAYMENT`, `STOCK`, `CUSTOMER`, `SYSTEM`); index `(bakery_id, is_read, created_at desc)`. | 5 |
 | `…_audit_writes` | Revoke `INSERT` on `audit_logs` from `authenticated`; audit is written by the server with the acting user (§133.7 G1, BUG-20). | 2 |
 | `…_device_tokens` | The push-token registry (§133.5 E2). | 8 |
@@ -8303,7 +8307,8 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `GET, PATCH /api/business` | New — the business profile (§133.2 B1). |
 | `POST /api/business/logo` | New — the logo upload, under §56 rules (§133.2 B2). |
 | `GET /api/dashboard` | New (R5.1, 2026-09-26) — `?period=TODAY\|WEEK\|MONTH&status=&payment=`. Home worked out on the server: the four tiles, the orders due (overdue, today, tomorrow), low stock, and the period's sales by day, orders by status, top products and recent customers. |
-| `GET /api/orders` | `?customer=guest\|{id}&status=&from=&to=&cursor=` — filters and pagination (§133.9 I4). |
+| `GET /api/orders` | `?customer=guest\|{id}&status=&payment=&from=&to=&search=&cursor=` — filters and pagination (§133.9 I4). `from`/`to` are due days; `search` matches the number, the customer's name or their phone digits. Answers a page of list rows (`OrderListItem`): All newest first, an open status soonest due first, delivered and cancelled most recently due first. Done 2026-09-26 (R5.2). |
+| `GET /api/orders/counts` | New (R5.2, 2026-09-26) — the same filters; how many orders each tab holds, counted in the database. |
 | `POST /api/orders` | Calls `create_order`; takes an `Idempotency-Key` header, the customer union, and custom items. |
 | `POST /api/orders/preview` | New — the estimate. Validates, prices and checks stock; **writes nothing**. |
 | `PATCH /api/orders/{id}/status` | The transition table; `paymentStatus` is **no longer accepted**. |
@@ -8311,8 +8316,8 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `GET /api/orders/{id}/bill.pdf` | New — generated on demand, never stored. |
 | `POST /api/orders/{id}/payments` | Fixed amount handling (BUG-01); `Idempotency-Key`. |
 | `GET /api/customers` | `?search=` matches phone numbers on digits; pagination. |
-| `GET /api/customers/{id}/summary` | New — stats, and the delivery addresses taken from orders. |
-| `GET /api/guest-sales` | New — `?from&to`. |
+| `GET /api/customers/{id}/summary` | New — stats, and the delivery addresses taken from orders. Done 2026-09-26 (R5.4): orders and spend (cancelled not counted), balance due, last order, segment, and the distinct delivery places, most recent first. |
+| `GET /api/guest-sales` | New — `?range&from&to&cursor`, a period as Analytics takes it. Done 2026-09-26 (R5.5): the count and total of the period's Guest orders, cancelled left out, and a page of them. |
 | `GET /api/analytics/overview` | `?range&from&to&interval=DAY\|WEEK` — a preset, or `CUSTOM` with both dates (1–366 days). Returns the KPIs with their previous-period values, the sales series and the previous period's, the orders series, every product's sales (with their `iconKey`; custom items as one row), orders by status, pickup against delivery, the Guest split, collected against to collect, new against returning, and the top customers (§133.9 I1, I3, §139.11.11). Done 2026-09-26. |
 | `GET /api/expenses/summary` | New — `?from&to&interval=day\|week`. Returns the total and daily average, each with the previous period's; totals by category; the series; and the five most recent (§139.11.11). |
 | `GET /api/expense-categories`, `PATCH /api/expense-categories/{category}` | New — each category's illustration. The PATCH takes `{ iconKey }` and writes `bakeries.expense_category_icons` on the server (§139.11.10). |
@@ -8378,8 +8383,8 @@ wrong but survivable · **S4** polish.
 |---|---|---|
 | IMP-01 | ~~**Global search** — the Home search and ⌘K on desktop, across orders, customers and products.~~ **Dropped by the user, 2026-09-25:** there is no search on Home or in the top bar. Search stays in the lists that need it — Orders, Customers, Products, Inventory, the create-order grid and the customer picker — and moves to the server with each list's pagination. | R5.13 (was R5.12) |
 | IMP-02 | **WhatsApp, with no integration:** tap to chat with a customer (a `wa.me` link to their number), and share a bill to WhatsApp through the share sheet. | R3.15, R4.4 |
-| IMP-03 | **Order again** from a customer's past order — the draft is prefilled. | R5.4 |
-| IMP-04 | **Create order from a customer** with the customer already selected (in the reference). | R5.4 |
+| IMP-03 | **Order again** from a customer's past order — the draft is prefilled. | R5.4 (done 2026-09-26 — on the order, beside its items, opened from the customer's Orders tab) |
+| IMP-04 | **Create order from a customer** with the customer already selected (in the reference). | R5.4 (done 2026-09-26) |
 | IMP-05 | **"Today" stays today** until the day ends, instead of turning overdue at the due minute (§134 P2-2). | R5.1 |
 | IMP-06 | **A next-step status button** — one tap moves an order on. | R3.15 |
 | IMP-07 | **Balance due shown wherever money is owed** — order rows, order detail, customer detail and the bill. | R3.15, R5.2 |
@@ -8623,10 +8628,10 @@ the row needs; without an answer it is built on that question's default
 | ID | Work | Source | Waits on | Status |
 |---|---|---|---|---|
 | R5.1 | Home | §139.10; IMP-05 | — | DONE (2026-09-26 · Home; `GET /api/dashboard` works it out on the server, so Home no longer reads every order) |
-| R5.2 | Orders list | §139.10; IMP-07 | — | TODO |
+| R5.2 | Orders list | §139.10; IMP-07 | — | DONE (2026-09-26 · tabs with counts, server search and filters, a page at a time; `0017_list_views`) |
 | R5.3 | Customers: segments, the pinned Guest sales row, search on digits | §139.10; BUG-23 | — | TODO |
-| R5.4 | Customer detail: stats, orders, notes, addresses, create order, order again | IMP-03, IMP-04 | — | TODO |
-| R5.5 | Guest sales | §139.11.3 | — | TODO |
+| R5.4 | Customer detail: stats, orders, notes, addresses, create order, order again | IMP-03, IMP-04 | — | DONE (2026-09-26 · `GET /api/customers/{id}/summary`; Order again sits on the order) |
+| R5.5 | Guest sales | §139.11.3 | — | DONE (2026-09-26 · `/customers/guest`; also from Orders' Guest filter and Analytics' Guest split) |
 | R5.6 | Products; neutral units; the **Icon** field and picker — the owner picks the product's illustration from the library; ~~managing categories~~ dropped (2026-09-25), and a migration removes the unused `categories` table and `products.category_id` | §139.11.10; §133.4 D1 (dropped) | Q8 | TODO |
 | R5.7 | Inventory | §139.10 | — | TODO |
 | R5.8 | Expenses as the reference shows: KPIs, the category donut, daily bars, recent expenses; the Categories and Transactions tabs; `GET /api/expenses/summary` | §139.10; §139.11.11 | — | TODO |

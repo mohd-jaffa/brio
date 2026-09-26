@@ -16,13 +16,24 @@ export function formatDate(isoDate: string | null | undefined): string {
   return `${Number(match[3])} ${MONTHS[Number(match[2]) - 1]} ${match[1]}`;
 }
 
+/** An instant's parts on the business's clock, or null for no instant or an unreadable one. */
+function clock(iso: string | null | undefined): Record<string, string> | null {
+  const date = iso ? new Date(iso) : null;
+  if (!date || Number.isNaN(date.getTime())) return null;
+  return Object.fromEntries(PARTS.formatToParts(date).map((part) => [part.type, part.value]));
+}
+
 export function formatDateTime(iso: string | null | undefined): string {
-  if (!iso) return '—';
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '—';
-  const part = (type: Intl.DateTimeFormatPartTypes) =>
-    PARTS.formatToParts(date).find((p) => p.type === type)?.value ?? '';
-  return `${part('day')} ${MONTHS[Number(part('month')) - 1]} ${part('year')}, ${part('hour')}:${part('minute')} ${part('dayPeriod').toUpperCase()}`;
+  const part = clock(iso);
+  if (!part) return '—';
+  return `${part.day} ${MONTHS[Number(part.month) - 1]} ${part.year}, ${part.hour}:${part.minute} ${part.dayPeriod.toUpperCase()}`;
+}
+
+/** The time of day in the business's clock: "11:50 PM". */
+export function formatTime(iso: string | null | undefined): string {
+  const part = clock(iso);
+  if (!part) return '—';
+  return `${part.hour}:${part.minute} ${part.dayPeriod.toUpperCase()}`;
 }
 
 /** The month a date falls in, for grouping a list by it: "Sep 2026". */
