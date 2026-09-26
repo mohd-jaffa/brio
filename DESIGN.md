@@ -1,0 +1,428 @@
+---
+name: Ovenly
+description: The Home Kitchen Ledger — warm, calm and exact business management for home businesses, in two themes, Golden and Peach.
+colors:
+  # Golden — the default theme (and where a stored "clean" lands)
+  toasted-caramel: "#7a4a25"
+  toasted-caramel-deep: "#633b1d"
+  caramel-cream: "#f3e6d6"
+  on-caramel: "#fff8f0"
+  honey-gold: "#a67628"
+  espresso: "#2a1b12"
+  espresso-lift: "#3a2619"
+  warm-cream: "#f6efe5"
+  oat-paper: "#fffcf8"
+  flour-well: "#f1e8db"
+  oat-hairline: "#e6dacb"
+  crust-ink: "#2b1d14"
+  cocoa-muted: "#6b5747"
+  chart-rust: "#9c4a25"
+  chart-espresso: "#4f2d1b"
+  chart-sand: "#d2a47c"
+  chart-orange: "#e2713f"
+  chart-peach: "#f0bf98"
+  chart-taupe: "#8d7359"
+  # Peach
+  baked-terracotta: "#a94a26"
+  baked-terracotta-deep: "#8e3c1d"
+  terracotta-blush: "#fbe3d6"
+  on-terracotta: "#fff8f3"
+  apricot-glaze: "#c46a3c"
+  cocoa: "#3a2119"
+  cocoa-lift: "#4c2d22"
+  blush-cream: "#fbeee6"
+  rose-paper: "#fffaf6"
+  blush-well: "#f7e6da"
+  blush-hairline: "#f0dbcd"
+  plum-ink: "#33201a"
+  rosewood-muted: "#77574a"
+  chart-terracotta: "#a8441f"
+  chart-cocoa: "#5a2a1c"
+  chart-apricot: "#e7a07a"
+  chart-clay-orange: "#d0643a"
+  chart-blush: "#f3c3a8"
+  chart-rosy-taupe: "#9a6f5e"
+  # Shared by both themes
+  status-pending: "#8a5208"
+  status-preparing: "#944616"
+  status-ready: "#2f6f5e"
+  status-transit: "#355f9a"
+  status-delivered: "#2e7048"
+  status-cancelled: "#a63a34"
+  status-neutral: "#5e5550"
+  bill-paper: "#ffffff"
+  bill-ink: "#231a15"
+  bill-ink-muted: "#5f534b"
+  bill-rule: "#e6ded6"
+typography:
+  display:
+    fontFamily: "Fraunces, Georgia, serif"
+    fontSize: "2.75rem"
+    fontWeight: 600
+    lineHeight: 1.04
+    letterSpacing: "-0.035em"
+  headline:
+    fontFamily: "Fraunces, Georgia, serif"
+    fontSize: "1.75rem"
+    fontWeight: 500
+    lineHeight: 1.25
+    letterSpacing: "-0.025em"
+  title:
+    fontFamily: "Fraunces, Georgia, serif"
+    fontSize: "1.125rem"
+    fontWeight: 500
+    lineHeight: 1.4
+  figure:
+    fontFamily: "Fraunces, Georgia, serif"
+    fontSize: "1.5rem"
+    fontWeight: 500
+    lineHeight: 1.33
+    fontFeature: "\"tnum\" 1"
+  body:
+    fontFamily: "Inter, system-ui, sans-serif"
+    fontSize: "0.875rem"
+    fontWeight: 400
+    lineHeight: 1.43
+  body-strong:
+    fontFamily: "Inter, system-ui, sans-serif"
+    fontSize: "0.875rem"
+    fontWeight: 600
+    lineHeight: 1.43
+  label:
+    fontFamily: "Inter, system-ui, sans-serif"
+    fontSize: "0.75rem"
+    fontWeight: 500
+    lineHeight: 1.33
+  lockup:
+    fontFamily: "Inter, system-ui, sans-serif"
+    fontSize: "0.7rem"
+    fontWeight: 600
+    lineHeight: 1.7
+    letterSpacing: "0.34em"
+rounded:
+  sm: "6px"
+  md: "8px"
+  lg: "12px"
+  xl: "16px"
+  sheet: "32px"
+  pill: "9999px"
+spacing:
+  xs: "4px"
+  sm: "8px"
+  md: "12px"
+  lg: "16px"
+  xl: "24px"
+  2xl: "32px"
+components:
+  button-primary:
+    backgroundColor: "{colors.toasted-caramel}"
+    textColor: "{colors.on-caramel}"
+    typography: "{typography.body-strong}"
+    rounded: "{rounded.lg}"
+    padding: "10px 16px"
+  button-primary-hover:
+    backgroundColor: "{colors.toasted-caramel-deep}"
+  button-action:
+    backgroundColor: "{colors.espresso}"
+    textColor: "{colors.on-caramel}"
+    typography: "{typography.body-strong}"
+    rounded: "{rounded.lg}"
+    padding: "10px 16px"
+  button-action-hover:
+    backgroundColor: "{colors.espresso-lift}"
+  button-secondary:
+    backgroundColor: "color-mix(in oklab, #7a4a25 10%, transparent)"
+    textColor: "{colors.toasted-caramel}"
+    typography: "{typography.body-strong}"
+    rounded: "{rounded.lg}"
+    padding: "10px 16px"
+  button-ghost:
+    backgroundColor: "{colors.oat-paper}"
+    textColor: "{colors.cocoa-muted}"
+    typography: "{typography.body-strong}"
+    rounded: "{rounded.lg}"
+    padding: "10px 16px"
+  fab:
+    backgroundColor: "{colors.espresso}"
+    textColor: "{colors.on-caramel}"
+    rounded: "{rounded.pill}"
+    size: "56px"
+  text-field:
+    backgroundColor: "{colors.flour-well}"
+    textColor: "{colors.crust-ink}"
+    typography: "{typography.body}"
+    rounded: "{rounded.lg}"
+    padding: "12px 16px"
+  card:
+    backgroundColor: "{colors.oat-paper}"
+    textColor: "{colors.crust-ink}"
+    rounded: "{rounded.xl}"
+    padding: "16px"
+  row:
+    backgroundColor: "{colors.oat-paper}"
+    textColor: "{colors.crust-ink}"
+    typography: "{typography.body-strong}"
+    padding: "12px 16px"
+  medallion:
+    backgroundColor: "{colors.caramel-cream}"
+    textColor: "{colors.toasted-caramel}"
+    rounded: "{rounded.pill}"
+    size: "44px"
+  status-pill:
+    backgroundColor: "color-mix(in oklab, #8a5208 12%, #fffcf8)"
+    textColor: "{colors.status-pending}"
+    typography: "{typography.label}"
+    rounded: "{rounded.pill}"
+    padding: "4px 10px"
+  nav-item-active:
+    backgroundColor: "{colors.caramel-cream}"
+    textColor: "{colors.toasted-caramel}"
+    typography: "{typography.body-strong}"
+    rounded: "{rounded.lg}"
+    padding: "10px 12px"
+  segmented-control:
+    backgroundColor: "{colors.flour-well}"
+    rounded: "{rounded.lg}"
+    padding: "4px"
+  segmented-control-selected:
+    backgroundColor: "{colors.oat-paper}"
+    textColor: "{colors.crust-ink}"
+    typography: "{typography.body-strong}"
+    rounded: "{rounded.md}"
+  quote-block:
+    backgroundColor: "{colors.flour-well}"
+    textColor: "{colors.crust-ink}"
+    rounded: "{rounded.xl}"
+    padding: "16px 20px"
+---
+
+# Design System: Ovenly
+
+## Overview
+
+**Creative North Star: "The Home Kitchen Ledger"**
+
+Ovenly is a well-kept order book on a kitchen shelf: warm, homely materials holding figures you can trust. The ground is cream, the pages are oat paper, the ink is a deep crust brown, and the one thing that must be done next is set in espresso. It is warm, calm and exact. Warmth comes from the materials, never from noise; calm comes from restraint, with one strong voice per screen; exactness comes from measured contrast, tabular figures and money that is never a guess.
+
+Controls are **soft and certain**: rounded, tinted and gently lifted, and never ambiguous about what can be tapped or where something stands. The owner meets these screens many times a day, often one-handed between batches, so density stays steady and the structure stays predictable. What is due and what is owed always leads.
+
+Two themes share one vocabulary. **Golden** is caramel on warm cream; **Peach** is terracotta on blush. A screen names a role and the theme supplies the value, so the two can never drift apart.
+
+**Key Characteristics:**
+- Three warm tones carry depth: the cream ground, oat-paper cards and flour-well fields.
+- Fraunces serif for titles and headline figures; Inter for everything you operate.
+- One espresso control per screen: the thing to do next.
+- Status reads as a tinted pill with a dot, in the same colour in both themes.
+- The business's own bakes and gifts (an app-owned illustration library) mark products and categories; nothing is uploaded but the logo.
+- Every text pairing is measured against the ground it sits on, in both themes.
+
+## Colors
+
+A warm, low-chroma kitchen palette. One caramel (or terracotta) voice does the pointing, espresso takes the one action, and six shared status colours say where things stand.
+
+### Primary
+- **Toasted Caramel** (Golden) / **Baked Terracotta** (Peach): the pointing colour. It marks the active tab's underline, links, icons, the filled primary button, the active nav label and a bill's header rule and total. As text on paper it clears 4.5 : 1.
+- **Caramel Cream** (Golden) / **Terracotta Blush** (Peach): the soft tint of the primary. It sits behind medallions and the active nav pill, with the primary on top (6.03 : 1 in Golden, 4.62 in Peach).
+- **On-Caramel** / **On-Terracotta**: the cream words set on the primary and on espresso.
+
+### Secondary
+- **Honey Gold** (Golden) / **Apricot Glaze** (Peach): marks and charts only. It is never text.
+
+### Tertiary
+- **Espresso** (Golden) / **Cocoa** (Peach): the one dark control per screen, such as the round + on a phone, **New order** on a desktop, or the sign-in submit. Words on it read 15.8 : 1 in Golden and 14.2 : 1 in Peach.
+
+### Neutral
+- **Warm Cream** (Golden) / **Blush Cream** (Peach): the page ground.
+- **Oat Paper** / **Rose Paper**: cards, sheets, the response card and rows.
+- **Flour Well** / **Blush Well**: fields, product tile wells, the quote block, the segmented control's track.
+- **Oat Hairline** / **Blush Hairline**: every divider and card border.
+- **Crust Ink** / **Plum Ink**: body text (14.3 : 1 and 13.6 : 1 on the ground).
+- **Cocoa Muted** / **Rosewood Muted**: secondary text, at 5.3 : 1 or better on every ground, fields included.
+
+### Status (shared by both themes)
+- **Pending** amber-brown, **Preparing** rust, **Ready** pine, **Out for delivery** slate blue, **Delivered / Completed** leaf green, **Cancelled** brick, **Neutral** stone.
+- Each is ≥ 4.5 : 1 as a word on its own 12 % tint. Success, warning, danger and info borrow from these: delivered, pending, cancelled and transit.
+
+### Charts
+- Each theme has six browns and oranges: rust, espresso, sand, orange, peach, taupe (Peach: terracotta, cocoa, apricot, clay orange, blush, rosy taupe).
+- The first colour draws every line and strong bar (6.0 : 1 on paper).
+- The taupe is always last, as "Others".
+
+### The Bill
+- **Bill Paper** white with **Bill Ink** near-black, in either theme. The theme shows only in the header rule and the total.
+- The shared image and the PDF use the same values.
+
+### Named Rules
+**The Role, Not Colour Rule.** A screen never picks a colour. It names a role (surface, text-muted, primary, action, a status) and the theme on `<html data-theme>` decides the value.
+
+**The Measured Pair Rule.** No text pairing ships unmeasured: body and muted text are ≥ 4.5 : 1 on the ground they sit on, and marks are ≥ 3 : 1. Each value is noted beside its token.
+
+**The Accent Is Not Ink Rule.** Honey Gold and Apricot Glaze never carry words. They are for marks, rings and bars.
+
+**The Two Themes Rule.** There are exactly two themes, Golden and Peach, and no third or dark variant.
+
+## Typography
+
+**Display Font:** Fraunces (with Georgia, serif), a variable serif with its soft and optical-size axes on.
+**Body Font:** Inter (with system-ui, sans-serif).
+
+**Character:** Fraunces brings the warmth of a handwritten ledger heading; Inter keeps every control crisp and legible at 14 px.
+
+### Hierarchy
+- **Display** (600, 2.75rem, 1.04, −0.035em): the sign-in screens' headline only ("Good work starts here.").
+- **Headline** (500, 1.75rem rising to 1.875rem from 640 px, 1.25, −0.025em): each screen's one page title, and the Home greeting.
+- **Title** (500, 1.125rem, 1.4): section headings ("Orders due", "Top products") and sheet titles.
+- **Figure** (500, 1.5rem, tabular numerals): headline amounts in stat tiles and a customer's figures. Counts stay in Inter semibold.
+- **Body** (400 / 500, 0.875rem, 1.43): rows, fields, messages. Row titles take 600.
+- **Label** (500, 0.75rem): pills, helper text, captions, table headers.
+- **Lockup** (600, 0.7rem, 0.34em, uppercase): only the brand lockup and the intro line on the sign-in screens.
+
+### Named Rules
+**The Serif for Figures Rule.** Titles and money in headline position are set in Fraunces; anything you type, tap or scan in a list is Inter.
+
+**The Tabular Money Rule.** Every amount, count and time in a column uses tabular numerals, so figures line up down a list.
+
+## Layout
+
+- **Operate mode throughout:** predictable structure, steady density, and one clear reading order. What is due and what is owed comes first.
+- **Phone (under 768 px):**
+  - a top bar with the business's mark, name and catch phrase, the bell and the avatar;
+  - a five-item bottom bar (Home, Orders, Products, Customers, More) with a tinted pill on the current place;
+  - 16 px gutters.
+- **Tablet (768 – 1023 px):** a 72 px icon rail whose labels appear as tooltips, a top bar with the bell and the account, and 24 px gutters.
+- **Desktop (1024 px and up):**
+  - a 248 px sidebar in three groups: the daily work, the numbers, and the rest;
+  - content capped at 1200 px, with 32 px gutters;
+  - screens split into a main column and a side column that stack independently;
+  - order and expense lists become tables at 1280 px.
+- **Rhythm:**
+  - a screen's title keeps 24 px below it;
+  - search, tabs and the list bind at 16 px;
+  - sections part at 24 px, and at 32 px on a desktop.
+- **Every edge pays its safe area** (`--safe-top/right/bottom/left`), and heights use `dvh`, never `vh`. On a phone, a screen with the round + keeps its last row clear of it.
+- **Touch:** every target is at least 44 px. A control drawn smaller takes an invisible 44 px halo.
+
+### Named Rules
+**The What-Is-Due-Leads Rule.** On any screen the first thing read is what needs doing: overdue and due orders, money still owed, stock running low.
+
+## Elevation & Depth
+
+Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards and flour-well fields step down from one another, each resting card with a barely-there shadow. Real lift is kept for what floats: sheets and dialogs, the response card, the one dark action, and the sign-in card on a desktop. Every shadow is tinted with the theme's own warm brown, never grey or black.
+
+### Shadow Vocabulary
+- **Card** (`0 1px 2px rgb(var(--shadow-tone) / 0.05), 0 1px 1px rgb(var(--shadow-tone) / 0.03)`): every resting card, row list and tile. It is felt more than seen.
+- **Elevated** (`0 14px 32px -14px rgb(var(--shadow-tone) / 0.2), 0 2px 6px -2px rgb(var(--shadow-tone) / 0.08)`): the espresso action, the round +, menus, popovers and floating sheets.
+- **Rising sheet** (`0 -18px 40px -22px rgb(var(--shadow-tone) / 0.28)`): the sign-in sheet as it rises from a phone's foot.
+
+### Named Rules
+**The Warm Shadow Rule.** Shadows take `--shadow-tone`, the theme's brown. A grey or black shadow is a stain on the page.
+
+**The Float-Only Lift Rule.** Only what floats above the page earns the elevated shadow. A resting card never does.
+
+## Shapes
+
+- **Radii:** soft corners everywhere, and nothing sharp:
+  - 12 px on fields, buttons and product tile wells;
+  - 16 px on cards, row lists, the hero band, the quote block and the response card;
+  - 32 px on the sign-in sheet;
+  - fully round on pills, medallions, avatars, the round + and the bell's count.
+- **Hairlines:** one hairline border (Oat or Blush Hairline) outlines each card. Rows inside a card are split by hairlines, not gaps.
+- **Photographs** are app-owned plates. They sit in 16 px rounded bands and fade to nothing before any word, so no text ever sits on a photograph.
+
+### Named Rules
+**The One Card Rule.** A list is hairline rows inside one card. Cards never nest.
+
+## Components
+
+### Buttons
+- **Feel:** soft and certain. They respond to the press and never leave you guessing.
+- **Shape:** 12 px corners by default, or fully round where the reference sets a pill (the sign-in submits, Mark all as read).
+- **Primary:** Toasted Caramel with cream words, 10 × 16 px padding, 14 px semibold.
+- **Action:** Espresso. The one per screen; it carries the elevated shadow.
+- **Secondary:** a 10 % caramel tint with caramel words.
+- **Ghost:** Oat Paper with a hairline and muted words that darken on hover.
+- **Danger:** a brick tint with brick words.
+- **Sizes:** 12 px text for small, 16 px for large.
+- **States:** hover deepens the fill; press scales slightly (0.98). Loading shows a spinner and refuses a second press. Focus is a 2 px caramel ring offset by a cream halo, so it shows on any ground.
+
+### The Round + (FAB)
+- A 56 px espresso circle above the bottom bar, clear of the home indicator, on phones only.
+- From 768 px it becomes a labelled espresso button in the page header.
+
+### Chips
+- Choice chips for small single choices; the segmented control for a period: a Flour Well track with a 4 px inset, and an Oat Paper tile that glides to the chosen segment.
+
+### Cards / Containers
+- **Corner style:** 16 px.
+- **Background:** Oat Paper on the cream ground.
+- **Shadow:** Card (see Elevation).
+- **Border:** one hairline.
+- **Internal padding:** 16 px, or 12 × 16 px for a row.
+
+### Rows
+- One line of a list: a tile, an avatar or a medallion; a title (14 px semibold) with one or two lines under it; what it amounts to at the right edge (an amount, a pill, a time); and a chevron when it goes somewhere.
+- The whole row is the target. On a desktop the right edge carries a scannable figure.
+
+### Inputs / Fields
+- **Style:** Flour Well fill, a hairline border, 12 px corners, 12 × 16 px padding, 14 px medium text.
+- **Focus:** the border turns caramel with a 1 px caramel ring, and the caret is caramel.
+- **Error:** a brick border and ring, with the message beside the field.
+- **Read-only:** muted text and no focus ring.
+
+### Status Pill
+- A fully round tinted pill (12 % of its status colour on paper), 12 px medium words, and a 6 px dot in the same colour.
+- It is how an order's or a payment's state always reads.
+
+### Medallion
+- An icon (lucide, 1.75 stroke) in a round tint: 36, 44 or 56 px.
+- It is decorative: the words beside it carry the meaning.
+
+### Stat Tile
+- A medallion, the figure (the serif for money), and its label.
+- On a phone the label sits beside the medallion. From 1024 px the label drops under the figure and a sparkline takes the medallion's row, so every tile is the same height.
+
+### Navigation
+- **Bottom bar:** five places; the current one gets a Caramel Cream pill with a semibold caramel label.
+- **Sidebar and rail:** the same active pill.
+- **Tabs:** underlined for the views of a screen; a single 2 px caramel underline glides to the chosen tab over 300 ms.
+- **Bell:** a bell with the unread count in a small brick (danger) circle ringed in paper, 1 to 9 then "9+".
+
+### Response Card
+- The one way an outcome is reported, on the web and in the app: a medallion, a serif title, the message, up to three facts in a strip, and at most two actions.
+- It rises as a sheet on a phone and as a dialog on a desktop. Plain successes close themselves after 3 seconds.
+
+### Photographic Band and Quote Block
+- **Hero and band:** a Flour Well panel with serif words on the left and an app-owned plate fading in on the right.
+- **Quote block:** a line of encouragement in italic Fraunces on Flour Well, with a small plate.
+
+### Motion
+- **Easing:** one arrival curve, `cubic-bezier(0.16, 1, 0.3, 1)`.
+- **Durations:**
+  - sheets slide up over 320 ms, and dialogs rise 12 px and scale from 0.97 over 260 ms;
+  - exits take 200 ms;
+  - a row that joins a list drops in over 240 ms, and the gap one leaves closes;
+  - content that replaces a placeholder fades in over 200 ms.
+- **Reduced motion:** every movement becomes a short fade.
+
+## Do's and Don'ts
+
+### Do:
+- **Do** name a role (`surface`, `text-muted`, `primary`, `action`, a status) and let the theme decide the colour.
+- **Do** keep to one espresso control per screen, and make it the thing to do next.
+- **Do** show state as a tinted pill with a dot, in the shared status colours.
+- **Do** set headline money in Fraunces with tabular numerals, and everything operated in Inter.
+- **Do** put a list's rows inside one hairline card, and let the right edge carry the figure to scan.
+- **Do** tint every shadow with `--shadow-tone`, and keep the elevated shadow for what floats.
+- **Do** give every target 44 px and pay every safe area.
+- **Do** report an outcome on the response card; keep field errors beside their field.
+- **Do** mark products and expense categories with the app's own illustrations.
+
+### Don't:
+- **Don't** pick a hex in a screen, or add a third theme or a dark variant.
+- **Don't** set words in Honey Gold or Apricot Glaze.
+- **Don't** nest cards, or wrap every group in a container when proximity already groups it.
+- **Don't** use grey or black shadows, or a hard offset shadow.
+- **Don't** set text on a photograph: plates fade to nothing before the words.
+- **Don't** use a toast; outcomes go on the response card.
+- **Don't** show uploaded photographs of products, customers or anything else. The logo is the only upload.
+- **Don't** let a screen restyle a kit button, field, row or sheet; a pattern needed twice belongs in the kit.

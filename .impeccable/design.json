@@ -1,0 +1,526 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-26T19:18:17+00:00",
+  "title": "Design System: Ovenly",
+  "extensions": {
+    "colorMeta": {
+      "toasted-caramel": {
+        "role": "primary",
+        "displayName": "Toasted Caramel",
+        "canonical": "oklch(45.7% 0.083 56)",
+        "tonalRamp": [
+          "#1b0400",
+          "#3b1c02",
+          "#5e3719",
+          "#835532",
+          "#a77653",
+          "#c89a7a",
+          "#e9c0a3",
+          "#ffe6cd"
+        ]
+      },
+      "honey-gold": {
+        "role": "secondary",
+        "displayName": "Honey Gold",
+        "canonical": "oklch(60.1% 0.110 75)",
+        "tonalRamp": [
+          "#1b0400",
+          "#3b1d00",
+          "#5e3900",
+          "#835700",
+          "#a67932",
+          "#c79d61",
+          "#e8c28d",
+          "#ffe9ba"
+        ]
+      },
+      "espresso": {
+        "role": "tertiary",
+        "displayName": "Espresso",
+        "canonical": "oklch(23.9% 0.029 52)",
+        "tonalRamp": [
+          "#110905",
+          "#2e221b",
+          "#4d3f36",
+          "#6e5d53",
+          "#907e74",
+          "#b2a197",
+          "#d5c6bd",
+          "#f9ebe3"
+        ]
+      },
+      "warm-cream": {
+        "role": "neutral",
+        "displayName": "Warm Cream",
+        "canonical": "oklch(95.5% 0.015 77)",
+        "tonalRamp": [
+          "#0f0a05",
+          "#29241d",
+          "#474139",
+          "#666058",
+          "#888178",
+          "#aba49b",
+          "#cfc8be",
+          "#f4ede3"
+        ]
+      },
+      "oat-paper": {
+        "role": "neutral",
+        "displayName": "Oat Paper",
+        "canonical": "oklch(99.2% 0.006 75)",
+        "tonalRamp": [
+          "#0d0b08",
+          "#272522",
+          "#44423e",
+          "#63615d",
+          "#84827e",
+          "#a7a4a1",
+          "#cbc9c5",
+          "#f1eeea"
+        ]
+      },
+      "baked-terracotta": {
+        "role": "primary",
+        "displayName": "Baked Terracotta (Peach)",
+        "canonical": "oklch(52.7% 0.135 40)",
+        "tonalRamp": [
+          "#250000",
+          "#4a0900",
+          "#712605",
+          "#9b4221",
+          "#c16543",
+          "#e28c6d",
+          "#ffb398",
+          "#ffdcc3"
+        ]
+      },
+      "apricot-glaze": {
+        "role": "secondary",
+        "displayName": "Apricot Glaze (Peach)",
+        "canonical": "oklch(61.9% 0.129 46)",
+        "tonalRamp": [
+          "#230000",
+          "#480e00",
+          "#6e2a00",
+          "#984618",
+          "#bd683d",
+          "#de8f69",
+          "#feb694",
+          "#ffdec0"
+        ]
+      },
+      "cocoa": {
+        "role": "tertiary",
+        "displayName": "Cocoa (Peach)",
+        "canonical": "oklch(27.8% 0.042 39)",
+        "tonalRamp": [
+          "#150704",
+          "#32201a",
+          "#533c34",
+          "#765a51",
+          "#987b71",
+          "#ba9e95",
+          "#dcc3bb",
+          "#ffe9e2"
+        ]
+      },
+      "blush-cream": {
+        "role": "neutral",
+        "displayName": "Blush Cream (Peach)",
+        "canonical": "oklch(95.7% 0.018 54)",
+        "tonalRamp": [
+          "#110905",
+          "#2c231d",
+          "#4a4039",
+          "#6a5f58",
+          "#8b8079",
+          "#aea29b",
+          "#d3c6bf",
+          "#f9ece4"
+        ]
+      },
+      "rose-paper": {
+        "role": "neutral",
+        "displayName": "Rose Paper (Peach)",
+        "canonical": "oklch(98.8% 0.008 61)",
+        "tonalRamp": [
+          "#0e0a08",
+          "#282421",
+          "#45413e",
+          "#64605d",
+          "#86817e",
+          "#a9a4a0",
+          "#cdc8c4",
+          "#f2ede9"
+        ]
+      },
+      "status-pending": {
+        "role": "status",
+        "displayName": "Pending",
+        "canonical": "oklch(49.2% 0.107 65)",
+        "tonalRamp": [
+          "#1d0200",
+          "#3e1a00",
+          "#623600",
+          "#885314",
+          "#ac753b",
+          "#cd9967",
+          "#eebf92",
+          "#ffe6bf"
+        ]
+      },
+      "status-ready": {
+        "role": "status",
+        "displayName": "Ready",
+        "canonical": "oklch(49.5% 0.072 173)",
+        "tonalRamp": [
+          "#001109",
+          "#002d23",
+          "#174c3f",
+          "#326e5e",
+          "#55907f",
+          "#7db2a2",
+          "#a6d5c6",
+          "#d0f9ec"
+        ]
+      },
+      "status-transit": {
+        "role": "status",
+        "displayName": "Out for delivery",
+        "canonical": "oklch(48.4% 0.107 257)",
+        "tonalRamp": [
+          "#000827",
+          "#07244a",
+          "#204271",
+          "#3a629a",
+          "#5a84be",
+          "#81a7dd",
+          "#a9ccfd",
+          "#d2f1ff"
+        ]
+      },
+      "status-delivered": {
+        "role": "status",
+        "displayName": "Delivered / Completed",
+        "canonical": "oklch(49.1% 0.093 154)",
+        "tonalRamp": [
+          "#001202",
+          "#002e15",
+          "#174e2e",
+          "#32704a",
+          "#55926a",
+          "#7db48f",
+          "#a6d7b5",
+          "#d0fbdd"
+        ]
+      },
+      "status-cancelled": {
+        "role": "status",
+        "displayName": "Cancelled",
+        "canonical": "oklch(50.2% 0.144 27)",
+        "tonalRamp": [
+          "#270000",
+          "#4d0104",
+          "#751e1b",
+          "#a03b35",
+          "#c75e55",
+          "#e7867c",
+          "#ffaea4",
+          "#ffd7ce"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The sign-in screens' headline only."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Each screen's one page title, and the Home greeting."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Section headings and sheet titles."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "Headline money in stat tiles and a customer's figures; tabular numerals."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Rows, fields and messages."
+      },
+      "body-strong": {
+        "displayName": "Body strong",
+        "purpose": "Row titles and button labels."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Pills, helper text, captions, table headers."
+      },
+      "lockup": {
+        "displayName": "Lockup",
+        "purpose": "Only the brand lockup and the sign-in intro line; tracked uppercase."
+      }
+    },
+    "shadows": [
+      {
+        "name": "card",
+        "value": "0 1px 2px rgb(var(--shadow-tone) / 0.05), 0 1px 1px rgb(var(--shadow-tone) / 0.03)",
+        "purpose": "Every resting card, row list and tile — felt more than seen."
+      },
+      {
+        "name": "elevated",
+        "value": "0 14px 32px -14px rgb(var(--shadow-tone) / 0.2), 0 2px 6px -2px rgb(var(--shadow-tone) / 0.08)",
+        "purpose": "The espresso action, the round +, menus, popovers, floating sheets."
+      },
+      {
+        "name": "rising-sheet",
+        "value": "0 -18px 40px -22px rgb(var(--shadow-tone) / 0.28)",
+        "purpose": "The sign-in sheet rising from a phone's foot."
+      },
+      {
+        "name": "shadow-tone-golden",
+        "value": "43 29 20",
+        "purpose": "The brown every Golden shadow is tinted with."
+      },
+      {
+        "name": "shadow-tone-peach",
+        "value": "51 32 26",
+        "purpose": "The brown every Peach shadow is tinted with."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The app's one arrival curve: quick to move, slow to settle."
+      },
+      {
+        "name": "sheet-in",
+        "value": "320ms",
+        "purpose": "A sheet slides up from the foot on a phone."
+      },
+      {
+        "name": "dialog-in",
+        "value": "260ms",
+        "purpose": "A dialog rises 12px and scales from 0.97 on a desktop."
+      },
+      {
+        "name": "exit",
+        "value": "200ms",
+        "purpose": "Sheets, dialogs and cards leaving."
+      },
+      {
+        "name": "drop-in",
+        "value": "240ms",
+        "purpose": "A row joining a list; staggered 30ms, at most four."
+      },
+      {
+        "name": "settle",
+        "value": "200ms",
+        "purpose": "Content replacing its placeholder fades in."
+      },
+      {
+        "name": "underline-glide",
+        "value": "300ms",
+        "purpose": "The tab underline and the segmented tile moving to the choice."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "fade 140–160ms",
+        "purpose": "Every movement becomes a short fade."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      },
+      {
+        "name": "content-max",
+        "value": "1200px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The filled caramel button: a confirming action that is not the screen's one dark action.",
+      "html": "<button class=\"ds-btn-primary\">Save details</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 16px; border-radius: 12px; font: 600 14px/1.43 Inter, system-ui, sans-serif; border: 0; cursor: pointer; transition: background-color .2s, color .2s, transform .15s; background: var(--color-primary, #7a4a25); color: var(--color-primary-text, #fff8f0); box-shadow: 0 4px 6px -1px rgb(43 29 20 / .1); } .ds-btn-primary:hover { background: var(--color-primary-hover, #633b1d); } .ds-btn-primary:active { transform: scale(.98); } .ds-btn-primary:focus-visible { outline: 2px solid var(--color-primary, #7a4a25); outline-offset: 2px; box-shadow: 0 0 0 4px var(--color-background, #f6efe5); }"
+    },
+    {
+      "name": "Action Button",
+      "kind": "button",
+      "refersTo": "button-action",
+      "description": "Espresso: the one dark control per screen — the thing to do next.",
+      "html": "<button class=\"ds-btn-action\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"M12 5v14\"/></svg>New order</button>",
+      "css": ".ds-btn-action { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 16px; border-radius: 12px; font: 600 14px/1.43 Inter, system-ui, sans-serif; border: 0; cursor: pointer; transition: background-color .2s, color .2s, transform .15s; background: var(--color-action, #2a1b12); color: var(--color-action-text, #fff8f0); box-shadow: 0 14px 32px -14px rgb(43 29 20 / .2), 0 2px 6px -2px rgb(43 29 20 / .08); } .ds-btn-action:hover { background: var(--color-action-hover, #3a2619); } .ds-btn-action:active { transform: scale(.98); } .ds-btn-action:focus-visible { outline: 2px solid var(--color-primary, #7a4a25); outline-offset: 2px; box-shadow: 0 0 0 4px var(--color-background, #f6efe5); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "A caramel tint: a supporting action beside the primary.",
+      "html": "<button class=\"ds-btn-secondary\">Add discount</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 16px; border-radius: 12px; font: 600 14px/1.43 Inter, system-ui, sans-serif; border: 0; cursor: pointer; transition: background-color .2s, color .2s, transform .15s; background: color-mix(in oklab, var(--color-primary, #7a4a25) 10%, transparent); color: var(--color-primary, #7a4a25); } .ds-btn-secondary:hover { background: color-mix(in oklab, var(--color-primary, #7a4a25) 20%, transparent); } .ds-btn-secondary:active { transform: scale(.98); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--color-primary, #7a4a25); outline-offset: 2px; box-shadow: 0 0 0 4px var(--color-background, #f6efe5); }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Paper with a hairline: a quiet option that darkens on hover.",
+      "html": "<button class=\"ds-btn-ghost\">Cancel</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 16px; border-radius: 12px; font: 600 14px/1.43 Inter, system-ui, sans-serif; border: 0; cursor: pointer; transition: background-color .2s, color .2s, transform .15s; background: var(--color-surface, #fffcf8); color: var(--color-text-muted, #6b5747); border: 1px solid var(--color-border, #e6dacb); } .ds-btn-ghost:hover { color: var(--color-text, #2b1d14); background: color-mix(in oklab, var(--color-sunken, #f1e8db) 60%, var(--color-surface, #fffcf8)); } .ds-btn-ghost:focus-visible { outline: 2px solid var(--color-primary, #7a4a25); outline-offset: 2px; box-shadow: 0 0 0 4px var(--color-background, #f6efe5); }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "text-field",
+      "description": "A Flour Well field: caramel border and ring on focus, the label above, help beneath.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Business name <span class=\"ds-req\">*</span></span><input class=\"ds-input\" placeholder=\"e.g. Sweet Delights\" /><span class=\"ds-field-hint\">Printed on your bills.</span></label>",
+      "css": ".ds-field { display: grid; gap: 6px; font-family: Inter, system-ui, sans-serif; } .ds-field-label { font: 500 14px/1.4 Inter, system-ui, sans-serif; color: var(--color-text, #2b1d14); } .ds-req { color: var(--color-danger, #a63a34); } .ds-input { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--color-border, #e6dacb); background: var(--color-sunken, #f1e8db); color: var(--color-text, #2b1d14); font: 500 14px/1.43 Inter, system-ui, sans-serif; outline: none; caret-color: var(--color-primary, #7a4a25); transition: border-color .2s, box-shadow .2s; } .ds-input::placeholder { color: var(--color-text-muted, #6b5747); } .ds-input:focus { border-color: var(--color-primary, #7a4a25); box-shadow: 0 0 0 1px var(--color-primary, #7a4a25); } .ds-field-hint { font-size: 12px; color: var(--color-text-muted, #6b5747); }"
+    },
+    {
+      "name": "Status Pill",
+      "kind": "chip",
+      "refersTo": "status-pill",
+      "description": "Where something stands: a round 12 % tint of its status colour, with a dot.",
+      "html": "<span class=\"ds-pill ds-pill-pending\"><span class=\"ds-dot\"></span>Pending</span> <span class=\"ds-pill ds-pill-ready\"><span class=\"ds-dot\"></span>Ready</span> <span class=\"ds-pill ds-pill-cancelled\"><span class=\"ds-dot\"></span>Overdue</span>",
+      "css": ".ds-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 9999px; font: 500 12px/1.33 Inter, system-ui, sans-serif; } .ds-dot { width: 6px; height: 6px; border-radius: 9999px; background: currentColor; } .ds-pill-pending { color: #8a5208; background: color-mix(in oklab, #8a5208 12%, var(--color-surface, #fffcf8)); } .ds-pill-ready { color: #2f6f5e; background: color-mix(in oklab, #2f6f5e 12%, var(--color-surface, #fffcf8)); } .ds-pill-cancelled { color: #a63a34; background: color-mix(in oklab, #a63a34 12%, var(--color-surface, #fffcf8)); }"
+    },
+    {
+      "name": "Row List",
+      "kind": "card",
+      "refersTo": "row",
+      "description": "Hairline rows inside one paper card; the right edge carries the figure to scan.",
+      "html": "<ul class=\"ds-rows\"><li><a class=\"ds-row\" href=\"#\"><span class=\"ds-avatar\">FK</span><span class=\"ds-row-main\"><span class=\"ds-row-title\">Farida Khan</span><span class=\"ds-row-sub\">1 order · last order a week ago</span></span><span class=\"ds-row-end\"><span class=\"ds-owed\">₹950</span><span class=\"ds-owed-cap\">due</span></span><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m9 18 6-6-6-6\"/></svg></a></li><li><a class=\"ds-row\" href=\"#\"><span class=\"ds-avatar\">AS</span><span class=\"ds-row-main\"><span class=\"ds-row-title\">Anu Sharma</span><span class=\"ds-row-sub\">4 orders · last order yesterday</span></span><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m9 18 6-6-6-6\"/></svg></a></li></ul>",
+      "css": ".ds-rows { list-style: none; margin: 0; padding: 0; background: var(--color-surface, #fffcf8); border: 1px solid var(--color-border, #e6dacb); border-radius: 16px; overflow: hidden; box-shadow: 0 1px 2px rgb(43 29 20 / .05), 0 1px 1px rgb(43 29 20 / .03); font-family: Inter, system-ui, sans-serif; } .ds-rows li + li { border-top: 1px solid var(--color-border, #e6dacb); } .ds-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--color-text-muted, #6b5747); text-decoration: none; transition: background-color .2s; } .ds-row:hover { background: color-mix(in oklab, var(--color-sunken, #f1e8db) 60%, var(--color-surface, #fffcf8)); } .ds-row:focus-visible { outline: 2px solid var(--color-primary, #7a4a25); outline-offset: -2px; } .ds-avatar { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 9999px; background: var(--color-primary-soft, #f3e6d6); color: var(--color-primary, #7a4a25); font: 600 14px Inter, system-ui, sans-serif; flex-shrink: 0; } .ds-row-main { flex: 1; min-width: 0; display: grid; } .ds-row-title { font: 600 14px/1.43 Inter, system-ui, sans-serif; color: var(--color-text, #2b1d14); } .ds-row-sub { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ds-row-end { display: grid; justify-items: end; gap: 2px; } .ds-owed { font: 600 14px Inter, system-ui, sans-serif; font-variant-numeric: tabular-nums; color: #8a5208; } .ds-owed-cap { font-size: 12px; font-weight: 500; }"
+    },
+    {
+      "name": "Bottom Navigation",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "The phone's five places; the current one sits in a Caramel Cream pill.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Main navigation\"><a class=\"ds-nav-item ds-nav-active\" aria-current=\"page\" href=\"#\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\"/><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/></svg><span>Home</span></a><a class=\"ds-nav-item\" href=\"#\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect width=\"8\" height=\"4\" x=\"8\" y=\"2\" rx=\"1\"/><path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\"/><path d=\"M12 11h4\"/><path d=\"M12 16h4\"/><path d=\"M8 11h.01\"/><path d=\"M8 16h.01\"/></svg><span>Orders</span></a></nav>",
+      "css": ".ds-nav { display: flex; justify-content: space-around; padding: 8px; background: color-mix(in oklab, var(--color-surface, #fffcf8) 90%, transparent); border-top: 1px solid var(--color-border, #e6dacb); font-family: Inter, system-ui, sans-serif; } .ds-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 56px; min-height: 44px; padding: 6px 10px; border-radius: 12px; color: var(--color-text-muted, #6b5747); font: 500 11px/1 Inter, system-ui, sans-serif; text-decoration: none; transition: color .2s, background-color .2s; } .ds-nav-item:hover { color: var(--color-text, #2b1d14); } .ds-nav-active { background: var(--color-primary-soft, #f3e6d6); color: var(--color-primary, #7a4a25); font-weight: 600; } .ds-nav-item:focus-visible { outline: 2px solid var(--color-primary, #7a4a25); outline-offset: 2px; }"
+    },
+    {
+      "name": "Segmented Control",
+      "kind": "custom",
+      "refersTo": "segmented-control",
+      "description": "A period switch: a Flour Well track and a paper tile that glides to the choice.",
+      "html": "<div class=\"ds-seg\" role=\"radiogroup\" aria-label=\"Period\"><button class=\"ds-seg-opt ds-seg-on\" role=\"radio\" aria-checked=\"true\">Today</button><button class=\"ds-seg-opt\" role=\"radio\" aria-checked=\"false\">Week</button><button class=\"ds-seg-opt\" role=\"radio\" aria-checked=\"false\">Month</button></div>",
+      "css": ".ds-seg { display: flex; gap: 0; padding: 4px; border-radius: 12px; background: var(--color-sunken, #f1e8db); max-width: 320px; } .ds-seg-opt { flex: 1; min-height: 44px; border: 0; border-radius: 8px; background: transparent; color: var(--color-text-muted, #6b5747); font: 600 14px Inter, system-ui, sans-serif; cursor: pointer; transition: color .2s, background-color .3s cubic-bezier(0.16, 1, 0.3, 1); } .ds-seg-opt:hover { color: var(--color-text, #2b1d14); } .ds-seg-on { background: var(--color-surface, #fffcf8); color: var(--color-text, #2b1d14); box-shadow: 0 1px 2px rgb(43 29 20 / .05), 0 1px 1px rgb(43 29 20 / .03); } .ds-seg-opt:focus-visible { outline: 2px solid var(--color-primary, #7a4a25); outline-offset: 2px; }"
+    },
+    {
+      "name": "Stat Tile",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "One number and what it means: a medallion, the figure in the serif, its label.",
+      "html": "<dl class=\"ds-tile\"><span class=\"ds-medallion\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1\"/><path d=\"M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4\"/></svg></span><dt>To collect</dt><dd>₹1,910</dd></dl>",
+      "css": ".ds-tile { display: grid; grid-template-columns: auto 1fr; column-gap: 12px; margin: 0; padding: 16px; max-width: 220px; border-radius: 16px; border: 1px solid var(--color-border, #e6dacb); background: var(--color-surface, #fffcf8); box-shadow: 0 1px 2px rgb(43 29 20 / .05), 0 1px 1px rgb(43 29 20 / .03); } .ds-medallion { grid-column: 1; grid-row: 1; display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 9999px; color: #8a5208; background: color-mix(in oklab, #8a5208 12%, var(--color-surface, #fffcf8)); } .ds-tile dt { grid-column: 2; grid-row: 1; align-self: center; font: 400 14px Inter, system-ui, sans-serif; color: var(--color-text-muted, #6b5747); } .ds-tile dd { grid-column: 1 / span 2; grid-row: 2; margin: 8px 0 0; font: 500 24px/1.33 Fraunces, Georgia, serif; font-variant-numeric: tabular-nums; color: var(--color-text, #2b1d14); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Home Kitchen Ledger",
+    "overview": "Ovenly is a well-kept order book on a kitchen shelf: warm, homely materials holding figures you can trust. The ground is cream, the pages are oat paper, the ink is a deep crust brown, and the one thing that must be done next is set in espresso. It is warm, calm and exact. Warmth comes from the materials, never from noise; calm comes from restraint, with one strong voice per screen; exactness comes from measured contrast, tabular figures and money that is never a guess.\n\nControls are **soft and certain**: rounded, tinted and gently lifted, and never ambiguous about what can be tapped or where something stands. The owner meets these screens many times a day, often one-handed between batches, so density stays steady and the structure stays predictable. What is due and what is owed always leads.\n\nTwo themes share one vocabulary. **Golden** is caramel on warm cream; **Peach** is terracotta on blush. A screen names a role and the theme supplies the value, so the two can never drift apart.",
+    "keyCharacteristics": [
+      "Three warm tones carry depth: the cream ground, oat-paper cards and flour-well fields.",
+      "Fraunces serif for titles and headline figures; Inter for everything you operate.",
+      "One espresso control per screen: the thing to do next.",
+      "Status reads as a tinted pill with a dot, in the same colour in both themes.",
+      "The business's own bakes and gifts (an app-owned illustration library) mark products and categories; nothing is uploaded but the logo.",
+      "Every text pairing is measured against the ground it sits on, in both themes."
+    ],
+    "rules": [
+      {
+        "name": "The Role, Not Colour Rule",
+        "body": "A screen never picks a colour. It names a role (surface, text-muted, primary, action, a status) and the theme on `<html data-theme>` decides the value.",
+        "section": "colors"
+      },
+      {
+        "name": "The Measured Pair Rule",
+        "body": "No text pairing ships unmeasured: body and muted text are ≥ 4.5 : 1 on the ground they sit on, and marks are ≥ 3 : 1. Each value is noted beside its token.",
+        "section": "colors"
+      },
+      {
+        "name": "The Accent Is Not Ink Rule",
+        "body": "Honey Gold and Apricot Glaze never carry words. They are for marks, rings and bars.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Themes Rule",
+        "body": "There are exactly two themes, Golden and Peach, and no third or dark variant.",
+        "section": "colors"
+      },
+      {
+        "name": "The Serif for Figures Rule",
+        "body": "Titles and money in headline position are set in Fraunces; anything you type, tap or scan in a list is Inter.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Money Rule",
+        "body": "Every amount, count and time in a column uses tabular numerals, so figures line up down a list.",
+        "section": "typography"
+      },
+      {
+        "name": "The What-Is-Due-Leads Rule",
+        "body": "On any screen the first thing read is what needs doing: overdue and due orders, money still owed, stock running low.",
+        "section": "layout"
+      },
+      {
+        "name": "The Warm Shadow Rule",
+        "body": "Shadows take `--shadow-tone`, the theme's brown. A grey or black shadow is a stain on the page.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Float-Only Lift Rule",
+        "body": "Only what floats above the page earns the elevated shadow. A resting card never does.",
+        "section": "elevation"
+      },
+      {
+        "name": "The One Card Rule",
+        "body": "A list is hairline rows inside one card. Cards never nest.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "**Do** name a role (`surface`, `text-muted`, `primary`, `action`, a status) and let the theme decide the colour.",
+      "**Do** keep to one espresso control per screen, and make it the thing to do next.",
+      "**Do** show state as a tinted pill with a dot, in the shared status colours.",
+      "**Do** set headline money in Fraunces with tabular numerals, and everything operated in Inter.",
+      "**Do** put a list's rows inside one hairline card, and let the right edge carry the figure to scan.",
+      "**Do** tint every shadow with `--shadow-tone`, and keep the elevated shadow for what floats.",
+      "**Do** give every target 44 px and pay every safe area.",
+      "**Do** report an outcome on the response card; keep field errors beside their field.",
+      "**Do** mark products and expense categories with the app's own illustrations."
+    ],
+    "donts": [
+      "**Don't** pick a hex in a screen, or add a third theme or a dark variant.",
+      "**Don't** set words in Honey Gold or Apricot Glaze.",
+      "**Don't** nest cards, or wrap every group in a container when proximity already groups it.",
+      "**Don't** use grey or black shadows, or a hard offset shadow.",
+      "**Don't** set text on a photograph: plates fade to nothing before the words.",
+      "**Don't** use a toast; outcomes go on the response card.",
+      "**Don't** show uploaded photographs of products, customers or anything else. The logo is the only upload.",
+      "**Don't** let a screen restyle a kit button, field, row or sheet; a pattern needed twice belongs in the kit."
+    ]
+  }
+}

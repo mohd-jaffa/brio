@@ -2257,3 +2257,27 @@ These are product or plan decisions rather than layout, and are left for the use
 
 ### Blockers
 - None.
+
+## 2026-09-27 — DESIGN.md (`/impeccable document`)
+
+### Added
+- **`DESIGN.md`** at the root: the visual system as built, in the DESIGN.md format, so new screens stay on-brand.
+  - **Tokens:** machine-readable YAML covering the 49 colours of Golden, Peach and the shared status, chart and bill colours; the type roles; radii; spacing; and 16 component tokens.
+  - **Sections:** the eight canonical ones, from Overview to Do's and Don'ts.
+  - **Source:** every value comes from `src/app/globals.css` and the kit, including the contrast measured for each text pairing.
+- **The user's language:**
+  - the north star, **"The Home Kitchen Ledger"**;
+  - the mood, warm, calm, exact;
+  - controls that feel **soft and certain**;
+  - the bakery pantry colour names (Toasted Caramel, Honey Gold, Espresso, Warm Cream, Oat Paper; Baked Terracotta, Apricot Glaze, Cocoa, Blush Cream, Rose Paper);
+  - depth that is **layered and softly lifted**.
+- **Named rules:** Role, Not Colour; Measured Pair; Accent Is Not Ink; Two Themes; Serif for Figures; Tabular Money; What-Is-Due-Leads; Warm Shadow; Float-Only Lift; One Card.
+- **`.impeccable/design.json`:** the sidecar Impeccable's live panel reads. It holds tonal ramps in OKLCH for the key colours, the shadow, motion and breakpoint tokens, 10 self-contained component snippets (buttons, field, status pill, row list, bottom navigation, segmented control, stat tile), and the narrative copied word for word from DESIGN.md.
+
+### Validation
+- The frontmatter parses as YAML, and the sidecar as JSON.
+- Its claims were checked against the code: the press scale, the pill buttons, the bell's colour, the radii and the contrast ratios.
+- A documentation change only; no code was touched.
+
+### Blockers
+- None.
