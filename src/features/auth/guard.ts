@@ -1,3 +1,5 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { BUSINESS_ROLES, type UserRole } from "@/constants/roles";
 import { withApiHandler, type ApiContext } from "@/lib/api/handler";
 import { authenticationError, authorizationError } from "@/lib/errors";
@@ -97,4 +99,32 @@ export function withBakeryRoute<TData>(
     },
     { successStatus: options.successStatus },
   );
+}
+
+/** What a route that changes the owner's own account is handed: the tenant, and the server's client. */
+export interface AccountContext extends BakeryContext {
+  admin: SupabaseClient;
+}
+
+/**
+ * A route that changes the signed-in owner's own account — the name, the
+ * sign-in number, the email (plan §139.10; the user, 2026-09-26). Like
+ * `withBakeryRoute` it resolves the session and refuses anyone still owing a
+ * password change; and since Auth and `profiles` are written by the server
+ * only (0008), it also hands over the service role, which the account
+ * functions use on the session's own account and nothing else.
+ */
+export function withAccountRoute<TData>(request: Request, handler: (context: AccountContext) => Promise<TData>) {
+  return withApiHandler(request, async ({ requestId }) => {
+    const session = await requireAuth(request);
+    assertPasswordChanged(session);
+    return handler({
+      requestId,
+      session,
+      supabase: createSupabaseAnonClient(session.accessToken),
+      bakeryId: session.profile.bakeryId,
+      actorId: session.profile.id,
+      admin: createSupabaseServiceRoleClient(),
+    });
+  });
 }

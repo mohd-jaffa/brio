@@ -6,7 +6,7 @@ import { authStub } from "@tests/support/auth";
 
 const { router, client, auth } = vi.hoisted(() => ({
   router: { replace: vi.fn(), push: vi.fn(), back: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() },
-  client: { confirmEmail: vi.fn() },
+  client: { confirmEmail: vi.fn(), confirmEmailChange: vi.fn() },
   auth: { current: {} as ReturnType<typeof authStub> },
 }));
 
@@ -18,7 +18,9 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/features/auth/api.client", () => ({ AuthClient: client }));
 vi.mock("@/features/auth/AuthProvider", () => ({ useAuth: () => auth.current }));
 
-const { ConfirmEmailPanel, readConfirmationLink } = await import("@/features/auth/components/ConfirmEmailPanel");
+const { ConfirmEmailPanel, readConfirmationLink, readEmailChangeToken } = await import(
+  "@/features/auth/components/ConfirmEmailPanel"
+);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -113,5 +115,67 @@ describe("confirming an email address", () => {
     render(<ConfirmEmailPanel />);
 
     expect(screen.getByRole("status")).toHaveTextContent(UI_TEXT.auth.confirming);
+  });
+});
+
+describe("confirming a new email address", () => {
+  it("finds the token in the fragment, and nothing in any other link", () => {
+    expect(readEmailChangeToken("#change=the-token")).toBe("the-token");
+    expect(readEmailChangeToken("#access_token=a&refresh_token=r")).toBeNull();
+  });
+
+  it("hands the token over, reads the session again and says what the email is now", async () => {
+    client.confirmEmailChange.mockResolvedValue({ email: "asha.new@example.com" });
+    window.location.hash = "#change=the-token";
+    render(<ConfirmEmailPanel />);
+
+    expect(screen.getByText(UI_TEXT.auth.confirmingChange)).toBeInTheDocument();
+    expect(await screen.findByText("Your email address is now asha.new@example.com.")).toBeInTheDocument();
+    expect(client.confirmEmailChange).toHaveBeenCalledWith("the-token");
+    expect(auth.current.reload).toHaveBeenCalledOnce();
+    expect(client.confirmEmail).not.toHaveBeenCalled();
+    expect(window.location.hash).toBe("");
+    expect(screen.getByRole("link", { name: "Go to the app" })).toHaveAttribute("href", "/");
+  });
+
+  it("says a link that lapsed or was used, in the server's words", async () => {
+    client.confirmEmailChange.mockRejectedValue(new Error("boom"));
+    window.location.hash = "#change=old-token";
+    render(<ConfirmEmailPanel />);
+    expect(await screen.findByText(ERROR_MESSAGES.AUTH_EMAIL_CONFIRM_FAILED)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: UI_TEXT.auth.backToSignIn })).toBeInTheDocument();
+  });
+
+  it("does nothing once the page has gone", async () => {
+    let finish: (value: { email: string }) => void = () => {};
+    client.confirmEmailChange.mockReturnValue(new Promise((resolve) => (finish = resolve)));
+    window.location.hash = "#change=the-token";
+    const { unmount } = render(<ConfirmEmailPanel />);
+    unmount();
+    finish({ email: "asha.new@example.com" });
+    await waitFor(() => expect(auth.current.reload).not.toHaveBeenCalled());
+
+    client.confirmEmailChange.mockReturnValue(Promise.reject(new Error("late")));
+    window.location.hash = "#change=the-token";
+    render(<ConfirmEmailPanel />).unmount();
+    await Promise.resolve();
+  });
+});
+
+describe("a welcome link whose page has gone", () => {
+  it("signs no one in once the page is closed, whether the server answers or refuses", async () => {
+    let answer: (value: unknown) => void = () => {};
+    client.confirmEmail.mockReturnValue(new Promise((resolve) => (answer = resolve)));
+    window.location.hash = "#access_token=a&refresh_token=r";
+    render(<ConfirmEmailPanel />).unmount();
+    answer({ profile: {}, requiresPasswordChange: false });
+    await waitFor(() => expect(auth.current.adopt).not.toHaveBeenCalled());
+
+    let refuse: (reason: unknown) => void = () => {};
+    client.confirmEmail.mockReturnValue(new Promise((_, reject) => (refuse = reject)));
+    window.location.hash = "#access_token=a&refresh_token=r";
+    render(<ConfirmEmailPanel />).unmount();
+    refuse(new Error("late"));
+    await waitFor(() => expect(router.replace).not.toHaveBeenCalled());
   });
 });

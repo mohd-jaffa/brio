@@ -23,6 +23,8 @@ import { FieldError } from "./field-error";
 const CONTROL_CLASSES =
   "w-full rounded-xl border border-border bg-sunken px-4 py-3 text-sm font-medium outline-none transition " +
   "placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary " +
+  // A field shown but not edited — a name locked for now — reads as quieter.
+  "read-only:cursor-default read-only:text-text-muted read-only:focus:border-border read-only:focus:ring-0 " +
   "aria-[invalid=true]:border-danger aria-[invalid=true]:focus:ring-danger";
 
 /**

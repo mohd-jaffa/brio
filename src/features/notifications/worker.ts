@@ -6,6 +6,7 @@ import { notificationText, readNotificationMessage } from "./text";
 import { type NotificationPayload } from "./types";
 import { logger } from "@/lib/logger";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server";
+import { sendEmailChangeConfirmation } from "@/features/auth/account";
 import { sendAccountConfirmation } from "@/features/auth/api";
 
 const pushProvider = new CapacitorPushProvider();
@@ -13,6 +14,7 @@ const pushProvider = new CapacitorPushProvider();
 export function registerNotificationWorker() {
   registerJobHandler(JOB_TYPES.pushNotification, handlePushNotification);
   registerJobHandler(JOB_TYPES.accountConfirmation, handleAccountConfirmation);
+  registerJobHandler(JOB_TYPES.emailChangeConfirmation, handleEmailChangeConfirmation);
   logger.info("NotificationWorker registered handlers");
 }
 
@@ -21,6 +23,13 @@ async function handleAccountConfirmation(job: Job): Promise<void> {
   const { userId } = job.payload as { userId?: string };
   if (!userId) throw new Error("Confirmation job has no user");
   await sendAccountConfirmation(createSupabaseServiceRoleClient(), userId);
+}
+
+/** The link to a new email address, which takes over once it is followed (the user, 2026-09-26). */
+async function handleEmailChangeConfirmation(job: Job): Promise<void> {
+  const { userId } = job.payload as { userId?: string };
+  if (!userId) throw new Error("Email change job has no user");
+  await sendEmailChangeConfirmation(createSupabaseServiceRoleClient(), userId);
 }
 
 /**

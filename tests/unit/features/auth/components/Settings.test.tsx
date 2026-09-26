@@ -9,13 +9,14 @@ import { ThemeProvider } from "@/lib/theme/ThemeProvider";
 import { authStub, TEST_PROFILE } from "@tests/support/auth";
 import { Providers } from "@tests/support/providers";
 
-const { auth, business, resendConfirmation } = vi.hoisted(() => ({
+const { auth, business, resendConfirmation, resendEmailChange } = vi.hoisted(() => ({
   auth: { current: {} as ReturnType<typeof authStub> },
   business: { current: {} as { data?: BusinessProfile } },
   resendConfirmation: vi.fn(),
+  resendEmailChange: vi.fn(),
 }));
 vi.mock("@/features/auth/AuthProvider", () => ({ useAuth: () => auth.current }));
-vi.mock("@/features/auth/api.client", () => ({ AuthClient: { resendConfirmation } }));
+vi.mock("@/features/auth/api.client", () => ({ AuthClient: { resendConfirmation, resendEmailChange } }));
 vi.mock("@/features/business/hooks/useBusiness", () => ({ useBusiness: () => business.current }));
 
 const render = (ui: ReactElement) =>
@@ -37,6 +38,7 @@ const SWEET: BusinessProfile = {
   address: "12 MG Road",
   phone: "+919876543210",
   logoUrl: null,
+  nameChangedAt: null,
 };
 
 beforeEach(() => {
@@ -82,10 +84,50 @@ describe("Settings", () => {
   it("shows how the owner signs in, and where the password is changed", () => {
     render(<Settings />);
     const account = screen.getByRole("region", { name: "Account" });
-    expect(within(account).getByText(TEST_PROFILE.name)).toBeInTheDocument();
-    expect(within(account).getByText("+91 98765 43210")).toBeInTheDocument();
-    expect(within(account).getByText(TEST_PROFILE.email)).toBeInTheDocument();
+    expect(within(account).getByRole("button", { name: `Name ${TEST_PROFILE.name}` })).toBeInTheDocument();
+    expect(within(account).getByRole("button", { name: "Sign-in number +91 98765 43210" })).toBeInTheDocument();
+    expect(within(account).getByRole("button", { name: `Email address ${TEST_PROFILE.email}` })).toBeInTheDocument();
+    expect(account).toHaveTextContent("can each be changed once every 30 days");
     expect(within(account).getByRole("link", { name: /^Change password/ })).toHaveAttribute("href", "/change-password");
+  });
+
+  it("opens the sheet for the detail tapped", async () => {
+    render(<Settings />);
+    await userEvent.click(screen.getByRole("button", { name: /^Sign-in number/ }));
+    expect(screen.getByRole("dialog", { name: "Change sign-in number" })).toBeInTheDocument();
+    await userEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Close" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("says when a detail changed within 30 days opens again, and does not offer it until then", () => {
+    auth.current = authStub({
+      profile: { ...TEST_PROFILE, nameChangedAt: new Date(Date.now() - 86_400_000).toISOString() },
+    });
+    render(<Settings />);
+    const account = screen.getByRole("region", { name: "Account" });
+    expect(within(account).queryByRole("button", { name: /^Name/ })).not.toBeInTheDocument();
+    expect(account).toHaveTextContent(/You can change this again on \d{1,2} \w{3} \d{4}\./);
+    expect(within(account).getByRole("button", { name: /^Email address/ })).toBeInTheDocument();
+  });
+
+  it("shows a new email waiting for its link, and sends the link again", async () => {
+    resendEmailChange.mockResolvedValue({ queued: true });
+    auth.current = authStub({ profile: { ...TEST_PROFILE, pendingEmail: "asha.new@example.com" } });
+    render(<Settings />);
+    const account = screen.getByRole("region", { name: "Account" });
+    expect(account).toHaveTextContent("Confirm asha.new@example.com with the link sent to it.");
+
+    await userEvent.click(within(account).getByRole("button", { name: "Send the link again" }));
+    await waitFor(() => expect(resendEmailChange).toHaveBeenCalledOnce());
+    expect(await screen.findByRole("status")).toHaveTextContent("A new link is on its way to asha.new@example.com.");
+  });
+
+  it("shows a link that could not be sent again on a card", async () => {
+    resendEmailChange.mockRejectedValue(new ApiError(400, "AUTH_NO_PENDING_EMAIL", "There is no new email address waiting to be confirmed.", "req_9"));
+    auth.current = authStub({ profile: { ...TEST_PROFILE, pendingEmail: "asha.new@example.com" } });
+    render(<Settings />);
+    await userEvent.click(screen.getByRole("button", { name: "Send the link again" }));
+    expect(await screen.findByRole("alertdialog", { name: "Email not sent" })).toHaveTextContent("There is no new email address");
   });
 
   it("chooses the theme under Appearance", async () => {

@@ -120,6 +120,37 @@ describe("AuthClient", () => {
     expect(mockFetch).toHaveBeenCalledWith(apiRoutes.auth.session, expect.anything());
   });
 
+  it("changes the owner's name and sign-in number with PATCH, and asks for a new email with POST", async () => {
+    const profile = { name: "Asha B" };
+    answers(profile);
+    await expect(AuthClient.changeName({ name: "Asha B" })).resolves.toEqual(profile);
+    expect(mockFetch).toHaveBeenLastCalledWith(apiRoutes.auth.name, expect.objectContaining({ method: "PATCH" }));
+
+    answers(profile);
+    await AuthClient.changePhone({ phone: "9000022222", password: "hunter22" });
+    expect(mockFetch).toHaveBeenLastCalledWith(
+      apiRoutes.auth.phone,
+      expect.objectContaining({ method: "PATCH", body: JSON.stringify({ phone: "9000022222", password: "hunter22" }) }),
+    );
+
+    answers(profile);
+    await AuthClient.changeEmail({ email: "asha.new@example.com", password: "hunter22" });
+    expect(mockFetch).toHaveBeenLastCalledWith(apiRoutes.auth.email, expect.objectContaining({ method: "POST" }));
+  });
+
+  it("sends a new email's link again, and confirms it with the token from the link", async () => {
+    answers({ queued: true });
+    await expect(AuthClient.resendEmailChange()).resolves.toEqual({ queued: true });
+    expect(mockFetch).toHaveBeenLastCalledWith(apiRoutes.auth.emailResend, expect.objectContaining({ method: "POST" }));
+
+    answers({ email: "asha.new@example.com" });
+    await expect(AuthClient.confirmEmailChange("the-token")).resolves.toEqual({ email: "asha.new@example.com" });
+    expect(mockFetch).toHaveBeenLastCalledWith(
+      apiRoutes.auth.emailConfirm,
+      expect.objectContaining({ method: "POST", body: JSON.stringify({ token: "the-token" }) }),
+    );
+  });
+
   it("surfaces the server's own wording when a sign-in is refused", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,

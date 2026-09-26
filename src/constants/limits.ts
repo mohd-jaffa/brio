@@ -64,3 +64,13 @@ export const API_MAX_ROWS = 1000;
 
 /** How many of the period's expenses Expenses' Overview shows as recent (plan §139.10). */
 export const RECENT_EXPENSES = 5;
+
+/**
+ * How long a changed profile detail stays as it is: the owner's name, sign-in
+ * number and email, and the business's name (the user, 2026-09-26;
+ * `profile_change_interval()` in 0021_profile_changes.sql).
+ */
+export const PROFILE_CHANGE_DAYS = 30;
+
+/** How long the link that confirms a new email address works. */
+export const EMAIL_CHANGE_LINK_HOURS = 48;

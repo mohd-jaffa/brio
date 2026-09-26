@@ -1,14 +1,17 @@
 import { fetcher, postJson } from "@/lib/api/client";
 import { apiRoutes } from "@/lib/query/keys";
 import type {
+  ChangeEmailInput,
+  ChangeNameInput,
   ChangePasswordInput,
+  ChangePhoneInput,
   ConfirmEmailInput,
   LoginInput,
   PasswordResetRequestInput,
   RegisterInput,
 } from "@/lib/validation";
 
-import type { AuthSessionView } from "./types";
+import type { AuthProfile, AuthSessionView } from "./types";
 
 export interface RegisteredAccount {
   userId: string;
@@ -44,4 +47,18 @@ export const AuthClient = {
   signOut: () => postJson<{ signedOut: boolean }>(apiRoutes.auth.logout),
 
   getSession: () => fetcher<AuthSessionView>(apiRoutes.auth.session),
+
+  /** The owner's own details, each once in 30 days (the user, 2026-09-26). */
+  changeName: (payload: ChangeNameInput) =>
+    fetcher<AuthProfile>(apiRoutes.auth.name, { method: "PATCH", body: JSON.stringify(payload) }),
+
+  changePhone: (payload: ChangePhoneInput) =>
+    fetcher<AuthProfile>(apiRoutes.auth.phone, { method: "PATCH", body: JSON.stringify(payload) }),
+
+  /** A new email address, which waits for its confirmation. */
+  changeEmail: (payload: ChangeEmailInput) => postJson<AuthProfile>(apiRoutes.auth.email, payload),
+
+  resendEmailChange: () => postJson<{ queued: boolean }>(apiRoutes.auth.emailResend),
+
+  confirmEmailChange: (token: string) => postJson<{ email: string }>(apiRoutes.auth.emailConfirm, { token }),
 };

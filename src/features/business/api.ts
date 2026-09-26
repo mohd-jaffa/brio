@@ -18,7 +18,7 @@ import type { BusinessProfile, BusinessRow } from "./types";
  * `bakeries` is SELECT-only for that client: an edit goes through the two
  * functions in 0008_business_profile.sql, which act only for the owner.
  */
-const COLUMNS = "id, business_name, tagline, city, address, phone, logo_path, logo_mime_type";
+const COLUMNS = "id, business_name, tagline, city, address, phone, logo_path, logo_mime_type, name_changed_at";
 
 export function toBusinessProfile(row: BusinessRow): BusinessProfile {
   return {
@@ -29,6 +29,7 @@ export function toBusinessProfile(row: BusinessRow): BusinessProfile {
     address: row.address,
     phone: row.phone,
     logoUrl: row.logo_path ? `${apiRoutes.business.logo}?v=${logoVersion(row.logo_path)}` : null,
+    nameChangedAt: row.name_changed_at,
   };
 }
 

@@ -13,7 +13,7 @@ import { AuthClient } from "../api.client";
 import { useAuth } from "../AuthProvider";
 import { Pending } from "@/components/ui/pending";
 
-type ConfirmState = "working" | "done" | "failed";
+type ConfirmState = "working" | "done" | "changed" | "failed";
 
 export interface ConfirmationLink {
   accessToken: string;
@@ -38,15 +38,30 @@ export function readConfirmationLink(fragment: string):
 }
 
 /**
+ * The token of the link that confirms a new email address (the user,
+ * 2026-09-26), which it carries in the fragment as `change`; null for any
+ * other link.
+ */
+export function readEmailChangeToken(fragment: string): string | null {
+  return new URLSearchParams(fragment.replace(/^#/, "")).get("change");
+}
+
+/**
  * Where the link in the welcome email lands (plan §7). Supabase hands the
  * tokens back in the URL fragment, so only this page can read them; they are
  * wiped out of the address bar before anything else happens, because a browser
  * history entry containing a session is a session anyone on the device has.
+ *
+ * The link that confirms a new email address lands here too. Its token proves
+ * the address, so it works signed in or not, on any device; the account's
+ * email changes, and a session open here is read again to show it.
  */
 export function ConfirmEmailPanel() {
   const router = useRouter();
-  const { adopt } = useAuth();
+  const { adopt, reload } = useAuth();
   const [state, setState] = useState<ConfirmState>("working");
+  const [changing, setChanging] = useState(false);
+  const [changedTo, setChangedTo] = useState("");
   // A link that expired is a failure; arriving here without one at all is
   // just someone in the wrong place, and it should not be shouted at them.
   const [notice, setNotice] = useState<{ message: string; tone: "danger" | "info" }>({
@@ -60,11 +75,28 @@ export function ConfirmEmailPanel() {
     const confirm = async () => {
       const fragment = window.location.hash;
       const parsed = readConfirmationLink(fragment);
+      const change = readEmailChangeToken(fragment);
 
       if (fragment) window.history.replaceState(null, "", window.location.pathname);
 
+      if (change) {
+        setChanging(true);
+        try {
+          const { email } = await AuthClient.confirmEmailChange(change);
+          if (cancelled) return;
+          await reload();
+          setChangedTo(email);
+          setState("changed");
+        } catch (failure) {
+          if (cancelled) return;
+          setNotice({ message: errorMessage(failure, "AUTH_EMAIL_CONFIRM_FAILED"), tone: "danger" });
+          setState("failed");
+        }
+        return;
+      }
+
+      // Nothing has been awaited yet, so the page is still here.
       if (!parsed.link) {
-        if (cancelled) return;
         setNotice(
           parsed.expired
             ? { message: ERROR_MESSAGES.AUTH_EMAIL_CONFIRM_FAILED, tone: "danger" }
@@ -92,11 +124,22 @@ export function ConfirmEmailPanel() {
     return () => {
       cancelled = true;
     };
-  }, [adopt, router]);
+  }, [adopt, reload, router]);
 
-  if (state === "working") return <Pending message={UI_TEXT.auth.confirming} inline />;
+  if (state === "working") {
+    return <Pending message={changing ? UI_TEXT.auth.confirmingChange : UI_TEXT.auth.confirming} inline />;
+  }
 
   if (state === "done") return <ScreenNotice tone="info">{UI_TEXT.auth.confirmed}</ScreenNotice>;
+
+  if (state === "changed") {
+    return (
+      <div className="space-y-5">
+        <ScreenNotice tone="info">{UI_TEXT.auth.emailChanged(changedTo)}</ScreenNotice>
+        <LinkButton href={HOME_ROUTE} variant="action" size="lg" shape="pill" fullWidth label={UI_TEXT.auth.toApp} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">

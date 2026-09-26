@@ -25,6 +25,7 @@ function row(overrides: Partial<BusinessRow> = {}): BusinessRow {
     phone: "+919876543210",
     logo_path: null,
     logo_mime_type: null,
+    name_changed_at: null,
     ...overrides,
   };
 }

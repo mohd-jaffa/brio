@@ -7,13 +7,20 @@ import type { AuthProfile, AuthenticatedSession } from "@/features/auth/types";
 
 // The guard reaches for a session and for Supabase clients; neither is what
 // these cases are about, and neither should need configuration to run.
-vi.mock("@/features/auth/api", () => ({ getSession: vi.fn() }));
+const { getSession, anonClient, serviceClient } = vi.hoisted(() => ({
+  getSession: vi.fn(),
+  anonClient: { anon: true },
+  serviceClient: { service: true },
+}));
+vi.mock("@/features/auth/api", () => ({ getSession }));
 vi.mock("@/lib/supabase/server", () => ({
-  createSupabaseAnonClient: vi.fn(),
-  createSupabaseServiceRoleClient: vi.fn(),
+  createSupabaseAnonClient: vi.fn(() => anonClient),
+  createSupabaseServiceRoleClient: vi.fn(() => serviceClient),
 }));
 
-const { assertPasswordChanged, assertRole, bearerToken, readAccessToken } = await import("@/features/auth/guard");
+const { assertPasswordChanged, assertRole, bearerToken, readAccessToken, withAccountRoute } = await import(
+  "@/features/auth/guard"
+);
 
 const profile = (role: AuthProfile["role"]): AuthProfile => ({
   id: "u-1",
@@ -25,6 +32,10 @@ const profile = (role: AuthProfile["role"]): AuthProfile => ({
   isActive: true,
   mustChangePassword: false,
   emailConfirmedAt: null,
+  nameChangedAt: null,
+  phoneChangedAt: null,
+  emailChangedAt: null,
+  pendingEmail: null,
 });
 
 function requestWith(headers: Record<string, string>) {
@@ -101,5 +112,36 @@ describe("a temporary password still in use", () => {
 
   it("stops mattering once the password has been changed", () => {
     expect(() => assertPasswordChanged(session(false))).not.toThrow();
+  });
+});
+
+describe("a route that changes the owner's own account", () => {
+  const signedIn = (requiresPasswordChange = false): AuthenticatedSession => ({
+    accessToken: "t",
+    refreshToken: "",
+    expiresAt: null,
+    profile: profile("USER"),
+    requiresPasswordChange,
+  });
+  const call = () => new Request("https://ovenly.test/api/auth/name", { headers: { authorization: "Bearer t" } });
+
+  it("hands over the session, the tenant and the server's client", async () => {
+    getSession.mockResolvedValue(signedIn());
+    const response = await withAccountRoute(call(), async (context) => ({
+      actor: context.actorId,
+      bakery: context.bakeryId,
+      user: context.supabase === (anonClient as unknown),
+      server: context.admin === (serviceClient as unknown),
+    }));
+    expect(await response.json()).toMatchObject({ success: true, data: { actor: "u-1", bakery: "b-1", user: true, server: true } });
+  });
+
+  it("refuses anyone still owing a password change, and a role it does not serve", async () => {
+    getSession.mockResolvedValue(signedIn(true));
+    const handler = vi.fn();
+    expect((await (await withAccountRoute(call(), handler)).json()).error.code).toBe("AUTH_PASSWORD_CHANGE_REQUIRED");
+    getSession.mockResolvedValue({ ...signedIn(), profile: profile("DEV") });
+    expect((await (await withAccountRoute(call(), handler)).json()).error.code).toBe("AUTH_ROLE_FORBIDDEN");
+    expect(handler).not.toHaveBeenCalled();
   });
 });

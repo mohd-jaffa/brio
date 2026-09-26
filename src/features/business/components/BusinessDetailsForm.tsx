@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { useResponse } from "@/components/ui/response-card";
 import { TextAreaField, TextField } from "@/components/ui/text-field";
 import { UI_TEXT } from "@/constants/messages";
+import { dayKey } from "@/lib/dates/calendar";
+import { changeReopensAt } from "@/lib/dates/cooldown";
+import { formatDate } from "@/lib/format/date";
 import { formatPhoneDigits } from "@/lib/phone";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiMutation } from "@/lib/query/useApiMutation";
@@ -37,7 +40,8 @@ function valuesOf(business: BusinessProfile): BusinessProfileInput {
 /**
  * Business details (plan §139.10): the name, catch phrase, city, address and
  * business phone, the logo, and a live preview of the bill's header beside
- * them on a wide screen and beneath them on a phone.
+ * them on a wide screen and beneath them on a phone. The name changes once in
+ * 30 days, and says when it may change again.
  */
 export function BusinessDetailsForm({ business }: { business: BusinessProfile }) {
   const formId = useId();
@@ -61,6 +65,8 @@ export function BusinessDetailsForm({ business }: { business: BusinessProfile })
   });
 
   const text = UI_TEXT.business;
+  // The name changes once in 30 days (the user, 2026-09-26; 0021); until then it is shown, not edited.
+  const nameReopens = changeReopensAt(business.nameChangedAt);
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
       <div className="min-w-0 space-y-6">
@@ -71,7 +77,15 @@ export function BusinessDetailsForm({ business }: { business: BusinessProfile })
           noValidate
           className="space-y-4 rounded-3xl border border-border bg-surface p-5 shadow-card md:p-6"
         >
-          <TextField label={text.name} required autoComplete="organization" error={errors.name?.message} {...register("name")} />
+          <TextField
+            label={text.name}
+            required
+            autoComplete="organization"
+            readOnly={nameReopens !== null}
+            hint={nameReopens ? text.nameOpens(formatDate(dayKey(nameReopens))) : text.nameOnceAMonth}
+            error={errors.name?.message}
+            {...register("name")}
+          />
           <TextField
             label={text.tagline}
             optional

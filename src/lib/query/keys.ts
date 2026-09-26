@@ -15,6 +15,11 @@ export const apiRoutes = {
     refresh: "/api/auth/refresh",
     confirm: "/api/auth/confirm",
     resendConfirmation: "/api/auth/resend-confirmation",
+    name: "/api/auth/name",
+    phone: "/api/auth/phone",
+    email: "/api/auth/email",
+    emailResend: "/api/auth/email/resend",
+    emailConfirm: "/api/auth/email/confirm",
   },
   customers: {
     list: "/api/customers",

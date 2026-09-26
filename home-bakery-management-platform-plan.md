@@ -7494,6 +7494,13 @@ masters are the exception: they are app artwork, and they are committed under
   - **Editing and deleting.** The owner can rename one of its own or change its picture; a rename takes its expenses with it. The owner can delete one **only while no expense is filed under it** — the database refuses otherwise.
 - **An expense can be edited and deleted.** Tapping it opens the form, which also offers **Delete expense**, confirmed first.
 - **Products stays one read** (the user; R5.13). A business's products are a menu, not a growing ledger. The order screen prices its draft from that read, and Order again checks what is still on sale against it. So Products, and Inventory's list of the same products, are read whole and searched on the device. Every list that grows with the business is paged, with its search on the server.
+- **Profile details change once every 30 days** (the user; R5.17):
+  - **Which details:** the owner's name, the sign-in number, the email address, and the business's name.
+  - **The rule:** each may change again 30 days after its own last change. A new account makes its first change whenever it likes.
+  - **Password:** the sign-in number and the email ask for the current password first.
+  - **A new email:** it takes effect only once confirmed. The same confirmation email as at registration goes to the new address, through the same queue, and until its link is followed the current address stays in use.
+  - **Enforcement:** the database holds the rule on the rows themselves (`0021_profile_changes`), and the screens say beforehand when a detail opens again.
+  - **The confirmation mail:** its own wording is set up later, as the user asked.
 - **About credits the app's maker, not the illustrations** (the user; R5.11). Settings → About reads **Crafted by · jaFFa**, in place of Q16's "Illustrations: Vecteezy.com". Q16's other half stands: the licence of every illustration is confirmed before the Play release (Phase 8), since Vecteezy's free licence asks for a credit and only its Pro licence does not.
 
 ---
@@ -8352,6 +8359,11 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | Endpoint | Change |
 |---|---|
 | `POST /api/auth/register` | Adds tagline, city and address; the confirmation is queued. |
+| `PATCH /api/auth/name` | The owner's name, once in 30 days (the user, 2026-09-26). |
+| `PATCH /api/auth/phone` | The sign-in number, with the current password, once in 30 days. |
+| `POST /api/auth/email` | A new email address, with the current password, once in 30 days. It waits in `pending_email`, and the current one stays in use, until its link is followed. |
+| `POST /api/auth/email/resend` | Sends the waiting address its link again. |
+| `POST /api/auth/email/confirm` | The link was followed: the token proves the address, so no session is needed. |
 | `GET, PATCH /api/business` | New — the business profile (§133.2 B1). |
 | `POST /api/business/logo` | New — the logo upload, under §56 rules (§133.2 B2). |
 | `GET /api/dashboard` | New (R5.1, 2026-09-26) — `?period=TODAY\|WEEK\|MONTH&status=&payment=`. Home worked out on the server: the four tiles, the orders due (overdue, today, tomorrow), low stock, and the period's sales by day, orders by status, top products and recent customers. |
@@ -8701,6 +8713,7 @@ Phase 5 closes when R5.10 is done.
 | R5.13 | Pagination on every list; each list's search runs on the server with it — debounced, tenant-scoped, with loading, empty and error states | §133.9 I4; IMP-11; IMP-01 (2026-09-25) | — | DONE (2026-09-26 · Orders, Customers, a customer's orders, Guest sales, the customer picker, Expenses' transactions and each product's stock history are paged. Products — and Inventory's list of the same products — stays one read: a menu, not a ledger (the user, 2026-09-26)) |
 | R5.14 | Hard-coded strings swept, screen by screen | BUG-30 | — | DONE (2026-09-26 · the customer, stock and payment forms, the four sign-in screens' placeholders and hints, the nav's names, the page's title and description; field labels in sentence case) |
 | R5.15 | Dashboard filters | §133.9 I2 | — | DONE (2026-09-26 · with R5.1: preparation and payment, combined, on the orders due) |
+| R5.17 | Profile details once every 30 days: the owner's name, sign-in number and email from Settings, the business's name on Business details; the sign-in number and email with the current password; a new email confirmed before it takes effect (the user, 2026-09-26) | §139.10 | — | DONE (2026-09-26 · `0021_profile_changes`; the confirmation mail is registration's until the user sets its own) |
 | R5.16 | Expense category illustrations: the Categories tab, the picker, the expense form's category field, `/api/expense-categories`; **the business's own categories** — made, renamed, pictured and deleted while unused, the eight defaults fixed (the user, 2026-09-26) | §139.11.10 | — | DONE (2026-09-26 · `0020_expense_categories`) |
 
 ### Phase 6 — Hardening

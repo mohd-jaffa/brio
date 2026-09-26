@@ -10,6 +10,7 @@ export interface BusinessRow {
   phone: string;
   logo_path: string | null;
   logo_mime_type: LogoMimeType | null;
+  name_changed_at: string | null;
 }
 
 /**
@@ -26,4 +27,6 @@ export interface BusinessProfile {
   address: string | null;
   phone: string;
   logoUrl: string | null;
+  /** When the name last changed; it changes once in 30 days (0021). */
+  nameChangedAt: string | null;
 }

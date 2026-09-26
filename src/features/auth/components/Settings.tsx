@@ -1,7 +1,8 @@
 "use client";
 
-import { Heart, Info, KeyRound, MailCheck, Palette, Store } from "lucide-react";
+import { Heart, Info, KeyRound, Mail, MailCheck, Palette, Smartphone, Store, User } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 
 import { PLATE_FOCUS, PLATES } from "@/assets/plates";
 import { Avatar } from "@/components/ui/avatar";
@@ -17,12 +18,16 @@ import { UI_TEXT } from "@/constants/messages";
 import { ROLE_LABELS } from "@/constants/roles";
 import { AUTH_ROUTES } from "@/constants/routes";
 import { useBusiness } from "@/features/business/hooks/useBusiness";
+import { dayKey } from "@/lib/dates/calendar";
+import { changeReopensAt } from "@/lib/dates/cooldown";
 import { publicAppVersion } from "@/lib/env/public";
+import { formatDate } from "@/lib/format/date";
 import { formatPhoneDigits } from "@/lib/phone";
 import { useApiMutation } from "@/lib/query/useApiMutation";
 
 import { AuthClient } from "../api.client";
 import { useAuth } from "../AuthProvider";
+import { AccountChangeSheet, type AccountField } from "./AccountChangeSheet";
 import { SignOutRow } from "./SignOutRow";
 
 const text = UI_TEXT.settings;
@@ -50,11 +55,37 @@ function Unconfirmed({ email }: { email: string }) {
   );
 }
 
+/** A new email address waiting for its link to be followed, and that link sent again. */
+function PendingEmail({ email }: { email: string }) {
+  const respond = useResponse();
+  const resend = useApiMutation<void, { queued: boolean }>(() => AuthClient.resendEmailChange(), {
+    onSuccess: () =>
+      respond.success({ title: UI_TEXT.outcomes.confirmationSent, message: UI_TEXT.auth.confirmationSentTo(email) }),
+    onError: (failure) => respond.failure(failure, { title: UI_TEXT.outcomes.confirmationNotSent }),
+  });
+  return (
+    <div className="space-y-3">
+      <ScreenNotice tone="info">{text.pendingEmail(email)}</ScreenNotice>
+      <Button
+        label={text.resendLink}
+        variant="secondary"
+        icon={MailCheck}
+        loading={resend.submitting}
+        onClick={() => void resend.submit()}
+      />
+    </div>
+  );
+}
+
+const ACCOUNT_ICONS = { name: User, phone: Smartphone, email: Mail } as const;
+
 /**
  * Settings (plan §139.10, R5.11), with the reference's Profile screen folded
  * in: who is signed in, for which business, and its catch phrase; then
  * Business details, the account — where the password is changed from, and an
- * unconfirmed email's link is sent again (BUG-16) — the theme, About with the
+ * unconfirmed email's link is sent again (BUG-16), and where the name, the
+ * sign-in number and the email are changed, each once in 30 days, a new email
+ * waiting for its link (the user, 2026-09-26) — the theme, About with the
  * version and who made the app (the user, 2026-09-26, in place of Q16's
  * illustration credit), and Sign out. The profile
  * stays beside the rest on a desktop. Notifications joins with its screen
@@ -63,14 +94,20 @@ function Unconfirmed({ email }: { email: string }) {
 export function Settings() {
   const { profile } = useAuth();
   const business = useBusiness();
+  const [changing, setChanging] = useState<AccountField | undefined>();
 
   if (!profile) return null;
 
   const role = ROLE_LABELS[profile.role];
-  const account: [string, string][] = [
-    [text.name, profile.name],
-    [text.phone, `${UI_TEXT.fields.phonePrefix} ${formatPhoneDigits(profile.phone)}`],
-    [text.email, profile.email],
+  const account: { field: AccountField; label: string; value: string; changedAt: string | null }[] = [
+    { field: "name", label: text.name, value: profile.name, changedAt: profile.nameChangedAt },
+    {
+      field: "phone",
+      label: text.phone,
+      value: `${UI_TEXT.fields.phonePrefix} ${formatPhoneDigits(profile.phone)}`,
+      changedAt: profile.phoneChangedAt,
+    },
+    { field: "email", label: text.email, value: profile.email, changedAt: profile.emailChangedAt },
   ];
 
   return (
@@ -122,14 +159,23 @@ export function Settings() {
           <section aria-labelledby="settings-account" className="space-y-3">
             <SectionHeading id="settings-account" title={text.account} />
             {!profile.emailConfirmedAt && <Unconfirmed email={profile.email} />}
-            <dl className="divide-y divide-border rounded-2xl border border-border bg-surface shadow-card">
-              {account.map(([label, value]) => (
-                <div key={label} className="flex items-center justify-between gap-4 px-4 py-3">
-                  <dt className="shrink-0 text-sm text-text-muted">{label}</dt>
-                  <dd className="min-w-0 truncate text-right text-sm font-semibold text-text">{value}</dd>
-                </div>
-              ))}
-            </dl>
+            <RowList>
+              {account.map(({ field, label, value, changedAt }) => {
+                const reopens = changeReopensAt(changedAt);
+                return (
+                  <Row
+                    key={field}
+                    leading={<Medallion icon={ACCOUNT_ICONS[field]} size="sm" />}
+                    title={label}
+                    subtitle={value}
+                    meta={reopens ? text.changeOpens(formatDate(dayKey(reopens))) : undefined}
+                    onClick={reopens ? undefined : () => setChanging(field)}
+                  />
+                );
+              })}
+            </RowList>
+            {profile.pendingEmail && <PendingEmail email={profile.pendingEmail} />}
+            <p className="text-xs text-text-muted">{text.onceAMonth}</p>
             <RowList>
               <Row
                 href={AUTH_ROUTES.changePassword}
@@ -172,6 +218,8 @@ export function Settings() {
           </RowList>
         </div>
       </div>
+
+      <AccountChangeSheet field={changing} onClose={() => setChanging(undefined)} />
     </div>
   );
 }

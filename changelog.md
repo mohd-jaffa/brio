@@ -2027,3 +2027,54 @@ this entry grows with them.
 ### Blockers
 - None.
 
+## 2026-09-26 — Profile details once every 30 days (R5.17)
+
+### Decision
+- **Each detail changes once every 30 days** (the user): the owner's name, the sign-in number, the email address and the business's name. Each opens again 30 days after its own last change, and a new account makes its first change at once.
+- **The current password** is asked for before the sign-in number or the email changes.
+- **A new email takes effect only once confirmed.** Registration's confirmation email and queue are used as they are; the user will set up the mail's own wording later.
+- **The owner's name** becomes editable, under the same rule.
+
+### Added
+- **`0021_profile_changes.sql`:**
+  - **Change dates:** each of the four details gets a change date. A trigger on `profiles` and on `bakeries` refuses a change inside 30 days (`PROFILE_CHANGE_TOO_SOON`, 422) and stamps the date itself. No path goes round it, and no caller can clear a date.
+  - **A waiting email:** `profiles` gains `pending_email`, the hash of its link's token (never the token), and when that link lapses.
+- **`src/features/auth/account.ts`:**
+  - **`changeName`, `changePhone`, `requestEmailChange`, `resendEmailChange`, `confirmEmailChange`,** and the worker's `sendEmailChangeConfirmation`.
+  - **Checks:** the password is tried on a client of its own, whose session is signed out at once. A wrong one is a 400, so the browser does not try to refresh a session that is fine.
+  - **Two copies kept in step:** Auth's copy of a number or email changes first, and is put back if the profile cannot follow.
+  - **Audit:** every change is recorded.
+  - **The link's token:** made when the email is sent, never queued, and it lapses after 48 hours.
+- **Routes:**
+  - `PATCH /api/auth/name` and `PATCH /api/auth/phone`;
+  - `POST /api/auth/email`, `/email/resend` and `/email/confirm`;
+  - `withAccountRoute`, which serves them the tenant and the server's client.
+- **The `SEND_EMAIL_CHANGE_CONFIRMATION` job**, on the NotificationWorker.
+- **Settings:**
+  - **Account rows:** the name, sign-in number and email are rows that open a change sheet (`AccountChangeSheet`). A detail changed within 30 days says when it opens again, and does not open until then.
+  - **A waiting email:** its notice, with **Send the link again**.
+- **The confirmation page** also finishes an email change, signed in or not, on any device.
+- **Business details** locks the name until it may change again, and says when that is.
+- **Kit:** a read-only field reads quieter.
+
+### Changed
+- The session's profile carries each detail's change date and the waiting email.
+- The confirmation page drops a check that could never be reached.
+
+### Validation
+- **On the local database, in a rolled-back transaction:**
+  - a first change is taken and stamped, and a second within 30 days is refused;
+  - a date cannot be written away, and the detail opens again after 30 days;
+  - the business's name follows the same rule, and the same value again is no change.
+- **Over HTTP, on a throwaway account:**
+  - **Name:** it changes once, then is refused within 30 days; the same value is refused.
+  - **Sign-in number:** a number another account holds is refused, and so is a wrong password. After a change, the old number no longer signs in and the new one does, and the caller's session stays live.
+  - **Email:** a new one waits while the old stays in use, and its job is queued. A wrong link is refused; the right one switches both copies; using it twice is refused.
+  - **Business name:** it follows the rule while other fields stay free. Four audit rows were written.
+- **End to end with the worker:** the worker sent registration's confirmation email to the new address, through the local mail catcher, and the link in that email confirmed the change.
+- `tsc`, `eslint` and the test-path check are clean. The suite passes. `account.ts`, the reopen helper, the change sheet, Settings, the confirmation page and Business details are at 100% coverage.
+- **Captures:** Settings' account rows with a locked name and a waiting email, the sign-in number sheet refusing a wrong password, and the locked business name, at 390 and 1280 px, with no sideways scroll.
+
+### Blockers
+- None. A worker process started before this change must be restarted to take the new job.
+

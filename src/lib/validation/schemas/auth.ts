@@ -93,6 +93,34 @@ export const confirmEmailSchema = z.object({
 
 export const roleSchema = z.enum(USER_ROLES);
 
+/** The current password, asked for before the sign-in number or email changes; never altered. */
+const currentPasswordSchema = z.string().min(1, VALIDATION_MESSAGES.required("Current password"));
+
+/** The owner's name, changed from Settings (the user, 2026-09-26). */
+export const changeNameSchema = z.object({
+  name: requiredLine("Your name", { min: 2, max: 120 }),
+});
+
+/** A new sign-in number, with the current password (the user, 2026-09-26). */
+export const changePhoneSchema = z.object({
+  phone: phoneSchema,
+  password: currentPasswordSchema,
+});
+
+/** A new email address, with the current password; it waits for its confirmation (the user, 2026-09-26). */
+export const changeEmailSchema = z.object({
+  email: emailSchema,
+  password: currentPasswordSchema,
+});
+
+/** The token in the link that confirms a new email address. */
+export const confirmEmailChangeSchema = z.object({
+  token: z
+    .string()
+    .min(20, VALIDATION_MESSAGES.required("Confirmation token"))
+    .max(200, VALIDATION_MESSAGES.required("Confirmation token")),
+});
+
 export type RegisterInput = z.input<typeof registerSchema>;
 export type RegisterPayload = z.output<typeof registerSchema>;
 export type LoginInput = z.input<typeof loginSchema>;
@@ -103,3 +131,10 @@ export type ChangePasswordInput = z.input<typeof changePasswordSchema>;
 export type ChangePasswordPayload = z.output<typeof changePasswordSchema>;
 export type ConfirmEmailInput = z.input<typeof confirmEmailSchema>;
 export type ConfirmEmailPayload = z.output<typeof confirmEmailSchema>;
+export type ChangeNameInput = z.input<typeof changeNameSchema>;
+export type ChangeNamePayload = z.output<typeof changeNameSchema>;
+export type ChangePhoneInput = z.input<typeof changePhoneSchema>;
+export type ChangePhonePayload = z.output<typeof changePhoneSchema>;
+export type ChangeEmailInput = z.input<typeof changeEmailSchema>;
+export type ChangeEmailPayload = z.output<typeof changeEmailSchema>;
+export type ConfirmEmailChangePayload = z.output<typeof confirmEmailChangeSchema>;

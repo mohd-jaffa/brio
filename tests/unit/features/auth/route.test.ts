@@ -30,6 +30,10 @@ const session: AuthenticatedSession = {
     isActive: true,
     mustChangePassword: false,
     emailConfirmedAt: null,
+    nameChangedAt: null,
+    phoneChangedAt: null,
+    emailChangedAt: null,
+    pendingEmail: null,
   },
   requiresPasswordChange: false,
 };

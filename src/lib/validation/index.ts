@@ -25,7 +25,11 @@ export {
 } from "./primitives";
 
 export {
+  changeEmailSchema,
+  changeNameSchema,
   changePasswordSchema,
+  changePhoneSchema,
+  confirmEmailChangeSchema,
   confirmEmailSchema,
   loginSchema,
   PASSWORD_MAX_LENGTH,
@@ -33,8 +37,15 @@ export {
   passwordResetRequestSchema,
   registerSchema,
   roleSchema,
+  type ChangeEmailInput,
+  type ChangeEmailPayload,
+  type ChangeNameInput,
+  type ChangeNamePayload,
   type ChangePasswordInput,
   type ChangePasswordPayload,
+  type ChangePhoneInput,
+  type ChangePhonePayload,
+  type ConfirmEmailChangePayload,
   type ConfirmEmailInput,
   type ConfirmEmailPayload,
   type LoginInput,

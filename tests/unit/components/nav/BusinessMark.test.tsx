@@ -18,6 +18,7 @@ const business: BusinessProfile = {
   address: "12 MG Road",
   phone: "+919876543210",
   logoUrl: "/api/business/logo?v=c9fe50e7-67e4-467c-95f5-f4a37c186e8a",
+  nameChangedAt: null,
 };
 
 /** next/image writes the address out in full; what matters is the path and version. */

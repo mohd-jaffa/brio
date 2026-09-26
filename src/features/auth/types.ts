@@ -12,6 +12,12 @@ export interface AuthProfile {
   isActive: boolean;
   mustChangePassword: boolean;
   emailConfirmedAt: string | null;
+  /** When each detail last changed; each changes once in 30 days (0021). */
+  nameChangedAt: string | null;
+  phoneChangedAt: string | null;
+  emailChangedAt: string | null;
+  /** A new email address waiting for its confirmation; `email` stays in use until then. */
+  pendingEmail: string | null;
 }
 
 /**

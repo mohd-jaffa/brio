@@ -11,6 +11,7 @@ export function aBusiness(changes: Partial<BusinessProfile> = {}): BusinessProfi
     address: "12 Rose Street",
     phone: "+919876543210",
     logoUrl: "/api/business/logo?v=logo-1",
+    nameChangedAt: null,
     ...changes,
   };
 }

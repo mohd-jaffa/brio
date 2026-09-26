@@ -35,7 +35,7 @@ describe("BusinessDetails", () => {
 
   it("shows the form once the profile is here", () => {
     query.current = {
-      data: { id: "b-1", name: "Sweet Delights", tagline: null, city: "Pune", address: "12 MG Road", phone: "+919876543210", logoUrl: null },
+      data: { id: "b-1", name: "Sweet Delights", tagline: null, city: "Pune", address: "12 MG Road", phone: "+919876543210", logoUrl: null, nameChangedAt: null },
       mutate: vi.fn(),
     };
     render(<BusinessDetails />, { wrapper: Providers });

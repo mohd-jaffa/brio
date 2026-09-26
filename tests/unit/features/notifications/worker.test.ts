@@ -11,8 +11,13 @@ vi.mock("@/features/notifications/capacitor-push.service", () => ({
   },
 }));
 vi.mock("@/lib/logger", () => ({ logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() } }));
-const { sendAccountConfirmation, serviceClient } = vi.hoisted(() => ({ sendAccountConfirmation: vi.fn(), serviceClient: { service: true } }));
+const { sendAccountConfirmation, sendEmailChangeConfirmation, serviceClient } = vi.hoisted(() => ({
+  sendAccountConfirmation: vi.fn(),
+  sendEmailChangeConfirmation: vi.fn(),
+  serviceClient: { service: true },
+}));
 vi.mock("@/features/auth/api", () => ({ sendAccountConfirmation }));
+vi.mock("@/features/auth/account", () => ({ sendEmailChangeConfirmation }));
 vi.mock("@/lib/supabase/server", () => ({ createSupabaseServiceRoleClient: () => serviceClient }));
 
 import { registerNotificationWorker } from "@/features/notifications/worker";
@@ -68,5 +73,11 @@ describe("the notification worker", () => {
   it("fails a confirmation job that names no user", async () => {
     await expect(handler("SEND_ACCOUNT_CONFIRMATION")(job({}))).rejects.toThrow("Confirmation job has no user");
     expect(sendAccountConfirmation).not.toHaveBeenCalled();
+  });
+
+  it("sends a new email address its link, as the server, and fails a job that names no user", async () => {
+    await handler("SEND_EMAIL_CHANGE_CONFIRMATION")(job({ userId: "u-1" }));
+    expect(sendEmailChangeConfirmation).toHaveBeenCalledWith(serviceClient, "u-1");
+    await expect(handler("SEND_EMAIL_CHANGE_CONFIRMATION")(job({}))).rejects.toThrow("Email change job has no user");
   });
 });

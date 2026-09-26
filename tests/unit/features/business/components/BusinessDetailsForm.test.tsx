@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -19,6 +19,7 @@ const business: BusinessProfile = {
   address: "12 MG Road",
   phone: "+919876543210",
   logoUrl: null,
+  nameChangedAt: null,
 };
 
 function form(profile = business) {
@@ -102,6 +103,18 @@ describe("BusinessDetailsForm", () => {
     const fields = form({ ...business, tagline: "Baked fresh", city: "Pune" });
     expect(fields.tagline).toHaveValue("Baked fresh");
     expect(fields.city).toHaveValue("Pune");
+  });
+
+  it("says the name changes once every 30 days, and while it may not, shows it without letting it be edited", async () => {
+    expect(form().name).not.toHaveAttribute("readonly");
+    expect(screen.getByText("The name can be changed once every 30 days.")).toBeInTheDocument();
+    cleanup();
+
+    const locked = form({ ...business, nameChangedAt: new Date(Date.now() - 86_400_000).toISOString() }).name;
+    expect(locked).toHaveAttribute("readonly");
+    expect(screen.getByText(/^You can change the name again on \d{1,2} \w{3} \d{4}\.$/)).toBeInTheDocument();
+    await userEvent.type(locked, "X");
+    expect(locked).toHaveValue("Sweet Delights");
   });
 
   it("carries the logo field with it", () => {

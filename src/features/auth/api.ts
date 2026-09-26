@@ -31,8 +31,8 @@ import {
 /** Where the confirmation link in the welcome email lands. */
 export const EMAIL_CONFIRMATION_PATH = "/confirm-email";
 
-const PROFILE_COLUMNS =
-  "id, phone, email, name, role, bakery_id, is_active, must_change_password, email_confirmed_at";
+export const PROFILE_COLUMNS =
+  "id, phone, email, name, role, bakery_id, is_active, must_change_password, email_confirmed_at, name_changed_at, phone_changed_at, email_changed_at, pending_email";
 
 export interface ProfileRow {
   id: string;
@@ -44,6 +44,10 @@ export interface ProfileRow {
   is_active: boolean;
   must_change_password: boolean;
   email_confirmed_at: string | null;
+  name_changed_at: string | null;
+  phone_changed_at: string | null;
+  email_changed_at: string | null;
+  pending_email: string | null;
 }
 
 // ------------------------------------------------------------------
@@ -55,7 +59,7 @@ export interface ProfileRow {
  * field collided. The baker needs to know which one, and must not be shown the
  * driver's own sentence (AGENTS.md §10), so the column is read out of it here.
  */
-function mapDatabaseError(error: unknown) {
+export function mapDatabaseError(error: unknown) {
   const message =
     error && typeof error === "object" && "message" in error
       ? String((error as { message: unknown }).message).toLowerCase()
@@ -213,7 +217,7 @@ async function markEmailConfirmed(client: SupabaseClient, userId: string, at: st
 // Service Logic
 // ------------------------------------------------------------------
 
-function mapProfile(row: ProfileRow): AuthProfile {
+export function mapProfile(row: ProfileRow): AuthProfile {
   return {
     id: row.id,
     phone: row.phone,
@@ -224,6 +228,10 @@ function mapProfile(row: ProfileRow): AuthProfile {
     isActive: row.is_active,
     mustChangePassword: row.must_change_password,
     emailConfirmedAt: row.email_confirmed_at,
+    nameChangedAt: row.name_changed_at,
+    phoneChangedAt: row.phone_changed_at,
+    emailChangedAt: row.email_changed_at,
+    pendingEmail: row.pending_email,
   };
 }
 
