@@ -792,6 +792,29 @@ a {
     0 -18px 40px -22px rgb(var(--shadow-tone) / 0.28);
 }
 
+/* From 1024 px the plate reaches into the gap between the scene and the form
+   (AuthScene), with room for a long fade on its right. */
+@media (width >= 64rem) {
+  .auth-plate {
+    -webkit-mask-image:
+      linear-gradient(to right, transparent 0%, #000 50%, #000 66%, transparent 100%),
+      linear-gradient(to bottom, transparent 0%, #000 14%, #000 55%, transparent 100%);
+    mask-image:
+      linear-gradient(to right, transparent 0%, #000 50%, #000 66%, transparent 100%),
+      linear-gradient(to bottom, transparent 0%, #000 14%, #000 55%, transparent 100%);
+  }
+}
+
+/* Beside the scene from 1024 px it is a card that sits on the canvas, not a
+   sheet rising from the foot, so its shadow falls below it. */
+@media (width >= 64rem) {
+  .auth-sheet {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--color-border) 70%, transparent),
+      var(--shadow-elevated);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-rise {
     animation: none;

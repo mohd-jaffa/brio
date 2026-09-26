@@ -52,14 +52,15 @@ function toColumns(input: UpdateCustomerPayload) {
 }
 
 /** A customer's row with the counts `customer_stats` adds (0017_list_views.sql). */
-type CustomerStatsRow = CustomerRow & { order_count: number; last_order_at: string | null };
+type CustomerStatsRow = CustomerRow & { order_count: number; last_order_at: string | null; balance_due: number };
 
 /**
  * A page of customers (plan §139.10, §133.9 I4), by name: all of them, the
  * Regulars (three or more orders), or the New (added in the last 30 days, not
  * yet Regular) — worked out in the database from `customer_stats`, so a
- * segment pages like any list. A search matches the name, or the phone on
- * its digits however it was typed (BUG-23).
+ * segment pages like any list. **DUE** is those who still owe the business
+ * money, the most owed first (the user, 2026-09-27; 0024). A search matches
+ * the name, or the phone on its digits however it was typed (BUG-23).
  */
 export async function listCustomers(
   tenant: Tenant,
@@ -70,6 +71,7 @@ export async function listCustomers(
   let request = tenant.supabase.from("customer_stats").select("*").eq("bakery_id", tenant.bakeryId);
   if (query.segment === "REGULAR") request = request.gte("order_count", REGULAR_MIN_ORDERS);
   if (query.segment === "NEW") request = request.lt("order_count", REGULAR_MIN_ORDERS).gte("created_at", newCustomersSince(now));
+  if (query.segment === "DUE") request = request.gt("balance_due", 0).order("balance_due", { ascending: false });
   const pattern = query.search ? containsPattern(query.search) : null;
   if (query.search && pattern) {
     const digits = phoneDigits(query.search);
@@ -86,6 +88,7 @@ export async function listCustomers(
       ...toCustomer(row),
       orders: row.order_count,
       lastOrderAt: row.last_order_at,
+      balanceDue: Number(row.balance_due),
       segment: customerSegment(row.order_count, row.created_at, now),
     })),
   };

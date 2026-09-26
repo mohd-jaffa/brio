@@ -17,7 +17,7 @@ import { StatusPill } from "@/components/ui/status-pill";
 import { TabPanel, Tabs } from "@/components/ui/tabs";
 import { UI_TEXT } from "@/constants/messages";
 import { DATE_RANGE_LABELS } from "@/constants/ranges";
-import { CUSTOMER_SEGMENT_TONES, CUSTOMER_SEGMENTS, type CustomerSegment } from "@/constants/statuses";
+import { CUSTOMER_FILTERS, CUSTOMER_SEGMENT_TONES, type CustomerFilter } from "@/constants/statuses";
 import type { OrderListItem } from "@/features/orders/types";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useDisclosure } from "@/hooks/useDisclosure";
@@ -30,8 +30,8 @@ import { useApiPages } from "@/lib/query/useApiPages";
 import type { CustomerListItem, GuestSales } from "../types";
 import { CustomerFormSheet } from "./CustomerFormSheet";
 
-type Tab = "ALL" | CustomerSegment;
-const TABS: readonly Tab[] = ["ALL", ...CUSTOMER_SEGMENTS];
+type Tab = "ALL" | CustomerFilter;
+const TABS: readonly Tab[] = ["ALL", ...CUSTOMER_FILTERS];
 
 /**
  * The pinned Guest sales row (plan §139.10, §139.11.3): how many orders
@@ -75,7 +75,11 @@ function GuestSalesRow() {
   );
 }
 
-/** One customer as the list shows them: initials, name, orders and when they last ordered, and their segment. */
+/**
+ * One customer as the list shows them: initials, name, orders and when they
+ * last ordered, their segment, and — at the row's end, on every tab — what
+ * they still owe, when they owe anything.
+ */
 function CustomerRow({ customer, now }: { customer: CustomerListItem; now: Date }) {
   const text = UI_TEXT.customersScreen;
   return (
@@ -96,13 +100,23 @@ function CustomerRow({ customer, now }: { customer: CustomerListItem; now: Date 
           ? `${text.orders(customer.orders)} · ${text.lastOrder(formatDaysAgo(customer.lastOrderAt, now))}`
           : text.noOrders
       }
+      trailing={
+        // The amount over a small "due", as an order's amount sits over its pill, so the name keeps its room.
+        customer.balanceDue > 0 ? (
+          <>
+            <span className="tabular-nums text-warning">{formatPaise(customer.balanceDue)}</span>{" "}
+            <span className="text-xs font-medium text-text-muted">{text.due}</span>
+          </>
+        ) : undefined
+      }
     />
   );
 }
 
 /**
  * Customers (plan §139.10, R5.3): All, Regular and New, worked out from
- * their orders; the pinned Guest sales row; search by name, or by phone
+ * their orders, and Balance due — those who still owe, the most first (the
+ * user, 2026-09-27); the pinned Guest sales row; search by name, or by phone
  * however it is typed (BUG-23); and **+** for a new customer, whose screen
  * opens once they are saved — all read from the server a page at a time
  * (§133.9 I4).

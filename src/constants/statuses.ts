@@ -198,6 +198,14 @@ export const CUSTOMER_SEGMENT_TONES: Record<CustomerSegment, StatusTone> = {
 };
 
 /**
+ * What the Customers list can be narrowed to: a segment, or **DUE** — those
+ * who still owe the business money (the user, 2026-09-27). Not a segment: a
+ * Regular can owe too.
+ */
+export const CUSTOMER_FILTERS = [...CUSTOMER_SEGMENTS, "DUE"] as const;
+export type CustomerFilter = (typeof CUSTOMER_FILTERS)[number];
+
+/**
  * What a notification is about (plan §139.12 `…_notification_kind`;
  * 0022_notification_kind.sql).
  */

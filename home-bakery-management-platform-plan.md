@@ -7510,6 +7510,14 @@ masters are the exception: they are app artwork, and they are committed under
   - **Settings' Notifications row** is the Android permission, so it comes with push (R8.6); the inbox needs no permission.
 - **Delight becomes Phase 9** (the user, through `/impeccable delight`; recorded under §31, not yet built). Four moments get personality: **the order milestones**, **empty states in the app's own art**, **the inbox caught up**, and **warmer system screens**. The tone is **warm and quiet**, not playful, because the owner meets these many times a day. The specification is §139.21, and the rows are in the Phase 9 tracker.
 
+## Answers and additions (2026-09-27)
+
+After the layout pass, the user chose three of the items it had left open:
+
+- **Sign-in screens side by side on a desktop.** From 1024 px the scene stands on the left and the form on the right, so Register's first step is on screen whole. The frame is shared, so Sign in, Forgot password, Change password and Confirm email take it too, and moving between them never changes layout.
+- **Customers: a Balance due tab** beside All, Regular and New. It lists the customers who still owe the business money, the most owed first, and pages and searches on the server like the others (`0024_customer_balance`). Every customer's row shows what they owe, on every tab, whenever they owe anything. **Customer detail leads with Balance due.**
+- **Create order: Add custom item sits above the search and the grid**, so a special request is one tap away however long the menu is.
+
 ---
 
 ## 139.1 Scope changes this brief approves (§31)
@@ -7916,6 +7924,9 @@ half-finished sign-up never creates an account:
 A step indicator reads "Step 1 of 2". Validation runs per step; the server parses
 the whole payload once.
 
+From 1024 px every authentication screen stands side by side — the scene
+left, the form right (the user, 2026-09-27).
+
 ### Home
 
 - **Phone:** the header band (business mark, name and catch phrase; bell; avatar); **"Good morning, {first name}"** with the time of day taken from the business's clock (§134 P2-1); the catch phrase or a neutral line beneath; the hero plate at the right (*2026-09-27, layout pass:* below 1024 px the greeting takes the kit's compact band, so the orders due start on a phone's first screen). Then **four stat tiles** laid out as in the reference but **carrying the §20 priorities** — *orders due today*, *sales* (for the chosen period), *to collect* (balance due) and *low stock* — with a Today / Week / Month switch; **Orders due**, grouped Overdue / Today / Tomorrow and sorted by due date (§20, AGENTS §20), with "View all"; **Low stock**; the quote block; and the FAB for a new order.
@@ -7931,7 +7942,7 @@ Delivered · Cancelled. Search, and a filter for dates, payment status and Guest
 
 ### Create order (§139.11.3 – §139.11.5)
 
-1. **Items** — search, the product grid with `+` on each card (no category chips — products need none, 2026-09-25). Once a product is in the order its `+` grows into **− count +**, so one can come off without leaving the grid, and the last one off takes it out (the user, 2026-09-26); **Add custom item**, a name and an amount (§139.11.7); the cart bar shows the count and total.
+1. **Items** — **Add custom item** first (the user, 2026-09-27), then search and the product grid with `+` on each card (no category chips — products need none, 2026-09-25). Once a product is in the order its `+` grows into **− count +**, so one can come off without leaving the grid, and the last one off takes it out (the user, 2026-09-26); a custom item is a name and an amount (§139.11.7); the cart bar shows the count and total.
 2. **Order details** — **Customer** (a saved customer or **Guest**, plus **+ New customer**); **Delivery** (pickup or delivery, date and time; the address and map link **filled from the customer** and editable); the items with steppers; a **note** printed on the bill (a cake message, for example) kept separate from **internal notes**, which never are; discounts and charges; the summary. Buttons: **[View bill]** and **[Proceed to payment]**.
 3. **Payment** — Unpaid / Paid in full / Part paid (**asks for the amount**) · method · reference. Buttons: **[View bill]** and **[Place order]**.
 4. → **Response card:** "Order placed", with the facts, **[View bill] [New order]**.
@@ -7953,8 +7964,10 @@ remaining transitions in a menu; **Cancel** asks through a confirm card.
 
 ### Customers
 
-Tabs: **All · Regular · New**, derived from order history — *Regular* is three
-or more orders; *New* is created in the last 30 days. **A pinned "Guest sales"
+Tabs: **All · Regular · New · Balance due**, derived from order history —
+*Regular* is three or more orders; *New* is created in the last 30 days;
+*Balance due* is everyone who still owes, the most owed first (the user,
+2026-09-27). What a customer owes shows at the end of their row, on every tab. **A pinned "Guest sales"
 row** at the top — its count and total for the period — opens Guest sales. Rows:
 initials avatar · name · "12 orders · last order 2 days ago" · segment pill ·
 chevron. Search by name, or by phone in **any** format (BUG-23). The `+` button
@@ -7967,8 +7980,8 @@ once they are saved.
 ### Customer detail
 
 Initials avatar, name, segment; phone (tap to call), email, city and address
-with the map link. Actions: Call · WhatsApp · Map · Edit. Stats: orders, total
-spent, customer since, **balance due**. Tabs: **Orders · Notes · Addresses** —
+with the map link. Actions: Call · WhatsApp · Map · Edit. Stats: **balance
+due** first (the user, 2026-09-27), then orders, total spent, customer since. Tabs: **Orders · Notes · Addresses** —
 Addresses are **the distinct delivery addresses from this customer's orders**,
 so no new table is needed. A sticky **Create order** with this customer already
 selected — it keeps whatever the order being built already holds (IMP-04). **Order
@@ -8357,6 +8370,7 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `…_drop_categories` | *Added 2026-09-26 as `0018_drop_categories` (R5.6).* Drops `products.category_id` with its composite reference and index, then the unused `categories` table with its policy, trigger and checks. Expense categories (`expenses.category`) are untouched. | 5 |
 | `…_stock_levels` | *Added 2026-09-26 as `0019_stock_levels` (R5.7).* A read-only, `security_invoker` view adding each product's ledger up in the database — balance, `stocked` (the oversell guard's own test, 0015) and last movement — because a read of the lines stops at the API's 1,000-row limit and the sums were quietly short past it. Inventory and Home's low stock read it. No table. | 5 |
 | `…_expense_categories` | *Added 2026-09-26 as `0020_expense_categories` (R5.8, R5.16; the user's decision of that day).* **`expense_categories`** — a business's own categories: RLS to the business, SELECT only for the API role, names unique per business on `lower(btrim(name))`, 1–40 characters, never one of the eight. **`expenses.category`**: the CHECK of the eight becomes a trigger that takes a default or one of the expense's own business's categories, locking it for share against a rename or delete. Owner-only `security definer` functions: **`create_expense_category`**; **`update_expense_category`**, whose rename moves the category's expenses and picture in one transaction; and **`delete_expense_category`**, refused while an expense is filed under the category. The eight are never changed or deleted. | 5 |
+| `…_customer_balance` | *Added 2026-09-27 as `0024_customer_balance` (the user).* `customer_stats` also adds up each customer's **balance due** — every order not cancelled, its total less what was paid, never below nothing — so the Balance due tab pages on the server. Still a read-only, `security_invoker` view. | 5 |
 | `…_notification_kind` | *Added 2026-09-26 as `0022_notification_kind` (R5.10).* `notifications.kind` (`ORDER`, `PAYMENT`, `STOCK`, `CUSTOMER`, `SYSTEM`); indexes `(bakery_id, created_at desc, id)` and `(bakery_id, is_read, created_at desc)`. Written by the worker only: `authenticated` loses INSERT and UPDATE, and may update `is_read` alone. Triggers queue the plan's events in their own transactions: an order placed, a customer added, and a counted product on sale falling to the low-stock mark (`low_stock_mark()`, equal to `LOW_STOCK_THRESHOLD`) — once as it crosses, never for a consumption line. | 5 |
 | `…_order_due_notifications` | *Added 2026-09-26 as `0023_order_due_notifications` (R5.10; the user).* `orders.due_notified_at` and `orders.overdue_notified_at`; a partial index on open orders by `delivery_date`; **`queue_due_order_notifications(p_from_hour)`**, the worker's alone, which marks and queues in one statement each open order due today or tomorrow, and each overdue, in its business's timezone, from the hour given. Open orders more than a day overdue when it arrives are marked as told. | 5 |
 | `…_audit_writes` | Revoke `INSERT` on `audit_logs` from `authenticated`; audit is written by the server with the acting user (§133.7 G1, BUG-20). | 2 |
@@ -8386,7 +8400,7 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `GET /api/orders/{id}/bill` | Replaces `/receipt`: the bill view-model, including the business profile. |
 | `GET /api/orders/{id}/bill.pdf` | New — generated on demand, never stored. |
 | `POST /api/orders/{id}/payments` | Fixed amount handling (BUG-01); `Idempotency-Key`. |
-| `GET /api/customers` | `?search=` matches phone numbers on digits; pagination. Done 2026-09-26 (R5.3): `?segment=REGULAR\|NEW&search=&cursor=`, a page by name from `customer_stats`, each with their orders, last order and segment. |
+| `GET /api/customers` | `?search=` matches phone numbers on digits; pagination. Done 2026-09-26 (R5.3): `?segment=REGULAR\|NEW&search=&cursor=`, a page by name from `customer_stats`, each with their orders, last order and segment. *2026-09-27:* `segment=DUE` keeps to those who owe, the most owed first, and every customer carries `balanceDue`. |
 | `GET /api/customers/{id}/summary` | New — stats, and the delivery addresses taken from orders. Done 2026-09-26 (R5.4): orders and spend (cancelled not counted), balance due, last order, segment, and the distinct delivery places, most recent first. |
 | `GET /api/guest-sales` | New — `?range&from&to&cursor`, a period as Analytics takes it. Done 2026-09-26 (R5.5): the count and total of the period's Guest orders, cancelled left out, and a page of them. |
 | `GET /api/analytics/overview` | `?range&from&to&interval=DAY\|WEEK` — a preset, or `CUSTOM` with both dates (1–366 days). Returns the KPIs with their previous-period values, the sales series and the previous period's, the orders series, every product's sales (with their `iconKey`; custom items as one row), orders by status, pickup against delivery, the Guest split, collected against to collect, new against returning, and the top customers (§133.9 I1, I3, §139.11.11). Done 2026-09-26. |

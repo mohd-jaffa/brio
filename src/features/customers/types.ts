@@ -48,6 +48,8 @@ export interface GuestSales {
 export interface CustomerListItem extends Customer {
   orders: number;
   lastOrderAt: string | null;
+  /** What they still owe, in paise (0024). */
+  balanceDue: number;
   segment: CustomerSegment | null;
 }
 

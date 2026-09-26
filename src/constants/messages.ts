@@ -501,8 +501,10 @@ export const UI_TEXT = {
     newCustomer: "New customer",
     search: "Search by name or phone",
     tabs: "Customers by segment",
-    tabNames: { ALL: "All", REGULAR: "Regular", NEW: "New" },
+    tabNames: { ALL: "All", REGULAR: "Regular", NEW: "New", DUE: "Balance due" },
     list: "Customers",
+    /** Under what a customer still owes, at the end of their row. */
+    due: "due",
     orders: (count: number) => `${count} ${count === 1 ? "order" : "orders"}`,
     lastOrder: (when: string) => `last order ${when}`,
     noOrders: "No orders yet",
@@ -511,6 +513,7 @@ export const UI_TEXT = {
     noneInSegment: {
       REGULAR: "No regulars yet. Three orders make one.",
       NEW: "No one added in the last 30 days.",
+      DUE: "Nothing to collect. Every customer is paid up.",
     },
     guestSales: "Guest sales",
     guestSalesLine: (orders: string, amount: string, period: string) => `${orders} · ${amount} · ${period}`,

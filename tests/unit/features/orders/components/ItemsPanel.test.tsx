@@ -42,6 +42,13 @@ describe("ItemsPanel", () => {
     expect(within(cards[1]).queryByText(/in the order/)).not.toBeInTheDocument();
   });
 
+  it("offers a custom item above the search and the grid, however long the menu", () => {
+    show();
+    const custom = screen.getByRole("button", { name: /Add custom item/ });
+    const search = screen.getByRole("searchbox");
+    expect(custom.compareDocumentPosition(search) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it("adds a product with its +, takes one off with its −, and hands over to a custom item", async () => {
     const props = show();
     await userEvent.click(screen.getByRole("button", { name: "Add Walnut brownie" }));

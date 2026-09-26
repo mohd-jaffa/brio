@@ -131,6 +131,7 @@ describe("listCustomers", () => {
     created_at: created,
     order_count: orders,
     last_order_at: orders ? "2026-09-24T05:00:00Z" : null,
+    balance_due: orders ? 25000 : 0,
   });
 
   it("reads a page of the business's customers by name, each with their orders and segment", async () => {
@@ -151,7 +152,19 @@ describe("listCustomers", () => {
       { name: "Bina", orders: 0, lastOrderAt: null, segment: "NEW" },
       { name: "Chitra", orders: 1, lastOrderAt: "2026-09-24T05:00:00Z", segment: null },
     ]);
-    expect(page.items[0]).toMatchObject({ id: "c-1", phone: "+919876543210" });
+    expect(page.items[0]).toMatchObject({ id: "c-1", phone: "+919876543210", balanceDue: 25000 });
+    expect(page.items[1].balanceDue).toBe(0);
+  });
+
+  it("keeps to those who still owe, the most owed first, then by name (0024)", async () => {
+    const fake = fakeSupabase(() => ({ data: [] }));
+    await listCustomers(tenantOf(fake.client), { search: null, segment: "DUE" }, now);
+    expect(fake.argsOf(fake.queries[0], "gt")).toEqual([["balance_due", 0]]);
+    expect(fake.argsOf(fake.queries[0], "order")).toEqual([
+      ["balance_due", { ascending: false }],
+      ["name", { ascending: true }],
+      ["id", { ascending: true }],
+    ]);
   });
 
   it("keeps to the Regulars, or the New who are not yet Regular, in the database", async () => {

@@ -21,6 +21,11 @@ import { BrandMark } from "./BrandMark";
  * its foot (`.auth-plate`), so no word sits on the photograph: every word was
  * measured at ≥ 4.5 : 1 against the darkest pixel behind it, at 360 to
  * 1280 px in both themes. It is the screen's largest paint, so it loads first.
+ *
+ * From 1024 px the scene and the sheet stand side by side (the user,
+ * 2026-09-27): the scene on the left, the form on the right, both centred in
+ * the height, so a long form such as Register is on screen whole rather than
+ * below a scene stacked above it. The header spans both.
  */
 export function AuthScene({
   headline,
@@ -40,8 +45,8 @@ export function AuthScene({
   footer?: ReactNode;
 }) {
   return (
-    <div className="auth-canvas flex min-h-dvh flex-col text-text">
-      <header className="safe-top [--safe-pt:1.25rem] mx-auto flex w-full max-w-xl items-start justify-between gap-4 px-6">
+    <div className="auth-canvas flex min-h-dvh flex-col text-text lg:grid lg:grid-cols-2 lg:grid-rows-[auto_1fr] lg:items-center lg:gap-x-16 lg:px-[max(2.5rem,calc(50%-36rem))]">
+      <header className="safe-top [--safe-pt:1.25rem] mx-auto flex w-full max-w-xl items-start justify-between gap-4 px-6 lg:col-span-2 lg:max-w-none lg:self-start lg:px-0">
         {backHref ? (
           <Link
             href={backHref}
@@ -67,13 +72,14 @@ export function AuthScene({
         )}
       </header>
 
-      <div className="relative isolate mx-auto w-full max-w-xl flex-1 px-6 pb-10 pt-6">
+      <div className="relative isolate mx-auto w-full max-w-xl flex-1 px-6 pb-10 pt-6 lg:mx-0 lg:flex-none lg:px-0 lg:py-10">
         {/* On a phone the headline runs across most of the width, so the plate
             keeps to the band above it, beside the mark; from 640 px it has the
-            room to stand beside the words. */}
+            room to stand beside the words; from 1024 px it reaches into the gap
+            before the form, and fades out there rather than over the bake. */}
         <div
           aria-hidden="true"
-          className="auth-plate pointer-events-none absolute right-0 top-0 -z-10 h-44 w-[62%] sm:inset-y-0 sm:h-auto"
+          className="auth-plate pointer-events-none absolute right-0 top-0 -z-10 h-44 w-[62%] sm:inset-y-0 sm:h-auto lg:-right-12"
         >
           <Image
             src={PLATES["cake-table"]}
@@ -115,9 +121,9 @@ export function AuthScene({
         </p>
       </div>
 
-      {/* The sheet keeps the phone's full-bleed edge and becomes a contained
-          card from tablet up. The composed wide layout is plan §137.9. */}
-      <div className="auth-sheet animate-rise safe-bottom [--safe-pb:2rem] mx-auto mt-auto w-full max-w-xl rounded-t-[2rem] px-6 pt-7 sm:mb-8 sm:rounded-[2rem]">
+      {/* The sheet keeps the phone's full-bleed edge, becomes a contained card
+          from tablet up, and from 1024 px stands beside the scene. */}
+      <div className="auth-sheet animate-rise safe-bottom [--safe-pb:2rem] mx-auto mt-auto w-full max-w-xl rounded-t-[2rem] px-6 pt-7 sm:mb-8 sm:rounded-[2rem] lg:my-10 lg:mr-0">
         <div className="mx-auto w-full max-w-md">
           {children}
           {footer && <div className="mt-7">{footer}</div>}

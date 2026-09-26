@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { VALIDATION_MESSAGES } from "@/constants/messages";
-import { CUSTOMER_SEGMENTS } from "@/constants/statuses";
+import { CUSTOMER_FILTERS } from "@/constants/statuses";
 
 import { listQuerySchema } from "./list";
 
@@ -28,7 +28,7 @@ export type UpdateCustomerPayload = z.output<typeof updateCustomerSchema>;
 
 /** `GET /api/customers` (plan §139.10): a segment's tab, what was searched for, and where the page starts. */
 export const customerListQuerySchema = listQuerySchema.extend({
-  segment: z.enum(CUSTOMER_SEGMENTS, { error: VALIDATION_MESSAGES.invalid }).optional(),
+  segment: z.enum(CUSTOMER_FILTERS, { error: VALIDATION_MESSAGES.invalid }).optional(),
 });
 
 export type CustomerListQuery = z.output<typeof customerListQuerySchema>;

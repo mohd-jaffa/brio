@@ -35,6 +35,7 @@ const customer = (changes: Partial<CustomerListItem> = {}): CustomerListItem => 
   orders: 12,
   lastOrderAt: "2026-09-24T05:00:00Z",
   segment: "REGULAR",
+  balanceDue: 0,
   ...changes,
 });
 
@@ -116,6 +117,22 @@ describe("Customers: the list", () => {
     expect(screen.queryByRole("list", { name: "Guest sales for the period" })).not.toBeInTheDocument();
   });
 
+  it("keeps to those who still owe, the most first, each row saying how much, on every tab", async () => {
+    answers["/api/customers"] = {
+      items: [customer({ balanceDue: 95000 }), customer({ id: "c-2", name: "Neha Suresh", segment: "NEW" })],
+      nextCursor: null,
+    };
+    open();
+    const [priya, neha] = within(await list()).getAllByRole("link");
+    expect(priya).toHaveTextContent("₹950 due");
+    expect(neha).not.toHaveTextContent("due");
+
+    answers["/api/customers?segment=DUE"] = { items: [customer({ balanceDue: 95000 })], nextCursor: null };
+    await userEvent.click(screen.getByRole("tab", { name: "Balance due" }));
+    await waitFor(() => expect(fetcher).toHaveBeenCalledWith("/api/customers?segment=DUE"));
+    expect(screen.queryByRole("list", { name: "Guest sales for the period" })).not.toBeInTheDocument();
+  });
+
   it("searches by name or phone on the server once typing pauses, without the pinned row", async () => {
     open();
     await list();
@@ -142,6 +159,8 @@ describe("Customers: nothing to show", () => {
     expect(await screen.findByText("No regulars yet. Three orders make one.")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("tab", { name: "New" }));
     expect(await screen.findByText("No one added in the last 30 days.")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("tab", { name: "Balance due" }));
+    expect(await screen.findByText("Nothing to collect. Every customer is paid up.")).toBeInTheDocument();
     await userEvent.type(screen.getByRole("searchbox"), "Zara");
     expect(await screen.findByText("Nothing matches “Zara”.")).toBeInTheDocument();
   });

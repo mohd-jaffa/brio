@@ -115,11 +115,13 @@ describe("CustomerDetail: who they are", () => {
     expect(within(about).queryByRole("link", { name: /@/ })).not.toBeInTheDocument();
   });
 
-  it("sums their orders, spend, since when, and what they still owe", async () => {
+  it("sums what they still owe first, then their orders, spend and since when", async () => {
     open();
     await loaded();
     expect(await screen.findByText("Total orders")).toBeInTheDocument();
     const figure = (label: string) => screen.getByText(label).nextSibling;
+    const labels = [...document.querySelectorAll("dl dt")].map((term) => term.textContent);
+    expect(labels.slice(0, 4)).toEqual(["Balance due", "Total orders", "Total spent", "Customer since"]);
     expect(figure("Total orders")).toHaveTextContent("12");
     expect(figure("Total spent")).toHaveTextContent("₹4,320");
     expect(figure("Customer since")).toHaveTextContent("Jan 2026");

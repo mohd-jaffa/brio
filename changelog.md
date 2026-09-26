@@ -2215,3 +2215,32 @@ These are product or plan decisions rather than layout, and are left for the use
 
 ### Blockers
 - None.
+
+## 2026-09-27 — Sign-in side by side; Balance due on Customers; custom item first
+
+### Added
+- **Customers: a Balance due tab** beside All, Regular and New (the user). It lists the customers who still owe the business money, the most owed first, and pages and searches on the server like the others.
+  - **`0024_customer_balance`:** `customer_stats` adds up each customer's balance: every order not cancelled, its total less what was paid, never below nothing. It is the same sum a customer's own screen makes.
+  - **API:** `GET /api/customers?segment=DUE`, and every customer carries `balanceDue`.
+  - **Rows:** on every tab, the amount owed sits at the end of the row, in the warning colour over a small "due". It stacks so that full names still fit at 360 px.
+
+### Changed
+- **The sign-in screens stand side by side from 1024 px** (the user):
+  - the scene is on the left and the form on the right, both centred in the height, so Register's first step fits the screen whole where it used to scroll;
+  - the frame is shared, so Sign in, Forgot password, Change password and Confirm email match;
+  - the photograph reaches into the gap between the columns and fades out there, and the form's shadow falls below it as a card's does.
+- **Customer detail leads with Balance due** (the user).
+- **Create order:** Add custom item sits above the search and the grid (the user).
+- Recorded in the plan's answers of 2026-09-27, §139.10, §139.12 and §139.13.
+
+### Validation
+- **On the local database:** the seed business's balances read ₹950, ₹560, ₹400 and nothing, matching their orders on Home.
+- **Over HTTP:** `segment=DUE` returns those three, the most owed first. It combines with search, All carries every balance, and an unknown segment is refused.
+- **In Chromium, with no sideways scroll and no page errors:**
+  - the sign-in screens at 390, 820, 1024, 1280 and 1440 px in both themes; Register, Sign in and Forgot password no longer scroll from 1024 px;
+  - the Balance due tab, customer detail and create order at 360, 390, 820 and 1280 px in both themes.
+- `tsc`, `eslint` and the full suite (1,829 tests) pass. Every changed component is at 100% coverage.
+
+### Blockers
+- None.
+- **Migration:** `0024` is applied locally; it needs applying in other environments.

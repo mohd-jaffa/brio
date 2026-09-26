@@ -47,8 +47,8 @@ function MoreRow({
 /**
  * The first step of a new order (plan §139.10): the products on the menu as a
  * grid, each with a + that adds one — and, once it is in the order, a − that
- * takes one off (the user, 2026-09-26) — searched by name; and **Add custom item**
- * for a request the menu does not cover (§139.11.7). A new product is made on
+ * takes one off (the user, 2026-09-26) — searched by name; and, above them,
+ * **Add custom item** for a request the menu does not cover (§139.11.7). A new product is made on
  * Products, and the draft waits (the user, 2026-09-25). There are no category
  * chips: products need none.
  */
@@ -78,6 +78,8 @@ export function ItemsPanel({
       <h2 id="order-items-heading" className="sr-only">
         {text.orderItems}
       </h2>
+      {/* First, so a request the menu does not cover is one tap away however long the menu is (the user, 2026-09-27). */}
+      <MoreRow icon={ReceiptText} title={text.customItem} hint={text.customItemHint} onClick={onAddCustom} />
       <SearchField value={search} onChange={setSearch} placeholder={text.searchProducts} />
 
       {loading ? (
@@ -117,8 +119,6 @@ export function ItemsPanel({
           </ul>
         </div>
       )}
-
-      <MoreRow icon={ReceiptText} title={text.customItem} hint={text.customItemHint} onClick={onAddCustom} />
     </section>
   );
 }

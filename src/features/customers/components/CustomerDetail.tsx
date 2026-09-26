@@ -160,10 +160,11 @@ export function CustomerDetail({ id }: { id: string }) {
           {stats ? (
             <dl className={`${CARD} grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-2`}>
               {[
+                // What they still owe leads: it is what needs doing (the user, 2026-09-27).
+                { label: text.balanceDue, value: formatPaise(stats.balanceDue) },
                 { label: text.totalOrders, value: String(stats.orders) },
                 { label: text.totalSpent, value: formatPaise(stats.spent) },
                 { label: text.since, value: formatMonth(dayKey(person.createdAt)) },
-                { label: text.balanceDue, value: formatPaise(stats.balanceDue) },
               ].map((figure) => (
                 // The figure reads first, as the reference sets it; the label still comes first to a screen reader.
                 <div key={figure.label} className="flex min-w-0 flex-col-reverse gap-0.5">
