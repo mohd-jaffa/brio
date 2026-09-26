@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  EXPENSE_CATEGORIES,
+  DEFAULT_EXPENSE_CATEGORIES,
+  isDefaultExpenseCategory,
   INVENTORY_TRANSACTION_LABELS,
   INVENTORY_TRANSACTION_TYPES,
   MANUAL_INVENTORY_TYPES,
@@ -78,8 +79,11 @@ describe("the shared vocabularies", () => {
     expect(MANUAL_INVENTORY_TYPES).not.toContain("ORDER_CONSUMPTION");
   });
 
-  it("keeps the expense categories the database accepts", () => {
-    expect(EXPENSE_CATEGORIES).toContain("Ingredients");
-    expect(EXPENSE_CATEGORIES).toContain("Other");
+  it("keeps the eight default expense categories, and knows one whatever its case", () => {
+    expect(DEFAULT_EXPENSE_CATEGORIES).toHaveLength(8);
+    expect(DEFAULT_EXPENSE_CATEGORIES).toContain("Ingredients");
+    expect(DEFAULT_EXPENSE_CATEGORIES).toContain("Other");
+    expect(isDefaultExpenseCategory(" rent ")).toBe(true);
+    expect(isDefaultExpenseCategory("Flowers")).toBe(false);
   });
 });

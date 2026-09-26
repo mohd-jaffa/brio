@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { BarTrend } from "@/components/ui/charts/bar-trend";
 import { Donut } from "@/components/ui/charts/donut";
+import { IntervalSelect } from "@/components/ui/charts/interval-select";
 import { LineTrend } from "@/components/ui/charts/line-trend";
 import { ProductTile } from "@/components/ui/product-tile";
 import { Row, RowList } from "@/components/ui/row";
@@ -29,26 +30,6 @@ function Nothing({ children }: { children: string }) {
     <p className="rounded-2xl border border-border bg-surface px-4 py-6 text-center text-sm text-text-muted shadow-card">
       {children}
     </p>
-  );
-}
-
-/** Daily or Weekly, beside a trend. */
-export function IntervalSelect({ value, onChange }: { value: Interval; onChange: (next: Interval) => void }) {
-  return (
-    <label className="relative">
-      <span className="sr-only">{text.interval}</span>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value as Interval)}
-        className="touch-target rounded-lg border border-border bg-surface px-3 py-1.5 text-sm font-medium text-text"
-      >
-        {(["DAY", "WEEK"] as const).map((interval) => (
-          <option key={interval} value={interval}>
-            {text.intervals[interval]}
-          </option>
-        ))}
-      </select>
-    </label>
   );
 }
 

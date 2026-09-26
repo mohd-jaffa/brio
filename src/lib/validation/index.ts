@@ -88,14 +88,19 @@ export {
 
 export {
   createExpenseSchema,
+  expenseCategoryFormSchema,
   expenseCategorySchema,
   expenseFormSchema,
+  expenseListQuerySchema,
   paymentMethodSchema,
   updateExpenseSchema,
   type CreateExpenseInput,
   type CreateExpensePayload,
+  type ExpenseCategoryFormInput,
+  type ExpenseCategoryFormPayload,
   type ExpenseFormPayload,
   type ExpenseFormValues,
+  type ExpenseListQuery,
   type UpdateExpenseInput,
   type UpdateExpensePayload,
 } from "./schemas/expense";

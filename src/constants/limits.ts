@@ -27,6 +27,9 @@ export const PAGE_SIZE = 20;
 /** How far into a list a page may start — far past any list a business keeps. */
 export const MAX_PAGE_START = 100_000;
 
+/** An expense category's name: a tile's label, not a sentence (`0020_expense_categories`). */
+export const MAX_EXPENSE_CATEGORY_NAME = 40;
+
 /** What a list's search box may send. */
 export const MAX_SEARCH_LENGTH = 100;
 
@@ -58,3 +61,6 @@ export const NEW_CUSTOMER_DAYS = 30;
  * without saying so. `readAll` reads past it, a window at a time.
  */
 export const API_MAX_ROWS = 1000;
+
+/** How many of the period's expenses Expenses' Overview shows as recent (plan §139.10). */
+export const RECENT_EXPENSES = 5;

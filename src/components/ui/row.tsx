@@ -29,9 +29,14 @@ export function RowList({ label, children, className }: { label?: string; childr
  * somewhere. It is a link with `href` (and `onClick` runs as it is followed),
  * a button with only `onClick`, and plain otherwise; the whole row is the
  * target, so it is easy to hit.
+ *
+ * `leadingControl` is a control of its own at the start — an expense
+ * category's picture, tapped to change it — kept beside the row's target
+ * rather than inside it, since one control cannot hold another.
  */
 export function Row({
   leading,
+  leadingControl,
   title,
   subtitle,
   meta,
@@ -42,6 +47,7 @@ export function Row({
   arriving = false,
 }: {
   leading?: ReactNode;
+  leadingControl?: ReactNode;
   title: ReactNode;
   subtitle?: ReactNode;
   meta?: ReactNode;
@@ -66,21 +72,31 @@ export function Row({
       {chevron && <ChevronRight size={18} strokeWidth={1.75} className="shrink-0 text-text-muted" aria-hidden="true" />}
     </>
   );
-  const layout = "flex w-full items-center gap-3 px-4 py-3 text-left";
+  const layout = cn("flex w-full items-center gap-3 py-3 pr-4 text-left", leadingControl !== undefined ? "pl-3" : "pl-4");
   const interactive = "focus-inset transition-colors hover:bg-surface-hover";
 
+  const target =
+    href !== undefined ? (
+      <Link href={href} onClick={onClick} className={cn(layout, interactive)}>
+        {body}
+      </Link>
+    ) : onClick ? (
+      <button type="button" onClick={onClick} className={cn(layout, interactive)}>
+        {body}
+      </button>
+    ) : (
+      <div className={layout}>{body}</div>
+    );
+
   return (
-    <li className={arriving ? "animate-drop-in" : undefined}>
-      {href !== undefined ? (
-        <Link href={href} onClick={onClick} className={cn(layout, interactive)}>
-          {body}
-        </Link>
-      ) : onClick ? (
-        <button type="button" onClick={onClick} className={cn(layout, interactive)}>
-          {body}
-        </button>
+    <li className={cn(arriving && "animate-drop-in", leadingControl !== undefined && "flex items-center")}>
+      {leadingControl !== undefined ? (
+        <>
+          <span className="shrink-0 pl-4">{leadingControl}</span>
+          <span className="min-w-0 flex-1">{target}</span>
+        </>
       ) : (
-        <div className={layout}>{body}</div>
+        target
       )}
     </li>
   );

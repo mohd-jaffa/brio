@@ -31,4 +31,12 @@ describe("ProductTile", () => {
     expect(container.firstElementChild).toHaveClass("w-full", "aspect-[4/3]");
     expect(container.querySelector("img")).toHaveAttribute("width", "144");
   });
+
+  it("starts from the fallback it is given: an expense category's receipt", () => {
+    const { container, rerender } = render(<ProductTile fallback="default-expense" />);
+    expect(container.querySelector("img")?.getAttribute("src")).toMatch(/default-expense/);
+    rerender(<ProductTile size="fill" fallback="default-expense" />);
+    expect(container.querySelector("img")?.getAttribute("src")).toMatch(/default-expense/);
+  });
 });
+

@@ -66,4 +66,29 @@ describe("RowList and Row", () => {
     expect(cash).toHaveClass("animate-drop-in");
     expect(upi).not.toHaveClass("animate-drop-in");
   });
+
+  it("keeps a control of its own at the start, beside the row's target rather than inside it", async () => {
+    const change = vi.fn();
+    const open = vi.fn();
+    render(
+      <RowList label="Categories">
+        <Row
+          leadingControl={<button type="button" onClick={change}>Change the picture for Rent</button>}
+          title="Rent"
+          onClick={open}
+        />
+      </RowList>,
+    );
+    const target = screen.getByRole("button", { name: "Rent" });
+    const control = screen.getByRole("button", { name: "Change the picture for Rent" });
+    expect(target).not.toContainElement(control);
+    expect(screen.getByRole("listitem")).toHaveClass("flex");
+
+    await userEvent.click(control);
+    expect(change).toHaveBeenCalledOnce();
+    expect(open).not.toHaveBeenCalled();
+    await userEvent.click(target);
+    expect(open).toHaveBeenCalledOnce();
+  });
 });
+

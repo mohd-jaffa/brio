@@ -846,6 +846,9 @@ Rent
 Other
 ```
 
+*These are the eight **defaults** every business has. A business may also add
+categories of its own (the user, 2026-09-26; §139.11.10).*
+
 Database:
 
 ```text
@@ -7477,9 +7480,19 @@ masters are the exception: they are app artwork, and they are committed under
   - There are **no category chips** on the create-order grid or on Products, **no Manage categories**, and **no `/api/categories`**. §133.4 D1 is closed as dropped.
   - R5.6 drops what is left of them: the unused `categories` table and `products.category_id`, so no dead schema stays behind (§2.2).
   - **Sales by category** leaves Analytics with them. Custom items, which it used to show, appear as one **"Custom items"** row in the Products tab's ranking, so their sales are still counted.
-  - **Expenses keep their categories** — the eight in §22 — each with an illustration the owner picks from the library (R5.16). Each side starts on its own default: a product on `default-product`, an expense category on `default-expense` (§139.11.10), and either can be changed to any illustration in the library.
+  - **Expenses keep their categories** — the eight in §22 — each with an illustration the owner picks from the library (R5.16). Each side starts on its own default: a product on `default-product`, an expense category on `default-expense` (§139.11.10), and either can be changed to any illustration in the library. *Superseded 2026-09-26: the eight stay on `default-expense` and cannot be changed; a business's own categories take a picture from the library (see the answers of that day).*
 - **Something not on the menu yet** (the user): **Add custom item** takes a name, a **description if one is needed** — printed under it on the bill, as the line's note — and the amount (§139.11.7). Or the owner adds the product on the **Products** screen and comes back: the draft is kept on the device (R3.9). Products are made only on Products; there is **no New product on the order screen**. A **new customer**, by contrast, is made on the fly from the order screen (§139.11.4). In Analytics every custom line counts under **one "Custom items"** row; every Guest order counts under **Guest sales** (§139.11.3).
 - **The oversell guard checks stocked products only.** A product is checked once any stock has been recorded for it by hand — a stock in, adjustment, wastage or return. A product nobody stocks is made to order and is never refused (§21's "made-to-order rule", R3.3).
+
+## Answers and additions (2026-09-26)
+
+- **Sales by product** replaces sales by category on Analytics' Overview, as the design reference shows it (the user; R5.9).
+- **Expense categories: the eight defaults, and the business's own** (the user, recorded under §31). This supersedes the line above that the eight in §22 are all there is. So:
+  - **The eight defaults stay exactly as they are.** Every business has them. Their names are fixed, they show `default-expense`, and they can be neither edited nor deleted, picture included.
+  - **A business may add categories of its own.** It adds one from the Categories tab, or on the spot from the expense form's **+**, which chooses it. Each has a name and an illustration picked from the library. A name is unique within the business, whatever its case, and is never one of the eight's.
+  - **Only the business that made a category sees it.** Another business sees only the defaults and its own.
+  - **Editing and deleting.** The owner can rename one of its own or change its picture; a rename takes its expenses with it. The owner can delete one **only while no expense is filed under it** — the database refuses otherwise.
+- **An expense can be edited and deleted.** Tapping it opens the form, which also offers **Delete expense**, confirmed first.
 
 ---
 
@@ -7967,12 +7980,17 @@ As `v2-analytics-expenses-mobile-golden.png` shows: a compact photographic band
 Transactions** (Suppliers omitted — Q7). The charts follow §139.11.11.
 
 - **Overview:** two KPI tiles, **Total expenses** and **Daily average**, each with its change on the previous period. For a cost, up reads rose and down reads green. Then **Expenses by category**, a donut with the total in its centre and a legend of each category's share; **Expense trend**, daily bars (weekly beyond 31 days) with the peak marked and a tooltip; **Recent expenses**, each with the category's illustration, the description, the category, the date and the amount, and **View all**; and the quote block.
-- **Categories:** the eight categories, each with its illustration, the period's total, its share and its count. **Tapping the illustration changes it** (§139.11.10); tapping the row opens its transactions.
-- **Transactions:** grouped by month, and filterable by category.
+- **Categories:** the eight defaults and the business's own, the largest first, each with its illustration, the period's total, its share and its count (2026-09-26).
+  - **A default** opens its transactions when tapped; it is never changed or deleted.
+  - **One of the business's own** has its illustration tapped to change it (§139.11.10). Its row offers **See its expenses**, **Edit name and picture**, and **Delete category**, which is confirmed first and refused while any expense is filed under it.
+  - **New category** adds one: a name and a picture.
+- **Transactions:** grouped by month, and filterable by category, the business's own among them. An expense opens the form, to be edited or deleted.
 - **Desktop:** the KPIs in a row, the donut and the bars side by side, and recent expenses as a table.
 
 The expense form's **Category** field shows each category's illustration beside
-its name.
+its name, the business's own after the eight. A **+** at the end makes a new
+category on the spot and chooses it. Editing an expense offers **Delete
+expense**, confirmed first (2026-09-26).
 
 ### Analytics
 
@@ -8245,7 +8263,7 @@ serves the size each place draws.
 **Choosing one**
 
 - **A product:** the product form's **Icon** field opens the picker. The choice is stored as `products.icon_key`, and NULL means `default-product`.
-- **An expense category:** from the Expenses **Categories** tab. The choice is stored **per business** in `bakeries.expense_category_icons`, a JSON object mapping a category to a key; a category it does not mention uses `default-expense`. The category, not each expense, carries the illustration, because the brief ties icons to categories. `PATCH /api/expense-categories/{category}` writes the choice on the server with the owner check, because `bakeries` stays SELECT-only for the API role.
+- **An expense category:** the eight defaults always show `default-expense` and cannot be changed (the user, 2026-09-26). A category the business made takes any illustration, chosen when it is made — from the Categories tab or the expense form's **+** — and changed from the Categories tab. The choice is stored **per business** in `bakeries.expense_category_icons`, a JSON object mapping a category to a key; a category it does not mention uses `default-expense`. The category, not each expense, carries the illustration, because the brief ties icons to categories. The category functions of `0020_expense_categories` write it on the server with the owner check, because `bakeries` stays SELECT-only for the API role.
 - **Validation:** the server accepts only registry keys (`z.enum(ILLUSTRATION_KEYS)`). The database checks only the key's shape, so adding an illustration needs no migration. A stored key the registry no longer knows renders the default.
 
 **Accessibility and theme.** The illustration sits on a rounded tile in the
@@ -8304,6 +8322,7 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `…_list_views` | *Added 2026-09-26 as `0017_list_views` (R5.2, R5.3).* Two read-only, `security_invoker` views, so RLS still decides: **`order_search`** — each order beside its customer's name and phone, so one PostgREST `or` finds an order by its number, its customer or their phone digits (BUG-23), which it cannot do across an embed; and **`customer_stats`** — each customer with their order count and last order, cancelled ones not counted, so Customers can page and keep to Regular on the server. Select for `authenticated` only. No table. | 5 |
 | `…_drop_categories` | *Added 2026-09-26 as `0018_drop_categories` (R5.6).* Drops `products.category_id` with its composite reference and index, then the unused `categories` table with its policy, trigger and checks. Expense categories (`expenses.category`) are untouched. | 5 |
 | `…_stock_levels` | *Added 2026-09-26 as `0019_stock_levels` (R5.7).* A read-only, `security_invoker` view adding each product's ledger up in the database — balance, `stocked` (the oversell guard's own test, 0015) and last movement — because a read of the lines stops at the API's 1,000-row limit and the sums were quietly short past it. Inventory and Home's low stock read it. No table. | 5 |
+| `…_expense_categories` | *Added 2026-09-26 as `0020_expense_categories` (R5.8, R5.16; the user's decision of that day).* **`expense_categories`** — a business's own categories: RLS to the business, SELECT only for the API role, names unique per business on `lower(btrim(name))`, 1–40 characters, never one of the eight. **`expenses.category`**: the CHECK of the eight becomes a trigger that takes a default or one of the expense's own business's categories, locking it for share against a rename or delete. Owner-only `security definer` functions: **`create_expense_category`**; **`update_expense_category`**, whose rename moves the category's expenses and picture in one transaction; and **`delete_expense_category`**, refused while an expense is filed under the category. The eight are never changed or deleted. | 5 |
 | `…_notification_kind` | `notifications.kind` (`ORDER`, `PAYMENT`, `STOCK`, `CUSTOMER`, `SYSTEM`); index `(bakery_id, is_read, created_at desc)`. | 5 |
 | `…_audit_writes` | Revoke `INSERT` on `audit_logs` from `authenticated`; audit is written by the server with the acting user (§133.7 G1, BUG-20). | 2 |
 | `…_device_tokens` | The push-token registry (§133.5 E2). | 8 |
@@ -8331,8 +8350,9 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `GET /api/customers/{id}/summary` | New — stats, and the delivery addresses taken from orders. Done 2026-09-26 (R5.4): orders and spend (cancelled not counted), balance due, last order, segment, and the distinct delivery places, most recent first. |
 | `GET /api/guest-sales` | New — `?range&from&to&cursor`, a period as Analytics takes it. Done 2026-09-26 (R5.5): the count and total of the period's Guest orders, cancelled left out, and a page of them. |
 | `GET /api/analytics/overview` | `?range&from&to&interval=DAY\|WEEK` — a preset, or `CUSTOM` with both dates (1–366 days). Returns the KPIs with their previous-period values, the sales series and the previous period's, the orders series, every product's sales (with their `iconKey`; custom items as one row), orders by status, pickup against delivery, the Guest split, collected against to collect, new against returning, and the top customers (§133.9 I1, I3, §139.11.11). Done 2026-09-26. |
-| `GET /api/expenses/summary` | New — `?from&to&interval=day\|week`. Returns the total and daily average, each with the previous period's; totals by category; the series; and the five most recent (§139.11.11). |
-| `GET /api/expense-categories`, `PATCH /api/expense-categories/{category}` | New — each category's illustration. The PATCH takes `{ iconKey }` and writes `bakeries.expense_category_icons` on the server (§139.11.10). |
+| `GET /api/expenses` | `?range&from&to&category=&cursor=` — the Transactions tab: a page of the period's expenses, newest day first, one category or all. Done 2026-09-26 (R5.8). |
+| `GET /api/expenses/summary` | New — `?from&to&interval=day\|week`. Returns the total and daily average, each with the previous period's; totals by category; the series; and the five most recent (§139.11.11). Done 2026-09-26 (R5.8): `?range&from&to&interval`, every category of the business — its own too — always there. |
+| `GET, POST /api/expense-categories`, `PATCH, DELETE /api/expense-categories/{category}` | New (§139.11.10; the user, 2026-09-26). GET lists the eight, then the business's own, each with its illustration. POST `{ name, iconKey }` adds one of its own; PATCH `{ name, iconKey }` renames it or changes its picture; DELETE removes one no expense is filed under. The eight are never changed (`EXPENSE_CATEGORY_DEFAULT_FIXED`), a name is taken once (`EXPENSE_CATEGORY_ALREADY_EXISTS`), and a category in use stays (`EXPENSE_CATEGORY_IN_USE`). Done 2026-09-26 (R5.16). |
 | `POST /api/products`, `PATCH /api/products/{id}` | Accept `iconKey`: a registry key, or null for the default. |
 | ~~`GET, POST, PATCH /api/categories`~~ | **Dropped 2026-09-25:** products need no categories. |
 | `GET /api/notifications`, `POST /api/notifications/read-all` | New (§133.5 E1). |
@@ -8647,7 +8667,7 @@ the row needs; without an answer it is built on that question's default
 | R5.5 | Guest sales | §139.11.3 | — | DONE (2026-09-26 · `/customers/guest`; also from Orders' Guest filter and Analytics' Guest split) |
 | R5.6 | Products; neutral units; the **Icon** field and picker — the owner picks the product's illustration from the library; ~~managing categories~~ dropped (2026-09-25), and a migration removes the unused `categories` table and `products.category_id` | §139.11.10; §133.4 D1 (dropped) | Q8 | DONE (2026-09-26 · `0018_drop_categories`; the picker is in the kit for R5.16) |
 | R5.7 | Inventory | §139.10 | — | DONE (2026-09-26 · `0019_stock_levels`; each product's history, a page at a time) |
-| R5.8 | Expenses as the reference shows: KPIs, the category donut, daily bars, recent expenses; the Categories and Transactions tabs; `GET /api/expenses/summary` | §139.10; §139.11.11 | — | TODO |
+| R5.8 | Expenses as the reference shows: KPIs, the category donut, daily bars, recent expenses; the Categories and Transactions tabs; `GET /api/expenses/summary`; expenses edited and deleted (the user, 2026-09-26) | §139.10; §139.11.11 | — | DONE (2026-09-26 · summed on the server; Transactions a page at a time) |
 | R5.9 | Analytics as the reference shows: KPIs with deltas, the sales-trend line, top products (custom items as one row in the Products tab); ~~sales by category~~ dropped with categories (2026-09-25), **sales by product** in its place (the user, 2026-09-26); the Sales, Orders, Customers and Products tabs; server aggregation; Top Customers; the guest split | §133.9 I1, I3; IMP-10; §139.11.11 | — | DONE (2026-09-26 · worked out on the server; the period is remembered on the device) |
 | R5.10 | Notifications inbox and bell; the `kind` column | §133.5 E1 | — | TODO |
 | R5.11 | More and Settings (Appearance, Account, About with the illustration credit); no Help | §139.10 | Q7 (answered), Q16 | TODO |
@@ -8655,7 +8675,7 @@ the row needs; without an answer it is built on that question's default
 | R5.13 | Pagination on every list; each list's search runs on the server with it — debounced, tenant-scoped, with loading, empty and error states | §133.9 I4; IMP-11; IMP-01 (2026-09-25) | — | IN PROGRESS (2026-09-26 · the shared part, Orders, Customers, a customer's orders, Guest sales and the customer picker are paged. **Open question:** Products is read whole, because the order screen prices its draft's lines from that read — paging it too needs the user's word; see the changelog) |
 | R5.14 | Hard-coded strings swept, screen by screen | BUG-30 | — | TODO |
 | R5.15 | Dashboard filters | §133.9 I2 | — | DONE (2026-09-26 · with R5.1: preparation and payment, combined, on the orders due) |
-| R5.16 | Expense category illustrations: the Categories tab, the picker, the expense form's category field, `/api/expense-categories` | §139.11.10 | — | TODO |
+| R5.16 | Expense category illustrations: the Categories tab, the picker, the expense form's category field, `/api/expense-categories`; **the business's own categories** — made, renamed, pictured and deleted while unused, the eight defaults fixed (the user, 2026-09-26) | §139.11.10 | — | DONE (2026-09-26 · `0020_expense_categories`) |
 
 ### Phase 6 — Hardening
 

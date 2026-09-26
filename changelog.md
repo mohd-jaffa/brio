@@ -1868,3 +1868,63 @@ this entry grows with them.
 
 ### Blockers
 - None.
+
+## 2026-09-26 — Expenses (R5.8) and expense categories (R5.16)
+
+### Decision
+- **Expense categories: the eight defaults, and the business's own** (the user, recorded in the plan's answers of 2026-09-26).
+  - **Defaults:** the eight stay exactly as they are — fixed names, the receipt picture, never edited or deleted.
+  - **The business's own:** a business adds categories of its own, each with a picture from the library, and only it sees them. It renames one or changes its picture; it deletes one only while no expense is filed under it.
+- **Expenses are edited and deleted** from their form; deleting is confirmed first.
+
+### Added
+- **`0020_expense_categories.sql`:**
+  - **`expense_categories`:** RLS to the business, SELECT only for the API role, names unique per business whatever their case, never a default's.
+  - **`expenses.category`:** the CHECK of the eight becomes a trigger. It accepts a default or one of the business's own, and locks that category's row against a rename or delete running at the same time.
+  - **Owner-only functions:** create, update and delete a category. A rename moves the category's expenses and picture in one transaction; a delete is refused while an expense uses the category.
+- **Routes:**
+  - `GET /api/expenses` is now paged: `?range&from&to&category&cursor`.
+  - `GET /api/expenses/summary`: the total and daily average against the period before, every category's total and count, the trend and the latest five, summed on the server.
+  - `GET, POST /api/expense-categories` and `PATCH, DELETE /api/expense-categories/{category}`.
+- **Expenses (`src/features/expenses/components/Expenses.tsx`):**
+  - **Header:** the band, the remembered period and **+**.
+  - **Overview:** the two figures (a rise in cost reads as bad news), the category ring, the daily or weekly bars, and the latest expenses. On a desktop: the figures in a row, the charts side by side, and the latest as a table.
+  - **Categories:** a default opens its expenses. One of the business's own has its picture tapped to change it, and its row offers its expenses, **Edit name and picture** and **Delete category**. **New category** adds one.
+  - **Transactions:** by month, a page at a time, filtered by any category. Rows on a phone, a table from 1024 px.
+- **The expense form:**
+  - **Category** is a grid of pictures, the business's own after the eight, with a **+** that makes a category on the spot and chooses it.
+  - An expense being edited offers **Delete expense**.
+  - Its words moved to `messages.ts`.
+- **In the kit:**
+  - `PictureField` — the Picture field the product form and the category sheet share.
+  - `IntervalSelect`, moved from Analytics into the chart kit.
+  - `Row`'s `leadingControl`.
+  - `ProductTile`'s `fallback`.
+
+### Changed
+- `EXPENSE_CATEGORIES` is now `DEFAULT_EXPENSE_CATEGORIES`, and a category is any name: the database decides which the business has.
+- New error codes: `EXPENSE_CATEGORY_ALREADY_EXISTS` (409), and `EXPENSE_CATEGORY_UNKNOWN`, `EXPENSE_CATEGORY_IN_USE` and `EXPENSE_CATEGORY_DEFAULT_FIXED`.
+
+### Removed
+- `getAllExpenses` and `ExpensesClient.list`, and the old Expenses page, whose words were hard-coded.
+
+### Fixed
+- **A category name holding "%"** was decoded twice on its route, and failed. Next already decodes the segment.
+
+### Validation
+- `tsc`, `eslint` and the test-path check are clean. 259 test files and 1,659 tests pass. The expenses feature, `PictureField`, `Row`, `ProductTile` and `IntervalSelect` are at 100% coverage.
+- **On the local database, as the owner:**
+  - A category is added and an expense filed under it.
+  - A rename moves its expense and its picture.
+  - Refused as they should be: a name taken (whatever its case), a default's name, an unknown category, and changing or deleting a default.
+  - A category with an expense cannot be deleted; an unused one can.
+  - Another business's category can be neither seen, used, changed nor deleted, and a business may have its own of the same name.
+- **Over HTTP:** the same, including a name with "%" and a space.
+- **In a browser:**
+  - The form's **+** made a category with a chosen picture and selected it.
+  - A category was renamed, then deleted after the confirmation.
+  - A default opened its expenses.
+- **Captures:** Overview, Categories and Transactions at 360, 390, 414, 820, 1280 and 1440 px, in Golden and Peach, with no sideways scroll.
+
+### Blockers
+- None. R5.13's question about paging Products stays open (above).

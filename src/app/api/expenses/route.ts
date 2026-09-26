@@ -1,12 +1,12 @@
-import { createExpense, getAllExpenses } from "@/features/expenses/api";
 import { withBakeryRoute } from "@/features/auth/guard";
-import { readJson } from "@/lib/api/handler";
-import { createExpenseSchema } from "@/lib/validation";
+import { createExpense, listExpenses } from "@/features/expenses/api";
+import { readJson, readQuery } from "@/lib/api/handler";
+import { createExpenseSchema, expenseListQuerySchema } from "@/lib/validation";
 
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  return withBakeryRoute(request, (tenant) => getAllExpenses(tenant));
+  return withBakeryRoute(request, (tenant) => listExpenses(tenant, readQuery(request, expenseListQuerySchema)));
 }
 
 export async function POST(request: Request) {

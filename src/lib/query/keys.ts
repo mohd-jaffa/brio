@@ -22,6 +22,10 @@ export const apiRoutes = {
     summary: (id: string) => `/api/customers/${id}/summary`,
   },
   guestSales: "/api/guest-sales",
+  expenseCategories: {
+    list: "/api/expense-categories",
+    detail: (category: string) => `/api/expense-categories/${encodeURIComponent(category)}`,
+  },
   products: {
     list: "/api/products",
     detail: (id: string) => `/api/products/${id}`,
@@ -44,6 +48,7 @@ export const apiRoutes = {
   },
   expenses: {
     list: "/api/expenses",
+    summary: "/api/expenses/summary",
     detail: (id: string) => `/api/expenses/${id}`,
   },
   analytics: {

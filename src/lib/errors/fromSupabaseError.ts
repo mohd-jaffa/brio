@@ -57,11 +57,13 @@ function isNetworkFailure(err: PostgrestError): boolean {
   );
 }
 
-/** The refusals the database raises for a business rule (0015, 0016): 422. */
+/** The refusals the database raises for a business rule (0015, 0016, 0020): 422. */
 const BUSINESS_RULES: ReadonlySet<ErrorMessageCode> = new Set<ErrorMessageCode>([
   "ORDER_INSUFFICIENT_STOCK",
   "ORDER_STATUS_TRANSITION_INVALID",
   "PAYMENT_EXCEEDS_BALANCE",
+  "EXPENSE_CATEGORY_IN_USE",
+  "EXPENSE_CATEGORY_DEFAULT_FIXED",
 ]);
 
 /**

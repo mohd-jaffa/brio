@@ -133,7 +133,12 @@ export const STOCK_DECREASING_TYPES = ["ORDER_CONSUMPTION", "WASTAGE"] as const;
 /** The types a baker may record by hand; the rest are posted by the order flow. */
 export const MANUAL_INVENTORY_TYPES = ["STOCK_IN", "ADJUSTMENT", "WASTAGE", "RETURN"] as const;
 
-export const EXPENSE_CATEGORIES = [
+/**
+ * The eight expense categories every business has (plan §22). They stay
+ * fixed; a business may add its own beside them (the user, 2026-09-26,
+ * `expense_categories`), so a category in general is any name.
+ */
+export const DEFAULT_EXPENSE_CATEGORIES = [
   "Ingredients",
   "Packaging",
   "Delivery",
@@ -143,7 +148,16 @@ export const EXPENSE_CATEGORIES = [
   "Rent",
   "Other",
 ] as const;
-export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
+export type DefaultExpenseCategory = (typeof DEFAULT_EXPENSE_CATEGORIES)[number];
+
+/** A default, or a category the business made — its name. */
+export type ExpenseCategory = string;
+
+/** Whether a name is one of the defaults, as the database compares it: trimmed, any case. */
+export function isDefaultExpenseCategory(name: string): boolean {
+  const key = name.trim().toLowerCase();
+  return DEFAULT_EXPENSE_CATEGORIES.some((category) => category.toLowerCase() === key);
+}
 
 /**
  * The colours a status pill can take (plan §139.4), one per status colour

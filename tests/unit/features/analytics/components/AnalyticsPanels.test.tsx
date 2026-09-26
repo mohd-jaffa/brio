@@ -4,7 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   CustomersPanel,
-  IntervalSelect,
   OrdersPanel,
   OverviewPanel,
   ProductsPanel,
@@ -72,15 +71,6 @@ describe("OverviewPanel", () => {
     render(<OverviewPanel report={aReport({ products: [] })} onInterval={vi.fn()} onAllProducts={vi.fn()} />);
     expect(screen.getByText("Nothing sold in this period.")).toBeInTheDocument();
     expect(screen.getByRole("figure", { name: "Sales by product" })).toHaveTextContent("No sales in this period.");
-  });
-});
-
-describe("IntervalSelect", () => {
-  it("chooses daily or weekly", async () => {
-    const onChange = vi.fn();
-    render(<IntervalSelect value="DAY" onChange={onChange} />);
-    await userEvent.selectOptions(screen.getByLabelText("Group by"), "WEEK");
-    expect(onChange).toHaveBeenCalledWith("WEEK");
   });
 });
 

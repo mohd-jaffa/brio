@@ -13,16 +13,17 @@ export const dayParam = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { error: VALIDAT
 
 const DAY_MS = 86_400_000;
 
-const rangeFields = z.object({
+/** A period as a report or a list takes it: a preset, or Custom with its dates. */
+export const rangeFields = z.object({
   range: z.enum(DATE_RANGES, { error: VALIDATION_MESSAGES.invalid }).default(DEFAULT_DATE_RANGE),
   from: dayParam.optional(),
   to: dayParam.optional(),
 });
 
-type RangeFields = z.output<typeof rangeFields>;
+export type RangeFields = z.output<typeof rangeFields>;
 
 /** Custom needs both its dates, the first not after the second, and no more than a year apart. */
-function customRange(query: RangeFields, ctx: z.core.$RefinementCtx<RangeFields>) {
+export function customRange(query: RangeFields, ctx: z.core.$RefinementCtx<RangeFields>) {
   if (query.range !== "CUSTOM") return;
   if (!query.from || !query.to) {
     ctx.addIssue({ code: "custom", path: [query.from ? "to" : "from"], message: VALIDATION_MESSAGES.invalid });

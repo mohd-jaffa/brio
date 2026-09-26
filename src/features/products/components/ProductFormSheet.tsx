@@ -1,21 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
-import { Button } from "@/components/ui/button";
 import { FormSheet } from "@/components/ui/form-sheet";
-import { IllustrationPicker } from "@/components/ui/illustration-picker";
-import { ProductTile } from "@/components/ui/product-tile";
+import { PictureField } from "@/components/ui/picture-field";
 import { useResponse } from "@/components/ui/response-card";
 import { optionsFrom, SelectField, TextAreaField, TextField } from "@/components/ui/text-field";
-import {
-  DEFAULT_PRODUCT_ILLUSTRATION,
-  ILLUSTRATIONS,
-  illustrationOr,
-  isIllustrationKey,
-} from "@/constants/illustrations";
+import { DEFAULT_PRODUCT_ILLUSTRATION, isIllustrationKey } from "@/constants/illustrations";
 import { UI_TEXT } from "@/constants/messages";
 import { useOpeningKey } from "@/hooks/useOpeningKey";
 import { paiseToRupees } from "@/lib/money";
@@ -73,8 +65,7 @@ function ProductForm({
     resolver: zodResolver(productFormSchema),
     defaultValues: valuesOf(initialData),
   });
-  const [picking, setPicking] = useState(false);
-  const icon = illustrationOr(useWatch({ control, name: "iconKey" }), DEFAULT_PRODUCT_ILLUSTRATION);
+  const icon = useWatch({ control, name: "iconKey" });
 
   const respond = useResponse();
   const { submit, submitting } = useApiMutation<ProductFormPayload, Product>(
@@ -95,84 +86,65 @@ function ProductForm({
   );
 
   return (
-    <>
-      <FormSheet
-        open={isOpen}
-        title={initialData ? text.editTitle : text.newTitle}
-        onClose={onClose}
-        onSubmit={handleSubmit((values) => submit(values))}
-        submitLabel={text.save}
-        submitting={submitting}
-      >
-        <div>
-          <p className="mb-2 block text-sm font-medium text-text">{text.icon}</p>
-          <div className="flex items-center gap-3">
-            <ProductTile iconKey={icon} size="lg" />
-            <span className="min-w-0 flex-1 truncate text-sm text-text">{ILLUSTRATIONS[icon].label}</span>
-            <Button
-              label={text.change}
-              aria-label={text.changeName(ILLUSTRATIONS[icon].label)}
-              variant="secondary"
-              size="sm"
-              onClick={() => setPicking(true)}
-            />
-          </div>
-        </div>
-
-        <TextField
-          label={text.name}
-          required
-          placeholder={text.namePlaceholder}
-          error={errors.name?.message}
-          {...register("name")}
-        />
-
-        <div className="grid grid-cols-2 gap-4">
-          <TextField
-            label={text.price}
-            required
-            inputMode="decimal"
-            placeholder="0.00"
-            error={errors.defaultPrice?.message}
-            {...register("defaultPrice")}
-          />
-          <SelectField
-            label={text.unit}
-            required
-            options={optionsFrom(PRODUCT_UNITS, UI_TEXT.products.units)}
-            error={errors.unit?.message}
-            {...register("unit")}
-          />
-        </div>
-
-        <TextAreaField
-          label={text.description}
-          placeholder={text.descriptionPlaceholder}
-          error={errors.description?.message}
-          {...register("description")}
-        />
-
-        <div className="flex items-center gap-3 pt-2">
-          <input
-            type="checkbox"
-            id="product-is-active"
-            className="h-5 w-5 rounded border-border text-primary focus:ring-primary"
-            {...register("isActive")}
-          />
-          <label htmlFor="product-is-active" className="text-sm font-medium text-text">
-            {text.onSale}
-          </label>
-        </div>
-      </FormSheet>
-
-      <IllustrationPicker
-        open={picking}
-        onClose={() => setPicking(false)}
+    <FormSheet
+      open={isOpen}
+      title={initialData ? text.editTitle : text.newTitle}
+      onClose={onClose}
+      onSubmit={handleSubmit((values) => submit(values))}
+      submitLabel={text.save}
+      submitting={submitting}
+    >
+      <PictureField
         value={icon}
         fallback={DEFAULT_PRODUCT_ILLUSTRATION}
-        onPick={(key) => setValue("iconKey", key, { shouldDirty: true })}
+        onChange={(key) => setValue("iconKey", key, { shouldDirty: true })}
       />
-    </>
+
+      <TextField
+        label={text.name}
+        required
+        placeholder={text.namePlaceholder}
+        error={errors.name?.message}
+        {...register("name")}
+      />
+
+      <div className="grid grid-cols-2 gap-4">
+        <TextField
+          label={text.price}
+          required
+          inputMode="decimal"
+          placeholder="0.00"
+          error={errors.defaultPrice?.message}
+          {...register("defaultPrice")}
+        />
+        <SelectField
+          label={text.unit}
+          required
+          options={optionsFrom(PRODUCT_UNITS, UI_TEXT.products.units)}
+          error={errors.unit?.message}
+          {...register("unit")}
+        />
+      </div>
+
+      <TextAreaField
+        label={text.description}
+        placeholder={text.descriptionPlaceholder}
+        error={errors.description?.message}
+        {...register("description")}
+      />
+
+      <div className="flex items-center gap-3 pt-2">
+        <input
+          type="checkbox"
+          id="product-is-active"
+          className="h-5 w-5 rounded border-border text-primary focus:ring-primary"
+          {...register("isActive")}
+        />
+        <label htmlFor="product-is-active" className="text-sm font-medium text-text">
+          {text.onSale}
+        </label>
+      </div>
+    </FormSheet>
   );
 }
 
