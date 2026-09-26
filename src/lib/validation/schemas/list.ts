@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 
 import { MAX_PAGE_START, MAX_SEARCH_LENGTH } from "@/constants/limits";
 import { VALIDATION_MESSAGES } from "@/constants/messages";

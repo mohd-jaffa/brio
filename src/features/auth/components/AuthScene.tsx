@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { PLATE_FOCUS, PLATES } from "@/assets/plates";
+import { PLATES, PLATE_FOCUS, PLATE_QUALITY } from "@/assets/plates";
 import { UI_TEXT } from "@/constants/messages";
 
 import { BrandMark } from "./BrandMark";
@@ -83,6 +83,7 @@ export function AuthScene({
         >
           <Image
             src={PLATES["cake-table"]}
+            quality={PLATE_QUALITY}
             alt=""
             fill
             // The largest paint: fetched at once and first. (`priority` is

@@ -17,6 +17,13 @@ export const PLATES = {
 
 export type PlateName = keyof typeof PLATES;
 
+/**
+ * The quality every plate is served at. They sit faded and masked behind
+ * words, where 60 cannot be told from 75 and costs a fifth fewer bytes; it is
+ * one of the qualities next.config.ts allows.
+ */
+export const PLATE_QUALITY = 60;
+
 /** Where each plate's subject sits, so a crop to any shape keeps it in view. */
 export const PLATE_FOCUS: Record<PlateName, string> = {
   "cake-table": "68% 55%",

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 
-import { PLATE_FOCUS, PLATES, type PlateName } from "@/assets/plates";
+import { PLATES, PLATE_FOCUS, PLATE_QUALITY, type PlateName } from "@/assets/plates";
 
 import { cn } from "./cn";
 
@@ -57,6 +57,7 @@ export function Hero({
         >
           <Image
             src={PLATES[plate]}
+            quality={PLATE_QUALITY}
             alt=""
             fill
             // Next 16 deprecates `priority` for these two.

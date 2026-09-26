@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import { useEffect } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { UI_TEXT } from "@/constants/messages";
@@ -37,9 +38,27 @@ describe("the session gate", () => {
     auth.current = authStub({ status: "loading", profile: null });
     screenUnder();
 
-    expect(screen.queryByText("Order detail")).not.toBeInTheDocument();
+    // It is there, starting its own work, but out of sight and out of reach.
+    expect(screen.getByText("Order detail")).not.toBeVisible();
     expect(screen.getByRole("status")).toHaveTextContent(UI_TEXT.auth.checkingSession);
     expect(router.replace).not.toHaveBeenCalled();
+  });
+
+  it("starts the screen while the session is checked, and keeps it — not mounted twice — once it is known", () => {
+    const mounted = vi.fn();
+    function Screen() {
+      useEffect(() => mounted(), []);
+      return <p>Order detail</p>;
+    }
+    auth.current = authStub({ status: "loading", profile: null });
+    const { rerender } = render(<RequireAuth><Screen /></RequireAuth>);
+    expect(mounted).toHaveBeenCalledOnce();
+
+    auth.current = authStub();
+    rerender(<RequireAuth><Screen /></RequireAuth>);
+    expect(screen.getByText("Order detail")).toBeVisible();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(mounted).toHaveBeenCalledOnce();
   });
 
   it("sends a visitor with no session to sign in, remembering where they were", async () => {

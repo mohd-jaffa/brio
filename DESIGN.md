@@ -263,7 +263,7 @@ A warm, low-chroma kitchen palette. One caramel (or terracotta) voice does the p
 
 ## Typography
 
-**Display Font:** Fraunces (with Georgia, serif), a variable serif with its soft and optical-size axes on.
+**Display Font:** Fraunces (with Georgia, serif), a variable serif with its optical-size axis on (its soft and wonky axes are not loaded).
 **Body Font:** Inter (with system-ui, sans-serif).
 
 **Character:** Fraunces brings the warmth of a handwritten ledger heading; Inter keeps every control crisp and legible at 14 px.

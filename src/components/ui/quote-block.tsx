@@ -1,7 +1,7 @@
 import { Wheat } from "lucide-react";
 import Image from "next/image";
 
-import { PLATE_FOCUS, PLATES, type PlateName } from "@/assets/plates";
+import { PLATES, PLATE_FOCUS, PLATE_QUALITY, type PlateName } from "@/assets/plates";
 
 /**
  * A line to end a screen on, centred in the serif on the sunken ground, with
@@ -18,6 +18,7 @@ export function QuoteBlock({ quote, plate }: { quote: string; plate?: PlateName 
         <div className="relative hidden size-16 shrink-0 overflow-hidden rounded-xl min-[380px]:block">
           <Image
             src={PLATES[plate]}
+            quality={PLATE_QUALITY}
             alt=""
             fill
             sizes="64px"

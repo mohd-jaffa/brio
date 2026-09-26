@@ -269,9 +269,13 @@ export function Home() {
         </div>
       )}
 
-      <div className="lg:hidden">
-        <QuoteBlock quote={text.quote} plate="brownies" />
-      </div>
+      {/* It closes the page, so it waits for the page: shown while the orders
+          load, it sat in view and was pushed down when they came. */}
+      {data && (
+        <div className="lg:hidden">
+          <QuoteBlock quote={text.quote} plate="brownies" />
+        </div>
+      )}
 
       <DueFilterSheet open={filtering} value={filters} onClose={() => setFiltering(false)} onApply={setFilters} />
     </div>

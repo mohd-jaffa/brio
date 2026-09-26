@@ -2281,3 +2281,45 @@ These are product or plan decisions rather than layout, and are left for the use
 
 ### Blockers
 - None.
+
+## 2026-09-27 — Performance pass (`/impeccable optimize`)
+
+### Measured first
+- **Setup:** a production build on a Pixel 7 profile with the CPU slowed 4× and a slow 4G connection (1.6 Mbps, 150 ms), cold and warm.
+- **Cold loads** missed the 2.5 s LCP mark on every route, at 2.7–3.9 s. Warm loads were fine at 0.4–0.65 s, layout shift was near zero, and the main thread was not blocked.
+- **The cost was what a first visit downloads before anything draws:**
+  - about 490 KB of JavaScript;
+  - 166–353 KB of fonts;
+  - data that could only be asked for after a session check had answered.
+
+### Changed
+- **Zod: 130 KB → 32 KB on every route with a form.** The schemas import `* as z from "zod"` instead of `{ z }`. Turbopack could not see through the `z` object, so every locale Zod ships (72 KB compressed) came along; the app never shows them. The schemas are unchanged.
+- **Fonts: 166–353 KB → about 115 KB on every screen.**
+  - **The rupee sign:** "₹" lives only in each font's Latin-extended file (Inter 83 KB, Fraunces 103 KB), so every screen with money downloaded both. Each font's ₹ is now cut into its own file (1.3 KB and 1.6 KB, weight and optical-size axes kept) and stands first in its stack, covering only U+20B9 (`src/assets/fonts/`, SIL OFL).
+  - **Fraunces axes:** it loads only its optical-size axis. Nothing set its soft or wonky axes, and dropping them took the preloaded file from 117 KB to 67 KB.
+- **The session check no longer holds up a screen's data.** While "Checking your session…" shows, the screen mounts in a `hidden` wrapper and asks for its data at the same moment. It is out of sight, focus and the accessibility tree, so the browser gate stands.
+  - Once the session is known, the same element shows and the screen is not mounted twice.
+  - Someone signed out, or owing a password change, never sees it.
+  - Warm loads get their data at about 410 ms instead of 590 ms.
+- **The photographic plates** are served as AVIF (WebP where AVIF isn't taken) at quality 60, one of the qualities `next.config.ts` now allows. They sit faded behind words. drip-cake went from 55 to 23 KB, brownies from 62 to 25 KB, and cake-table from 30 to 12 KB, with no visible difference.
+- **Home no longer shifts** when its orders arrive. The quote block at its foot waits for the page's data; shown during loading, it sat in view and was pushed down (CLS 0.10 → 0).
+
+### Result (cold, throttled phone)
+- **LCP:**
+  - Sign in 3.24 → 2.63 s; Home 3.44 → 2.66 s; Orders 2.73 → 2.52 s; Create order 3.86 → 2.95 s;
+  - Customers 3.05 → 2.49 s; Analytics 2.96 → 2.62 s; Expenses 3.88 → 2.85 s; Notifications 2.82 → 2.47 s.
+- **Downloads:** JavaScript 322 / 494 → 263 / 435 KB (Sign in / an app screen); fonts about 115 KB; Home's images 82 → 41 KB.
+- **Other metrics:** layout shift 0 everywhere but Create order (0.015); blocking time under 100 ms.
+
+### Validation
+- Tab underlines sit under the chosen tab after a screen is revealed.
+- The plates were compared at phone scale.
+- `tsc`, `eslint` and the full suite (1,830 tests) pass; the validation test confirms Zod's own English still never reaches a screen. The changed components are at 100% coverage.
+
+### Left for later
+- React and Next themselves account for most of the ~2.2 s of JavaScript on slow 4G. The next steps would be:
+  - rendering the session on the server, which removes its request altogether;
+  - loading closed sheets on demand, at the cost of a pause the first time one opens.
+
+### Blockers
+- None.

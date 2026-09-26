@@ -4,7 +4,7 @@ import { Heart, Info, KeyRound, Mail, MailCheck, Palette, Smartphone, Store, Use
 import Image from "next/image";
 import { useState } from "react";
 
-import { PLATE_FOCUS, PLATES } from "@/assets/plates";
+import { PLATES, PLATE_FOCUS, PLATE_QUALITY } from "@/assets/plates";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Medallion } from "@/components/ui/medallion";
@@ -122,6 +122,7 @@ export function Settings() {
           <div className="relative h-24">
             <Image
               src={PLATES[PLATE]}
+              quality={PLATE_QUALITY}
               alt=""
               fill
               sizes="(min-width: 1024px) 20rem, 100vw"

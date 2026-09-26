@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 
 import { VALIDATION_MESSAGES } from "@/constants/messages";
 import { DATE_RANGES, DEFAULT_DATE_RANGE } from "@/constants/ranges";

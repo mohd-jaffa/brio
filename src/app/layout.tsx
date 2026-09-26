@@ -17,9 +17,11 @@ import "./globals.css";
 const fraunces = Fraunces({
   variable: "--font-heading",
   subsets: ["latin"],
-  // Fraunces is variable: naming axes means the weight range comes with it,
-  // and next/font rejects a fixed weight list alongside them.
-  axes: ["SOFT", "WONK", "opsz"],
+  // Fraunces is variable: naming an axis means the weight range comes with it,
+  // and next/font rejects a fixed weight list alongside it. Only optical size:
+  // nothing sets Fraunces's soft or wonky axes, and each one shipped made
+  // every file heavier for no visible change.
+  axes: ["opsz"],
 });
 
 /** Everything you operate — labels, body, inputs, buttons, money in rows. */

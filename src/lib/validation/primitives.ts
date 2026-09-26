@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 
 import { ILLUSTRATION_KEYS } from "@/constants/illustrations";
 import { MAX_AMOUNT_PAISE, MAX_QUANTITY } from "@/constants/limits";

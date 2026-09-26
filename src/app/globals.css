@@ -9,6 +9,29 @@
    on the ground it is used on, marks and accents ≥ 3 : 1.
    ============================================================ */
 
+/* The rupee sign. "₹" (U+20B9) is not in either font's Latin file, only in
+   its Latin-extended one (Inter's 83 KB, Fraunces's 103 KB), so a screen of
+   money paid for both just to draw one symbol. These carry that one glyph,
+   cut from the same fonts with their weight (and Fraunces's optical-size)
+   axes kept, and stand first in each stack: the browser takes "₹" from them
+   and fetches the extended files only for a letter that needs them
+   (src/assets/fonts/README.md). */
+@font-face {
+  font-family: "Ovenly Rupee Sans";
+  src: url("../assets/fonts/rupee-inter.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+20B9;
+}
+
+@font-face {
+  font-family: "Ovenly Rupee Serif";
+  src: url("../assets/fonts/rupee-fraunces.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+20B9;
+}
+
 /* Golden — caramel on warm cream. It replaces Clean, so a stored "clean"
    still lands here (plan §139.4). */
 :root,
@@ -176,10 +199,11 @@
   --color-chart-6: var(--color-chart-6);
   --color-chart-soft: var(--color-chart-soft);
 
-  /* Fraunces for display, Inter for everything you operate (plan §137.4). */
-  --font-heading: var(--font-heading);
-  --font-body: var(--font-body);
-  --font-display: var(--font-heading);
+  /* Fraunces for display, Inter for everything you operate (plan §137.4);
+     each led by its rupee glyph (above). */
+  --font-heading: "Ovenly Rupee Serif", var(--font-heading);
+  --font-body: "Ovenly Rupee Sans", var(--font-body);
+  --font-display: "Ovenly Rupee Serif", var(--font-heading);
 
   --shadow-card: var(--shadow-card);
   --shadow-elevated: var(--shadow-elevated);
@@ -193,6 +217,7 @@
     background-color: var(--color-background);
     color: var(--color-text);
     font-family:
+      "Ovenly Rupee Sans",
       var(--font-body),
       system-ui,
       -apple-system,
@@ -212,6 +237,7 @@
   h5,
   h6 {
     font-family:
+      "Ovenly Rupee Serif",
       var(--font-heading),
       system-ui,
       -apple-system,

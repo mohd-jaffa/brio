@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 
 import { VALIDATION_MESSAGES } from "@/constants/messages";
 import { NOTIFICATION_TABS } from "@/constants/statuses";

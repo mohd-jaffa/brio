@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 
 import { MAX_EXPENSE_CATEGORY_NAME } from "@/constants/limits";
 import { VALIDATION_MESSAGES } from "@/constants/messages";
