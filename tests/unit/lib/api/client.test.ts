@@ -4,6 +4,7 @@ import {
   ApiError,
   deleteJson,
   fetcher,
+  getFile,
   getJson,
   patchJson,
   postFile,
@@ -278,5 +279,44 @@ describe('an expired session', () => {
 
     await expect(postJson('/api/auth/login', { phone: '9876543210', password: 'nope' })).rejects.toThrow();
     expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('getFile', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetSessionRefresh();
+  });
+
+  it('answers with the file itself, sent with no JSON headers', async () => {
+    const pdf = new Blob(['%PDF'], { type: 'application/pdf' });
+    mockFetch.mockResolvedValueOnce({ ok: true, status: 200, blob: async () => pdf });
+
+    await expect(getFile('/api/orders/o-1/bill.pdf')).resolves.toBe(pdf);
+    expect(mockFetch).toHaveBeenCalledWith('/api/orders/o-1/bill.pdf', undefined);
+  });
+
+  it("throws the refusal in the server's words, and a bare one in the catalogue's", async () => {
+    mockFetchError(404, 'RECORD_NOT_FOUND', 'That record could not be found.');
+    await expect(getFile('/api/orders/o-9/bill.pdf')).rejects.toMatchObject({
+      status: 404,
+      code: 'RECORD_NOT_FOUND',
+      message: 'That record could not be found.',
+    });
+
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 502, json: async () => Promise.reject(new Error('html')) });
+    await expect(getFile('/api/orders/o-1/bill.pdf')).rejects.toMatchObject({
+      status: 502,
+      message: ERROR_MESSAGES.INTERNAL_ERROR,
+    });
+  });
+
+  it('refreshes an expired session once, as every other call does', async () => {
+    mockFetchError(401, 'AUTH_SESSION_REQUIRED', 'Please sign in to continue.');
+    mockFetch.mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({}) });
+    mockFetch.mockResolvedValueOnce({ ok: true, status: 200, blob: async () => new Blob(['%PDF']) });
+
+    await expect(getFile('/api/orders/o-1/bill.pdf')).resolves.toBeInstanceOf(Blob);
+    expect(mockFetch).toHaveBeenCalledTimes(3);
   });
 });

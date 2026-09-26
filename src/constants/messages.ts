@@ -51,6 +51,8 @@ export const ERROR_MESSAGES = {
   PAYMENTS_LOAD_FAILED: "Could not load the payments on this order. Please try again.",
   CUSTOMER_LOAD_FAILED: "Could not load this customer. Please try again.",
   RECEIPT_LOAD_FAILED: "Could not build this bill. Please try again.",
+  BILL_SHARE_FAILED: "Could not share this bill. Please try again.",
+  BILL_PDF_FAILED: "Could not make the PDF of this bill. Please try again.",
   BUSINESS_LOAD_FAILED: "Could not load your business details. Please try again.",
 
   ORDER_STATUS_UPDATE_FAILED: "Could not update this order. Please try again.",
@@ -141,8 +143,7 @@ export const UI_TEXT = {
     sendResetEmail: "Email me a temporary password",
     resetSent:
       "If that email belongs to an account, a temporary password is on its way. Sign in with it and you will be asked to choose a new one.",
-    temporaryPasswordNotice:
-      "You signed in with a temporary password. Choose a new one to continue.",
+    temporaryPasswordNotice: "You signed in with a temporary password. Choose a new one to continue.",
     accountCreated: "Account created. Sign in with your mobile number and password.",
     notConfirmed: "Your email address is not confirmed yet. Use the link in the email we sent you.",
     resendConfirmation: "Resend confirmation",
@@ -354,6 +355,14 @@ export const UI_TEXT = {
     madeWith: (app: string) => `Made with ${app}`,
     share: "Share",
     downloadPdf: "Download PDF",
+    shared: "Bill shared",
+    notShared: "Bill not shared",
+    saved: "Bill saved",
+    pdfSaved: "PDF saved",
+    pdfNotSaved: "PDF not saved",
+    savedTo: (file: string) => `${file} is in your downloads.`,
+    savedAndCopied: (file: string) =>
+      `${file} is in your downloads, and its details are copied — paste them beside it.`,
     /** Sent beside the image: WhatsApp shows it as the caption. */
     shareText: (what: string, business: string, total: string, due: string | null) =>
       `${what} from ${business} — total ${total}${due ? `, balance due ${due}` : ""}.`,

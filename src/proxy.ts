@@ -32,7 +32,8 @@ export function proxy(request: NextRequest) {
 export const config = {
   /*
    * Everything but the API (which answers 401 itself and is called by more
-   * than browsers), Next's own assets, and the metadata files.
+   * than browsers), Next's own assets, the fonts the bill is drawn in, and
+   * the metadata files.
    */
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|manifest.webmanifest|robots.txt|sitemap.xml).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|fonts/|favicon.ico|manifest.webmanifest|robots.txt|sitemap.xml).*)"],
 };

@@ -60,35 +60,46 @@ export function resetSessionRefresh() {
   refreshInFlight = null;
 }
 
-export async function fetcher<T>(url: string, init?: RequestInit): Promise<T> {
-  const attempt = () =>
-    fetch(url, { ...init, headers: { "Content-Type": "application/json", ...init?.headers } });
-
-  let response = await attempt();
-
+/** Sends a request; if the access token had expired, refreshes the session once and sends it again. */
+async function request(url: string, init?: RequestInit): Promise<Response> {
+  const attempt = () => fetch(url, init);
+  const response = await attempt();
   if (response.status === 401 && !NEVER_RETRIED.some((route) => url.startsWith(route))) {
-    if (await refreshSession()) response = await attempt();
+    if (await refreshSession()) return attempt();
   }
+  return response;
+}
 
+/** A failure envelope as an error carrying the server's own words. */
+function refusal(response: Response, body: ApiEnvelope<unknown>): ApiError {
+  return new ApiError(
+    response.status,
+    body.error?.code ?? "UNKNOWN_ERROR",
+    body.error?.message ?? ERROR_MESSAGES.INTERNAL_ERROR,
+    body.error?.requestId,
+    body.error?.details,
+  );
+}
+
+export async function fetcher<T>(url: string, init?: RequestInit): Promise<T> {
+  const response = await request(url, { ...init, headers: { "Content-Type": "application/json", ...init?.headers } });
   const body = (await response.json().catch(() => ({}))) as ApiEnvelope<T>;
-
-  if (!response.ok) {
-    throw new ApiError(
-      response.status,
-      body.error?.code ?? "UNKNOWN_ERROR",
-      body.error?.message ?? ERROR_MESSAGES.INTERNAL_ERROR,
-      body.error?.requestId,
-      body.error?.details,
-    );
-  }
-
+  if (!response.ok) throw refusal(response, body);
   return body.data as T;
+}
+
+/** A file the API answers with — the bill's PDF — or its refusal, as any other call's. */
+export async function getFile(url: string): Promise<Blob> {
+  const response = await request(url);
+  if (!response.ok) throw refusal(response, await response.json().catch(() => ({})));
+  return response.blob();
 }
 
 /** Sent with a write that must happen once however often it is sent (§133.3 C2). */
 export const IDEMPOTENCY_HEADER = "Idempotency-Key";
 
-const send = <T>(method: string) =>
+const send =
+  <T>(method: string) =>
   (url: string, payload?: unknown, headers?: Record<string, string>): Promise<T> =>
     fetcher<T>(url, { method, headers, body: payload === undefined ? undefined : JSON.stringify(payload) });
 

@@ -9,8 +9,9 @@ afterEach(cleanup);
 // jsdom has no modal dialogs: no showModal() or close(), and not the
 // browser's rule that a closed <dialog> is not drawn. Enough of both for a
 // test to see a sheet open and close; the top layer, the inert page and the
-// real focus behaviour are checked in a browser.
-if (!HTMLDialogElement.prototype.showModal) {
+// real focus behaviour are checked in a browser. A test that runs in Node — the
+// bill's PDF, which pdfkit makes from Node's own buffers — has no DOM at all.
+if (typeof HTMLDialogElement !== "undefined" && !HTMLDialogElement.prototype.showModal) {
   const escapable = new WeakSet<HTMLDialogElement>();
   HTMLDialogElement.prototype.showModal = function showModal(this: HTMLDialogElement) {
     this.setAttribute("open", "");

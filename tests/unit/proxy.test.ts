@@ -61,13 +61,14 @@ describe("a signed-in baker", () => {
 });
 
 describe("what the proxy runs on", () => {
-  it("leaves the API, Next's assets and the metadata files alone", () => {
+  it("leaves the API, Next's assets, the bill's fonts and the metadata files alone", () => {
     const [matcher] = config.matcher;
     const pattern = new RegExp(`^${matcher}$`);
 
     expect(pattern.test("/api/orders")).toBe(false);
     expect(pattern.test("/_next/static/chunk.js")).toBe(false);
     expect(pattern.test("/favicon.ico")).toBe(false);
+    expect(pattern.test("/fonts/bill/Inter-Regular.ttf")).toBe(false);
     expect(pattern.test("/orders")).toBe(true);
   });
 });
