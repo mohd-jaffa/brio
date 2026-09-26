@@ -24,6 +24,7 @@ function show(props: Partial<Parameters<typeof ItemsPanel>[0]> = {}) {
     loading: false,
     quantityOf: (id: string) => (id === "p-cake" ? 2 : 0),
     onAdd: vi.fn(),
+    onRemove: vi.fn(),
     onAddCustom: vi.fn(),
     ...props,
   };
@@ -41,10 +42,13 @@ describe("ItemsPanel", () => {
     expect(within(cards[1]).queryByText(/in the order/)).not.toBeInTheDocument();
   });
 
-  it("adds a product with its +, and hands over to a custom item", async () => {
+  it("adds a product with its +, takes one off with its −, and hands over to a custom item", async () => {
     const props = show();
     await userEvent.click(screen.getByRole("button", { name: "Add Walnut brownie" }));
     expect(props.onAdd).toHaveBeenCalledWith("p-brownie");
+    expect(screen.queryByRole("button", { name: "Remove one Walnut brownie" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Remove one Chocolate truffle cake" }));
+    expect(props.onRemove).toHaveBeenCalledWith("p-cake");
     await userEvent.click(screen.getByRole("button", { name: /Add custom item/ }));
     expect(props.onAddCustom).toHaveBeenCalledOnce();
   });
@@ -64,7 +68,14 @@ describe("ItemsPanel", () => {
 
   it("holds the grid's place while loading, and offers a custom item when there are no products", () => {
     const { unmount } = render(
-      <ItemsPanel products={[]} loading quantityOf={() => 0} onAdd={vi.fn()} onAddCustom={vi.fn()} />,
+      <ItemsPanel
+        products={[]}
+        loading
+        quantityOf={() => 0}
+        onAdd={vi.fn()}
+        onRemove={vi.fn()}
+        onAddCustom={vi.fn()}
+      />,
     );
     expect(screen.getByRole("status")).toHaveAttribute("aria-busy", "true");
     unmount();
@@ -74,14 +85,13 @@ describe("ItemsPanel", () => {
     expect(screen.getByRole("button", { name: /Add custom item/ })).toBeInTheDocument();
   });
 
-  it("pops the count in with the first add, and ticks it after; a count there from the start just shows", () => {
-    const props = { products: [cake, brownie], loading: false, onAdd: vi.fn(), onAddCustom: vi.fn() };
+  it("ticks the count on the card as it changes", () => {
+    const props = { products: [cake, brownie], loading: false, onAdd: vi.fn(), onRemove: vi.fn(), onAddCustom: vi.fn() };
     const { rerender } = render(<ItemsPanel {...props} quantityOf={(id) => (id === "p-cake" ? 2 : 0)} />);
-    const badge = (name: string) => within(screen.getByText(name).closest("li")!).queryByText(/^\d+$/);
-    expect(badge("Chocolate truffle cake")?.closest(".animate-pop")).toBeNull();
-
-    rerender(<ItemsPanel {...props} quantityOf={(id) => (id === "p-cake" ? 3 : 1)} />);
-    expect(badge("Walnut brownie")?.closest(".animate-pop")).not.toBeNull();
-    expect(badge("Chocolate truffle cake")).toHaveClass("animate-tick-up");
+    const count = () => within(screen.getByText("Chocolate truffle cake").closest("li")!).getByText(/^\d+$/);
+    expect(count()).toHaveTextContent("2");
+    rerender(<ItemsPanel {...props} quantityOf={(id) => (id === "p-cake" ? 3 : 0)} />);
+    expect(count()).toHaveClass("animate-tick-up");
+    expect(screen.getByText("3 in the order")).toBeInTheDocument();
   });
 });

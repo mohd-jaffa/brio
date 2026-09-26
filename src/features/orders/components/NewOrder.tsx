@@ -38,6 +38,7 @@ import {
   draftTotals,
   itemCount,
   quantityOf,
+  removeProduct,
   type DraftCustomer,
 } from "../draft";
 import type { OrderEstimate, StockShortfall } from "../estimate";
@@ -340,6 +341,7 @@ export function NewOrder() {
             loading={products.isLoading}
             quantityOf={(productId) => quantityOf(draft, productId)}
             onAdd={(productId) => update((current) => addProduct(current, productId))}
+            onRemove={(productId) => update((current) => removeProduct(current, productId))}
             onAddCustom={() => setAddingCustom(true)}
           />
           {count > 0 && (

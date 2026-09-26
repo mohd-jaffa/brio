@@ -124,6 +124,14 @@ export function addProduct(draft: OrderDraft, productId: string): OrderDraft {
   };
 }
 
+/** One fewer of a product: its line goes down by one, and goes when none are left. */
+export function removeProduct(draft: OrderDraft, productId: string): OrderDraft {
+  const existing = draft.lines.find((line) => line.productId === productId);
+  if (!existing) return draft;
+  if (existing.quantity <= 1) return removeLine(draft, existing.key);
+  return setQuantity(draft, existing.key, existing.quantity - 1);
+}
+
 /** A custom line; its description, if it has one, is the note printed under it. */
 export function addCustom(
   draft: OrderDraft,

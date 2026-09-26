@@ -3,15 +3,12 @@
 import { ChevronRight, PackageOpen, ReceiptText, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 
-import { cn } from "@/components/ui/cn";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ProductCard } from "@/components/ui/product-card";
-import { RollingNumber } from "@/components/ui/rolling-number";
 import { SearchField } from "@/components/ui/search-field";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { UI_TEXT } from "@/constants/messages";
 import type { Product } from "@/features/products/types";
-import { useArrived } from "@/hooks/useArrived";
 import { formatPaise } from "@/lib/format/currency";
 
 /** A way to add what the grid does not have: a custom item. */
@@ -48,32 +45,9 @@ function MoreRow({
 }
 
 /**
- * How many of a product are in the order, on its card: it pops in with the
- * first one added and ticks with each after (the till ticks, globals.css).
- * One already there when the screen opens simply shows.
- */
-function InOrderBadge({ count }: { count: number }) {
-  const arrived = useArrived(count > 0);
-  if (count === 0) return null;
-  return (
-    <>
-      <span
-        aria-hidden="true"
-        className={cn(
-          "absolute right-3 top-3 inline-flex min-w-6 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold tabular-nums text-primary-text",
-          arrived && "animate-pop",
-        )}
-      >
-        <RollingNumber value={count} />
-      </span>
-      <span className="sr-only">{UI_TEXT.newOrder.inOrder(count)}</span>
-    </>
-  );
-}
-
-/**
  * The first step of a new order (plan §139.10): the products on the menu as a
- * grid, each with a + that adds one, searched by name; and **Add custom item**
+ * grid, each with a + that adds one — and, once it is in the order, a − that
+ * takes one off (the user, 2026-09-26) — searched by name; and **Add custom item**
  * for a request the menu does not cover (§139.11.7). A new product is made on
  * Products, and the draft waits (the user, 2026-09-25). There are no category
  * chips: products need none.
@@ -83,6 +57,7 @@ export function ItemsPanel({
   loading,
   quantityOf,
   onAdd,
+  onRemove,
   onAddCustom,
 }: {
   /** Only what is on sale. */
@@ -90,6 +65,7 @@ export function ItemsPanel({
   loading: boolean;
   quantityOf: (productId: string) => number;
   onAdd: (productId: string) => void;
+  onRemove: (productId: string) => void;
   onAddCustom: () => void;
 }) {
   const text = UI_TEXT.newOrder;
@@ -115,19 +91,25 @@ export function ItemsPanel({
           {text.noMatches(search.trim())}
         </p>
       ) : (
-        <ul role="list" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
-          {shown.map((product) => (
-            <li key={product.id} className="relative">
-              <ProductCard
-                name={product.name}
-                price={formatPaise(product.defaultPrice)}
-                iconKey={product.iconKey}
-                addLabel={text.add(product.name)}
-                onAdd={() => onAdd(product.id)}
-              />
-              <InOrderBadge count={quantityOf(product.id)} />
-            </li>
-          ))}
+        <ul role="list" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-4">
+          {shown.map((product) => {
+            const quantity = quantityOf(product.id);
+            return (
+              <li key={product.id}>
+                <ProductCard
+                  name={product.name}
+                  price={formatPaise(product.defaultPrice)}
+                  iconKey={product.iconKey}
+                  addLabel={text.add(product.name)}
+                  onAdd={() => onAdd(product.id)}
+                  quantity={quantity}
+                  quantityLabel={text.inOrder(quantity)}
+                  removeLabel={text.removeOne(product.name)}
+                  onRemove={() => onRemove(product.id)}
+                />
+              </li>
+            );
+          })}
         </ul>
       )}
 

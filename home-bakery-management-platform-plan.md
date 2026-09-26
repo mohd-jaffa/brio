@@ -7888,7 +7888,7 @@ Delivered · Cancelled. Search, and a filter for dates, payment status and Guest
 
 ### Create order (§139.11.3 – §139.11.5)
 
-1. **Items** — search, the product grid with `+` on each card (no category chips — products need none, 2026-09-25); **Add custom item**, a name and an amount (§139.11.7); the cart bar shows the count and total.
+1. **Items** — search, the product grid with `+` on each card (no category chips — products need none, 2026-09-25). Once a product is in the order its `+` grows into **− count +**, so one can come off without leaving the grid, and the last one off takes it out (the user, 2026-09-26); **Add custom item**, a name and an amount (§139.11.7); the cart bar shows the count and total.
 2. **Order details** — **Customer** (a saved customer or **Guest**, plus **+ New customer**); **Delivery** (pickup or delivery, date and time; the address and map link **filled from the customer** and editable); the items with steppers; a **note** printed on the bill (a cake message, for example) kept separate from **internal notes**, which never are; discounts and charges; the summary. Buttons: **[View bill]** and **[Proceed to payment]**.
 3. **Payment** — Unpaid / Paid in full / Part paid (**asks for the amount**) · method · reference. Buttons: **[View bill]** and **[Place order]**.
 4. → **Response card:** "Order placed", with the facts, **[View bill] [New order]**.

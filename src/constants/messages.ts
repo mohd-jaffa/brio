@@ -383,6 +383,7 @@ export const UI_TEXT = {
     noProductsHint: "Add products on the Products screen, or a custom item for a one-off.",
     noMatches: (search: string) => `Nothing matches “${search}”`,
     add: (name: string) => `Add ${name}`,
+    removeOne: (name: string) => `Remove one ${name}`,
     inOrder: (count: number) => `${count} in the order`,
     customItem: "Add custom item",
     customItemHint: "For special requests or items not on your list",

@@ -1568,3 +1568,33 @@ this entry grows with them.
 - None.
 - **Known limit:** the image and PDF fonts cover Latin, Latin Extended, general punctuation and ₹. A business name in another script (Devanagari, Malayalam) shows correctly on screen, but the PDF has no glyphs for it. Adding script faces would be a separate decision.
 - **Left to its row:** native sharing inside the Android app (R8.7).
+
+## 2026-09-26 — Take one off from the product grid (the user)
+
+### Changed
+- **Orders, the Items step (`ProductCard`, `ItemsPanel`, `draft.ts`).** Once a product is in the order its **+** grows into **− count +**, so one can come off without leaving the grid. Taking off the last one removes the line. Before, taking one off meant going to Order details.
+  - **Count:** it lives in the stepper. The badge on the illustration, which said the same thing, is gone. The count still pops in with the first one added, ticks as it changes and reads as "2 in the order" to a screen reader.
+  - **Focus:** the + stays the same button throughout. When the − goes with the last one, focus moves to the + rather than falling to the page.
+  - **Tap targets:** both buttons keep their 44 px targets, and the count keeps them from overlapping.
+  - **Narrow cards:** a card too narrow for the price and the stepper on one line (the desktop two-pane grid, a 320 px phone) gives the price a line of its own, in the order or not, so adding one never moves the grid. This uses a container query on the card.
+  - **Two-pane grid, 1024–1279 px:** two columns instead of three. Three made the cards about 95 px wide, which broke names mid-word and left no room for the stepper. The grid stays at four columns from 1280 px.
+  - **Plan:** §139.10's Items step says so.
+
+### Validation
+- `tsc` and `eslint` are clean. 207 test files and 1307 tests pass. `product-card.tsx`, `ItemsPanel.tsx`, `NewOrder.tsx` and `draft.ts` are at 100% coverage.
+- **Captures at 320, 360, 390, 1024, 1280 and 1440 px, in both themes:**
+  - At 360 px and up on a phone, the price and − 1 + share a line. On narrow cards they sit on two lines.
+  - Nothing reaches past a card's content edge.
+  - Taking a product to zero leaves focus on its +.
+
+### Blocker
+- Status: OPEN
+- Area: Orders, the Items step on a phone.
+- Description: the user reports the Items page "infinitely scrolling", with a small glitch when scrolling down in the mobile layout.
+- What was attempted:
+  - Engines and sizes: Chromium as a Pixel 7 and at 360 × 740, and WebKit as an iPhone 13.
+  - Actions: wheel, programmatic and synthesized touch scrolling, on the Items and Details steps, empty and with items.
+  - Result: the page height stayed fixed, and scrolling stopped at the end of the content with the cart bar above the bottom navigation. No closed sheet or hidden step adds to the page's height.
+- Why it is blocked: it does not reproduce under emulation.
+- Required decision/input: the device, the browser and a screen recording, or how the page is opened (phone over the network, or DevTools device mode).
+- Temporary workaround: none needed to use the page.

@@ -15,6 +15,7 @@ import {
   readDraft,
   removeAdjustment,
   removeLine,
+  removeProduct,
   setAdjustment,
   setDelivery,
   setDeliveryType,
@@ -80,6 +81,14 @@ describe("items", () => {
     expect(twice.lines[0]).toMatchObject({ productId: "p-cake", quantity: 2, notes: "" });
     expect(quantityOf(twice, "p-cake")).toBe(2);
     expect(quantityOf(twice, "p-bread")).toBe(0);
+  });
+
+  it("takes one of a product off, and its line with the last one", () => {
+    const twice = addProduct(addProduct(newDraft(), "p-cake"), "p-cake");
+    const once = removeProduct(twice, "p-cake");
+    expect(once.lines).toEqual([{ ...twice.lines[0], quantity: 1 }]);
+    expect(removeProduct(once, "p-cake").lines).toEqual([]);
+    expect(removeProduct(once, "p-bread")).toBe(once);
   });
 
   it("adds a custom item with its description as the note on the bill (§139.11.7)", () => {

@@ -143,6 +143,19 @@ describe("NewOrder: items", () => {
     expect(screen.getAllByRole("heading", { name: "Order details" }).length).toBeGreaterThan(0);
   });
 
+  it("takes one off from the grid, and the product with the last one", async () => {
+    open();
+    await userEvent.click(await screen.findByRole("button", { name: "Add Chocolate truffle cake" }));
+    await userEvent.click(button("Add Chocolate truffle cake"));
+    expect(screen.getByText("2 items")).toBeInTheDocument();
+
+    await userEvent.click(button("Remove one Chocolate truffle cake"));
+    expect(screen.getByText("1 item")).toBeInTheDocument();
+    await userEvent.click(button("Remove one Chocolate truffle cake"));
+    expect(screen.queryByRole("button", { name: "Remove one Chocolate truffle cake" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Continue to order details" })).not.toBeInTheDocument();
+  });
+
   it("adds a custom item from its sheet", async () => {
     open();
     await userEvent.click(await screen.findByRole("button", { name: /Add custom item.*special requests/ }));
