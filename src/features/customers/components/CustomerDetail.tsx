@@ -105,15 +105,17 @@ export function CustomerDetail({ id }: { id: string }) {
                 )}
                 <p className="flex items-center gap-2 tabular-nums text-text">
                   <Phone size={15} strokeWidth={1.75} className="shrink-0 text-text-muted" aria-hidden="true" />
-                  <a href={callHref(person.phone)} className="rounded hover:underline">
+                  {/* Plain text to read and copy; Call, just below, dials it. */}
+                  <span>
                     {UI_TEXT.fields.phonePrefix} {formatPhoneDigits(person.phone)}
-                  </a>
+                  </span>
                 </p>
                 {person.email && (
                   <p className="flex items-center gap-2 text-text">
                     <Mail size={15} strokeWidth={1.75} className="shrink-0 text-text-muted" aria-hidden="true" />
-                    <a href={`mailto:${person.email}`} className="min-w-0 truncate rounded hover:underline">
-                      {person.email}
+                    {/* The address is cut short inside the link, so its tap is not. */}
+                    <a href={`mailto:${person.email}`} className="hit-area-line min-w-0 rounded hover:underline">
+                      <span className="block truncate">{person.email}</span>
                     </a>
                   </p>
                 )}

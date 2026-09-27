@@ -62,6 +62,8 @@ describe("CustomerPicker", () => {
     expect(meena).toHaveAccessibleName(/Meena Gupta.*\+91 98765 43210/);
     expect(rahul).toHaveAccessibleName(/Rahul Nair/);
     for (const choice of choices()) expect(choice).toHaveAttribute("aria-checked", "false");
+    // The radios belong to the group directly: the list's items stand aside.
+    expect(within(screen.getByRole("radiogroup")).queryAllByRole("listitem")).toHaveLength(0);
   });
 
   it("marks the current choice, a Guest or a customer", () => {

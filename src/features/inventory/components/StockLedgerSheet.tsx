@@ -77,7 +77,10 @@ export function StockLedgerSheet({
                         {movement.referenceType === "ORDER" && movement.referenceId && (
                           <>
                             {" · "}
-                            <Link href={`/orders/${movement.referenceId}`} className="font-medium text-primary">
+                            <Link
+                              href={`/orders/${movement.referenceId}`}
+                              className="hit-area-line rounded font-medium text-primary hover:underline"
+                            >
                               {text.viewOrder}
                             </Link>
                           </>

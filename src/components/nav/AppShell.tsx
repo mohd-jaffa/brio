@@ -134,22 +134,25 @@ function AppFrame({ children }: { children: ReactNode }) {
         data-bottom-nav
         className="safe-bottom [--safe-pb:0.5rem] safe-x [--safe-px:0.5rem] fixed inset-x-0 bottom-0 z-30 h-[calc(var(--nav-height)+var(--safe-bottom))] border-t border-border bg-surface/90 pt-2 backdrop-blur-md md:hidden"
       >
+        {/* Measured in px, like a native tab bar, so a larger text size cannot
+            push the last place off the edge; a label is cut short only if a
+            system text zoom makes it wider than its share. */}
         <ul role="list" className="flex items-center justify-around">
           {BOTTOM_NAV.map(({ id, label, icon: Icon, href }) => {
             const isMore = id === "more";
             const active = isMore ? moreOpen : isActivePath(href, pathname);
             const classes = cn(
-              "touch-target flex min-w-14 flex-col items-center justify-center gap-1 rounded-xl px-2.5 py-1.5 transition-colors",
+              "touch-target flex min-w-[56px] max-w-full flex-col items-center justify-center gap-1 rounded-xl px-[10px] py-1.5 transition-colors",
               active ? "bg-primary-soft font-semibold text-primary" : "font-medium text-text-muted hover:text-text",
             );
             const inner = (
               <>
                 <Icon size={22} strokeWidth={1.75} aria-hidden="true" />
-                <span className="text-[11px] leading-none">{label}</span>
+                <span className="max-w-full truncate text-[11px] leading-none">{label}</span>
               </>
             );
             return (
-              <li key={id}>
+              <li key={id} className="min-w-0">
                 {isMore ? (
                   <button
                     type="button"

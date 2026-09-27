@@ -18,7 +18,7 @@ export type ButtonShape = "rounded" | "pill";
 
 const VARIANTS: Record<ButtonVariant, string> = {
   primary: "bg-primary text-primary-text hover:bg-primary-hover shadow-md",
-  secondary: "bg-primary/10 text-primary hover:bg-primary/20",
+  secondary: "bg-primary/10 text-primary-strong hover:bg-primary/20",
   ghost: "bg-surface border border-border text-text-muted hover:text-text hover:bg-surface-hover",
   danger: "bg-danger-bg text-danger border border-danger/20 hover:bg-danger/10",
   // The one dark control on the authentication screens (plan §137).

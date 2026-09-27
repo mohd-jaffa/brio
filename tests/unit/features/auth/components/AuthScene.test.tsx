@@ -22,6 +22,11 @@ describe("AuthScene", () => {
     expect(screen.getByText("The form")).toBeInTheDocument();
   });
 
+  it("is the screen's one main landmark, so a screen reader can go straight to the form", () => {
+    scene();
+    expect(screen.getByRole("main")).toContainElement(screen.getByText("The form"));
+  });
+
   it("puts the plate behind the scene: decorative, and loaded first as the largest paint", () => {
     const { container } = scene();
     const plate = container.querySelector(".auth-plate");

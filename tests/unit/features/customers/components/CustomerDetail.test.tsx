@@ -94,7 +94,9 @@ describe("CustomerDetail: who they are", () => {
     await loaded();
     const about = screen.getByRole("region", { name: "About this customer" });
     expect(await within(about).findByText("Regular")).toBeInTheDocument();
-    expect(within(about).getByRole("link", { name: "+91 98123 45678" })).toHaveAttribute("href", "tel:+919812345678");
+    // The number is there to read and copy; Call, below it, is the one way to dial.
+    expect(within(about).getByText("+91 98123 45678")).toBeInTheDocument();
+    expect(within(about).queryByRole("link", { name: "+91 98123 45678" })).not.toBeInTheDocument();
     expect(within(about).getByRole("link", { name: "anu@example.com" })).toHaveAttribute("href", "mailto:anu@example.com");
     expect(about).toHaveTextContent("Flat 302, Sunrise Apartments");
     expect(within(about).getByRole("link", { name: "Call Anu Sharma" })).toHaveAttribute("href", "tel:+919812345678");

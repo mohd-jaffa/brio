@@ -78,10 +78,11 @@ export function SignInForm() {
         {...register("password")}
       />
 
-      <div className="flex justify-end pt-0.5">
+      {/* A full 44 px to tap, drawn into the gap around it rather than widening it. */}
+      <div className="-my-2 flex justify-end">
         <Link
           href={AUTH_ROUTES.forgotPassword}
-          className="text-[0.8125rem] font-medium text-text-muted underline decoration-border underline-offset-4 transition-colors hover:text-text hover:decoration-primary"
+          className="inline-flex min-h-11 items-center rounded-lg px-1 text-sm font-medium text-text-muted underline decoration-border underline-offset-4 transition-colors hover:text-text hover:decoration-primary"
         >
           {UI_TEXT.auth.forgotPassword}
         </Link>

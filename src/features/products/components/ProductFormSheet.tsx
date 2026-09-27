@@ -133,17 +133,15 @@ function ProductForm({
         {...register("description")}
       />
 
-      <div className="flex items-center gap-3 pt-2">
-        <input
-          type="checkbox"
-          id="product-is-active"
-          className="h-5 w-5 rounded border-border text-primary focus:ring-primary"
-          {...register("isActive")}
-        />
-        <label htmlFor="product-is-active" className="text-sm font-medium text-text">
-          {text.onSale}
-        </label>
-      </div>
+      {/* The whole row is the label, so the box takes a full 44 px tap; the
+          theme colours it through accent-color. */}
+      <label
+        htmlFor="product-is-active"
+        className="flex min-h-11 w-fit cursor-pointer items-center gap-3 pr-2 text-sm font-medium text-text"
+      >
+        <input type="checkbox" id="product-is-active" className="size-5 shrink-0" {...register("isActive")} />
+        {text.onSale}
+      </label>
     </FormSheet>
   );
 }

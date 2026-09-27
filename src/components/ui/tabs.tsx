@@ -111,7 +111,7 @@ export function Tabs<T extends string>({
             tabIndex={keys.tabIndex(option.value)}
             onClick={() => onChange(option.value)}
             className={cn(
-              "relative inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap px-3 pb-3 pt-2 text-sm transition-colors",
+              "relative inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap px-3 py-3 text-sm transition-colors",
               selected ? "font-semibold text-text" : "font-medium text-text-muted hover:text-text",
             )}
           >

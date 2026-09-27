@@ -47,6 +47,9 @@
   --color-primary-hover: #633b1d;
   --color-primary-text: #fff8f0; /* 7.04 on primary */
   --color-primary-soft: #f3e6d6; /* medallions, the active nav pill; primary on it 6.03 */
+  /* Words on a primary tint — the secondary button: ≥ 4.55 at rest and on
+     hover, over any ground. */
+  --color-primary-strong: var(--color-primary);
   --color-accent: #a67628; /* gold — marks and charts, never text */
   --color-action: #2a1b12; /* the one dark control per screen */
   --color-action-hover: #3a2619;
@@ -80,6 +83,9 @@
   /* #fadfd0 in the plan put the active nav label at 4.47 : 1; this is the
      nearest tint that clears 4.5 (4.62). */
   --color-primary-soft: #fbe3d6;
+  /* Terracotta itself falls to 3.58 on its hover tint over a field; its deep
+     tone holds ≥ 4.71 at rest and on hover, over any ground. */
+  --color-primary-strong: #8e3c1d;
   --color-accent: #c46a3c;
   --color-action: #3a2119;
   --color-action-hover: #4c2d22;
@@ -163,6 +169,7 @@
   --color-primary-hover: var(--color-primary-hover);
   --color-primary-text: var(--color-primary-text);
   --color-primary-soft: var(--color-primary-soft);
+  --color-primary-strong: var(--color-primary-strong);
   --color-accent: var(--color-accent);
   --color-action: var(--color-action);
   --color-action-hover: var(--color-action-hover);
@@ -266,6 +273,23 @@
   content: "";
   position: absolute;
   inset: -6px;
+}
+
+/* A link set in a line of small text — "View order" in a row's details, an
+   email under a name — takes a 44 px tall tap centred on its line, however
+   tall the line is. Only where nothing else a finger could mean sits within
+   that band. */
+.hit-area-line {
+  position: relative;
+}
+
+.hit-area-line::after {
+  content: "";
+  position: absolute;
+  inset-inline: -4px;
+  top: 50%;
+  height: 44px;
+  transform: translateY(-50%);
 }
 
 /* ============================================================

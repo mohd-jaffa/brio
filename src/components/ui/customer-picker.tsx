@@ -74,7 +74,7 @@ export function CustomerPicker<T extends PickableCustomer>({
     const id = picked.kind === "GUEST" ? null : picked.customer.id;
     const checked = value !== null && (value.kind === "GUEST" ? id === null : value.id === id);
     return (
-      <li key={id ?? "guest"}>
+      <li key={id ?? "guest"} role="none">
         <button
           type="button"
           role="radio"

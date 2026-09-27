@@ -62,6 +62,17 @@ describe("signing in", () => {
     );
   });
 
+  it("says it is signing in while the answer is on its way", async () => {
+    auth.current.signIn.mockReturnValue(new Promise(() => {}));
+    render(<SignInForm />, { wrapper: Providers });
+
+    await userEvent.type(screen.getByLabelText(/mobile number/i), "9876543210");
+    await userEvent.type(screen.getByLabelText(/^password/i), "hunter22");
+    await userEvent.click(signIn());
+
+    expect(await screen.findByRole("button", { name: UI_TEXT.auth.signingIn })).toHaveAttribute("aria-busy", "true");
+  });
+
   it("goes on to the dashboard once the session exists", async () => {
     render(<SignInForm />, { wrapper: Providers });
 

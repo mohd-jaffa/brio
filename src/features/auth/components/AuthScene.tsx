@@ -45,7 +45,8 @@ export function AuthScene({
   footer?: ReactNode;
 }) {
   return (
-    <div className="auth-canvas flex min-h-dvh flex-col text-text lg:grid lg:grid-cols-2 lg:grid-rows-[auto_1fr] lg:items-center lg:gap-x-16 lg:px-[max(2.5rem,calc(50%-36rem))]">
+    // The whole screen is its content: there is no navigation to set apart.
+    <main className="auth-canvas flex min-h-dvh flex-col text-text lg:grid lg:grid-cols-2 lg:grid-rows-[auto_1fr] lg:items-center lg:gap-x-16 lg:px-[max(2.5rem,calc(50%-36rem))]">
       <header className="safe-top [--safe-pt:1.25rem] mx-auto flex w-full max-w-xl items-start justify-between gap-4 px-6 lg:col-span-2 lg:max-w-none lg:self-start lg:px-0">
         {backHref ? (
           <Link
@@ -130,7 +131,7 @@ export function AuthScene({
           {footer && <div className="mt-7">{footer}</div>}
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
