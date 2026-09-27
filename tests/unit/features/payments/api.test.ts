@@ -3,10 +3,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { OrderRow } from "@/features/orders/types";
 
-const { findOrderById, logActionSafe, createJob } = vi.hoisted(() => ({
+const { findOrderById, logActionSafe, createJob, mode } = vi.hoisted(() => ({
   findOrderById: vi.fn(),
   logActionSafe: vi.fn(),
   createJob: vi.fn(),
+  // Whether a worker runs (WORKER_ENABLED): none for now, and each path is kept.
+  mode: { worker: false },
+}));
+vi.mock("@/constants/jobs", async (original) => ({
+  ...(await original<typeof import("@/constants/jobs")>()),
+  get WORKER_ENABLED() {
+    return mode.worker;
+  },
 }));
 vi.mock("@/features/orders/api", () => ({ findOrderById }));
 vi.mock("@/lib/audit/auditLog", () => ({ logActionSafe }));
@@ -83,6 +91,7 @@ const payment = { order_id: ORDER_ID, amount: 50000, payment_method: "UPI" as co
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mode.worker = false;
   findOrderById.mockResolvedValue({ order: orderRow(150000), items: [], adjustments: [] });
 });
 
@@ -152,7 +161,14 @@ describe("processPayment", () => {
     expect(logActionSafe).toHaveBeenCalledWith(tenant, expect.objectContaining({ action: "CREATE", entity_type: "payments", entity_id: "p-1" }));
   });
 
-  it("queues the notification as facts, so the worker writes it in rupees (BUG-26)", async () => {
+  it("queues no notification while no worker runs: only orders due are told of", async () => {
+    const { client } = fakeClient();
+    await expect(processPayment(tenantOf(client), payment, KEY)).resolves.toMatchObject({ id: "p-1" });
+    expect(createJob).not.toHaveBeenCalled();
+  });
+
+  it("queues the notification as facts when a worker runs, so it writes it in rupees (BUG-26)", async () => {
+    mode.worker = true;
     const { client } = fakeClient();
     await processPayment(tenantOf(client), payment, KEY);
     expect(createJob).toHaveBeenCalledWith(client, {
@@ -162,6 +178,7 @@ describe("processPayment", () => {
   });
 
   it("keeps the payment when the queue cannot take its notification, and logs it", async () => {
+    mode.worker = true;
     createJob.mockRejectedValue(new Error("queue down"));
     const { client } = fakeClient();
     await expect(processPayment(tenantOf(client), payment, KEY)).resolves.toMatchObject({ id: "p-1" });

@@ -7,13 +7,21 @@ import type { AuthProfile } from "@/features/auth/types";
 import { AppError } from "@/lib/errors";
 import type { Tenant } from "@/lib/supabase/tenant";
 
-const { sendMail, createJob, logActionSafe, logger, signInWithPassword, signOut } = vi.hoisted(() => ({
+const { sendMail, createJob, logActionSafe, logger, signInWithPassword, signOut, mode } = vi.hoisted(() => ({
   sendMail: vi.fn(),
   createJob: vi.fn(),
   logActionSafe: vi.fn(),
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
   signInWithPassword: vi.fn(),
   signOut: vi.fn(),
+  // Whether a worker runs (WORKER_ENABLED): none for now, and each path is kept.
+  mode: { worker: false },
+}));
+vi.mock("@/constants/jobs", async (original) => ({
+  ...(await original<typeof import("@/constants/jobs")>()),
+  get WORKER_ENABLED() {
+    return mode.worker;
+  },
 }));
 vi.mock("@/lib/mail/nodemailer.provider", () => ({
   createConfiguredMailService: () => ({ sendAccountConfirmation: sendMail }),
@@ -110,13 +118,19 @@ const updateOf = (queries: { table: string; ops: Op[] }[]) =>
 
 const tenant: Tenant = { supabase: {} as SupabaseClient, bakeryId: "b-1", actorId: "u-1" };
 
-/** Profiles: none else holds the value; a write answers with the row as changed; jobs: none waiting. */
-function ordinary(changed: Record<string, unknown> = {}, { free = true, waiting = [] as unknown[] } = {}) {
+/**
+ * Profiles: none else holds the value; a write answers with the row as
+ * changed, and a read with the row as `read` has it; jobs: none waiting.
+ */
+function ordinary(
+  changed: Record<string, unknown> = {},
+  { free = true, waiting = [] as unknown[], read = {} as Record<string, unknown> } = {},
+) {
   return (table: string, ops: Op[]): Answer => {
     if (table === "jobs") return { data: waiting };
     if (has(ops, "neq")) return { data: free ? [] : [{ id: "u-2" }] };
     if (has(ops, "update")) return { data: row(changed) };
-    return { data: row() };
+    return { data: row(read) };
   };
 }
 
@@ -131,6 +145,7 @@ async function refusal(run: Promise<unknown>) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mode.worker = false;
   signInWithPassword.mockResolvedValue({ data: { session: { access_token: "t" } }, error: null });
   signOut.mockResolvedValue({ error: null });
 });
@@ -251,18 +266,37 @@ describe("changePhone", () => {
 describe("requestEmailChange", () => {
   const input = { email: "asha.new@example.com", password: "Password123!" };
 
-  it("keeps the new address waiting, the current one in use, and queues its link", async () => {
-    const { admin, queries } = fakeAdmin(ordinary({ pending_email: input.email }));
+  it("keeps the new address waiting, the current one in use, and sends its link there and then", async () => {
+    const { admin, queries } = fakeAdmin(ordinary({ pending_email: input.email }, { read: { pending_email: input.email } }));
     const saved = await requestEmailChange(admin, tenant, profile(), input);
     expect(saved).toMatchObject({ email: "asha@example.com", pendingEmail: input.email });
-    expect(updateOf(queries)).toEqual([{ pending_email: input.email, pending_email_token_hash: null, pending_email_expires_at: null }]);
-    expect(createJob).toHaveBeenCalledWith(admin, { type: "SEND_EMAIL_CHANGE_CONFIRMATION", payload: { userId: "u-1" } });
+    expect(updateOf(queries)[0]).toEqual({ pending_email: input.email, pending_email_token_hash: null, pending_email_expires_at: null });
+    expect(sendMail).toHaveBeenCalledWith(expect.objectContaining({ to: input.email }));
+    expect(createJob).not.toHaveBeenCalled();
     expect(logActionSafe).toHaveBeenCalledWith(tenant, expect.objectContaining({ new_data: { pending_email: input.email } }));
   });
 
-  it("queues nothing more while a link is already on its way", async () => {
-    const { admin } = fakeAdmin(ordinary({ pending_email: input.email }, { waiting: [{ id: "j-1" }] }));
+  it("keeps the address waiting when its link cannot go, and logs it, so Settings can send it again", async () => {
+    sendMail.mockRejectedValueOnce(new Error("SMTP refused"));
+    const { admin } = fakeAdmin(ordinary({ pending_email: input.email }, { read: { pending_email: input.email } }));
+    await expect(requestEmailChange(admin, tenant, profile(), input)).resolves.toMatchObject({ pendingEmail: input.email });
+    expect(logger.error).toHaveBeenCalledWith("Could not send the new email's link", { userId: "u-1", reason: "SMTP refused" });
+    expect(logActionSafe).toHaveBeenCalled();
+
+    sendMail.mockRejectedValueOnce("offline");
+    await requestEmailChange(fakeAdmin(ordinary({}, { read: { pending_email: input.email } })).admin, tenant, profile(), input);
+    expect(logger.error).toHaveBeenLastCalledWith("Could not send the new email's link", { userId: "u-1", reason: "offline" });
+  });
+
+  it("queues its link when a worker runs, and nothing more while one is already on its way", async () => {
+    mode.worker = true;
+    const { admin } = fakeAdmin(ordinary({ pending_email: input.email }));
     await requestEmailChange(admin, tenant, profile(), input);
+    expect(createJob).toHaveBeenCalledWith(admin, { type: "SEND_EMAIL_CHANGE_CONFIRMATION", payload: { userId: "u-1" } });
+    expect(sendMail).not.toHaveBeenCalled();
+
+    createJob.mockClear();
+    await requestEmailChange(fakeAdmin(ordinary({ pending_email: input.email }, { waiting: [{ id: "j-1" }] })).admin, tenant, profile(), input);
     expect(createJob).not.toHaveBeenCalled();
   });
 
@@ -276,18 +310,35 @@ describe("requestEmailChange", () => {
     expect((await refusal(requestEmailChange(fakeAdmin(ordinary()).admin, tenant, profile(), input))).code).toBe("AUTH_PASSWORD_INCORRECT");
   });
 
-  it("stops when the queue cannot be read", async () => {
-    const { admin } = fakeAdmin((table, ops) => (table === "jobs" ? { error: { message: "down" } } : ordinary()(table, ops)));
-    expect((await refusal(requestEmailChange(admin, tenant, profile(), input))).code).toBe("INTERNAL_ERROR");
+  it("keeps the address waiting when a worker runs and the queue cannot be read, and logs it", async () => {
+    mode.worker = true;
+    const { admin } = fakeAdmin((table, ops) => (table === "jobs" ? { error: { message: "down" } } : ordinary({ pending_email: input.email })(table, ops)));
+    await expect(requestEmailChange(admin, tenant, profile(), input)).resolves.toMatchObject({ pendingEmail: input.email });
+    expect(logger.error).toHaveBeenCalledWith("Could not send the new email's link", expect.objectContaining({ userId: "u-1" }));
   });
 });
 
 describe("resendEmailChange", () => {
-  it("queues the waiting address's link again, and refuses when nothing is waiting", async () => {
-    const { admin } = fakeAdmin(ordinary());
-    await expect(resendEmailChange(admin, profile({ pendingEmail: "asha.new@example.com" }))).resolves.toEqual({ queued: true });
-    expect(createJob).toHaveBeenCalledOnce();
+  const waiting = () => profile({ pendingEmail: "asha.new@example.com" });
+
+  it("sends the waiting address's link again there and then, and refuses when nothing is waiting", async () => {
+    const { admin } = fakeAdmin(ordinary({}, { read: { pending_email: "asha.new@example.com" } }));
+    await expect(resendEmailChange(admin, waiting())).resolves.toEqual({ queued: false });
+    expect(sendMail).toHaveBeenCalledOnce();
     expect((await refusal(resendEmailChange(admin, profile()))).code).toBe("AUTH_NO_PENDING_EMAIL");
+  });
+
+  it("answers a mail server's failure as the outside service's, never in its own words", async () => {
+    sendMail.mockRejectedValueOnce(new Error("SMTP refused"));
+    const { admin } = fakeAdmin(ordinary({}, { read: { pending_email: "asha.new@example.com" } }));
+    expect(await refusal(resendEmailChange(admin, waiting()))).toEqual({ code: "EXTERNAL_SERVICE_ERROR", status: 502 });
+  });
+
+  it("queues it again when a worker runs", async () => {
+    mode.worker = true;
+    const { admin } = fakeAdmin(ordinary());
+    await expect(resendEmailChange(admin, waiting())).resolves.toEqual({ queued: true });
+    expect(createJob).toHaveBeenCalledOnce();
   });
 });
 

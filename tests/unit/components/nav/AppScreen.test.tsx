@@ -9,7 +9,7 @@ const { readScreen, getBusiness, countUnread } = vi.hoisted(() => ({
 }));
 vi.mock("@/features/auth/session.server", () => ({ readScreen }));
 vi.mock("@/features/business/api", () => ({ getBusiness }));
-vi.mock("@/features/notifications/api", () => ({ countUnread }));
+vi.mock("@/features/notifications/due", () => ({ countUnreadAfterDue: countUnread }));
 vi.mock("@/components/nav/AppShell", () => ({ AppShell: ({ children }: { children: ReactNode }) => <main>{children}</main> }));
 vi.mock("@/lib/query/ServerData", () => ({
   ServerData: ({ queries, children }: { queries: Record<string, unknown>; children: ReactNode }) => (

@@ -2,7 +2,7 @@ import type { Tenant } from "@/lib/supabase/tenant";
 import { type Payment, type CreatePaymentDTO } from "./types";
 import { type CreatePaymentPayload } from "@/lib/validation";
 import { logActionSafe } from "@/lib/audit/auditLog";
-import { JOB_TYPES } from "@/constants/jobs";
+import { JOB_TYPES, WORKER_ENABLED } from "@/constants/jobs";
 import { createJob } from "@/lib/jobs/queue";
 import { logger } from "@/lib/logger";
 import { findOrderById } from "@/features/orders/api";
@@ -105,9 +105,11 @@ export async function processPayment(
 /**
  * Queues "₹500 received for ORD-1028." as facts; the worker writes the words
  * (BUG-26). The payment is recorded already, so a queue that cannot take the
- * notification is logged, never reported as a failed payment.
+ * notification is logged, never reported as a failed payment. While no worker
+ * runs, nothing is queued: only orders due are told of (WORKER_ENABLED).
  */
 async function notifyPayment(tenant: Tenant, orderId: string, orderNumber: string, amount: number) {
+  if (!WORKER_ENABLED) return;
   try {
     await createJob(tenant.supabase, {
       type: JOB_TYPES.pushNotification,

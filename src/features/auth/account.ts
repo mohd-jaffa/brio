@@ -2,7 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 
 import { type SupabaseClient } from "@supabase/supabase-js";
 
-import { JOB_TYPES } from "@/constants/jobs";
+import { JOB_TYPES, WORKER_ENABLED } from "@/constants/jobs";
 import { EMAIL_CHANGE_LINK_HOURS } from "@/constants/limits";
 import { logActionSafe } from "@/lib/audit/auditLog";
 import { changeReopensAt } from "@/lib/dates/cooldown";
@@ -11,6 +11,7 @@ import { businessRuleError, internalError, validationError } from "@/lib/errors"
 import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
 import { createJob } from "@/lib/jobs/queue";
 import { logger } from "@/lib/logger";
+import { asMailFailure } from "@/lib/mail/failure";
 import { createConfiguredMailService } from "@/lib/mail/nodemailer.provider";
 import { createSupabaseAnonClient } from "@/lib/supabase/server";
 import type { Tenant } from "@/lib/supabase/tenant";
@@ -189,6 +190,20 @@ async function queueEmailChange(adminClient: SupabaseClient, userId: string) {
 }
 
 /**
+ * The new email's link, sent by the request that asks for it while no worker
+ * runs (WORKER_ENABLED; the user, 2026-09-27), and queued for the worker when
+ * one does. Answers whether it was queued.
+ */
+async function deliverEmailChange(adminClient: SupabaseClient, userId: string): Promise<boolean> {
+  if (WORKER_ENABLED) {
+    await queueEmailChange(adminClient, userId);
+    return true;
+  }
+  await sendEmailChangeConfirmation(adminClient, userId);
+  return false;
+}
+
+/**
  * A new email address (POST /api/auth/email). It waits in `pending_email`,
  * and the current one stays in use, until the link sent to it is followed. A
  * new request replaces one still waiting.
@@ -209,7 +224,16 @@ export async function requestEmailChange(
     pending_email_token_hash: null,
     pending_email_expires_at: null,
   });
-  await queueEmailChange(adminClient, profile.id);
+  // The new address is kept whether or not its link can go now: Settings
+  // shows it waiting, with Send the link again.
+  try {
+    await deliverEmailChange(adminClient, profile.id);
+  } catch (error) {
+    logger.error("Could not send the new email's link", {
+      userId: profile.id,
+      reason: error instanceof Error ? error.message : String(error),
+    });
+  }
   await logActionSafe(tenant, {
     action: "UPDATE",
     entity_type: "profiles",
@@ -223,12 +247,16 @@ export async function requestEmailChange(
 /** Sends the new email's link again (POST /api/auth/email/resend). */
 export async function resendEmailChange(adminClient: SupabaseClient, profile: AuthProfile) {
   if (!profile.pendingEmail) throw validationError("AUTH_NO_PENDING_EMAIL");
-  await queueEmailChange(adminClient, profile.id);
-  return { queued: true };
+  try {
+    return { queued: await deliverEmailChange(adminClient, profile.id) };
+  } catch (error) {
+    throw asMailFailure(error);
+  }
 }
 
 /**
- * The worker's side (NotificationWorker): a fresh token is made now, not when
+ * Sends the link: from the request while no worker runs, and as the worker's
+ * side (NotificationWorker) when one does. A fresh token is made now, not when
  * the job was queued, so none ever sits in the queue; only its hash is kept.
  * The email is the one registration sends. With nothing waiting — confirmed
  * already, or replaced by the same request — there is nothing to send.

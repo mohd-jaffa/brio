@@ -10,8 +10,9 @@ import {
   internalError,
 } from "@/lib/errors";
 import { logger } from "@/lib/logger";
-import { JOB_TYPES } from "@/constants/jobs";
+import { JOB_TYPES, WORKER_ENABLED } from "@/constants/jobs";
 import { createJob } from "@/lib/jobs/queue";
+import { asMailFailure } from "@/lib/mail/failure";
 import { createConfiguredMailService } from "@/lib/mail/nodemailer.provider";
 import type {
   ChangePasswordPayload,
@@ -338,14 +339,13 @@ export async function register(client: SupabaseClient, registration: RegisterPay
     throw error;
   }
 
-  // The email is queued, not sent here (BUG-16): the account is made whether
-  // or not mail is working, and the worker sends it — retrying if it must. If
-  // even the queue cannot take it, the account still stands, and Settings
-  // offers to send it again.
+  // The account is made whether or not mail is working (BUG-16): the email
+  // is sent now (or queued, while a worker runs), and if it cannot go, the
+  // account still stands and Settings offers to send it again.
   try {
-    await queueAccountConfirmation(client, user.id);
+    await deliverAccountConfirmation(client, user.id);
   } catch (error) {
-    logger.error("Could not queue the confirmation email", {
+    logger.error("Could not send the confirmation email", {
       userId: user.id,
       reason: error instanceof Error ? error.message : String(error),
     });
@@ -379,8 +379,9 @@ export async function queueAccountConfirmation(adminClient: SupabaseClient, user
 }
 
 /**
- * The worker's side of a queued confirmation (NotificationWorker). The link is
- * made now, not when the job was queued, so no sign-in token ever sits in the
+ * Sends the confirmation: from the request while no worker runs, and as the
+ * worker's side of a queued one (NotificationWorker) when one does. The link
+ * is made now, not when a job was queued, so no sign-in token ever sits in the
  * queue. An account already confirmed, or gone, needs no email; anything else
  * that fails throws, so the queue tries again.
  */
@@ -397,11 +398,32 @@ export async function sendAccountConfirmation(adminClient: SupabaseClient, userI
   await mailService.sendAccountConfirmation({ to: profile.email, name: profile.name, confirmationUrl });
 }
 
-/** Settings' Resend confirmation (plan §139.11.2), for the signed-in account. */
+/**
+ * The confirmation email, sent by the request that asks for it while no
+ * worker runs (WORKER_ENABLED; the user, 2026-09-27), and queued for the
+ * worker when one does. Answers whether it was queued.
+ */
+export async function deliverAccountConfirmation(adminClient: SupabaseClient, userId: string): Promise<boolean> {
+  if (WORKER_ENABLED) {
+    await queueAccountConfirmation(adminClient, userId);
+    return true;
+  }
+  await sendAccountConfirmation(adminClient, userId);
+  return false;
+}
+
+/**
+ * Settings' Resend confirmation (plan §139.11.2), for the signed-in account.
+ * Sent there and then, a mail failure is the answer; `queued` says whether it
+ * waits for the worker instead.
+ */
 export async function resendConfirmation(adminClient: SupabaseClient, profile: AuthProfile) {
   if (profile.emailConfirmedAt) throw conflictError("AUTH_EMAIL_ALREADY_CONFIRMED");
-  await queueAccountConfirmation(adminClient, profile.id);
-  return { queued: true };
+  try {
+    return { queued: await deliverAccountConfirmation(adminClient, profile.id) };
+  } catch (error) {
+    throw asMailFailure(error);
+  }
 }
 
 export async function login(

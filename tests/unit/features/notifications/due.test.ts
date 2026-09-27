@@ -1,0 +1,150 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { SWEEP_INTERVAL_MS } from "@/constants/jobs";
+import { DUE_NOTICE_FROM_HOUR } from "@/constants/limits";
+import { UI_TEXT } from "@/constants/messages";
+import { tenantOf } from "@tests/support/tenant";
+
+const { rpc, countUnread, listNotifications, recordNotification, logger, mode } = vi.hoisted(() => ({
+  rpc: vi.fn(),
+  countUnread: vi.fn(),
+  listNotifications: vi.fn(),
+  recordNotification: vi.fn(),
+  logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+  // Whether a worker runs (WORKER_ENABLED): none for now, and each path is kept.
+  mode: { worker: false },
+}));
+vi.mock("@/constants/jobs", async (original) => ({
+  ...(await original<typeof import("@/constants/jobs")>()),
+  get WORKER_ENABLED() {
+    return mode.worker;
+  },
+}));
+vi.mock("@/lib/supabase/server", () => ({ createSupabaseServiceRoleClient: () => ({ rpc }) }));
+vi.mock("@/features/notifications/api", () => ({ countUnread, listNotifications, recordNotification }));
+vi.mock("@/lib/logger", () => ({ logger }));
+
+const { checkDueOrders, countUnreadAfterDue, listNotificationsAfterDue } = await import("@/features/notifications/due");
+
+const ORDER = "7c1f3a52-9d7e-4b1a-8a51-0f1d2c3b4a5e";
+const LATE = "7c1f3a52-9d7e-4b1a-8a51-0f1d2c3b4a5f";
+
+const dueRows = [
+  { kind: "ORDER_DUE", order_id: ORDER, order_number: "ORD-1028", customer_name: "Priya Menon", due_day: "TODAY", due_date: null },
+  { kind: "ORDER_OVERDUE", order_id: LATE, order_number: "ORD-1020", customer_name: null, due_day: null, due_date: "2026-09-26" },
+];
+
+// Each test looks at a business of its own: a business is looked at once a minute at most.
+let business = 0;
+const nextTenant = () => tenantOf({}, { bakeryId: `b-${(business += 1)}` });
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mode.worker = false;
+  rpc.mockResolvedValue({ data: dueRows, error: null });
+  recordNotification.mockResolvedValue(undefined);
+  countUnread.mockResolvedValue({ unread: 2 });
+  listNotifications.mockResolvedValue({ items: [], nextCursor: null });
+});
+
+afterEach(() => vi.useRealTimers());
+
+describe("checkDueOrders", () => {
+  it("takes the business's orders due, from its morning, and writes each in the app's words, leading to its order", async () => {
+    const tenant = nextTenant();
+    await checkDueOrders(tenant);
+
+    expect(rpc).toHaveBeenCalledWith("take_due_order_notices", { p_bakery_id: tenant.bakeryId, p_from_hour: DUE_NOTICE_FROM_HOUR });
+    expect(recordNotification).toHaveBeenCalledTimes(2);
+    expect(recordNotification).toHaveBeenNthCalledWith(1, expect.anything(), {
+      id: expect.stringMatching(/^[0-9a-f-]{36}$/),
+      bakeryId: tenant.bakeryId,
+      kind: "ORDER",
+      text: {
+        title: UI_TEXT.notifications.orderDueTitle,
+        body: UI_TEXT.notifications.orderDueBody("ORD-1028", "Priya Menon", "today"),
+      },
+      actionUrl: `/orders/${ORDER}`,
+    });
+    expect(recordNotification).toHaveBeenNthCalledWith(2, expect.anything(), {
+      id: expect.stringMatching(/^[0-9a-f-]{36}$/),
+      bakeryId: tenant.bakeryId,
+      kind: "ORDER",
+      text: {
+        title: UI_TEXT.notifications.orderOverdueTitle,
+        body: UI_TEXT.notifications.orderOverdueBody("ORD-1020", UI_TEXT.customerPicker.guest, "26 Sep"),
+      },
+      actionUrl: `/orders/${LATE}`,
+    });
+  });
+
+  it("leaves out a row it cannot put into words, and writes nothing when nothing is due", async () => {
+    rpc.mockResolvedValueOnce({ data: [{ ...dueRows[0], due_day: "NEXT_WEEK" }], error: null });
+    await checkDueOrders(nextTenant());
+    rpc.mockResolvedValueOnce({ data: null, error: null });
+    await checkDueOrders(nextTenant());
+    expect(recordNotification).not.toHaveBeenCalled();
+  });
+
+  it("looks at a business once a minute at most, and a read meanwhile waits for the look in hand", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    const tenant = nextTenant();
+    let finish: (value: unknown) => void = () => {};
+    rpc.mockReturnValueOnce(new Promise((resolve) => (finish = resolve)));
+
+    const first = checkDueOrders(tenant);
+    const second = checkDueOrders(tenant);
+    let waited = false;
+    void second.then(() => (waited = true));
+    await Promise.resolve();
+    expect(waited).toBe(false);
+    finish({ data: [], error: null });
+    await Promise.all([first, second]);
+    expect(waited).toBe(true);
+    expect(rpc).toHaveBeenCalledOnce();
+
+    await checkDueOrders(nextTenant());
+    expect(rpc).toHaveBeenCalledTimes(2);
+
+    vi.setSystemTime(Date.now() + SWEEP_INTERVAL_MS);
+    await checkDueOrders(tenant);
+    expect(rpc).toHaveBeenCalledTimes(3);
+  });
+
+  it("logs a look that fails, and never fails the read it came with", async () => {
+    const tenant = nextTenant();
+    rpc.mockResolvedValueOnce({ data: null, error: { code: "08006", message: "connection lost" } });
+    await expect(countUnreadAfterDue(tenant)).resolves.toEqual({ unread: 2 });
+    expect(logger.error).toHaveBeenCalledWith("Could not look for orders due", {
+      bakeryId: tenant.bakeryId,
+      reason: expect.any(String),
+    });
+
+    const other = nextTenant();
+    rpc.mockRejectedValueOnce("offline");
+    await checkDueOrders(other);
+    expect(logger.error).toHaveBeenLastCalledWith("Could not look for orders due", { bakeryId: other.bakeryId, reason: "offline" });
+  });
+
+  it("looks for nothing when a worker runs: its own sweep tells of them", async () => {
+    mode.worker = true;
+    await checkDueOrders(nextTenant());
+    expect(rpc).not.toHaveBeenCalled();
+  });
+});
+
+describe("the bell and the inbox", () => {
+  it("count the unread once the orders due are written", async () => {
+    const tenant = nextTenant();
+    await expect(countUnreadAfterDue(tenant)).resolves.toEqual({ unread: 2 });
+    expect(recordNotification.mock.invocationCallOrder[1]).toBeLessThan(countUnread.mock.invocationCallOrder[0]);
+    expect(countUnread).toHaveBeenCalledWith(tenant);
+  });
+
+  it("list the inbox once the orders due are written", async () => {
+    const tenant = nextTenant();
+    await expect(listNotificationsAfterDue(tenant, { tab: "ORDERS" })).resolves.toEqual({ items: [], nextCursor: null });
+    expect(recordNotification.mock.invocationCallOrder[1]).toBeLessThan(listNotifications.mock.invocationCallOrder[0]);
+    expect(listNotifications).toHaveBeenCalledWith(tenant, { tab: "ORDERS" });
+  });
+});

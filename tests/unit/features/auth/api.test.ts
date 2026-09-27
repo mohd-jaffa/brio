@@ -3,10 +3,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { AuthProfile } from "@/features/auth/types";
 
-const { sendAccountConfirmationMail, createJob, logger } = vi.hoisted(() => ({
+const { sendAccountConfirmationMail, createJob, logger, mode } = vi.hoisted(() => ({
   sendAccountConfirmationMail: vi.fn(),
   createJob: vi.fn(),
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+  // Whether a worker runs (WORKER_ENABLED): none for now, and each path is kept.
+  mode: { worker: false },
+}));
+vi.mock("@/constants/jobs", async (original) => ({
+  ...(await original<typeof import("@/constants/jobs")>()),
+  get WORKER_ENABLED() {
+    return mode.worker;
+  },
 }));
 vi.mock("@/lib/mail/nodemailer.provider", () => ({
   createConfiguredMailService: () => ({ sendAccountConfirmation: sendAccountConfirmationMail }),
@@ -118,6 +126,7 @@ function fakeAdmin({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mode.worker = false;
   sendAccountConfirmationMail.mockResolvedValue(undefined);
   createJob.mockResolvedValue(undefined);
 });
@@ -161,7 +170,25 @@ describe("register", () => {
     expect(inserted.find(([table]) => table === "profiles")?.[1]).not.toHaveProperty("avatar");
   });
 
-  it("queues the confirmation email rather than sending it, naming only the user (BUG-16)", async () => {
+  it("sends the confirmation email itself while no worker runs, and queues nothing", async () => {
+    const { client } = fakeAdmin();
+    await register(client, registration);
+
+    expect(sendAccountConfirmationMail).toHaveBeenCalledWith(expect.objectContaining({ to: "priya@example.com" }));
+    expect(createJob).not.toHaveBeenCalled();
+  });
+
+  it("keeps the account when the mail cannot go, and logs it, so Settings can send it again", async () => {
+    sendAccountConfirmationMail.mockRejectedValue(new Error("SMTP refused"));
+    const { client, deletedUsers } = fakeAdmin();
+
+    await expect(register(client, registration)).resolves.toMatchObject({ userId: "u-1", bakeryId: "b-1" });
+    expect(deletedUsers).toEqual([]);
+    expect(logger.error).toHaveBeenCalledWith("Could not send the confirmation email", { userId: "u-1", reason: "SMTP refused" });
+  });
+
+  it("queues the confirmation email when a worker runs, naming only the user (BUG-16)", async () => {
+    mode.worker = true;
     const { client } = fakeAdmin();
     await register(client, registration);
 
@@ -170,12 +197,13 @@ describe("register", () => {
   });
 
   it("keeps the account when even the queue cannot take the email, and logs it", async () => {
+    mode.worker = true;
     createJob.mockRejectedValue(new Error("queue down"));
     const { client, deletedUsers } = fakeAdmin();
 
     await expect(register(client, registration)).resolves.toMatchObject({ userId: "u-1", bakeryId: "b-1" });
     expect(deletedUsers).toEqual([]);
-    expect(logger.error).toHaveBeenCalledWith("Could not queue the confirmation email", { userId: "u-1", reason: "queue down" });
+    expect(logger.error).toHaveBeenCalledWith("Could not send the confirmation email", { userId: "u-1", reason: "queue down" });
   });
 
   it("takes the new user away again when the rest of the account cannot be made", async () => {
@@ -240,7 +268,23 @@ describe("sendAccountConfirmation", () => {
 describe("resendConfirmation", () => {
   const profile = { id: "u-1", emailConfirmedAt: null } as AuthProfile;
 
-  it("queues the email again for the signed-in account", async () => {
+  it("sends the email again there and then while no worker runs", async () => {
+    const { client } = fakeAdmin();
+    await expect(resendConfirmation(client, profile)).resolves.toEqual({ queued: false });
+    expect(sendAccountConfirmationMail).toHaveBeenCalledOnce();
+    expect(createJob).not.toHaveBeenCalled();
+  });
+
+  it("answers a mail server's failure as the outside service's, never in its own words", async () => {
+    sendAccountConfirmationMail.mockRejectedValueOnce(new Error("SMTP refused"));
+    await expect(resendConfirmation(fakeAdmin().client, profile)).rejects.toMatchObject({
+      code: "EXTERNAL_SERVICE_ERROR",
+      httpStatus: 502,
+    });
+  });
+
+  it("queues the email again when a worker runs", async () => {
+    mode.worker = true;
     const { client } = fakeAdmin();
     await expect(resendConfirmation(client, profile)).resolves.toEqual({ queued: true });
     expect(createJob).toHaveBeenCalledWith(client, { type: "SEND_ACCOUNT_CONFIRMATION", payload: { userId: "u-1" } });

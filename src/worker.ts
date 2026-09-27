@@ -1,5 +1,6 @@
 import { hostname } from "node:os";
 
+import { WORKER_ENABLED } from "@/constants/jobs";
 import { registerAnalyticsWorker } from "@/features/analytics/worker";
 import { registerNotificationWorker } from "@/features/notifications/worker";
 import { runWorker } from "@/lib/jobs/runner";
@@ -14,6 +15,10 @@ import { createSupabaseServiceRoleClient } from "@/lib/supabase/server";
  *
  * SIGINT and SIGTERM stop it after the job in hand, so a deploy never cuts a
  * job off half done.
+ *
+ * It does not start while WORKER_ENABLED is false (the user, 2026-09-27): the
+ * app then sends mail and tells of due orders itself, and a sweep here would
+ * mark orders as told while the database holds back what it queued.
  */
 export function registerWorkers() {
   registerNotificationWorker();
@@ -21,6 +26,11 @@ export function registerWorkers() {
 }
 
 export async function main() {
+  if (!WORKER_ENABLED) {
+    logger.warn("Worker not started: WORKER_ENABLED is false, and the app does this work itself");
+    process.exitCode = 1;
+    return;
+  }
   registerWorkers();
   const stop = new AbortController();
   for (const signal of ["SIGINT", "SIGTERM"] as const) {

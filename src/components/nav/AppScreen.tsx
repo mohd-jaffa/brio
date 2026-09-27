@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import { readScreen, type ScreenRead } from "@/features/auth/session.server";
 import { getBusiness } from "@/features/business/api";
-import { countUnread } from "@/features/notifications/api";
+import { countUnreadAfterDue } from "@/features/notifications/due";
 import { apiRoutes } from "@/lib/query/keys";
 import { ServerData } from "@/lib/query/ServerData";
 
@@ -11,7 +11,7 @@ import { AppShell } from "./AppShell";
 /** What every signed-in screen's frame shows: the business's name and mark, and the bell's count. */
 const SHELL_READS: Record<string, ScreenRead> = {
   [apiRoutes.business.profile]: getBusiness,
-  [apiRoutes.notifications.unread]: countUnread,
+  [apiRoutes.notifications.unread]: countUnreadAfterDue,
 };
 
 /**
