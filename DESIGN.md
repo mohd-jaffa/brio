@@ -366,6 +366,11 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 - **Where it opens:** in the top layer, so no scrolling sheet clips it; under the control, or over it where there is more room; lined up with the control's nearer screen edge; at most 288 px tall, then it scrolls. It drops in over 240 ms, as a fade under reduced motion.
 - **Keyboard:** the arrows, Home and End move; a letter jumps; Enter or Space takes; Escape or Tab closes, and Escape never closes the sheet behind it.
 
+### The developer console
+- **Its own look, and only there** (the user, 2026-09-27): white and blue with the sans throughout, `data-theme="dev"`. It is set on the page while the console is open, so its sign-out card takes it too, and it never reaches an owner's screens. Ground #f5f7fb, paper white, well #eef2f8, hairline #dde4ee, ink #0f1b2d, muted #4a5a70, blue #1d4ed8 on white 6.7 : 1.
+- **Frame:** a white top bar with a blue "O" mark, "Ovenly · Developer console", who is signed in, and Sign out; under it, tabs for Overview, Users and Audit log, the open one underlined in blue.
+- **Pages:** the kit's cards, stat tiles and list states. Stored values (an audit entry's before and after) are shown as indented JSON in the mono face, in a well that scrolls sideways.
+
 ### Date picker
 - **One calendar** (`date-picker`) for every day the app asks for: a custom period's two ends, the orders filter's due dates, an expense's date, and an order's delivery day. The browser's own date control never opens.
 - **The control** sits in the look of where it sits, as a select does: a field's Flour Well, or a small hairline box beside the period pill. It shows the day ("27 Sep 2026") after a calendar mark, or muted words while none is chosen ("Choose a date", "Any day").

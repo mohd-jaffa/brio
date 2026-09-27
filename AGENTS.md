@@ -242,6 +242,13 @@ DEV    unchanged; never inherits business data
 or written to, Supabase `user_metadata` — users can edit their own metadata
 (BUG-17, `0009_role_out_of_metadata.sql`).
 
+**DEV has the developer console** (`/admin`, plan §139.11.16) and nothing else:
+read-only, behind `withDevRoute` (`DEVELOPER_ROLES`), showing the accounts and
+the audit trail. A developer owns no business (`0028_developer_accounts.sql`),
+is sent to `/admin` from every business screen, and is added from the Supabase
+dashboard, never by registering. The console shows only what the app already
+keeps.
+
 Do not introduce additional roles unless explicitly requested.
 
 ---

@@ -7545,6 +7545,12 @@ Later the same day:
   - **The other notifications are paused, not removed**: an order placed or moved, a payment, a customer added, stock running low. They come back with a worker (§139.11.15).
 - **Every date opens the app's own calendar** (the user: "look into calendar picker, its native now, change it to something which will match our design"). A custom period's two ends, the orders filter's due dates, an expense's date and an order's delivery day open a calendar in paper and hairline, with the month in the display serif, the chosen day in caramel and today ringed. The delivery's time is picked from a list every quarter of an hour, and a time already saved between two quarters is kept. It is one kit component (`date-picker`), placed as the select's list is.
   - Analytics no longer asks for a custom period until both its dates are chosen, as Expenses and Guest sales already did.
+- **A developer console** (the user: "create a simple dev app ui. simple white and blue theme for now, no write operations, just count of total users in the app, users details, error logs, audit logs … show whatever log is being saved now, dont create anything new now"). A developer who signs in lands on `/admin`, a read-only console in white and blue, and never on a business's screens (§139.11.16).
+  - **Overview:** who is signed in, and the counts of users (owners and developers), businesses and audit entries.
+  - **Users:** every account, with its business and how it signs in.
+  - **Audit log:** what was done in every business, by whom, with the values before and after.
+  - **Not shown**, because nothing keeps them: **server errors** are only in the server's output, so there is no error log page. The **job queue** has no page either while no worker runs (the user asked; §139.11.15).
+  - A developer's account has **no business** (`0028_developer_accounts`). It is added from the Supabase dashboard, never by registering.
 
 ---
 
@@ -8520,6 +8526,30 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
   database's) and run `npm run worker` beside the app. Every notification then
   comes back, and email goes through the queue with its retries.
 
+### 139.11.16 The developer console (the user, 2026-09-27)
+
+§37's developer pages, read-only for now.
+
+- **Who:** DEV only. The routes are `/api/admin/overview`, `/api/admin/users`
+  and `/api/admin/audit`, each behind `withDevRoute`, which refuses every other
+  role and anyone owing a password change. They are fixed, read-only queries
+  made as the server, since the console reads across every business. A
+  developer's business screens send them to `/admin`; an owner's `/admin`
+  sends them home.
+- **Pages:** `/admin` (who is signed in; users, owners, developers,
+  businesses, audit entries), `/admin/users` (every account: role, mobile,
+  email, business, joined, and whether it is deactivated, unconfirmed or owes
+  a password change) and `/admin/audit` (every business's trail, newest first,
+  with before and after).
+- **Only what is kept:** no new logging. Server errors are written to the
+  server's output only, so §37's `/admin/logs` and §103's `error_logs` are not
+  built. `/admin/workers` waits for a worker.
+- **Look:** white and blue, sans throughout (`data-theme="dev"`), on the
+  page only while the console is open.
+- **Accounts:** a developer owns no business (`profiles.bakery_id` may be null
+  for DEV only, 0028). One is added from the Supabase dashboard: the user with
+  its mobile number, then a `profiles` row with the role DEV.
+
 ---
 
 ## 139.12 Data model and migrations
@@ -8546,6 +8576,7 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `…_order_due_notifications` | *Added 2026-09-26 as `0023_order_due_notifications` (R5.10; the user).* `orders.due_notified_at` and `orders.overdue_notified_at`; a partial index on open orders by `delivery_date`; **`queue_due_order_notifications(p_from_hour)`**, the worker's alone, which marks and queues in one statement each open order due today or tomorrow, and each overdue, in its business's timezone, from the hour given. Open orders more than a day overdue when it arrives are marked as told. | 5 |
 | `…_profile_avatars` | *Added 2026-09-27 as `0026_profile_avatars` (the user).* `profiles.avatar`, not null, one of **`avatar_keys()`**'s nine; its default **`random_avatar()`** draws one for each new profile, and drew one for each existing profile as the column was added. Both functions are the server's only. | 5 |
 | `…_no_worker` | *Added 2026-09-27 as `0027_no_worker` (the user).* **`worker_enabled()`** (false for now); a `before insert` trigger on `jobs` that holds back `SEND_PUSH_NOTIFICATION` while it is false; open orders long past their day taken as told; **`take_due_order_notices(bakery, from_hour)`**, the service role's, which marks one business's orders due soon and overdue and hands back the facts. | 5 |
+| `…_developer_accounts` | *Added 2026-09-27 as `0028_developer_accounts` (the user).* `profiles.bakery_id` may be null, for a developer only (`profiles_owner_has_business`). Nothing else. | 5 |
 | `…_audit_writes` | Revoke `INSERT` on `audit_logs` from `authenticated`; audit is written by the server with the acting user (§133.7 G1, BUG-20). | 2 |
 | `…_device_tokens` | The push-token registry (§133.5 E2). | 8 |
 | `…_profile_theme` *(if Q14)* | `profiles.theme`. | 1 |

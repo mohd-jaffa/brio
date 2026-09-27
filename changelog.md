@@ -2680,3 +2680,38 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - None.
+
+## 2026-09-27 — The developer console
+
+### Added
+- **A read-only developer console at `/admin`** (the user: "create a simple dev app ui. simple white and blue theme for now, no write operations … dev logged in using dev account, that will be showed"; plan §5, §37, §139.11.16):
+  - **Overview:** the developer signed in (picture, name, role, mobile, email), and the counts of users (owners · developers), businesses and audit entries (and in the last 24 hours);
+  - **Users:** every account, newest first — role, mobile, email, business and city, when it joined, and whether it is deactivated, has an unconfirmed email or owes a password change;
+  - **Audit log:** every business's trail, newest first — the action, what it was done to, by whom, for which business and when, with the values before and after as JSON.
+- **`withDevRoute`** (`src/features/auth/guard.ts`) and `DEVELOPER_ROLES`: DEV only, never while a password change is owed. `GET /api/admin/overview`, `/api/admin/users` and `/api/admin/audit` are fixed, read-only queries as the server (`src/features/admin/api.ts`).
+- **White and blue** for the console only (`data-theme="dev"`, globals.css), in the sans throughout.
+- **A local developer account** in the seed: mobile 9123456789, password Password123!, no business.
+
+### Changed
+- **A developer owns no business** (`0028_developer_accounts.sql`). `profiles.bakery_id` may be null, for DEV only; `AuthProfile.bakeryId` is `string | null`. The owner routes take the business through `businessOf`, which refuses a profile without one.
+- **A developer is sent to `/admin`** from every business screen, on the server (`readScreen`) and in the browser (`RequireAuth`). An owner opening `/admin` is sent home (`requireDeveloperScreen`, `DevShell`).
+
+### Not built, on purpose
+- **Error logs.** The user: "show whatever log is being saved now, dont create anything new now". Server errors are written to the server's output only; nothing stores them, so there is no page for them.
+- **The job queue.** The user asked whether it was needed with no worker running. It is not: nothing new is queued now, so it waits for a worker.
+
+### Validation
+- **Database, rolled back:** an owner without a business is refused; a developer without one is taken.
+- **The running app:**
+  - signed in as the developer, the overview, users and audit log came back with the real rows (2 accounts, 1 business, 64 audit entries);
+  - an owner calling a console route got `AUTH_ROLE_FORBIDDEN`, and so did the developer calling a business route;
+  - an owner opening `/admin` was sent home, a visitor signed out was sent to sign in, and the developer opening Home or `/orders` was sent to `/admin`.
+- **Browser, 390 px and 1440 px:** signing in as the developer landed on the console. Every page read, the audit entry opened to its before and after, no page errors, no sideways scroll.
+- **Checks:** `tsc` and `eslint` pass. The full suite passes (2,105 tests), and every new and changed file is at 100 %, the page and route files aside, as every screen's are.
+
+### Migration notes
+- `0028_developer_accounts.sql`: `profiles.bakery_id` drops NOT NULL, and `profiles_owner_has_business` requires it for everyone but DEV.
+- **A developer on the hosted database:** add the user from the Supabase dashboard, give it its mobile number, and add its profile (the SQL is in this session's notes to the user).
+
+### Blockers
+- None.
