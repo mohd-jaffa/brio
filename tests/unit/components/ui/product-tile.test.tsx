@@ -28,7 +28,7 @@ describe("ProductTile", () => {
 
   it("fills a card's width, asking for a picture big enough", () => {
     const { container } = render(<ProductTile iconKey="donut" size="fill" />);
-    expect(container.firstElementChild).toHaveClass("w-full", "aspect-[4/3]");
+    expect(container.firstElementChild).toHaveClass("w-full", "h-36");
     expect(container.querySelector("img")).toHaveAttribute("width", "144");
   });
 

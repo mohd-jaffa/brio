@@ -30,7 +30,9 @@ export function ProductTile({
     return (
       <span
         aria-hidden="true"
-        className={cn("flex aspect-[4/3] w-full items-center justify-center rounded-xl bg-sunken", className)}
+        // As tall as the picture asked for (FILL_IMAGE), and fixed at that: the
+        // picture arriving cannot stretch it and move the name and price below.
+        className={cn("flex h-36 w-full items-center justify-center rounded-xl bg-sunken", className)}
       >
         <Illustration
           name={iconKey}
