@@ -9,11 +9,16 @@ import { authStub } from "@tests/support/auth";
 
 import { MoreSheet } from "@/components/nav/MoreSheet";
 
-const { auth } = vi.hoisted(() => ({ auth: { current: {} as ReturnType<typeof authStub> } }));
+const { auth, install } = vi.hoisted(() => ({
+  auth: { current: {} as ReturnType<typeof authStub> },
+  install: { current: { offered: false, canPrompt: false, platform: "ios" as const, install: vi.fn() } },
+}));
 vi.mock("@/features/auth/AuthProvider", () => ({ useAuth: () => auth.current }));
+vi.mock("@/hooks/useInstallApp", () => ({ useInstallApp: () => install.current }));
 
 beforeEach(() => {
   auth.current = authStub();
+  install.current = { offered: false, canPrompt: false, platform: "ios", install: vi.fn() };
 });
 
 const sheet = (props: { isOpen: boolean; onClose?: () => void }) =>
@@ -57,6 +62,19 @@ describe("MoreSheet", () => {
     );
     expect(onClose).toHaveBeenCalled();
     expect(auth.current.signOut).toHaveBeenCalledOnce();
+  });
+
+  it("offers Install app above Sign out in the browser, and not inside the installed app (R7.3)", () => {
+    const { unmount } = sheet({ isOpen: true });
+    expect(screen.queryByRole("button", { name: /Install app/ })).not.toBeInTheDocument();
+    unmount();
+
+    install.current = { ...install.current, offered: true };
+    sheet({ isOpen: true });
+    const buttons = screen.getAllByRole("button").map((button) => button.textContent ?? "");
+    const installAt = buttons.findIndex((text) => text.startsWith("Install app"));
+    expect(installAt).toBeGreaterThanOrEqual(0);
+    expect(installAt).toBeLessThan(buttons.findIndex((text) => text.startsWith("Sign out")));
   });
 
   it("closes on Escape and from its close button", async () => {

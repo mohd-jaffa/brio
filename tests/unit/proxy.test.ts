@@ -96,4 +96,14 @@ describe("what the proxy runs on", () => {
     expect(pattern.test("/fonts/bill/Inter-Regular.ttf")).toBe(false);
     expect(pattern.test("/orders")).toBe(true);
   });
+
+  it("leaves alone what the installed app needs signed in or not: its icons, worker, manifest and offline page", () => {
+    const [matcher] = config.matcher;
+    const pattern = new RegExp(`^${matcher}$`);
+
+    for (const path of ["/icons/icon-512.png", "/apple-icon.png", "/manifest.webmanifest", "/sw.js", "/offline"]) {
+      expect(pattern.test(path)).toBe(false);
+    }
+    expect(pattern.test("/settings")).toBe(true);
+  });
 });

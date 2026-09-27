@@ -17,7 +17,10 @@ import { useSettle } from "@/hooks/useSettle";
 import { cn } from "../ui/cn";
 import { AccountPopover } from "./AccountPopover";
 import { BusinessMark } from "./BusinessMark";
+import { InstallApp } from "./InstallApp";
 import { MoreSheet } from "./MoreSheet";
+import { OfflineBanner } from "./OfflineBanner";
+import { SIDEBAR_LABEL_CLASSES, sidebarItemClasses } from "./navStyles";
 
 /**
  * The frame every screen sits in (plan §139.5, §139.9):
@@ -74,28 +77,9 @@ function AppFrame({ children }: { children: ReactNode }) {
                 const active = isActivePath(href, pathname);
                 return (
                   <li key={id}>
-                    <Link
-                      href={href}
-                      aria-current={active ? "page" : undefined}
-                      className={cn(
-                        "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors",
-                        "md:max-lg:size-12 md:max-lg:justify-center md:max-lg:px-0",
-                        active
-                          ? "bg-primary-soft font-semibold text-primary"
-                          : "font-medium text-text-muted hover:bg-surface-hover hover:text-text",
-                      )}
-                    >
+                    <Link href={href} aria-current={active ? "page" : undefined} className={sidebarItemClasses(active)}>
                       <Icon size={20} strokeWidth={1.75} className="shrink-0" aria-hidden="true" />
-                      <span
-                        className={cn(
-                          // On the rail the label is a tooltip — still the link's name.
-                          "md:max-lg:pointer-events-none md:max-lg:absolute md:max-lg:left-full md:max-lg:ml-3 md:max-lg:whitespace-nowrap",
-                          "md:max-lg:rounded-lg md:max-lg:bg-action md:max-lg:px-2.5 md:max-lg:py-1.5 md:max-lg:text-xs md:max-lg:font-medium md:max-lg:text-action-text md:max-lg:shadow-elevated",
-                          "md:max-lg:opacity-0 md:max-lg:transition-opacity md:max-lg:group-hover:opacity-100 md:max-lg:group-focus-visible:opacity-100",
-                        )}
-                      >
-                        {label}
-                      </span>
+                      <span className={SIDEBAR_LABEL_CLASSES}>{label}</span>
                     </Link>
                   </li>
                 );
@@ -103,6 +87,9 @@ function AppFrame({ children }: { children: ReactNode }) {
             </ul>
           ))}
         </nav>
+        <div className="px-3 pb-4">
+          <InstallApp variant="sidebar" />
+        </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -129,6 +116,7 @@ function AppFrame({ children }: { children: ReactNode }) {
           data-navigating={navigating || undefined}
           className="animate-settle mx-auto w-full overflow-x-clip max-w-[1200px] flex-1 space-y-6 p-4 pb-[calc(var(--nav-height)+var(--safe-bottom)+1.5rem)] has-[[data-fab]]:pb-[calc(var(--nav-height)+var(--safe-bottom)+5.5rem)] md:p-6 md:pb-[calc(var(--safe-bottom)+2rem)] md:has-[[data-fab]]:pb-[calc(var(--safe-bottom)+2rem)] md:pr-[calc(var(--safe-right)+1.5rem)] lg:space-y-8 lg:p-8 lg:pr-[calc(var(--safe-right)+2rem)]"
         >
+          <OfflineBanner />
           {navigating && <ScreenSkeleton label={UI_TEXT.states.loading} />}
           {children}
         </main>

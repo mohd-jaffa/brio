@@ -7,10 +7,13 @@ import { UI_TEXT } from "@/constants/messages";
 import { MORE_NAV } from "@/constants/navigation";
 import { SignOutRow } from "@/features/auth/components/SignOutRow";
 
+import { InstallApp } from "./InstallApp";
+
 /**
  * The rest of the app, on a phone (plan §139.10): Analytics, Expenses,
  * Inventory, Business details and Settings, each with a medallion, a line on
- * what it holds and a chevron, then **Sign out**. Its places are the ones the
+ * what it holds and a chevron, then **Install app** — not inside the
+ * installed app (R7.3) — and **Sign out**. Its places are the ones the
  * bottom bar does not hold, from the one nav list. It is a `Sheet`, so the
  * page behind is inert while it is open and focus goes back to More when it
  * closes (BUG-25). The theme is chosen on Settings → Appearance (R5.11).
@@ -33,6 +36,7 @@ export function MoreSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
             ))}
           </RowList>
         </nav>
+        <InstallApp variant="row" />
         <RowList>
           <SignOutRow onSignedOut={onClose} />
         </RowList>

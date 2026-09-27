@@ -127,6 +127,8 @@ export const UI_TEXT = {
   appTagline: "Home Business",
   /** What a browser tab, a search result and a shared link say of the app. */
   appTitle: "Ovenly — Home Business Management",
+  /** The name under the icon once the app is installed (plan §139.19 R7.1). */
+  appShortName: "Ovenly",
   appDescription:
     "Mobile-first management for home businesses — bakers, hamper makers, florists and gift makers. Orders, customers, stock, expenses and bills in one place.",
 
@@ -1161,5 +1163,56 @@ export const UI_TEXT = {
     errorBody: "This screen stopped before it finished loading. Anything you had already saved is safe.",
     errorReference: (digest: string) => `Reference: ${digest}`,
     toDashboard: "Go to the dashboard",
+  },
+
+  /** No connection (plan §139.19 R7.2, IMP-08): the offline page, and the banner while one drops. */
+  offline: {
+    title: "You’re offline",
+    body: "Ovenly needs a connection to show your orders, customers and stock. Check your connection, then try again.",
+    retry: "Try again",
+    banner: "You’re offline. What’s on screen may be out of date.",
+  },
+
+  /**
+   * Installing the app (plan §139.19 R7.3; the user, 2026-09-27): a place
+   * among the other menus, and short steps for this device. Hidden once
+   * the app is running installed.
+   */
+  install: {
+    menu: "Install app",
+    hint: "Add Ovenly to your home screen",
+    title: "Install Ovenly",
+    intro: "Open Ovenly from your home screen like any app: full screen, one tap away.",
+    installNow: "Install",
+    orFollow: "Or follow these steps",
+    stepsFor: {
+      ios: "On iPhone or iPad",
+      android: "On Android",
+      desktop: "On a computer",
+      other: "In your browser",
+    },
+    steps: {
+      ios: [
+        "Open Ovenly in Safari.",
+        "Tap the Share button at the bottom of the screen.",
+        "Scroll down and tap Add to Home Screen, then Add.",
+      ],
+      android: [
+        "Open Ovenly in Chrome.",
+        "Tap the menu (three dots) at the top right.",
+        "Tap Install app or Add to Home screen, then Install.",
+      ],
+      desktop: [
+        "Open Ovenly in Chrome or Edge.",
+        "Click the install icon at the right of the address bar — or open the browser’s menu.",
+        "Choose Install Ovenly, then Install.",
+      ],
+      other: [
+        "Open Ovenly in Chrome, Edge or Safari: this browser cannot install apps.",
+        "Open the browser’s menu, or its Share button on an iPhone.",
+        "Choose Install app or Add to Home Screen.",
+      ],
+    },
+    done: "Once it is on your home screen, open Ovenly from there. This option goes away inside the app.",
   },
 } as const;
