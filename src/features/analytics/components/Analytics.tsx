@@ -45,18 +45,21 @@ export function Analytics() {
   const [interval, setInterval] = useState<Interval | undefined>();
   const [tab, setTab] = useState<Tab>("OVERVIEW");
 
+  // A custom period waits for both its dates before it is asked for, as
+  // Expenses and Guest sales wait: half a period is not a question.
+  const waiting = range.preset === "CUSTOM" && (!range.from || !range.to);
   const report = useApiQuery<AnalyticsReport>(
-    withQuery(apiRoutes.analytics.overview, {
-      range: range.preset,
-      from: range.preset === "CUSTOM" ? range.from : undefined,
-      to: range.preset === "CUSTOM" ? range.to : undefined,
-      interval,
-    }),
+    waiting
+      ? null
+      : withQuery(apiRoutes.analytics.overview, {
+          range: range.preset,
+          from: range.preset === "CUSTOM" ? range.from : undefined,
+          to: range.preset === "CUSTOM" ? range.to : undefined,
+          interval,
+        }),
     { keepPreviousData: true },
   );
   const data = report.data;
-  // A custom period waits for both its dates before it is asked for.
-  const waiting = range.preset === "CUSTOM" && (!range.from || !range.to);
 
   const choose = (next: typeof range) => {
     setRange(next);

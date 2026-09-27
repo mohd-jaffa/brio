@@ -8,6 +8,7 @@ import { aReport } from "@tests/support/analytics";
 import { sizeCharts } from "@tests/support/charts";
 import { Providers } from "@tests/support/providers";
 import { choose } from "@tests/support/select";
+import { pickDate } from "@tests/support/date";
 
 const fetcher = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/api/client", async (original) => ({
@@ -75,8 +76,10 @@ describe("Analytics", () => {
     expect(screen.getByRole("status", { name: "Loading analytics" })).toBeInTheDocument();
 
     answers["/api/analytics/overview?range=CUSTOM&from=2026-09-01&to=2026-09-02"] = aReport();
-    await userEvent.type(screen.getByLabelText("From"), "2026-09-01");
-    await userEvent.type(screen.getByLabelText("To"), "2026-09-02");
+    await pickDate("From", "2026-09-01");
+    // Half a period is not asked for.
+    expect(fetcher).not.toHaveBeenCalledWith(expect.stringMatching(/range=CUSTOM(&from=2026-09-01)?$/));
+    await pickDate("To", "2026-09-02");
     expect(await screen.findByText("Total sales")).toBeInTheDocument();
   });
 
