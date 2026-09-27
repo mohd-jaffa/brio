@@ -9,14 +9,17 @@
  * server code — validation, routes — can use the keys without loading images.
  */
 
-export const ILLUSTRATION_GROUPS = ["basics", "bakes", "gifts", "food"] as const;
+export const ILLUSTRATION_GROUPS = ["basics", "bakes", "gifts", "love", "food", "everyday", "characters"] as const;
 export type IllustrationGroup = (typeof ILLUSTRATION_GROUPS)[number];
 
 export const ILLUSTRATION_GROUP_LABELS: Record<IllustrationGroup, string> = {
   basics: "Basics",
   bakes: "Bakes and sweets",
   gifts: "Gifts and flowers",
+  love: "Hearts and love",
   food: "Food",
+  everyday: "Home and everyday",
+  characters: "Characters",
 };
 
 /** In the order the picker shows them: the defaults first, then by group. */
@@ -24,6 +27,7 @@ export const ILLUSTRATIONS = {
   "default-product": { label: "Price tag", group: "basics" },
   "default-expense": { label: "Receipt", group: "basics" },
   "gold-coins": { label: "Gold coins", group: "basics" },
+  "savings-jar": { label: "Savings jar", group: "basics" },
   "shopping-bags": { label: "Shopping bags", group: "basics" },
   "delivery-scooter": { label: "Delivery scooter", group: "basics" },
   "delivery-ninja": { label: "Delivery courier", group: "basics" },
@@ -47,8 +51,38 @@ export const ILLUSTRATIONS = {
   "rose-bunch": { label: "Bunch of roses", group: "gifts" },
   "heart-balloons": { label: "Heart balloons", group: "gifts" },
   "chick-gift": { label: "Chick with a gift", group: "gifts" },
+  "gift-box-red": { label: "Red gift box", group: "gifts" },
+  "gift-box-white-bow": { label: "Gift box with a white bow", group: "gifts" },
+  "gift-stack": { label: "Stack of gifts", group: "gifts" },
+  "ribbon-bow": { label: "Red ribbon bow", group: "gifts" },
+  "puppy-flowers": { label: "Puppy with a flower basket", group: "gifts" },
+  "hamster-daisies": { label: "Hamster with daisies", group: "gifts" },
+  "heart": { label: "Red heart", group: "love" },
+  "heart-pink": { label: "Pink heart", group: "love" },
+  "two-hearts": { label: "Two hearts", group: "love" },
+  "lace-heart": { label: "Lace heart", group: "love" },
+  "crowned-heart": { label: "Heart with a crown", group: "love" },
+  "chocolate-heart": { label: "Chocolate heart", group: "love" },
+  "xoxo-heart": { label: "Heart with an XOXO box", group: "love" },
+  "love-letter": { label: "Love letter", group: "love" },
+  "heart-padlock": { label: "Heart padlock", group: "love" },
+  "love-locks": { label: "Pair of love locks", group: "love" },
+  "cupid": { label: "Cupid", group: "love" },
+  "bow-and-arrow": { label: "Bow and arrow", group: "love" },
   "fried-chicken": { label: "Fried chicken", group: "food" },
   "taco": { label: "Taco", group: "food" },
+  "popcorn": { label: "Popcorn", group: "food" },
+  "light-bulb": { label: "Light bulb", group: "everyday" },
+  "mop-bucket": { label: "Mop and bucket", group: "everyday" },
+  "astronaut-builder": { label: "Astronaut builder", group: "everyday" },
+  "doctor": { label: "Doctor with a stethoscope", group: "everyday" },
+  "doctor-germs": { label: "Doctor chasing germs", group: "everyday" },
+  "grandma-cooking": { label: "Grandma cooking", group: "everyday" },
+  "giraffe-car": { label: "Giraffe in a car", group: "everyday" },
+  "capybara-duck": { label: "Capybara on a rubber duck", group: "characters" },
+  "capybara-headphones": { label: "Capybara with headphones", group: "characters" },
+  "shark-float": { label: "Shark in a flamingo float", group: "characters" },
+  "dragon-gamer": { label: "Dragon playing a game", group: "characters" },
 } as const satisfies Record<string, { label: string; group: IllustrationGroup }>;
 
 export type IllustrationKey = keyof typeof ILLUSTRATIONS;

@@ -2323,3 +2323,41 @@ These are product or plan decisions rather than layout, and are left for the use
 
 ### Blockers
 - None.
+
+## 2026-09-27 — More illustrations (R5.18)
+
+### Added
+- **31 illustrations from the 17 files in the root folder**, bringing the library to 59 (`artwork/illustrations/`, `src/assets/illustrations/`, `src/constants/illustrations.ts`).
+  - Two files were sheets: nine valentine pictures (`IMG_2519.JPG`) and seven pink ones (`IMG_2520.JPG`). Each was split by its drawings rather than a grid, and each drawing was centred on a white square with the same margin as the 2026-09-24 splits.
+  - The other 15 were copied byte for byte under their keys.
+- **Three new groups in the picker:**
+  - **Hearts and love:** hearts, a love letter, padlocks, Cupid, a bow and arrow;
+  - **Home and everyday:** a light bulb, a mop, a builder, two doctors, a grandmother cooking, a giraffe in a car;
+  - **Characters:** two capybaras, a shark and a dragon.
+- **Added to existing groups:** the sheets' gift boxes, the bow, the puppy and the hamster join Gifts and flowers; popcorn joins Food; a savings jar joins Basics.
+
+### Changed
+- **The build clears holes** (`scripts/illustrations.mjs`, `HOLES`). Ground an outline closes off from the border stayed white, and showed as a pale patch on a tile: the bow's inside, a padlock's shackle.
+  - Each hole is named by a point inside it and cleared as the border is. A point that is not ground fails the build.
+  - It also fixes four of the first 28: the donut's hole, the cookie cup's handle, the price tag's loop, and the gaps at the balloon strings.
+- **A drawing too busy for 40 KB at quality 82** takes the first quality step down that fits. Only `cupid` needs it, at 78. The other 54 files rebuilt byte for byte.
+- **Plan §139.11.10:**
+  - the catalogue, how the sheets were split, the three groups and why;
+  - the library's 1 MB total is dropped, since no screen downloads a library file (`next/image` sends each place a copy drawn to its size) and the 40 KB per file is the limit that counts;
+  - the size corrected to the 480 px the script has always written.
+  - The answers of 2026-09-27 and tracker row R5.18 record the request.
+
+### Validation
+- **Build checks:** the duplicate check passes, with the closest pair at 26 of 256 against a limit of 10. Every file is under 40 KB, 1.5 MB in all, and the build is deterministic when run twice.
+- **Visual:** each new picture was checked on the Golden tile and on a dark ground for white left behind.
+- **Picker in the browser:** at 390, 820 and 1280 px, in Golden and Peach, it offers 59 choices in seven groups, with no broken image and no console error.
+- **Over HTTP:** a product saved with `bow-and-arrow` reads it back; an unknown key is refused with VALIDATION_ERROR; the product was restored.
+- **Checks:** `tsc`, `eslint` and the full suite (1,830 tests) pass.
+
+### Notes
+- **No migration.** The database checks only a key's shape.
+- **The 17 originals** moved to `design-references/illustration-originals/`, which is not committed.
+- **Q16 covers the new pictures too:** each one's licence is confirmed before the Play release.
+
+### Blockers
+- None.

@@ -19,12 +19,15 @@ describe("IllustrationPicker", () => {
       "Basics",
       "Bakes and sweets",
       "Gifts and flowers",
+      "Hearts and love",
       "Food",
+      "Home and everyday",
+      "Characters",
     ]);
     const choices = within(picker).getAllByRole("radio");
     expect(choices).toHaveLength(ILLUSTRATION_KEYS.length);
     expect(choices[0]).toHaveAccessibleName("Price tag");
-    expect(within(within(picker).getByRole("region", { name: "Food" })).getAllByRole("radio")).toHaveLength(2);
+    expect(within(within(picker).getByRole("region", { name: "Food" })).getAllByRole("radio")).toHaveLength(3);
   });
 
   it("marks the picture in use, the default when there is none or the key is unknown", () => {

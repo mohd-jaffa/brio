@@ -7518,6 +7518,10 @@ After the layout pass, the user chose three of the items it had left open:
 - **Customers: a Balance due tab** beside All, Regular and New. It lists the customers who still owe the business money, the most owed first, and pages and searches on the server like the others (`0024_customer_balance`). Every customer's row shows what they owe, on every tab, whenever they owe anything. **Customer detail leads with Balance due.**
 - **Create order: Add custom item sits above the search and the grid**, so a special request is one tap away however long the menu is.
 
+Later the same day:
+
+- **More illustrations** (the user: "there are some new illustrators in the root folder, add those to the platform"). The 17 files make **31 illustrations**, since two were sheets. That brings the library to **59**, in **three new groups**: Hearts and love, Home and everyday, and Characters. Every product and every category of the business's own can take any of them. As before, **nothing is uploaded and no migration is needed**. They fall under Q16 with the rest: each one's licence is confirmed before the Play release. The build now also clears **holes** in the ground (a donut's hole, a cup's handle), which fixes four of the first 28 as well (§139.11.10, R5.18).
+
 ---
 
 ## 139.1 Scope changes this brief approves (§31)
@@ -8228,7 +8232,8 @@ V1": the table exists and is the source of truth.
 
 ### 139.11.10 Illustrations for products and expense categories
 
-The user supplied 26 illustration files on 2026-09-24. They are **app-owned
+The user supplied 26 illustration files on 2026-09-24, and 17 more on
+2026-09-27: 59 illustrations in all. They are **app-owned
 artwork**: they ship with the app and the user chooses among them. **Nothing is
 uploaded**, so the rule in §16 and §56 that the logo is the only upload stands.
 
@@ -8237,7 +8242,7 @@ uploaded**, so the rule in §16 and §56 that the logo is the only upload stands
 | Path | What | Committed |
 |---|---|---|
 | `artwork/illustrations/<key>.jpg` | **The masters.** One illustration per file, on a white ground, as supplied (1920 px square, or the split's own size). Never served. | Yes (2026-09-24) |
-| `design-references/illustration-originals/` | The 26 files exactly as supplied, under their original names | No (gitignored) |
+| `design-references/illustration-originals/` | The 43 files exactly as supplied, under their original names | No (gitignored) |
 | `src/assets/illustrations/<key>.webp` | What the app ships, generated from the masters | Yes, when R1.15 builds it |
 | `src/constants/illustrations.ts` | The registry: `ILLUSTRATIONS` (key → asset, label, group), `ILLUSTRATION_KEYS`, `DEFAULT_PRODUCT_ILLUSTRATION = "default-product"` and `DEFAULT_EXPENSE_ILLUSTRATION = "default-expense"` | Yes, when R1.15 builds it |
 
@@ -8246,6 +8251,14 @@ uploaded**, so the rule in §16 and §56 that the logo is the only upload stands
 - `IMG_2470.JPG` is the Vecteezy gold-coins file saved again (perceptual-hash distance 1 of 256). It was **dropped as a duplicate**, and `gold-coins` keeps the Vecteezy original.
 - `IMG_2474.JPG` was **four illustrations on one sheet**. It was split on its blank gutters into `heart-gift-box`, `teddy-bear`, `rose-bunch` and `gift-box-pink`, each centred on a white square with the same margin as the rest.
 - Every other file was copied **byte for byte** under its key. The user's own names were kept for the two defaults.
+
+**How the 17 files of 2026-09-27 became 31 more**
+
+- `IMG_2519.JPG` was **nine illustrations on a sheet**, three by three: `heart`, `gift-box-red`, `lace-heart`, `cupid`, `chocolate-heart`, `ribbon-bow`, `two-hearts`, `gift-stack` and `heart-pink`.
+- `IMG_2520.JPG` was **seven on a sheet**, loosely laid out: `gift-box-white-bow`, `love-letter`, `heart-padlock`, `crowned-heart`, `xoxo-heart`, `love-locks` and `bow-and-arrow`.
+- Each sheet was split by its drawings, not by a grid: every drawing is the ink connected to itself, a stray speck joins the drawing nearest it, and whatever else falls in its box is cleared to white. Each is centred on a white square with a 15% margin, as the 2026-09-24 splits were.
+- The other 15 were copied **byte for byte** under their keys.
+- **None is a duplicate.** The closest pair in the library is `chocolate-heart` and `heart`, at 26 of 256, well clear of 10.
 
 **Naming rules**
 
@@ -8260,6 +8273,7 @@ uploaded**, so the rule in §16 and §56 that the logo is the only upload stands
 | `default-product` | A price tag | Basics | `default-product.JPG` |
 | `default-expense` | A receipt | Basics | `default-expense.JPG` |
 | `gold-coins` | Stacked gold coins | Basics | `vecteezy_stacked-gold-coins…_77459804.jpg` |
+| `savings-jar` | A jar of notes and coins labelled "Saving" | Basics | `IMG_2508.JPG` |
 | `shopping-bags` | A shopper with bags | Basics | `IMG_2488.JPG` |
 | `delivery-scooter` | A delivery rider on a scooter | Basics | `IMG_2484.JPG` |
 | `delivery-ninja` | A courier with a parcel | Basics | `IMG_2483.JPG` |
@@ -8283,17 +8297,56 @@ uploaded**, so the rule in §16 and §56 that the logo is the only upload stands
 | `rose-bunch` | A small bunch of roses | Gifts and flowers | `IMG_2474.JPG`, bottom left |
 | `heart-balloons` | Two children with heart balloons | Gifts and flowers | `IMG_2482.JPG` |
 | `chick-gift` | A chick holding a gift | Gifts and flowers | `IMG_2485.JPG` |
+| `gift-box-red` | A red gift box with a bow | Gifts and flowers | `IMG_2519.JPG`, top middle |
+| `gift-box-white-bow` | A pink gift box with a white bow | Gifts and flowers | `IMG_2520.JPG`, top left |
+| `gift-stack` | A stack of three gifts | Gifts and flowers | `IMG_2519.JPG`, bottom middle |
+| `ribbon-bow` | A red ribbon bow | Gifts and flowers | `IMG_2519.JPG`, middle right |
+| `puppy-flowers` | A puppy with a basket of flowers | Gifts and flowers | `IMG_2521.JPG` |
+| `hamster-daisies` | A hamster holding daisies | Gifts and flowers | `IMG_2522.JPG` |
+| `heart` | A red heart | Hearts and love | `IMG_2519.JPG`, top left |
+| `heart-pink` | A pink heart | Hearts and love | `IMG_2519.JPG`, bottom right |
+| `two-hearts` | A red heart and a pink one | Hearts and love | `IMG_2519.JPG`, bottom left |
+| `lace-heart` | A heart edged in lace | Hearts and love | `IMG_2519.JPG`, top right |
+| `crowned-heart` | A pink heart wearing a crown | Hearts and love | `IMG_2520.JPG`, centre |
+| `chocolate-heart` | A chocolate heart reading "Be mine" | Hearts and love | `IMG_2519.JPG`, centre |
+| `xoxo-heart` | A heart and a box reading "xoxo" | Hearts and love | `IMG_2520.JPG`, middle right |
+| `love-letter` | An envelope sealed with a heart | Hearts and love | `IMG_2520.JPG`, top right |
+| `heart-padlock` | A heart-shaped padlock | Hearts and love | `IMG_2520.JPG`, middle left |
+| `love-locks` | A pair of heart padlocks | Hearts and love | `IMG_2520.JPG`, bottom left |
+| `cupid` | Cupid with a bow | Hearts and love | `IMG_2519.JPG`, middle left |
+| `bow-and-arrow` | A bow and a heart-tipped arrow | Hearts and love | `IMG_2520.JPG`, bottom right |
 | `fried-chicken` | A plate of fried chicken | Food | `IMG_2486.JPG` |
 | `taco` | A taco | Food | `IMG_2487.JPG` |
+| `popcorn` | A tub of popcorn | Food | `IMG_2518.JPG` |
+| `light-bulb` | A smiling light bulb | Home and everyday | `IMG_2506.JPG` |
+| `mop-bucket` | A mop and a bucket | Home and everyday | `IMG_2514.JPG` |
+| `astronaut-builder` | An astronaut in a hard hat, with a hammer | Home and everyday | `IMG_2509.JPG` |
+| `doctor` | A doctor with a stethoscope | Home and everyday | `IMG_2510.JPG` |
+| `doctor-germs` | A masked doctor among germs | Home and everyday | `IMG_2511.JPG` |
+| `grandma-cooking` | A grandmother cooking at a stove | Home and everyday | `IMG_2515.JPG` |
+| `giraffe-car` | A giraffe driving a small car | Home and everyday | `IMG_2507.JPG` |
+| `capybara-duck` | A capybara riding a rubber duck | Characters | `IMG_2512.JPG` |
+| `capybara-headphones` | A capybara in headphones | Characters | `IMG_2517.JPG` |
+| `shark-float` | A shark in a flamingo float | Characters | `IMG_2513.JPG` |
+| `dragon-gamer` | A dragon with a game controller | Characters | `IMG_2516.JPG` |
 
-The picker shows the groups in that order, with the defaults first.
+The picker shows the groups in that order, with the defaults first. The three
+groups of 2026-09-27 (the user asked for the files to be added and left their
+arrangement open) follow what each picture is for:
+
+- **Hearts and love** is its own group, beside Gifts and flowers, for occasions: Valentine's Day, anniversaries, Mother's Day. The sheets' gift boxes and the bow go with the other gifts.
+- **Home and everyday** holds what an expense category of the business's own is likely to need: electricity, cleaning, repairs, a doctor, the kitchen, travel.
+- **Characters** holds the animals that are there for fun, for a themed cake or a children's hamper. The puppy and the hamster hold flowers, so they go with the gifts, as the chick with its gift already did.
 
 **What the app ships (R1.15).** `scripts/illustrations.mjs` runs `sharp`, pinned
 as a devDependency, and is deterministic:
 
 1. **The white ground becomes transparent.** Only white connected to the border changes, using colour-to-alpha against white, so the soft ground shadows become translucent instead of grey patches on a cream theme. White inside an outline stays opaque: the cupcake's cream, the cup, the receipt.
+   - **A hole is ground too** (2026-09-27): the donut's hole, inside the cookie cup's handle, the price tag's loop, the balloons' strings against the children's arms, under the capybara's headband, inside a padlock's shackle, between a bow and its string. The border cannot reach them, so `HOLES` in the script names a point inside each, and the ground is cleared from there as from the border. A point that is not ground fails the build.
 2. **Trim to the content**, and centre it on a square with 8% padding.
-3. **512 × 512 WebP with alpha**, quality about 82, **≤ 40 KB each** and **≤ 1 MB for the library**.
+3. **480 × 480 WebP with alpha**, quality 82, **≤ 40 KB each**.
+   - **A drawing too busy for 40 KB at quality 82** takes the first step down that fits (78, 74, 70), and the build says which. Only `cupid` needs it, at 78.
+   - **The library's total is not capped** (2026-09-27; it was ≤ 1 MB for 28). No screen downloads a library file: `next/image` sends each place a copy drawn to its size, and a 64 px picker choice is a few KB. The per-file limit is the one that counts. At 59 illustrations the library is about 1.5 MB.
 4. **It refuses** a duplicate (above) and a file name that is not a valid key.
 
 The WebPs are imported statically by the registry. A missing file therefore
@@ -8742,6 +8795,7 @@ Phase 5 closed on 2026-09-26 with R5.10.
 | R5.15 | Dashboard filters | §133.9 I2 | — | DONE (2026-09-26 · with R5.1: preparation and payment, combined, on the orders due) |
 | R5.17 | Profile details once every 30 days: the owner's name, sign-in number and email from Settings, the business's name on Business details; the sign-in number and email with the current password; a new email confirmed before it takes effect (the user, 2026-09-26) | §139.10 | — | DONE (2026-09-26 · `0021_profile_changes`; the confirmation mail is registration's until the user sets its own) |
 | R5.16 | Expense category illustrations: the Categories tab, the picker, the expense form's category field, `/api/expense-categories`; **the business's own categories** — made, renamed, pictured and deleted while unused, the eight defaults fixed (the user, 2026-09-26) | §139.11.10 | — | DONE (2026-09-26 · `0020_expense_categories`) |
+| R5.18 | The library grows (the user, 2026-09-27): 17 files, two of them sheets, make 31 illustrations, in three new groups; the build clears named holes and steps a busy drawing's quality down to fit 40 KB | §139.11.10 | Q16 | DONE (2026-09-27 · 59 illustrations; no migration) |
 
 ### Phase 6 — Hardening
 
