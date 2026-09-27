@@ -401,6 +401,7 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 ### Response Card
 - The one way an outcome is reported, on the web and in the app: a medallion, a serif title, the message, up to three facts in a strip, and at most two actions.
 - It rises as a sheet on a phone and as a dialog on a desktop. Plain successes close themselves after 3 seconds.
+- **A confirm card** stands before anything that cannot be undone: marking an order Delivered or Completed, cancelling it, deleting, clearing an order being built, signing out. The safe answer ("Not yet", "Keep order", "Stay signed in") is always offered; on a destructive one the confirm is brick and focus rests on the safe answer, so Enter cannot destroy anything.
 
 ### Photographic Band and Quote Block
 - **Hero and band:** a Flour Well panel with serif words on the left and an app-owned plate fading in on the right.

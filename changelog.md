@@ -2517,3 +2517,51 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - None.
+
+## 2026-09-27 — Orders can be changed, and moved to any status
+
+### Added
+- **Edit an open order** (the user; plan §139.11.13). **Edit** on the order screen opens `/orders/{id}/edit`, built from the create screen's own parts: the product grid and custom items, then the details (items with steppers and notes, customer, handover, discounts and charges, internal notes), then **Save changes**.
+  - A line already on the order keeps the name and price it was ordered at; a line added takes today's price.
+  - There is no payment step. The summary shows what has been paid so far and the balance the changes leave.
+  - A delivered or cancelled order cannot be changed, and the screen says so.
+- **`PUT /api/orders/{id}`** (`updateOrder`, `src/features/orders/edit.ts`) prices the change with the same `priceOrder` a new order uses, then stores it with `update_order` in one transaction (`0025_edit_orders.sql`):
+  - the reservation follows each product's change in quantity, and more is checked against stock after the products are locked (§133.3 C4);
+  - the totals must add up, and may not come to less than has been paid (`ORDER_TOTAL_BELOW_PAID`); the payment status is derived again;
+  - a kept line the order no longer has, or at another price, is refused as changed elsewhere (`ORDER_CHANGED`);
+  - an order out for delivery cannot become a pickup (`ORDER_IN_TRANSIT_PICKUP`);
+  - a due date moved to another day clears the due and overdue notices, so the new day is told about;
+  - the change is audited, before and after.
+- **`order_items.position`**: the lines keep the order they were put in. An edit rewrites some rows and adds others, and a row's place on disk is no order. The order screen, the bill and the lists read by it.
+- **Sign out asks first** (`useSignOut`), from the More sheet, Settings and the account menu.
+
+### Changed
+- **Statuses** (plan §139.11.8, revised): an open order may take any other open status, on or back, or go straight to Delivered/Completed or Cancelled. `ORDER_STATUS_TRANSITIONS` and `order_status_next` changed together; moves between open statuses post no stock.
+- **The order screen:** the one next-step button stays; **Change status** beside it (was "More actions") lists every other move, onward first, then **Back to …**, then Cancel.
+- **Delivered/Completed asks first**, like Cancel, wherever it is chosen: neither can be undone.
+- **Create order** shares its step helpers with the edit screen (`steps.ts`, `StepBar`); nothing it does changed.
+- The order total stays on the right when a long status pill sends it onto its own line.
+
+### Validation
+- **Database, signed in as the owner, rolled back:**
+  - an edit (one more box kept at its price, a line taken off, two new lines, a discount) moved each product's stock by exactly its change, and left the order part paid;
+  - a total below what was paid, more than is in stock, a line of another order, a kept line at another price or named twice, and totals that did not add up were each refused with their own code;
+  - Pending went straight to Completed, and could then be neither edited nor moved;
+  - Preparing went back to Pending with no stock posted;
+  - an order out for delivery could not become a pickup, and another business's order read as not found;
+  - a new day cleared the due notices and a new time the same day did not;
+  - an edit that changed no quantity posted no stock.
+- **Browser, phone and desktop, on a throwaway order (deleted afterwards):**
+  - Edit added a product and one more of a kept line, and saved: the kept line at ₹380, the new one at ₹450, the ₹100 already paid kept;
+  - Preparing, then Back to Pending;
+  - Mark as Completed asked; Not yet left it Pending; confirmed, it completed, and Edit was gone;
+  - the edit screen then said the order is finished;
+  - Sign out asked over the More sheet, and Stay signed in stayed.
+  - No page errors, and no sideways scroll.
+- **Checks:** `tsc` and `eslint` pass. The full suite passes (1,957 tests), and every new and changed file is at 100 %.
+
+### Migration notes
+- `0025_edit_orders.sql`: `order_status_next` replaced; `order_items.position` added (identity, numbered as the rows stand) with an index on `(order_id, position)`; `update_order(uuid, jsonb)` added, for signed-in users only. It needs applying wherever 0022–0024 do.
+
+### Blockers
+- None. Delivered/Completed and Cancelled stay final: the user chose so when asked.

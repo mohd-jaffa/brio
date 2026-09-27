@@ -52,7 +52,7 @@ Built around **made-to-order work from home**, not a shop counter:
 - **Built:**
   - registration and sign-in;
   - a Home dashboard (what needs attention now, orders due, amounts to collect, low stock);
-  - orders with a bill and estimate, share, PDF and print, custom items and guest orders;
+  - orders with a bill and estimate, share, PDF and print, custom items and guest orders; an open order can be edited, and moved to any status in one step (Delivered and Cancelled are final);
   - customers and Guest sales, products with illustrations, stock kept as a ledger;
   - expenses with categories, analytics with charts;
   - business details with the one logo upload;

@@ -383,7 +383,15 @@ for a Guest, and Guest orders are reported as Guest sales (plan §139.11.3).
 
 Statuses move only as the transition table allows (`ORDER_STATUS_TRANSITIONS`,
 plan §139.11.8), and stock follows them: placing reserves, delivering turns the
-reservation into consumption, cancelling releases it.
+reservation into consumption, cancelling releases it. An open order may take
+any other open status — on, or back after a mistake — or go straight to
+Delivered or Cancelled; those two are final, and ask first.
+
+**An open order can be changed** (plan §139.11.13, `PUT /api/orders/{id}`,
+`update_order`): its items, customer, handover, charges and discounts, and
+notes — never its payments. A line already on it keeps the price it was
+ordered at. The reservation follows each product's change in quantity, checked
+against stock; the total may not come to less than has been paid.
 
 The server must:
 
@@ -646,6 +654,9 @@ refused, failed — is a **response card** (`useResponse()`, plan §139.6), on t
 web and in the Android app alike. What stays inline: field validation, beside
 the field; and a screen that could not load (`ScreenNotice` with Retry). An
 error card shows the API's message and its `requestId`, never raw text.
+**An action that cannot be undone asks first** on a confirm card
+(`respond.confirm`): marking an order Delivered or Completed, cancelling it,
+deleting, clearing an order being built, and signing out (`useSignOut`).
 
 Accessibility is mandatory:
 

@@ -7527,6 +7527,11 @@ Later the same day:
   - **No full-screen loader.** The root `loading.tsx` is removed: a streamed placeholder was held on screen for at least 0.3 s. **This supersedes §134 P1-2's loading screen.** A navigation that is still on its way after 150 ms shows the next screen's **skeleton in the page's place**, with the header and the navigation kept. Create order's steps change the address without asking the server.
   - **Heavy sheets and forms load when needed**: they are left out of the screen's first download and fetched once the screen is idle, so opening one rarely waits.
   - **Each account's data stays its own.** Signing in, signing out and confirming an email load a new page. Each signed-in account's reads are kept in a cache of its own, begun afresh when who is signed in changes.
+- **Orders can be changed, and moved to any status in one step** (the user: "option to edit an order and option to directly change status of the order instead of clicking prepare>done … by mistake order status as preparing can revert back too. edit order allows to add more items to the order also").
+  - **Edit** on an open order changes its items (more of something, a new product or custom item, one taken off), who it is for, the handover, the discounts and charges, and the notes. A line already on the order keeps the price it was ordered at; one added now takes today's. What has been paid stays as it is: the total may not come to less than that (§139.11.13).
+  - **Change status** offers every status an open order can take: straight on to Delivered or Completed, or back to an earlier one when it was moved by mistake (§139.11.8, revised).
+  - **Delivered or Completed, and Cancelled, stay final.** Asked, the user chose to keep them so: stock has followed them.
+- **What cannot be undone asks first** (the user: "keep confirm prompt on such cases, are sure the order is complete, are sure you want to logout, such no reversible actions need a confirm dialog"). Marking an order Delivered or Completed, cancelling it, and signing out now ask on a confirm card. Deleting an expense or a category, clearing an order being built and replacing it with Order again already asked.
 
 ---
 
@@ -8203,17 +8208,26 @@ line** — the ledger code must skip it, where today it would fail on
 
 ### 139.11.8 Order statuses and transitions
 
+*Revised 2026-09-27 (the user): an open order may take any other open status,
+on or back, or go straight to Delivered/Completed or Cancelled. Until then
+Pending led only to Preparing, and nothing went back
+(`0025_edit_orders.sql`).*
+
 | From | Allowed next |
 |---|---|
-| Pending | Preparing, Cancelled |
-| Preparing | Ready, Out for delivery *(delivery only)*, Delivered/Completed, Cancelled |
-| Ready | Out for delivery *(delivery only)*, Delivered/Completed, Cancelled |
-| Out for delivery | Delivered, Cancelled |
+| Pending | Preparing, Ready, Out for delivery *(delivery only)*, Delivered/Completed, Cancelled |
+| Preparing | Ready, Out for delivery *(delivery only)*, Delivered/Completed, **back to** Pending, Cancelled |
+| Ready | Out for delivery *(delivery only)*, Delivered/Completed, **back to** Preparing or Pending, Cancelled |
+| Out for delivery | Delivered, **back to** Ready, Preparing or Pending, Cancelled |
 | Delivered / Completed | — (final) |
 | Cancelled | — (final) |
 
 The server refuses anything else (BUG-05). **Out for delivery** exists only for
-a delivery order.
+a delivery order. The order screen keeps **one next-step button** for the usual
+next step; **Change status** beside it offers the rest. A move between open
+statuses moves no stock: the reservation stands until the order is delivered or
+cancelled. **Delivered/Completed and Cancelled ask first**, wherever they are
+chosen, since neither can be undone.
 
 **Labels** (`ORDER_STATUS_LABELS`): Pending · **Preparing** (`IN_PROGRESS`) ·
 **Ready** (`READY`, new) · Out for delivery (`IN_TRANSIT`) · **Delivered** for a
@@ -8407,6 +8421,36 @@ accessibility gaps (§2.2).
 - **Where they are used:** behind the auth scene (§138); the Home hero on phones; the compact bands on Analytics and Expenses; the desktop panels; and the small picture in the quote blocks.
 - **Text is never set on a photograph without a scrim** that keeps it at ≥ 4.5:1. The LCP plate alone is `priority`.
 - **App-owned only.** Products and customers never get photographs (§16).
+
+### 139.11.13 Changing an order (the user, 2026-09-27)
+
+- **Which:** an open order — Pending, Preparing, Ready or Out for delivery. A
+  delivered or cancelled one is refused (`ORDER_NOT_EDITABLE`): stock has
+  followed it.
+- **Where:** **Edit** on the order screen opens `/orders/{id}/edit`, the create
+  screen's own parts: the product grid and custom items, then the details —
+  the items with their steppers and notes, the customer (saved, new on the
+  spot, or Guest), the handover with the address filled from the customer
+  (§139.11.4), the discounts and charges, the internal notes — then **Save
+  changes**. There is no payment step: payments are collected on the order,
+  and the summary shows what has been paid so far and the balance left.
+- **Prices:** a line already on the order keeps the name and price it was
+  ordered at, whatever the menu says now; a line added takes today's price
+  (§139.11.5's pricing, `priceOrder`).
+- **What the server does** (`PUT /api/orders/{id}`, `update_order`), in one
+  transaction:
+  - the reservation follows each product's change in quantity: more reserves
+    more, less releases it, and more is checked against stock as a new order
+    is (§133.3 C4);
+  - the totals must add up, and **may not come to less than has been paid**
+    (`ORDER_TOTAL_BELOW_PAID`); the payment status is derived again;
+  - a line the order no longer has, or one at another price, means it changed
+    elsewhere (`ORDER_CHANGED`);
+  - an order out for delivery cannot become a pickup (`ORDER_IN_TRANSIT_PICKUP`);
+  - a due date moved to another day is told about afresh (0023's notices);
+  - the change is audited, before and after (§11).
+- **The lines keep their order** (`order_items.position`): kept lines stay
+  where they were, and new ones follow.
 
 ---
 
