@@ -2623,3 +2623,33 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - None. The sheet's licence joins Q16 with the illustrations, to be confirmed before the Play release.
+
+## 2026-09-27 — No worker for now: the app sends mail and tells of due orders
+
+### Changed
+- **One switch for whether a worker runs** (the user: "move notifications and mail sender from workers to directly handled by nextjs app, as iam not able to host workers now … dont remove those code completely"; plan §139.11.15). `WORKER_ENABLED` in `src/constants/jobs.ts` and `public.worker_enabled()` in the database are both false. A test keeps them equal. Every worker, handler, job type and trigger stays as it was.
+- **Email is sent by the request that asks for it** (`deliverAccountConfirmation`, `deliverEmailChange`). This covers the confirmation at registration and its Resend on Settings, and a new email address's link.
+  - A failed send at registration, or for a new address, never undoes the account or the waiting address; it is logged, and Settings offers to send it again.
+  - A Resend that fails says so on its card, in the app's words (`asMailFailure`, `src/lib/mail/failure.ts`).
+  - With a worker, each is queued as before.
+- **Notifications are only for orders due soon and overdue** (the user: "notifications now show for only about to due or already due orders"). The app looks for them as the bell or the inbox is read (`checkDueOrders`, `src/features/notifications/due.ts`): on every signed-in screen, and every minute while the app is open. It looks at a business once a minute at most per server, and a read in that minute waits for the look in hand. `take_due_order_notices` marks each order as told and hands back the facts; the app writes the words from messages.ts, as the worker did (BUG-26).
+- **Every other notification is paused** — an order placed or moved, a payment, a customer added, stock running low. The database holds back a notification queued while no worker runs (`jobs_hold_notifications`), and the payment's is not queued at all.
+- **`npm run worker` refuses to start while the switch is off.** Its sweep would mark orders as told while the database held back their notices.
+
+### Validation
+- **Database, rolled back:**
+  - a notification queued with no worker was not taken, and a queued email was;
+  - three orders due today, tomorrow and yesterday were each handed back once for their business, and none for another business;
+  - none came back before the business's morning;
+  - a signed-in user could not call it.
+- **Running app, local Supabase:**
+  - with two orders made untold, opening the app raised "Due soon: ORD-1001 for Guest is due today." and "Overdue: #1002 for Rahul Verma was due on 25 Sep.", each leading to its order, and the bell showed 2 unread;
+  - a registration through the API sent "Confirm your Ovenly account" to the new address at once (the local mail catcher), and queued no job.
+  - Both were put back afterwards: the throwaway account, its email and the two notices removed, and the orders' stamps restored.
+- **Checks:** `tsc` and `eslint` pass. The full suite passes (2,027 tests), and every new and changed file is at 100 % except the worker's command-line start, which was uncovered before.
+
+### Migration notes
+- `0027_no_worker.sql`: `worker_enabled()`, the `jobs_hold_notifications` trigger, a one-off marking of open orders long past their day as told, and `take_due_order_notices(uuid, integer)` for the service role. It needs applying wherever 0022–0026 do. Notification jobs already waiting in `jobs` are left as they are.
+
+### Blockers
+- None. Hosting a worker later is the switch and one migration (plan §139.11.15).

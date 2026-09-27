@@ -7539,6 +7539,10 @@ Later the same day:
   - **A new account is given one at random**, and every existing account was given one the same way.
   - **Tapping the picture on Settings** opens the nine to choose from; the choice is saved at once, as often as the owner likes.
   - **Only the owner's own account wears one**: the top bar, the account menu and Settings. Customers keep their initials (§139.11.14).
+- **No worker for now** (the user: "move notifications and mail sender from workers to directly handled by nextjs app, as iam not able to host workers now. notifications now show for only about to due or already due orders. others for now leave it, to reduce the load. dont remove those code completely as in future i may switch to workers").
+  - **Emails are sent by the app itself**, as they are asked for: the confirmation at registration and its Resend, and a new email address's link.
+  - **Notifications are only for orders due soon and overdue.** The app looks for them as the bell is read.
+  - **The other notifications are paused, not removed**: an order placed or moved, a payment, a customer added, stock running low. They come back with a worker (§139.11.15).
 
 ---
 
@@ -8483,6 +8487,37 @@ accessibility gaps (§2.2).
 - **Licence:** the sheet falls under Q16 with the illustrations: its licence
   is confirmed before the Play release.
 
+### 139.11.15 No worker for now (the user, 2026-09-27)
+
+This suspends, for now, §17's "use the queue for email delivery" and §25's
+event → job → worker → notification. The queue, the worker and every handler
+stay as they are, behind one switch: `WORKER_ENABLED` in the app and
+`worker_enabled()` in the database (`0027_no_worker`), both false.
+
+- **Email** is sent by the request that asks for it:
+  - **the confirmation at registration** — the account is made whether or not
+    the mail goes, and a failure is logged; Settings offers Resend;
+  - **Resend** on Settings — a failure is said on its card;
+  - **a new email's link** — the address waits whether or not the link goes,
+    and Settings offers Send the link again.
+
+  The temporary password was already sent directly (§94).
+- **Notifications** are only for **orders due today or tomorrow, and orders
+  overdue**, each told once, from the business's morning (0023's rules). The
+  app looks for them as the owner's bell or inbox is read
+  (`take_due_order_notices`): every signed-in screen reads the bell, and the
+  bell asks again every minute. A business is looked at once a minute at most,
+  so a notice arrives within a minute of the app being open. Orders left open
+  long past their day when this arrived were taken as known.
+- **Paused**: an order placed, an order moved, a payment, a customer added,
+  stock running low. The database holds them back at the queue, so nothing
+  piles up there, and the app queues none. The inbox's tabs stay as they are.
+- **The worker refuses to start** while the switch is off: its sweep would mark
+  orders as told while their notices were held back.
+- **Running a worker again**: set both switches true (a migration for the
+  database's) and run `npm run worker` beside the app. Every notification then
+  comes back, and email goes through the queue with its retries.
+
 ---
 
 ## 139.12 Data model and migrations
@@ -8508,6 +8543,7 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `…_notification_kind` | *Added 2026-09-26 as `0022_notification_kind` (R5.10).* `notifications.kind` (`ORDER`, `PAYMENT`, `STOCK`, `CUSTOMER`, `SYSTEM`); indexes `(bakery_id, created_at desc, id)` and `(bakery_id, is_read, created_at desc)`. Written by the worker only: `authenticated` loses INSERT and UPDATE, and may update `is_read` alone. Triggers queue the plan's events in their own transactions: an order placed, a customer added, and a counted product on sale falling to the low-stock mark (`low_stock_mark()`, equal to `LOW_STOCK_THRESHOLD`) — once as it crosses, never for a consumption line. | 5 |
 | `…_order_due_notifications` | *Added 2026-09-26 as `0023_order_due_notifications` (R5.10; the user).* `orders.due_notified_at` and `orders.overdue_notified_at`; a partial index on open orders by `delivery_date`; **`queue_due_order_notifications(p_from_hour)`**, the worker's alone, which marks and queues in one statement each open order due today or tomorrow, and each overdue, in its business's timezone, from the hour given. Open orders more than a day overdue when it arrives are marked as told. | 5 |
 | `…_profile_avatars` | *Added 2026-09-27 as `0026_profile_avatars` (the user).* `profiles.avatar`, not null, one of **`avatar_keys()`**'s nine; its default **`random_avatar()`** draws one for each new profile, and drew one for each existing profile as the column was added. Both functions are the server's only. | 5 |
+| `…_no_worker` | *Added 2026-09-27 as `0027_no_worker` (the user).* **`worker_enabled()`** (false for now); a `before insert` trigger on `jobs` that holds back `SEND_PUSH_NOTIFICATION` while it is false; open orders long past their day taken as told; **`take_due_order_notices(bakery, from_hour)`**, the service role's, which marks one business's orders due soon and overdue and hands back the facts. | 5 |
 | `…_audit_writes` | Revoke `INSERT` on `audit_logs` from `authenticated`; audit is written by the server with the acting user (§133.7 G1, BUG-20). | 2 |
 | `…_device_tokens` | The push-token registry (§133.5 E2). | 8 |
 | `…_profile_theme` *(if Q14)* | `profiles.theme`. | 1 |

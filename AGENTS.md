@@ -553,11 +553,33 @@ Approved workers include:
 
 Use the queue for email delivery and other operations where the plan specifies asynchronous processing.
 
+**For now no worker runs** (the user, 2026-09-27; plan §139.11.15). `WORKER_ENABLED`
+(`src/constants/jobs.ts`) is `false`, as `public.worker_enabled()` is
+(`0027_no_worker.sql`), and a test keeps the two equal. While it is false:
+
+- **Email is sent by the request that asks for it**: the confirmation at
+  registration and its Resend, and a new email's link
+  (`deliverAccountConfirmation`, `deliverEmailChange`). A failed send never
+  undoes what it was for — the account, the waiting address — and is logged;
+  a Resend reports it (`asMailFailure`).
+- **Notifications are only for orders due soon and overdue**, looked for by the
+  app as the bell or the inbox is read (`checkDueOrders`,
+  `take_due_order_notices`), once a minute at most per business.
+- **Every other notification is held back** at the queue
+  (`jobs_hold_notifications`), and the app queues none.
+- **`npm run worker` refuses to start.**
+
+Nothing of the worker is removed. New work that belongs on the queue is still
+written for it, with its inline path beside it under the same switch.
+Running a worker again is `WORKER_ENABLED = true`, a migration making
+`worker_enabled()` true, and the worker run beside the app.
+
 ---
 
 # 18. Notifications
 
-Notifications should be worker-based.
+Notifications should be worker-based. For now none is, and only orders due
+soon and overdue are told of (§17, plan §139.11.15).
 
 Android uses Capacitor native capabilities where appropriate.
 
