@@ -101,6 +101,33 @@
   --shadow-tone: 51 32 26;
 }
 
+/* The developer console (plan §37; the user, 2026-09-27): plain white and
+   blue, in the sans throughout — a tool, not a business's own screens. It is
+   set on the page while the console is open (:has), so a sheet or a card
+   opened from it takes it too; everywhere else the owner's theme stands.
+   Text 15.9 : 1 on the ground, muted 6.9 on white and 6.2 on the well,
+   blue 6.7 on white and white 6.7 on blue. */
+[data-theme="dev"],
+:root:has([data-theme="dev"]) {
+  --color-background: #f5f7fb;
+  --color-surface: #ffffff;
+  --color-sunken: #eef2f8;
+  --color-border: #dde4ee;
+  --color-text: #0f1b2d;
+  --color-text-muted: #4a5a70;
+  --color-primary: #1d4ed8;
+  --color-primary-hover: #1e40af;
+  --color-primary-text: #ffffff;
+  --color-primary-soft: #e3ebfd;
+  --color-primary-strong: #1d4ed8;
+  --color-accent: #3b82f6;
+  --color-action: #1e3a8a;
+  --color-action-hover: #1e40af;
+  --color-action-text: #ffffff;
+  --shadow-tone: 15 27 45;
+  --font-heading: var(--font-body);
+}
+
 /* What both themes share: the status colours, every one ≥ 4.5 : 1 as a word
    on its own 12 % tint in either theme, and everything derived from a role. */
 :root {

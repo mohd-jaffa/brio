@@ -2,8 +2,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 
-import { BUSINESS_ROLES } from "@/constants/roles";
-import { AUTH_ROUTES } from "@/constants/routes";
+import { BUSINESS_ROLES, DEVELOPER_ROLES } from "@/constants/roles";
+import { ADMIN_ROUTE, AUTH_ROUTES, HOME_ROUTE } from "@/constants/routes";
 import { logger } from "@/lib/logger";
 import { createSupabaseAnonClient, createSupabaseServiceRoleClient } from "@/lib/supabase/server";
 import type { Tenant } from "@/lib/supabase/tenant";
@@ -66,6 +66,8 @@ const NOTHING: ScreenData = { queries: {}, pages: {} };
  *
  * - An owner still holding a temporary password is sent to replace it here,
  *   before anything is drawn (plan §95).
+ * - A developer is sent to the developer console: a developer has no business
+ *   to show (plan §37).
  * - Anyone else the business routes would refuse gets nothing read, and the
  *   screen asks for itself as before, so the API gives the answer.
  * - A read that fails is left out and logged; its screen asks for it, and
@@ -80,7 +82,8 @@ export async function readScreen(reads: {
   const session = await readServerSession();
   if (!session) return NOTHING;
   if (session.requiresPasswordChange) redirect(AUTH_ROUTES.changePassword);
-  if (!BUSINESS_ROLES.includes(session.profile.role)) return NOTHING;
+  if (DEVELOPER_ROLES.includes(session.profile.role)) redirect(ADMIN_ROUTE);
+  if (!BUSINESS_ROLES.includes(session.profile.role) || !session.profile.bakeryId) return NOTHING;
 
   const tenant: Tenant = {
     supabase: createSupabaseAnonClient(session.accessToken),
@@ -108,6 +111,19 @@ export async function readScreen(reads: {
 
   const [queries, pages] = await Promise.all([readAll(reads.queries), readAll(reads.pages)]);
   return { queries, pages };
+}
+
+/**
+ * The developer console's gate, as its layout is drawn (plan §37): signed out
+ * is for the proxy, a temporary password is replaced first, and anyone but a
+ * developer is sent home. Like the rest, it decides nothing about access —
+ * every console route checks the role itself (`withDevRoute`).
+ */
+export async function requireDeveloperScreen(): Promise<void> {
+  const session = await readServerSession();
+  if (!session) return;
+  if (session.requiresPasswordChange) redirect(AUTH_ROUTES.changePassword);
+  if (!DEVELOPER_ROLES.includes(session.profile.role)) redirect(HOME_ROUTE);
 }
 
 /**

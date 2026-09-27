@@ -185,3 +185,5 @@ export {
   notificationListQuerySchema,
   type NotificationListQuery,
 } from "./schemas/notification";
+
+export { adminListQuerySchema, type AdminListQuery } from "./schemas/admin";

@@ -33,7 +33,7 @@ vi.mock("@/features/auth/api", () => ({
   }),
 }));
 
-const { readInitialSession, readScreen, routeQuery } = await import("@/features/auth/session.server");
+const { readInitialSession, readScreen, requireDeveloperScreen, routeQuery } = await import("@/features/auth/session.server");
 
 beforeEach(() => {
   jar.clear();
@@ -131,8 +131,15 @@ describe("readScreen", () => {
     const read = vi.fn();
     expect(await readScreen({ queries: { "/api/products": read } })).toEqual({ queries: {}, pages: {} });
 
-    signedIn({ profile: { role: "DEV" } });
+    signedIn({ profile: { bakeryId: null } });
     expect(await readScreen({ queries: { "/api/products": read } })).toEqual({ queries: {}, pages: {} });
+    expect(read).not.toHaveBeenCalled();
+  });
+
+  it("sends a developer to the developer console: a developer has no business to show (plan §37)", async () => {
+    const read = vi.fn();
+    signedIn({ profile: { role: "DEV", bakeryId: null } });
+    await expect(readScreen({ queries: { "/api/products": read } })).rejects.toThrow("NEXT_REDIRECT /admin");
     expect(read).not.toHaveBeenCalled();
   });
 
@@ -140,6 +147,26 @@ describe("readScreen", () => {
     signedIn({ requiresPasswordChange: true });
     await expect(readScreen({})).rejects.toThrow("NEXT_REDIRECT /change-password");
     expect(redirect).toHaveBeenCalledWith("/change-password");
+  });
+});
+
+describe("requireDeveloperScreen", () => {
+  it("lets a developer in", async () => {
+    signedIn({ profile: { role: "DEV", bakeryId: null } });
+    await expect(requireDeveloperScreen()).resolves.toBeUndefined();
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("sends an owner home, and a developer owing a password change to replace it", async () => {
+    signedIn();
+    await expect(requireDeveloperScreen()).rejects.toThrow("NEXT_REDIRECT /");
+    signedIn({ requiresPasswordChange: true, profile: { role: "DEV", bakeryId: null } });
+    await expect(requireDeveloperScreen()).rejects.toThrow("NEXT_REDIRECT /change-password");
+  });
+
+  it("leaves a visitor with no session to the proxy, which sends them to sign in", async () => {
+    await expect(requireDeveloperScreen()).resolves.toBeUndefined();
+    expect(redirect).not.toHaveBeenCalled();
   });
 });
 

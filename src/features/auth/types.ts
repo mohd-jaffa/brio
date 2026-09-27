@@ -11,7 +11,8 @@ export interface AuthProfile {
   /** The profile picture: one of the nine that ship with the app (0026). */
   avatar: AvatarKey;
   role: UserRole;
-  bakeryId: string;
+  /** The owner's business; none for a developer, who owns none (0028). */
+  bakeryId: string | null;
   isActive: boolean;
   mustChangePassword: boolean;
   emailConfirmedAt: string | null;

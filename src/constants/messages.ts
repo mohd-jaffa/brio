@@ -54,6 +54,9 @@ export const ERROR_MESSAGES = {
   PRODUCTS_LOAD_FAILED: "Could not load your products. Please try again.",
   ORDERS_LOAD_FAILED: "Could not load your orders. Please try again.",
   INVENTORY_LOAD_FAILED: "Could not load your stock. Please try again.",
+  ADMIN_OVERVIEW_LOAD_FAILED: "Could not load the overview. Please try again.",
+  ADMIN_USERS_LOAD_FAILED: "Could not load the accounts. Please try again.",
+  ADMIN_AUDIT_LOAD_FAILED: "Could not load the audit log. Please try again.",
   EXPENSES_LOAD_FAILED: "Could not load your expenses. Please try again.",
   ANALYTICS_LOAD_FAILED: "Could not load your analytics. Please try again.",
   DASHBOARD_LOAD_FAILED: "Could not load your dashboard. Please try again.",
@@ -1100,6 +1103,54 @@ export const UI_TEXT = {
     changePicture: "Change profile picture",
     pictureTitle: "Choose a profile picture",
     pictureHint: "It shows on your account, beside your name.",
+  },
+
+  /**
+   * The developer console (plan §5, §37; the user, 2026-09-27): read-only, in
+   * white and blue, for DEV only. It shows what the app already keeps.
+   */
+  admin: {
+    product: "Ovenly",
+    console: "Developer console",
+    nav: "Developer console",
+    places: {
+      overview: "Overview",
+      users: "Users",
+      audit: "Audit log",
+    },
+    signedInAs: "Signed in as",
+    overviewTitle: "Overview",
+    overviewSubtitle: "The platform at a glance.",
+    totalUsers: "Total users",
+    usersBreakdown: (owners: number, developers: number) =>
+      `${owners} ${owners === 1 ? "owner" : "owners"} · ${developers} ${developers === 1 ? "developer" : "developers"}`,
+    businesses: "Businesses",
+    auditEntries: "Audit entries",
+    auditLastDay: (count: number) => `${count} in the last 24 hours`,
+    // What is kept, said plainly: server errors are written to the server's output only.
+    keptNote:
+      "This console shows what the app keeps: accounts and the audit trail. Server errors are not stored; they are in the server's own output.",
+    usersTitle: "Users",
+    usersSubtitle: "Every account, newest first.",
+    usersEmpty: "No accounts yet.",
+    mobile: "Mobile",
+    email: "Email",
+    business: "Business",
+    noBusiness: "None",
+    joined: "Joined",
+    active: "Active",
+    inactive: "Deactivated",
+    emailUnconfirmed: "Email not confirmed",
+    owesPasswordChange: "Owes a password change",
+    auditTitle: "Audit log",
+    auditSubtitle: "What changed in every business, who changed it, and when.",
+    auditEmpty: "Nothing has been recorded yet.",
+    by: (actor: string) => `by ${actor}`,
+    unknownActor: "someone no longer here",
+    beforeAndAfter: "Before and after",
+    before: "Before",
+    after: "After",
+    nothing: "Nothing",
   },
 
   /** The screens shown when a route is missing or a screen fails (plan §134 P0-2, P1-1). */

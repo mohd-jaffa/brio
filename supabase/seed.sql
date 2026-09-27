@@ -2,6 +2,7 @@
 -- Ovenly — demo data for local development
 --
 -- Sign in with:   mobile 9876543210   password Password123!
+-- The developer console (/admin):   mobile 9123456789   password Password123!
 --
 -- The account is created in auth.users here, not only in profiles:
 -- bakeries.owner_id and profiles.id both reference auth.users(id), and a
@@ -219,4 +220,50 @@ begin
     (v_bakery_id, v_order_1, 125000, 'UPI',  'UPI987654321', now() - interval '1 day'),
     (v_bakery_id, v_order_3,  50000, 'CASH', null,           now())
   on conflict do nothing;
+end $$;
+
+-- ============================================================
+-- A developer, for the developer console (plan §5, §37). No business:
+-- a developer reads the platform, never a business's data (0028).
+-- ============================================================
+do $$
+declare
+  v_dev_id     uuid := 'f1f2f3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f';
+  v_email      text := 'dev@ovenly.local';
+  v_phone      text := '+919123456789';
+  v_auth_phone text := '919123456789';
+  v_password   text := 'Password123!';
+begin
+  insert into auth.users (
+    instance_id, id, aud, role,
+    email, encrypted_password, email_confirmed_at,
+    phone, phone_confirmed_at,
+    raw_app_meta_data, raw_user_meta_data,
+    confirmation_token, recovery_token, email_change_token_new, email_change,
+    created_at, updated_at, last_sign_in_at
+  )
+  values (
+    '00000000-0000-0000-0000-000000000000', v_dev_id, 'authenticated', 'authenticated',
+    v_email, extensions.crypt(v_password, extensions.gen_salt('bf')), now(),
+    v_auth_phone, now(),
+    '{"provider":"phone","providers":["phone","email"]}'::jsonb,
+    jsonb_build_object('name', 'Ovenly Developer'),
+    '', '', '', '',
+    now() - interval '30 days', now(), null
+  )
+  on conflict (id) do nothing;
+
+  insert into auth.identities (provider_id, user_id, identity_data, provider, created_at, updated_at)
+  values
+    (v_dev_id::text, v_dev_id,
+     jsonb_build_object('sub', v_dev_id::text, 'email', v_email, 'email_verified', true),
+     'email', now(), now()),
+    (v_auth_phone, v_dev_id,
+     jsonb_build_object('sub', v_dev_id::text, 'phone', v_auth_phone, 'phone_verified', true),
+     'phone', now(), now())
+  on conflict (provider_id, provider) do nothing;
+
+  insert into public.profiles (id, phone, email, name, role, bakery_id, is_active, must_change_password, email_confirmed_at, created_at)
+  values (v_dev_id, v_phone, v_email, 'Ovenly Developer', 'DEV', null, true, false, now(), now() - interval '30 days')
+  on conflict (id) do nothing;
 end $$;

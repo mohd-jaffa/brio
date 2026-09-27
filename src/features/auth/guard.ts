@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { BUSINESS_ROLES, type UserRole } from "@/constants/roles";
+import { BUSINESS_ROLES, DEVELOPER_ROLES, type UserRole } from "@/constants/roles";
 import { withApiHandler, type ApiContext } from "@/lib/api/handler";
 import { authenticationError, authorizationError } from "@/lib/errors";
 import { createSupabaseAnonClient, createSupabaseServiceRoleClient } from "@/lib/supabase/server";
@@ -40,6 +40,15 @@ export function readAccessToken(request: Request): string {
  */
 export function assertRole(profile: AuthProfile, allowedRoles: readonly UserRole[]) {
   if (!allowedRoles.includes(profile.role)) throw authorizationError("AUTH_ROLE_FORBIDDEN");
+}
+
+/**
+ * The business an owner acts for. Every owner has one (0028's check), so a
+ * profile without one here can only be one the route should not serve.
+ */
+export function businessOf(profile: AuthProfile): string {
+  if (!profile.bakeryId) throw authorizationError("AUTH_ROLE_FORBIDDEN");
+  return profile.bakeryId;
 }
 
 /**
@@ -93,7 +102,7 @@ export function withBakeryRoute<TData>(
         requestId,
         session,
         supabase: createSupabaseAnonClient(session.accessToken),
-        bakeryId: session.profile.bakeryId,
+        bakeryId: businessOf(session.profile),
         actorId: session.profile.id,
       });
     },
@@ -122,9 +131,31 @@ export function withAccountRoute<TData>(request: Request, handler: (context: Acc
       requestId,
       session,
       supabase: createSupabaseAnonClient(session.accessToken),
-      bakeryId: session.profile.bakeryId,
+      bakeryId: businessOf(session.profile),
       actorId: session.profile.id,
       admin: createSupabaseServiceRoleClient(),
     });
+  });
+}
+
+/** What a developer console route is handed: who is asking, and the server's client, to read with. */
+export interface DeveloperContext extends ApiContext {
+  session: AuthenticatedSession;
+  admin: SupabaseClient;
+}
+
+/**
+ * A route of the developer console (plan §5, §37): DEV and only DEV, and
+ * never one still owing a password change. The console reads across every
+ * business — the accounts, the audit trail, the job queue — so it reads as
+ * the server, and the rule that decides who may is this guard. Every such
+ * read is a fixed, read-only query in `src/features/admin/api.ts`; nothing a
+ * console route does writes (the user, 2026-09-27).
+ */
+export function withDevRoute<TData>(request: Request, handler: (context: DeveloperContext) => Promise<TData>) {
+  return withApiHandler(request, async ({ requestId }) => {
+    const session = await requireAuth(request, DEVELOPER_ROLES);
+    assertPasswordChanged(session);
+    return handler({ requestId, session, admin: createSupabaseServiceRoleClient() });
   });
 }

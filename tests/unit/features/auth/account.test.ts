@@ -405,6 +405,14 @@ describe("confirmEmailChange", () => {
     );
   });
 
+  it("records nothing in a business's trail for an account with no business", async () => {
+    const { admin } = fakeAdmin((table, ops) =>
+      has(ops, "update") ? { data: row({ email: "dev.new@example.com", bakery_id: null }) } : { data: waiting({ bakery_id: null }) },
+    );
+    await expect(confirmEmailChange(admin, { token: TOKEN })).resolves.toEqual({ email: "dev.new@example.com" });
+    expect(logActionSafe).not.toHaveBeenCalled();
+  });
+
   it("refuses a token it does not know, one that lapsed, and one with nothing waiting", async () => {
     for (const data of [null, waiting({ pending_email_expires_at: new Date(Date.now() - 1_000).toISOString() }), waiting({ pending_email: null }), waiting({ pending_email_expires_at: null })]) {
       expect((await refusal(confirmEmailChange(fakeAdmin(() => ({ data })).admin, { token: TOKEN }))).code).toBe(

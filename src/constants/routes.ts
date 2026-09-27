@@ -15,6 +15,16 @@ export const AUTH_ROUTES = {
 /** Where a signed-in baker lands when they have nowhere particular to go. */
 export const HOME_ROUTE = "/";
 
+/** The developer console's pages (plan §37): DEV only. */
+export const ADMIN_ROUTES = {
+  overview: "/admin",
+  users: "/admin/users",
+  audit: "/admin/audit",
+} as const;
+
+/** Where a developer lands instead of Home: a developer has no business. */
+export const ADMIN_ROUTE = ADMIN_ROUTES.overview;
+
 /** Carries the screen someone was trying to reach through the sign-in detour. */
 export const RETURN_TO_PARAM = "next";
 

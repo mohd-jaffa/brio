@@ -18,9 +18,8 @@ vi.mock("@/lib/supabase/server", () => ({
   createSupabaseServiceRoleClient: vi.fn(() => serviceClient),
 }));
 
-const { assertPasswordChanged, assertRole, bearerToken, readAccessToken, withAccountRoute } = await import(
-  "@/features/auth/guard"
-);
+const { assertPasswordChanged, assertRole, bearerToken, businessOf, readAccessToken, withAccountRoute, withBakeryRoute, withDevRoute } =
+  await import("@/features/auth/guard");
 
 const profile = (role: AuthProfile["role"]): AuthProfile => ({
   id: "u-1",
@@ -143,6 +142,57 @@ describe("a route that changes the owner's own account", () => {
     expect((await (await withAccountRoute(call(), handler)).json()).error.code).toBe("AUTH_PASSWORD_CHANGE_REQUIRED");
     getSession.mockResolvedValue({ ...signedIn(), profile: profile("DEV") });
     expect((await (await withAccountRoute(call(), handler)).json()).error.code).toBe("AUTH_ROLE_FORBIDDEN");
+    expect(handler).not.toHaveBeenCalled();
+  });
+});
+
+describe("the business an owner acts for", () => {
+  it("is the profile's own, and a profile without one is not served", () => {
+    expect(businessOf(profile("USER"))).toBe("b-1");
+    expect(codeOf(() => businessOf({ ...profile("DEV"), bakeryId: null }))).toBe("AUTH_ROLE_FORBIDDEN");
+  });
+
+  it("is never missing from a business route: one without it is refused before the handler", async () => {
+    getSession.mockResolvedValue({
+      accessToken: "t",
+      refreshToken: "",
+      expiresAt: null,
+      profile: { ...profile("USER"), bakeryId: null },
+      requiresPasswordChange: false,
+    });
+    const handler = vi.fn();
+    const answer = await (await withBakeryRoute(requestWith({ authorization: "Bearer t" }), handler)).json();
+    expect(answer.error.code).toBe("AUTH_ROLE_FORBIDDEN");
+    expect(handler).not.toHaveBeenCalled();
+  });
+});
+
+describe("a developer console route (plan §37)", () => {
+  const signedIn = (role: AuthProfile["role"], requiresPasswordChange = false): AuthenticatedSession => ({
+    accessToken: "t",
+    refreshToken: "",
+    expiresAt: null,
+    profile: { ...profile(role), bakeryId: role === "DEV" ? null : "b-1" },
+    requiresPasswordChange,
+  });
+  const call = () => new Request("https://ovenly.test/api/admin/overview", { headers: { authorization: "Bearer t" } });
+
+  it("serves a developer, handing over the session and the server's client to read with", async () => {
+    getSession.mockResolvedValue(signedIn("DEV"));
+    const response = await withDevRoute(call(), async (context) => ({
+      who: context.session.profile.id,
+      server: context.admin === (serviceClient as unknown),
+      request: context.requestId.startsWith("req_"),
+    }));
+    expect(await response.json()).toMatchObject({ success: true, data: { who: "u-1", server: true, request: true } });
+  });
+
+  it("refuses an owner, and a developer still owing a password change", async () => {
+    const handler = vi.fn();
+    getSession.mockResolvedValue(signedIn("USER"));
+    expect((await (await withDevRoute(call(), handler)).json()).error.code).toBe("AUTH_ROLE_FORBIDDEN");
+    getSession.mockResolvedValue(signedIn("DEV", true));
+    expect((await (await withDevRoute(call(), handler)).json()).error.code).toBe("AUTH_PASSWORD_CHANGE_REQUIRED");
     expect(handler).not.toHaveBeenCalled();
   });
 });

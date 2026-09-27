@@ -330,15 +330,19 @@ export async function confirmEmailChange(
     throw failure;
   }
 
-  await logActionSafe(
-    { supabase: adminClient, bakeryId: row.bakery_id, actorId: row.id },
-    {
-      action: "UPDATE",
-      entity_type: "profiles",
-      entity_id: row.id,
-      previous_data: { email: row.email },
-      new_data: { email: saved.email },
-    },
-  );
+  // The trail is a business's (0003); a developer owns none, and asks for no
+  // new email here anyway — the route serves owners only.
+  if (row.bakery_id) {
+    await logActionSafe(
+      { supabase: adminClient, bakeryId: row.bakery_id, actorId: row.id },
+      {
+        action: "UPDATE",
+        entity_type: "profiles",
+        entity_id: row.id,
+        previous_data: { email: row.email },
+        new_data: { email: saved.email },
+      },
+    );
+  }
   return { email: saved.email };
 }

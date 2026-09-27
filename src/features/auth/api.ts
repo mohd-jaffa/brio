@@ -43,7 +43,7 @@ export interface ProfileRow {
   name: string;
   avatar: string;
   role: UserRole;
-  bakery_id: string;
+  bakery_id: string | null;
   is_active: boolean;
   must_change_password: boolean;
   email_confirmed_at: string | null;

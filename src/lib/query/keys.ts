@@ -71,6 +71,12 @@ export const apiRoutes = {
     profile: "/api/business",
     logo: "/api/business/logo",
   },
+  /** The developer console (plan §37): read-only, DEV only. */
+  admin: {
+    overview: "/api/admin/overview",
+    users: "/api/admin/users",
+    audit: "/api/admin/audit",
+  },
 } as const;
 
 /**

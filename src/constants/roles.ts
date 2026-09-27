@@ -19,3 +19,10 @@ export const ROLE_LABELS: Record<UserRole, string> = {
  * inherited from the role (§5).
  */
 export const BUSINESS_ROLES: readonly UserRole[] = ["USER"];
+
+/**
+ * Who may read the platform — the accounts, the audit trail, the job queue —
+ * in the developer console (plan §5, §37): DEV, and only DEV. Read-only for
+ * now (the user, 2026-09-27).
+ */
+export const DEVELOPER_ROLES: readonly UserRole[] = ["DEV"];

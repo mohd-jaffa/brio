@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { BUSINESS_ROLES, ROLE_LABELS, USER_ROLES } from "@/constants/roles";
+import { BUSINESS_ROLES, DEVELOPER_ROLES, ROLE_LABELS, USER_ROLES } from "@/constants/roles";
 
 describe("roles", () => {
   it("has exactly the two the plan approves", () => {
@@ -17,5 +17,7 @@ describe("roles", () => {
   it("does not let DEV inherit access to a business's data", () => {
     expect(BUSINESS_ROLES).toEqual(["USER"]);
     expect(BUSINESS_ROLES).not.toContain("DEV");
+    // The developer console is DEV's, and only DEV's (plan §37).
+    expect(DEVELOPER_ROLES).toEqual(["DEV"]);
   });
 });

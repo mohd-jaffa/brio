@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { UI_TEXT } from "@/constants/messages";
-import { authStub } from "@tests/support/auth";
+import { authStub, TEST_PROFILE } from "@tests/support/auth";
 
 const { router, auth } = vi.hoisted(() => ({
   router: { replace: vi.fn(), push: vi.fn(), back: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() },
@@ -74,6 +74,14 @@ describe("the session gate", () => {
     screenUnder();
 
     await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/change-password"));
+    expect(screen.queryByText("Order detail")).not.toBeInTheDocument();
+  });
+
+  it("sends a developer, who has no business to show, to the developer console (plan §37)", async () => {
+    auth.current = authStub({ profile: { ...TEST_PROFILE, role: "DEV", bakeryId: null } });
+    screenUnder();
+
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/admin"));
     expect(screen.queryByText("Order detail")).not.toBeInTheDocument();
   });
 });
