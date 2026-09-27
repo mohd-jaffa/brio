@@ -1,4 +1,5 @@
 import { act, renderHook } from "@testing-library/react";
+import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { useRememberedRange } from "@/hooks/useRememberedRange";
@@ -36,5 +37,29 @@ describe("useRememberedRange", () => {
     const { result } = renderHook(() => useRememberedRange("analytics"));
     act(() => result.current[1]({ preset: "LAST_7_DAYS" }));
     expect(result.current[0].preset).toBe("LAST_7_DAYS");
+  });
+
+  it("draws the default where storage cannot be seen — the server, and hydration — so the two agree", () => {
+    localStorage.setItem("ovenly_range_analytics", JSON.stringify({ preset: "LAST_7_DAYS" }));
+    function Period() {
+      return <output>{useRememberedRange("analytics")[0].preset}</output>;
+    }
+    expect(renderToString(<Period />)).toContain("LAST_30_DAYS");
+  });
+
+  it("follows a choice made in another tab", () => {
+    const { result } = renderHook(() => useRememberedRange("expenses"));
+    act(() => {
+      localStorage.setItem("ovenly_range_expenses", JSON.stringify({ preset: "LAST_MONTH" }));
+      window.dispatchEvent(new StorageEvent("storage", { key: "ovenly_range_expenses" }));
+    });
+    expect(result.current[0].preset).toBe("LAST_MONTH");
+  });
+
+  it("starts fresh when storage is closed to the page", () => {
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("closed");
+    });
+    expect(renderHook(() => useRememberedRange("analytics")).result.current[0].preset).toBe("LAST_30_DAYS");
   });
 });
