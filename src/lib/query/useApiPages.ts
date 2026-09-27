@@ -6,6 +6,8 @@ import { fetcher } from "@/lib/api/client";
 import type { Page } from "@/lib/api/pagination";
 
 import { withQuery } from "./keys";
+import { pageKey } from "./ServerData";
+import { useSeeded } from "./useSeeded";
 
 /**
  * A paged list from the API (plan §133.9 I4): the first page, and the next
@@ -20,8 +22,12 @@ import { withQuery } from "./keys";
  *
  * A route whose page carries more than its rows — Guest sales' count and
  * total — names its shape as `P`, and reads it from `first`.
+ *
+ * A first page the page arrived with (`ServerData`) is shown at once and not
+ * asked for again on mount.
  */
 export function useApiPages<T, P extends Page<T> = Page<T>>(key: string | null) {
+  const seeded = useSeeded(key === null ? null : pageKey(key));
   const { data, error, isLoading, isValidating, mutate, size, setSize } = useSWRInfinite<P>(
     (index, previous: P | null) => {
       if (key === null) return null;
@@ -29,7 +35,7 @@ export function useApiPages<T, P extends Page<T> = Page<T>>(key: string | null) 
       return previous?.nextCursor ? withQuery(key, { cursor: previous.nextCursor }) : null;
     },
     fetcher,
-    { revalidateAll: true, keepPreviousData: true },
+    { revalidateAll: true, keepPreviousData: true, ...(seeded && { revalidateOnMount: false }) },
   );
 
   const hasMore = Boolean(data?.[data.length - 1]?.nextCursor);

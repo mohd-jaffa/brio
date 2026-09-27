@@ -1,10 +1,11 @@
-import { AppShell } from "@/components/nav/AppShell";
+import { AppScreen } from "@/components/nav/AppScreen";
 import { Analytics } from "@/features/analytics/components/Analytics";
 
+/** Analytics: its period is kept on the device, so its figures are read there. */
 export default function AnalyticsPage() {
   return (
-    <AppShell>
+    <AppScreen>
       <Analytics />
-    </AppShell>
+    </AppScreen>
   );
 }

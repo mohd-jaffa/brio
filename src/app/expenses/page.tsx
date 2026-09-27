@@ -1,10 +1,11 @@
-import { AppShell } from "@/components/nav/AppShell";
+import { AppScreen } from "@/components/nav/AppScreen";
 import { Expenses } from "@/features/expenses/components/Expenses";
 
+/** Expenses: its period is kept on the device, so its figures are read there. */
 export default function ExpensesPage() {
   return (
-    <AppShell>
+    <AppScreen>
       <Expenses />
-    </AppShell>
+    </AppScreen>
   );
 }

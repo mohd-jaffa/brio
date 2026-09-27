@@ -13,6 +13,13 @@ const nextConfig: NextConfig = {
   },
   // Settings → About shows it (R5.11).
   env: { NEXT_PUBLIC_APP_VERSION: version },
+  experimental: {
+    // Screens are drawn per request, with their data (AppScreen). One visited
+    // in the last 30 seconds — back and forth between two tabs — is shown again
+    // from the browser without asking the server; its figures come from the
+    // client cache, which revalidates them as it always does.
+    staleTimes: { dynamic: 30 },
+  },
 };
 
 export default nextConfig;
