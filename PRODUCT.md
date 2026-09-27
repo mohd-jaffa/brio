@@ -56,9 +56,9 @@ Built around **made-to-order work from home**, not a shop counter:
   - customers and Guest sales, products with illustrations, stock kept as a ledger;
   - expenses with categories, analytics with charts;
   - business details with the one logo upload;
-  - Settings, and a notifications inbox with a bell.
+  - Settings, with the owner's profile picture (one of nine, given at random and changed there), and a notifications inbox with a bell.
 - **Roles:** `USER` is the owner; a screen calls it "Owner". `DEV` never sees business data.
-- **Uploads:** the business logo is the only file a user uploads, up to 500 KB. Illustrations and photographs ship with the app; a user picks an illustration, and only its key is stored.
+- **Uploads:** the business logo is the only file a user uploads, up to 500 KB. Illustrations, photographs and the nine profile pictures ship with the app; a user picks an illustration, or their own profile picture, and only its key is stored. Customers keep their initials.
 - **Themes:** exactly two, Golden and Peach, chosen by the user.
 - **Words:** everything a user reads says *business*, not *bakery*.
 - **Out of scope (Q7):** messages or chat; staff and team; suppliers; wholesale customers; language, currency and payment-method settings; a barcode scanner; a dark-mode toggle; switching between several businesses; "Today's special"; Help & Support; and any promise that "the customer will be notified".
@@ -66,7 +66,7 @@ Built around **made-to-order work from home**, not a shop counter:
 - **Undecided:**
   - how the Android app is delivered (Q9);
   - the application id and Play developer account (Q10);
-  - the licence of the illustrations, to be confirmed before the Play release (Q16).
+  - the licence of the illustrations and the profile pictures, to be confirmed before the Play release (Q16).
 
 ## Brand Commitments
 

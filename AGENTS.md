@@ -501,7 +501,7 @@ reference change through `update_business_profile` and `set_business_logo`,
 which act only for the owner.
 - Do not introduce image uploads for products, customers, orders, expenses, receipts, menu items, or users unless the plan is explicitly changed.
 
-**App-owned artwork is not an upload.** The illustration library (`artwork/illustrations/`, shipped from `src/assets/illustrations/`, plan §139.11.10) and the photographic plates (`src/assets/plates/`, §139.11.12) ship with the app. A user **chooses** an illustration for a product or an expense category; nothing they choose is stored except its key. Their masters are committed; the design references in `design-references/` are not.
+**App-owned artwork is not an upload.** The illustration library (`artwork/illustrations/`, shipped from `src/assets/illustrations/`, plan §139.11.10), the photographic plates (`src/assets/plates/`, §139.11.12) and the nine profile pictures (`src/assets/avatars/`, §139.11.14) ship with the app. A user **chooses** an illustration for a product or an expense category, and a profile picture for their own account — a new account is given one at random (`0026_profile_avatars`); nothing they choose is stored except its key. The profile pictures are for the owner's account only: a customer keeps their initials. Their masters are committed; the design references in `design-references/` are not, and the plates and the profile pictures are built from them.
 
 ---
 

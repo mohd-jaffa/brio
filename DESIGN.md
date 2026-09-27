@@ -293,7 +293,7 @@ A warm, low-chroma kitchen palette. One caramel (or terracotta) voice does the p
 
 - **Operate mode throughout:** predictable structure, steady density, and one clear reading order. What is due and what is owed comes first.
 - **Phone (under 768 px):**
-  - a top bar with the business's mark, name and catch phrase, the bell and the avatar;
+  - a top bar with the business's mark, name and catch phrase, the bell and the owner's profile picture;
   - a five-item bottom bar (Home, Orders, Products, Customers, More) with a tinted pill on the current place;
   - 16 px gutters.
 - **Tablet (768 – 1023 px):** a 72 px icon rail whose labels appear as tooltips, a top bar with the bell and the account, and 24 px gutters.
@@ -365,6 +365,11 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 - **The list:** Oat Paper, one hairline, 12 px corners and the elevated shadow, with a 6 px inset. Each choice is at least 44 px tall. The one the keys are on sits on Flour Well, and the chosen one is semibold with a caramel tick.
 - **Where it opens:** in the top layer, so no scrolling sheet clips it; under the control, or over it where there is more room; lined up with the control's nearer screen edge; at most 288 px tall, then it scrolls. It drops in over 240 ms, as a fade under reduced motion.
 - **Keyboard:** the arrows, Home and End move; a letter jumps; Enter or Space takes; Escape or Tab closes, and Escape never closes the sheet behind it.
+
+### Profile picture
+- **The owner's own account only** (`profile-avatar`): one of nine animal faces that ship with the app, on a round well of Caramel Cream / Terracotta Blush. 36 px in the top bar and the account menu; 80 px on Settings' profile card, ringed in Oat Paper where it overlaps the plate. A customer keeps their initials (`avatar`).
+- **On Settings it is a button** named "Change profile picture", with a 28 px caramel badge and a pencil at its lower right; it grows a little under a pointer.
+- **The chooser:** the nine in a three-by-three grid, each 80 px over its name in 12 px; the one in use has a caramel ring with a 2 px gap and a caramel tick badge, and its name in semibold. Tapping one saves it, a spinner over that picture meanwhile. A bottom sheet on a phone, a dialog from 768 px.
 
 ### Cards / Containers
 - **Corner style:** 16 px.

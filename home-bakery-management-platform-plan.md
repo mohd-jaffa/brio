@@ -7534,6 +7534,11 @@ Later the same day:
 - **What cannot be undone asks first** (the user: "keep confirm prompt on such cases, are sure the order is complete, are sure you want to logout, such no reversible actions need a confirm dialog"). Marking an order Delivered or Completed, cancelling it, and signing out now ask on a confirm card. Deleting an expense or a category, clearing an order being built and replacing it with Order again already asked.
 - **Every choice opens the app's own list** (the user: "some of the select dropdown is not having css instead using native list, fix that too, like in analytics the days dropdown list"). The period on Analytics, Expenses and Guest sales, Daily or Weekly beside a trend, and every choice in a form — a payment method, a unit, a stock movement, a category filter, a discount or a charge — open a list in paper and hairline with the chosen one ticked, never the browser's own. It is one kit component (`select-menu`); the range picker's native select is gone.
   - Opening it no longer shows a different period after the page loads: the remembered period is read once the page has hydrated, so the server's page and the browser's first draw agree.
+- **A profile picture in place of initials** (the user: "split this, and when a new person registers, randomly give one from these 9 as profile icon … when clicked on the avatar icon will show the dialog or modal to change it with any of the 9 available, these icons are only for the profile, nothing else").
+  - The supplied sheet of nine animals is cut into **nine pictures that ship with the app**. Nothing is uploaded, and only the chosen one's key is kept.
+  - **A new account is given one at random**, and every existing account was given one the same way.
+  - **Tapping the picture on Settings** opens the nine to choose from; the choice is saved at once, as often as the owner likes.
+  - **Only the owner's own account wears one**: the top bar, the account menu and Settings. Customers keep their initials (§139.11.14).
 
 ---
 
@@ -7625,7 +7630,7 @@ tracker rows that waited on them no longer wait.
 
 **What we do not take** — product truth wins (§139.2 Q6, Q7):
 
-- **Customer and profile photos** become **initials avatars**. Photo uploads are outside §16.
+- **Customer and profile photos** become **initials avatars**. Photo uploads are outside §16. *(Revised 2026-09-27, the user: the owner's own picture is one of nine animals that ship with the app, §139.11.14; customers keep their initials.)*
 - **Product photos** become the product's **illustration** (§139.11.10). The supplied photographs appear only as app-owned backgrounds (§139.11.12).
 - The **"Admin" and "Baker" role labels** become **"Owner"**.
 - **"The customer will be notified"** — customers receive nothing from this product, so the copy must not promise it.
@@ -7722,7 +7727,7 @@ a shared component** (AGENTS §5).
 
 | Component | New / rewrite | What it is |
 |---|---|---|
-| `AppShell` | Rewrite | **Phone:** a top bar with the business mark, name and catch phrase, a bell and an initials avatar; a five-item bottom nav with a tinted active pill. **Tablet:** an icon rail. **Desktop:** a grouped sidebar — *Home, Orders, Products, Customers* · *Analytics, Expenses* · *Inventory, Notifications, Business details, Settings* — and a top bar with the bell and the account menu (no global search: the user's decision, 2026-09-25). Safe areas on every edge. |
+| `AppShell` | Rewrite | **Phone:** a top bar with the business mark, name and catch phrase, a bell and the owner's profile picture (§139.11.14; initials until 2026-09-27); a five-item bottom nav with a tinted active pill. **Tablet:** an icon rail. **Desktop:** a grouped sidebar — *Home, Orders, Products, Customers* · *Analytics, Expenses* · *Inventory, Notifications, Business details, Settings* — and a top bar with the bell and the account menu (no global search: the user's decision, 2026-09-25). Safe areas on every edge. |
 | `page-header` | Rewrite | Back, a serif title, a sans subtitle, and a trailing action (a range picker or a `+`). |
 | `hero` | New | An optional photographic plate (§139.11.12), a two-line serif, a rule and a tracked line. **Home only on phones**; Analytics and Expenses get a compact band, so their numbers stay above the fold. |
 | `stat-tile` | Rewrite | Medallion icon, value (serif when it is a headline amount), label, a delta against the previous period (up green, down rose), and an optional sparkline on desktop. |
@@ -8084,7 +8089,7 @@ with a medallion icon and a chevron. There is no Help entry (Q7).
 
 ### Settings
 
-A profile card (initials, name, "Owner · {business}", the catch phrase as a
+A profile card (the owner's profile picture, tapped to choose another — §139.11.14 — name, "Owner · {business}", the catch phrase as a
 quote). Then **Business details**; **Account** (name, email, the sign-in number,
 change password); **Appearance** (Golden or Peach); **Notifications** (the
 Android permission); **About** (the version, the privacy policy, and **Crafted by · jaFFa** — the user, 2026-09-26, in place of the illustration credit); **Sign out**.
@@ -8454,6 +8459,30 @@ accessibility gaps (§2.2).
 - **The lines keep their order** (`order_items.position`): kept lines stay
   where they were, and new ones follow.
 
+### 139.11.14 Profile pictures (the user, 2026-09-27)
+
+- **What:** the owner's own picture is one of **nine animals** — Pomeranian,
+  Hamster, Blue bear, Husky, Polar bear, Cream kitten, Ginger cat, Beagle,
+  Tiger — cut from the sheet the user supplied by `scripts/avatars.mjs`
+  (`src/assets/avatars/`). The sheet stays in `design-references/`; the nine
+  pictures are committed. They are app-owned art, **not an upload** (§16): only
+  the key is stored, in `profiles.avatar`.
+- **Who has one:** every account. A new one is **given one at random** as its
+  profile is made, whatever path makes it (`random_avatar()`, the column's
+  default), and every account that already existed was given one the same way.
+  Only the nine keys are taken (`avatar_keys()`, and `AVATAR_KEYS` in the app).
+- **Where it shows:** the owner's own account only — the phone's top bar, the
+  account menu from 768 px, and the profile card on Settings. **Customers keep
+  their initials**, and nothing else uses the pictures.
+- **Changing it:** tapping the picture on Settings (it carries a small pencil)
+  opens the nine, each named by its animal, the one in use marked — a bottom
+  sheet on a phone, a dialog from 768 px. Tapping another saves it at once
+  (`PATCH /api/auth/avatar`, audited) and says so on a response card; tapping
+  the one in use closes it. It changes as often as the owner likes: the 30-day
+  rule is for the name, the sign-in number and the email only.
+- **Licence:** the sheet falls under Q16 with the illustrations: its licence
+  is confirmed before the Play release.
+
 ---
 
 ## 139.12 Data model and migrations
@@ -8478,6 +8507,7 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `…_customer_balance` | *Added 2026-09-27 as `0024_customer_balance` (the user).* `customer_stats` also adds up each customer's **balance due** — every order not cancelled, its total less what was paid, never below nothing — so the Balance due tab pages on the server. Still a read-only, `security_invoker` view. | 5 |
 | `…_notification_kind` | *Added 2026-09-26 as `0022_notification_kind` (R5.10).* `notifications.kind` (`ORDER`, `PAYMENT`, `STOCK`, `CUSTOMER`, `SYSTEM`); indexes `(bakery_id, created_at desc, id)` and `(bakery_id, is_read, created_at desc)`. Written by the worker only: `authenticated` loses INSERT and UPDATE, and may update `is_read` alone. Triggers queue the plan's events in their own transactions: an order placed, a customer added, and a counted product on sale falling to the low-stock mark (`low_stock_mark()`, equal to `LOW_STOCK_THRESHOLD`) — once as it crosses, never for a consumption line. | 5 |
 | `…_order_due_notifications` | *Added 2026-09-26 as `0023_order_due_notifications` (R5.10; the user).* `orders.due_notified_at` and `orders.overdue_notified_at`; a partial index on open orders by `delivery_date`; **`queue_due_order_notifications(p_from_hour)`**, the worker's alone, which marks and queues in one statement each open order due today or tomorrow, and each overdue, in its business's timezone, from the hour given. Open orders more than a day overdue when it arrives are marked as told. | 5 |
+| `…_profile_avatars` | *Added 2026-09-27 as `0026_profile_avatars` (the user).* `profiles.avatar`, not null, one of **`avatar_keys()`**'s nine; its default **`random_avatar()`** draws one for each new profile, and drew one for each existing profile as the column was added. Both functions are the server's only. | 5 |
 | `…_audit_writes` | Revoke `INSERT` on `audit_logs` from `authenticated`; audit is written by the server with the acting user (§133.7 G1, BUG-20). | 2 |
 | `…_device_tokens` | The push-token registry (§133.5 E2). | 8 |
 | `…_profile_theme` *(if Q14)* | `profiles.theme`. | 1 |

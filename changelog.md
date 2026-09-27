@@ -2589,3 +2589,37 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - None.
+
+## 2026-09-27 — A profile picture in place of initials
+
+### Added
+- **Nine profile pictures** (the user: "split this, and when a new person registers, randomly give one from these 9 as profile icon … these icons are only for the profile, nothing else"; plan §139.11.14). `scripts/avatars.mjs` (`npm run avatars`) cuts the supplied sheet (`design-references/profile-pictures.jpg`, not committed) into thirds. It clears each third's white ground to transparent, trims it, and writes a 320 px WebP to `src/assets/avatars/`, about 12 KB each. It refuses a drawing that runs to the edge of its third. The keys are `AVATAR_KEYS` (`src/constants/avatars.ts`).
+- **`profiles.avatar`** (`0026_profile_avatars.sql`). A new account is given one of the nine at random as its profile is made, and every existing account drew its own as the column was added. Only the nine are taken.
+- **Changing it from Settings.** The picture on the profile card is a button, "Change profile picture", with a pencil badge. It opens the nine, each named by its animal, with the one in use marked (`AvatarSheet`). Tapping another saves it at once (`PATCH /api/auth/avatar`, `changeAvatar`, audited) and says so on a response card. A failure keeps the sheet open on its card, and tapping the one in use just closes it. There is no 30-day limit.
+- **`ProfileAvatar`** (`src/components/ui/profile-avatar.tsx`): the picture on a soft round well, 36 px or 80 px.
+
+### Changed
+- **The owner's initials are replaced by their picture**: in the phone's top bar, the account menu from 768 px, and Settings. Customers keep their initials (`Avatar`), as the user asked.
+- `AuthProfile` carries `avatar`; a key the app does not have shows the first picture.
+
+### Validation
+- **Database, rolled back:**
+  - 9,000 draws landed on all nine keys, each 924 to 1,069 times;
+  - a profile made the way registration makes it was given one;
+  - an unknown key and no key were each refused;
+  - two changes in a row were taken, with the 30-day stamps untouched;
+  - a signed-in user could neither draw one nor write the column.
+- **Browser, 390 px in Golden and 1440 px in Peach:**
+  - the picture shows on Settings and in the top bar;
+  - tapping it opens the chooser (a bottom sheet on the phone, a dialog on the desktop);
+  - Tiger saved, said so, and changed the top bar at once;
+  - Ginger cat put the seed account back;
+  - both changes are in the audit trail;
+  - no page errors, and no sideways scroll.
+- **Checks:** `tsc` and `eslint` pass. The full suite passes (2,003 tests), and every new and changed file is at 100 %.
+
+### Migration notes
+- `0026_profile_avatars.sql`: `avatar_keys()` and `random_avatar()` (the server's only), and `profiles.avatar` (not null, drawn at random, checked against the nine). It needs applying wherever 0022–0025 do.
+
+### Blockers
+- None. The sheet's licence joins Q16 with the illustrations, to be confirmed before the Play release.
