@@ -10,6 +10,7 @@ import { InventoryAdjustmentSheet } from "@/features/inventory/components/Invent
 import { ApiError } from "@/lib/api/client";
 
 import { Providers } from "@tests/support/providers";
+import { choose } from "@tests/support/select";
 
 vi.mock("@/features/inventory/api.client", () => ({
   InventoryClient: { adjustStock: vi.fn() },
@@ -90,7 +91,7 @@ describe("InventoryAdjustmentSheet", () => {
     });
     open();
 
-    await userEvent.selectOptions(screen.getByLabelText(/What happened/), "WASTAGE");
+    await choose(/What happened/, "Wastage");
     await userEvent.type(screen.getByLabelText(/Quantity/), "3");
     await userEvent.click(screen.getByRole("button", { name: "Record stock" }));
 
@@ -120,8 +121,9 @@ describe("InventoryAdjustmentSheet", () => {
     expect(props.onClose).not.toHaveBeenCalled();
   });
 
-  it("offers only the movements a baker records by hand", () => {
+  it("offers only the movements a baker records by hand", async () => {
     open();
+    await userEvent.click(screen.getByRole("combobox", { name: /What happened/ }));
     expect(screen.getByRole("option", { name: "Stock in" })).toBeInTheDocument();
     expect(screen.queryByRole("option", { name: /Reserved for an order/ })).not.toBeInTheDocument();
   });

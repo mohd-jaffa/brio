@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 
 import { FormSheet } from "@/components/ui/form-sheet";
 import { useResponse } from "@/components/ui/response-card";
@@ -45,6 +45,7 @@ function InventoryAdjustmentForm({
   "use no memo";
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<StockAdjustmentFormValues, unknown, StockAdjustmentFormPayload>({
@@ -91,12 +92,18 @@ function InventoryAdjustmentForm({
       submitLabel={text.save}
       submitting={submitting}
     >
-      <SelectField
-        label={text.type}
-        required
-        options={optionsFrom(MANUAL_INVENTORY_TYPES, INVENTORY_TRANSACTION_LABELS)}
-        error={errors.type?.message}
-        {...register("type")}
+      <Controller
+        control={control}
+        name="type"
+        render={({ field }) => (
+          <SelectField
+            label={text.type}
+            required
+            options={optionsFrom(MANUAL_INVENTORY_TYPES, INVENTORY_TRANSACTION_LABELS)}
+            error={errors.type?.message}
+            {...field}
+          />
+        )}
       />
       <TextField
         label={product ? text.quantityIn(pluralUnit(product.unit)) : text.quantity}

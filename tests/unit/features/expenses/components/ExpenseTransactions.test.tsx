@@ -7,6 +7,7 @@ import { ApiError } from "@/lib/api/client";
 
 import { anExpense } from "@tests/support/expenses";
 import { Providers } from "@tests/support/providers";
+import { choose } from "@tests/support/select";
 
 const fetcher = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/api/client", async (original) => ({
@@ -76,12 +77,12 @@ describe("ExpenseTransactions", () => {
     const props = open({ category: "Rent" });
     expect(await screen.findByRole("region", { name: "Aug 2026" })).toHaveTextContent("Kitchen rent");
     expect(fetcher).toHaveBeenCalledWith("/api/expenses?range=LAST_30_DAYS&category=Rent");
-    expect(screen.getByLabelText("Category")).toHaveValue("Rent");
+    expect(screen.getByRole("combobox", { name: "Category" })).toHaveTextContent("Rent");
 
     // The business's own categories are there to filter by, beside the defaults.
-    await userEvent.selectOptions(screen.getByLabelText("Category"), "Flowers");
+    await choose("Category", "Flowers");
     expect(props.onCategory).toHaveBeenLastCalledWith("Flowers");
-    await userEvent.selectOptions(screen.getByLabelText("Category"), "All categories");
+    await choose("Category", "All categories");
     expect(props.onCategory).toHaveBeenLastCalledWith(undefined);
   });
 

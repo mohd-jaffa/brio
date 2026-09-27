@@ -9,6 +9,7 @@ import { ApiError } from "@/lib/api/client";
 import { sizeCharts } from "@tests/support/charts";
 import { anExpense, aSummary } from "@tests/support/expenses";
 import { Providers } from "@tests/support/providers";
+import { choose } from "@tests/support/select";
 
 const fetcher = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/api/client", async (original) => ({
@@ -66,19 +67,20 @@ describe("Expenses", () => {
     open();
     await screen.findByText("Daily average");
     answers["/api/expenses/summary?range=THIS_MONTH"] = aSummary();
-    await userEvent.selectOptions(screen.getByLabelText("Period"), "THIS_MONTH");
+    await choose("Period", "This month");
     expect(fetcher).toHaveBeenCalledWith("/api/expenses/summary?range=THIS_MONTH");
     expect(JSON.parse(localStorage.getItem("ovenly_range_expenses")!)).toEqual({ preset: "THIS_MONTH" });
 
     answers["/api/expenses/summary?range=THIS_MONTH&interval=WEEK"] = aSummary({ interval: "WEEK" });
-    await userEvent.selectOptions(await screen.findByLabelText("Group by"), "WEEK");
+    await screen.findByRole("combobox", { name: "Group by" });
+    await choose("Group by", "Weekly");
     expect(fetcher).toHaveBeenCalledWith("/api/expenses/summary?range=THIS_MONTH&interval=WEEK");
   });
 
   it("waits for both dates of a custom period before asking", async () => {
     open();
     await screen.findByText("Daily average");
-    await userEvent.selectOptions(screen.getByLabelText("Period"), "CUSTOM");
+    await choose("Period", "Custom");
     expect(screen.getByRole("status", { name: "Loading expenses" })).toBeInTheDocument();
 
     answers["/api/expenses/summary?range=CUSTOM&from=2026-09-01&to=2026-09-02"] = aSummary();
@@ -116,7 +118,7 @@ describe("Expenses", () => {
     );
     await userEvent.click(within(categories).getByRole("button", { name: /^Packaging/ }));
     expect(screen.getByRole("tab", { name: "Transactions" })).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByLabelText("Category")).toHaveValue("Packaging");
+    expect(screen.getByRole("combobox", { name: "Category" })).toHaveTextContent("Packaging");
     expect(await screen.findByRole("list", { name: "Sep 2026" })).toHaveTextContent("Cake boxes");
   });
 

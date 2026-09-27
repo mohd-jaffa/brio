@@ -95,8 +95,9 @@ describe("ProductFormSheet", () => {
     );
   });
 
-  it("offers only the units the app knows about, neutral ones among them (Q8)", () => {
+  it("offers only the units the app knows about, neutral ones among them (Q8)", async () => {
     open();
+    await userEvent.click(screen.getByRole("combobox", { name: /Unit/ }));
     expect(screen.getByRole("option", { name: "Kilogram (kg)" })).toBeInTheDocument();
     for (const unit of ["Set", "Bunch", "Pack"]) expect(screen.getByRole("option", { name: unit })).toBeInTheDocument();
     expect(screen.queryByRole("option", { name: "Litre" })).not.toBeInTheDocument();
@@ -105,7 +106,7 @@ describe("ProductFormSheet", () => {
   it("starts from what a product has, and from a piece when its unit is one the form no longer offers", () => {
     open({ initialData: { ...cake, description: undefined, unit: "litre" } });
     expect(screen.getByLabelText(/Description/)).toHaveValue("");
-    expect(screen.getByLabelText(/Unit/)).toHaveValue("piece");
+    expect(screen.getByRole("combobox", { name: /Unit/ })).toHaveTextContent("Piece");
   });
 
   it("keeps the sheet open, and says why, when a product is refused", async () => {

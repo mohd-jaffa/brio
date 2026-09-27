@@ -70,7 +70,7 @@ export function ExpenseTransactions({
           placeholder={text.allCategories}
           options={optionsOf(categories)}
           value={category ?? ""}
-          onChange={(event) => onCategory((event.target.value || undefined) as ExpenseCategory | undefined)}
+          onChange={(chosen) => onCategory((chosen || undefined) as ExpenseCategory | undefined)}
         />
       </div>
       <ListScreen

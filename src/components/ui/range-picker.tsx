@@ -1,50 +1,28 @@
 "use client";
 
-import { CalendarDays, ChevronDown } from "lucide-react";
-import { useId } from "react";
+import { CalendarDays } from "lucide-react";
 
 import { UI_TEXT } from "@/constants/messages";
 import { DATE_RANGE_LABELS, DATE_RANGES, type DateRange, type DateRangePreset } from "@/constants/ranges";
 
+import { SelectMenu } from "./select-menu";
+
 /**
- * The period a screen reads over — "Last 30 days" (plan §139.5). A native
- * select dressed as the references' pill, so it opens the phone's own picker
- * and needs no menu of its own. Choosing Custom shows two dates beneath it,
- * which drop into place.
+ * The period a screen reads over — "Last 30 days" (plan §139.5): the
+ * references' pill, opening the app's own list of periods (`SelectMenu`).
+ * Choosing Custom shows two dates beneath it, which drop into place.
  */
 export function RangePicker({ value, onChange }: { value: DateRange; onChange: (next: DateRange) => void }) {
-  const id = useId();
   return (
     <div className="flex flex-col items-end gap-2">
-      <div className="relative">
-        <label htmlFor={id} className="sr-only">
-          {UI_TEXT.range.label}
-        </label>
-        <CalendarDays
-          size={16}
-          strokeWidth={1.75}
-          aria-hidden="true"
-          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text"
-        />
-        <select
-          id={id}
-          value={value.preset}
-          onChange={(event) => onChange({ ...value, preset: event.target.value as DateRangePreset })}
-          className="touch-target appearance-none rounded-xl border border-border bg-surface py-2 pl-9 pr-9 text-sm font-medium text-text shadow-card"
-        >
-          {DATE_RANGES.map((preset) => (
-            <option key={preset} value={preset}>
-              {DATE_RANGE_LABELS[preset]}
-            </option>
-          ))}
-        </select>
-        <ChevronDown
-          size={16}
-          strokeWidth={1.75}
-          aria-hidden="true"
-          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text"
-        />
-      </div>
+      <SelectMenu
+        label={UI_TEXT.range.label}
+        variant="pill"
+        leading={<CalendarDays size={16} strokeWidth={1.75} aria-hidden="true" className="shrink-0 text-text" />}
+        value={value.preset}
+        options={DATE_RANGES.map((preset) => ({ value: preset, label: DATE_RANGE_LABELS[preset] }))}
+        onChange={(preset) => onChange({ ...value, preset: preset as DateRangePreset })}
+      />
       {value.preset === "CUSTOM" && (
         <div className="animate-drop-in flex gap-2">
           {(["from", "to"] as const).map((end) => (

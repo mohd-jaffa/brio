@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash2 } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
@@ -65,6 +65,7 @@ function ExpenseForm({
   "use no memo";
   const {
     register,
+    control,
     setValue,
     handleSubmit,
     formState: { errors },
@@ -182,12 +183,18 @@ function ExpenseForm({
           />
         </div>
 
-        <SelectField
-          label={text.paidWith}
-          required
-          options={optionsFrom(PAYMENT_METHODS, PAYMENT_METHOD_LABELS)}
-          error={errors.paymentMethod?.message}
-          {...register("paymentMethod")}
+        <Controller
+          control={control}
+          name="paymentMethod"
+          render={({ field }) => (
+            <SelectField
+              label={text.paidWith}
+              required
+              options={optionsFrom(PAYMENT_METHODS, PAYMENT_METHOD_LABELS)}
+              error={errors.paymentMethod?.message}
+              {...field}
+            />
+          )}
         />
         {initialData && (
           <Button

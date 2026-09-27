@@ -19,10 +19,11 @@ function Picker({ start }: { start: DateRange }) {
 const chosen = () => JSON.parse(screen.getByRole("status").textContent ?? "{}");
 
 describe("RangePicker", () => {
-  it("is a labelled select of the periods", async () => {
+  it("is a labelled choice of the periods, in the app's own list", async () => {
     render(<Picker start={{ preset: "LAST_30_DAYS" }} />);
     const select = screen.getByRole("combobox", { name: "Period" });
-    expect(select).toHaveValue("LAST_30_DAYS");
+    expect(select).toHaveTextContent("Last 30 days");
+    await userEvent.click(select);
     expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual([
       "Last 7 days",
       "Last 30 days",
@@ -30,7 +31,7 @@ describe("RangePicker", () => {
       "Last month",
       "Custom",
     ]);
-    await userEvent.selectOptions(select, "THIS_MONTH");
+    await userEvent.click(screen.getByRole("option", { name: "This month" }));
     expect(chosen()).toEqual({ preset: "THIS_MONTH" });
     expect(screen.queryByLabelText("From")).not.toBeInTheDocument();
   });

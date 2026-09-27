@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 
 import { FormSheet } from "@/components/ui/form-sheet";
 import { useResponse } from "@/components/ui/response-card";
@@ -52,6 +52,7 @@ export function PaymentCollectionForm({
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<PaymentFormValues, unknown, PaymentFormPayload>({
@@ -100,12 +101,18 @@ export function PaymentCollectionForm({
         error={errors.amount?.message}
         {...register("amount")}
       />
-      <SelectField
-        label={text.method}
-        required
-        options={optionsFrom(PAYMENT_METHODS, PAYMENT_METHOD_LABELS)}
-        error={errors.payment_method?.message}
-        {...register("payment_method")}
+      <Controller
+        control={control}
+        name="payment_method"
+        render={({ field }) => (
+          <SelectField
+            label={text.method}
+            required
+            options={optionsFrom(PAYMENT_METHODS, PAYMENT_METHOD_LABELS)}
+            error={errors.payment_method?.message}
+            {...field}
+          />
+        )}
       />
       <TextField
         label={text.reference}

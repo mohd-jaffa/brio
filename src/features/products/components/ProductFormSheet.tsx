@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { FormSheet } from "@/components/ui/form-sheet";
 import { PictureField } from "@/components/ui/picture-field";
@@ -117,12 +117,18 @@ function ProductForm({
           error={errors.defaultPrice?.message}
           {...register("defaultPrice")}
         />
-        <SelectField
-          label={text.unit}
-          required
-          options={optionsFrom(PRODUCT_UNITS, UI_TEXT.products.units)}
-          error={errors.unit?.message}
-          {...register("unit")}
+        <Controller
+          control={control}
+          name="unit"
+          render={({ field }) => (
+            <SelectField
+              label={text.unit}
+              required
+              options={optionsFrom(PRODUCT_UNITS, UI_TEXT.products.units)}
+              error={errors.unit?.message}
+              {...field}
+            />
+          )}
         />
       </div>
 

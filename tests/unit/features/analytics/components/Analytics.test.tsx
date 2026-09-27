@@ -7,6 +7,7 @@ import { Analytics } from "@/features/analytics/components/Analytics";
 import { aReport } from "@tests/support/analytics";
 import { sizeCharts } from "@tests/support/charts";
 import { Providers } from "@tests/support/providers";
+import { choose } from "@tests/support/select";
 
 const fetcher = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/api/client", async (original) => ({
@@ -62,7 +63,7 @@ describe("Analytics", () => {
     open();
     await screen.findByText("Total sales");
     answers["/api/analytics/overview?range=THIS_MONTH"] = aReport();
-    await userEvent.selectOptions(screen.getByLabelText("Period"), "THIS_MONTH");
+    await choose("Period", "This month");
     expect(fetcher).toHaveBeenCalledWith("/api/analytics/overview?range=THIS_MONTH");
     expect(JSON.parse(localStorage.getItem("ovenly_range_analytics")!)).toEqual({ preset: "THIS_MONTH" });
   });
@@ -70,7 +71,7 @@ describe("Analytics", () => {
   it("waits for both dates of a custom period before asking", async () => {
     open();
     await screen.findByText("Total sales");
-    await userEvent.selectOptions(screen.getByLabelText("Period"), "CUSTOM");
+    await choose("Period", "Custom");
     expect(screen.getByRole("status", { name: "Loading analytics" })).toBeInTheDocument();
 
     answers["/api/analytics/overview?range=CUSTOM&from=2026-09-01&to=2026-09-02"] = aReport();
@@ -83,7 +84,7 @@ describe("Analytics", () => {
     open();
     await screen.findByText("Total sales");
     answers["/api/analytics/overview?range=LAST_30_DAYS&interval=WEEK"] = aReport({ interval: "WEEK" });
-    await userEvent.selectOptions(screen.getByLabelText("Group by"), "WEEK");
+    await choose("Group by", "Weekly");
     expect(fetcher).toHaveBeenCalledWith("/api/analytics/overview?range=LAST_30_DAYS&interval=WEEK");
   });
 

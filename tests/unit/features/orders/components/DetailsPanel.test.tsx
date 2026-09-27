@@ -231,8 +231,9 @@ describe("DetailsPanel: discounts, charges and notes", () => {
     ]);
     expect(screen.getByText("Enter an amount.")).toBeInTheDocument();
 
-    const [first] = screen.getAllByLabelText("Kind");
-    await userEvent.selectOptions(first, "CHARGE");
+    const [first] = screen.getAllByRole("combobox", { name: "Kind" });
+    await userEvent.click(first);
+    await userEvent.click(screen.getByRole("option", { name: "Charge (+)" }));
     const [name] = screen.getAllByLabelText("Name");
     await userEvent.clear(name);
     await userEvent.type(name, "Packing");

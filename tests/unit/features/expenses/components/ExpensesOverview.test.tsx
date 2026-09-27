@@ -7,6 +7,7 @@ import type { ExpenseSummary } from "@/features/expenses/types";
 
 import { sizeCharts } from "@tests/support/charts";
 import { aSummary } from "@tests/support/expenses";
+import { choose } from "@tests/support/select";
 
 beforeEach(() => sizeCharts());
 afterEach(() => vi.restoreAllMocks());
@@ -44,7 +45,7 @@ describe("ExpensesOverview", () => {
     const props = open();
     expect(screen.getByRole("img", { name: "Ingredients came to ₹3,000 of ₹4,000." })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Expense trend" })).toBeInTheDocument();
-    await userEvent.selectOptions(screen.getByLabelText("Group by"), "WEEK");
+    await choose("Group by", "Weekly");
     expect(props.onInterval).toHaveBeenCalledWith("WEEK");
   });
 

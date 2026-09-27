@@ -8,6 +8,7 @@ import { ApiError } from "@/lib/api/client";
 
 import { anOrderListItem } from "@tests/support/orders";
 import { Providers } from "@tests/support/providers";
+import { choose } from "@tests/support/select";
 
 const fetcher = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/api/client", async (original) => ({
@@ -58,7 +59,7 @@ describe("GuestSales", () => {
     open();
     await screen.findByText("₹1,140");
     answers["/api/guest-sales?range=LAST_7_DAYS"] = sales({ orders: 1, sales: 38000 });
-    await userEvent.selectOptions(screen.getByRole("combobox"), "LAST_7_DAYS");
+    await choose("Period", "Last 7 days");
     expect(await screen.findByText("₹380")).toBeInTheDocument();
     expect(localStorage.getItem("ovenly_range_guest-sales")).toContain("LAST_7_DAYS");
   });
@@ -67,7 +68,7 @@ describe("GuestSales", () => {
     open();
     await screen.findByText("₹1,140");
     fetcher.mockClear();
-    await userEvent.selectOptions(screen.getByRole("combobox"), "CUSTOM");
+    await choose("Period", "Custom");
     expect(fetcher).not.toHaveBeenCalled();
     expect(screen.getByRole("status", { name: "Loading Guest sales" })).toBeInTheDocument();
 

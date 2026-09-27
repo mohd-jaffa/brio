@@ -77,7 +77,7 @@ describe("the field kit's labels and adornments", () => {
       <>
         <TextField label="Email" optional />
         <TextAreaField label="Notes" optional />
-        <SelectField label="Category" optional options={[]} />
+        <SelectField label="Category" optional options={[]} value="" onChange={vi.fn()} />
       </>,
     );
     expect(screen.getByLabelText("Email (Optional)")).toBeInTheDocument();
@@ -119,26 +119,45 @@ describe("SelectField", () => {
     { value: "UPI", label: "UPI" },
   ];
 
-  it("offers what it was given and reports the choice", async () => {
+  it("offers what it was given in the app's own list, and reports the choice", async () => {
     const onChange = vi.fn();
-    render(<SelectField label="Paid With" options={options} onChange={onChange} />);
+    render(<SelectField label="Paid With" required options={options} value="CASH" onChange={onChange} />);
+    const field = screen.getByRole("combobox", { name: "Paid With" });
+    expect(field).toHaveTextContent("Cash");
+    expect(field).toHaveAttribute("aria-required", "true");
 
-    await userEvent.selectOptions(screen.getByLabelText("Paid With"), "UPI");
-    expect(onChange).toHaveBeenCalled();
-    expect(screen.getByRole("option", { name: "Cash" })).toBeInTheDocument();
+    // The label opens it, as it would focus a field.
+    await userEvent.click(screen.getByText("Paid With"));
+    expect(screen.getByRole("listbox", { name: "Paid With" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("option", { name: "UPI" }));
+    expect(onChange).toHaveBeenCalledWith("UPI");
   });
 
   it("reads its hint with it, or its message in the hint's place", () => {
-    const { rerender } = render(<SelectField label="Paid With" options={options} hint="How the money came in." />);
-    expect(screen.getByLabelText("Paid With")).toHaveAccessibleDescription("How the money came in.");
+    const { rerender } = render(
+      <SelectField label="Paid With" options={options} value="CASH" onChange={vi.fn()} hint="How the money came in." />,
+    );
+    expect(screen.getByRole("combobox", { name: "Paid With" })).toHaveAccessibleDescription("How the money came in.");
 
-    rerender(<SelectField label="Paid With" options={options} hint="How the money came in." error="Choose a method." />);
-    expect(screen.getByLabelText("Paid With")).toHaveAccessibleDescription("Choose a method.");
+    rerender(
+      <SelectField
+        label="Paid With"
+        options={options}
+        value="CASH"
+        onChange={vi.fn()}
+        hint="How the money came in."
+        error="Choose a method."
+      />,
+    );
+    expect(screen.getByRole("combobox", { name: "Paid With" })).toHaveAccessibleDescription("Choose a method.");
+    expect(screen.getByRole("combobox", { name: "Paid With" })).toHaveAttribute("aria-invalid", "true");
   });
 
-  it("can start on a placeholder that is not a real choice", () => {
-    render(<SelectField label="Customer" options={options} placeholder="Choose a customer…" />);
-    expect(screen.getByRole("option", { name: "Choose a customer…" })).toHaveValue("");
+  it("can start on a placeholder that is a choice of its own, with the empty value", async () => {
+    render(<SelectField label="Customer" options={options} value="" onChange={vi.fn()} placeholder="Choose a customer…" />);
+    expect(screen.getByRole("combobox", { name: "Customer" })).toHaveTextContent("Choose a customer…");
+    await userEvent.click(screen.getByRole("combobox", { name: "Customer" }));
+    expect(screen.getByRole("option", { name: "Choose a customer…" })).toHaveAttribute("aria-selected", "true");
   });
 });
 

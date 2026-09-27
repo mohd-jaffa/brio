@@ -3,23 +3,20 @@
 import { UI_TEXT } from "@/constants/messages";
 import type { Interval } from "@/lib/dates/range";
 
+import { SelectMenu } from "../select-menu";
+
+const INTERVALS = ["DAY", "WEEK"] as const satisfies readonly Interval[];
+
 /** Daily or Weekly, beside a trend (plan §139.11.11): the sales trend, the expense trend. */
 export function IntervalSelect({ value, onChange }: { value: Interval; onChange: (next: Interval) => void }) {
   const text = UI_TEXT.charts;
   return (
-    <label className="relative">
-      <span className="sr-only">{text.interval}</span>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value as Interval)}
-        className="touch-target rounded-lg border border-border bg-surface px-3 py-1.5 text-sm font-medium text-text"
-      >
-        {(["DAY", "WEEK"] as const).map((interval) => (
-          <option key={interval} value={interval}>
-            {text.intervals[interval]}
-          </option>
-        ))}
-      </select>
-    </label>
+    <SelectMenu
+      label={text.interval}
+      variant="compact"
+      value={value}
+      options={INTERVALS.map((interval) => ({ value: interval, label: text.intervals[interval] }))}
+      onChange={(next) => onChange(next as Interval)}
+    />
   );
 }

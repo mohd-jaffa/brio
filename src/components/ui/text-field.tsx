@@ -4,7 +4,6 @@ import { forwardRef, useId } from "react";
 import type {
   InputHTMLAttributes,
   ReactNode,
-  SelectHTMLAttributes,
   TextareaHTMLAttributes,
 } from "react";
 
@@ -12,6 +11,8 @@ import { UI_TEXT } from "@/constants/messages";
 
 import { cn } from "./cn";
 import { FieldError } from "./field-error";
+import { FIELD_WELL } from "./field-styles";
+import { SelectMenu, type SelectOption } from "./select-menu";
 
 /**
  * The form controls, as one set. Every sheet in the app used to repeat the
@@ -21,11 +22,9 @@ import { FieldError } from "./field-error";
  * once, and react-hook-form's `register()` spreads straight onto them.
  */
 const CONTROL_CLASSES =
-  "w-full rounded-xl border border-border bg-sunken px-4 py-3 text-sm font-medium outline-none transition " +
-  "placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary " +
+  `${FIELD_WELL} placeholder:text-text-muted ` +
   // A field shown but not edited — a name locked for now — reads as quieter.
-  "read-only:cursor-default read-only:text-text-muted read-only:focus:border-border read-only:focus:ring-0 " +
-  "aria-[invalid=true]:border-danger aria-[invalid=true]:focus:ring-danger";
+  "read-only:cursor-default read-only:text-text-muted read-only:focus:border-border read-only:focus:ring-0";
 
 /**
  * Labels are sentence case, as the references set them everywhere (plan
@@ -62,18 +61,20 @@ function FieldHint({ id, hint }: { id?: string; hint?: string }) {
 }
 
 function Label({
+  id,
   htmlFor,
   label,
   required,
   optional,
 }: {
+  id?: string;
   htmlFor: string;
   label: string;
   required?: boolean;
   optional?: boolean;
 }) {
   return (
-    <label htmlFor={htmlFor} className={LABEL_CLASSES}>
+    <label id={id} htmlFor={htmlFor} className={LABEL_CLASSES}>
       {label}
       {required && (
         <span className="text-danger" aria-hidden="true">
@@ -170,38 +171,42 @@ export const TextAreaField = forwardRef<
   );
 });
 
-export interface SelectOption {
-  value: string;
-  label: string;
-}
+export type { SelectOption };
 
+/**
+ * A choice among a few, as a field: the label, the control that shows what
+ * is chosen, and a list in the app's own look (`SelectMenu`) — never the
+ * browser's. It is controlled: a form holds its value through react-hook-form's
+ * `Controller`, and `ref` reaches the control, so a refused field is focused.
+ */
 export const SelectField = forwardRef<
-  HTMLSelectElement,
-  FieldShell & { options: readonly SelectOption[]; placeholder?: string } & Omit<
-      SelectHTMLAttributes<HTMLSelectElement>,
-      "className" | "id"
-    >
+  HTMLButtonElement,
+  FieldShell & {
+    options: readonly SelectOption[];
+    /** A first choice with the empty value — "All categories". */
+    placeholder?: string;
+    value: string;
+    onChange: (value: string) => void;
+    onBlur?: () => void;
+    disabled?: boolean;
+  }
 >(function SelectField({ label, error, required, optional, hint, options, placeholder, ...rest }, ref) {
   const { id, errorId, hintId } = useFieldIds(error, hint);
   return (
     <div>
-      <Label htmlFor={id} label={label} required={required} optional={optional} />
-      <select
-        id={id}
+      <Label id={`${id}-label`} htmlFor={id} label={label} required={required} optional={optional} />
+      <SelectMenu
         ref={ref}
-        aria-required={required || undefined}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={hintId ?? errorId}
-        className={CONTROL_CLASSES}
+        id={id}
+        label={label}
+        labelledBy={`${id}-label`}
+        options={options}
+        placeholder={placeholder}
+        invalid={Boolean(error)}
+        required={required}
+        describedBy={hintId ?? errorId}
         {...rest}
-      >
-        {placeholder && <option value="">{placeholder}</option>}
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      />
       <FieldHint id={hintId} hint={hint} />
       <FieldError id={errorId} message={error} />
     </div>

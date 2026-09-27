@@ -264,10 +264,10 @@ export function DetailsPanel({
                       value: type,
                       label: text.adjustmentKinds[type],
                     }))}
-                    onChange={(event) =>
+                    onChange={(type) =>
                       update((current) =>
                         setAdjustment(current, entry.key, {
-                          type: event.target.value as AdjustmentType,
+                          type: type as AdjustmentType,
                         }),
                       )
                     }
