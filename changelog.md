@@ -2715,3 +2715,37 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - None.
+
+## 2026-09-27 — Phase 7: the installable app
+
+### Added
+- **The manifest** (`src/app/manifest.ts`; R7.1): "Ovenly", standalone from `/`, Golden's ground for the splash and the status bar. The **icons** are the brand mark in cream on caramel — 192 and 512 px, and a maskable 512 px — built by `scripts/app-icons.mjs` (`npm run app-icons`). The iOS home-screen icon is `src/app/apple-icon.png`.
+- **iOS home-screen settings:** home-screen capable, titled "Ovenly", under a `black-translucent` status bar (§139.8).
+- **The service worker** (`public/sw.js`; R7.2). It runs in the browser; nothing more is hosted for it.
+  - It keeps Next's hashed files, the bill's fonts and the icons, from the cache first.
+  - It keeps `/offline`, fetched without cookies, so it holds nothing of whoever was signed in.
+  - It never keeps a screen or an API answer. A screen the network cannot reach answers with the offline page.
+  - Each release installs afresh (`/sw.js?v={version}`) and clears the old caches.
+  - It is set up in a built app only (`src/lib/pwa/serviceWorker.ts`). In development, one left over is taken away.
+- **The offline page** (`/offline`): "You're offline", with Try again as a plain form, so it works before any script loads.
+- **The offline banner** (IMP-08, `OfflineBanner`): while the connection is down, a bar over the screen says so, with Try again.
+- **Install app** (R7.3; the user: "install app button will be with other menus, which will also give small tutorial like insteructions … inside pwa that button or menu will be hidden"):
+  - **Where:** a row in More, above Sign out, on a phone; the sidebar's last place on a tablet and a desktop.
+  - **The sheet:** three numbered steps for this device, each with the mark the device shows — iPhone and iPad (Safari's Share, then Add to Home Screen), Android (Chrome's menu, then Install app), a computer (the address bar's install icon), or a browser that cannot install. Where the browser offers to install (`beforeinstallprompt`), an **Install** button asks it to.
+  - **Hidden** inside the installed app, once installed, and until the browser has said how the app was opened.
+
+### Changed
+- **The proxy** leaves the icons, the manifest, the service worker and the offline page alone, signed in or not.
+- **The sidebar's items** take their look from one place (`navStyles.ts`), shared with Install app.
+
+### Validation
+- **The production build, in the browser:**
+  - the manifest, the service worker, the offline page, the icons, and the iOS and Android home-screen tags were all served;
+  - on an Android phone the worker took charge of the page, and More offered Install app with Android's steps;
+  - an iPhone got Safari's steps, and a computer the address bar's;
+  - with the connection cut, the banner showed. A screen then opened was the offline page, styled from the cache and holding none of the owner's details, and Try again brought the screen back once online;
+  - opened as the installed app, Install app was not offered.
+- **Checks:** `tsc` and `eslint` pass. The full suite passes (2,153 tests), including the worker's own contract (`tests/contract/service-worker.test.ts`), and every new and changed file is at 100 %.
+
+### Blockers
+- None. The user asked whether the service worker needs hosting: it does not, it runs in the browser.

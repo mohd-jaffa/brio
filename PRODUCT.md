@@ -56,7 +56,9 @@ Built around **made-to-order work from home**, not a shop counter:
   - customers and Guest sales, products with illustrations, stock kept as a ledger;
   - expenses with categories, analytics with charts;
   - business details with the one logo upload;
-  - Settings, with the owner's profile picture (one of nine, given at random and changed there), and a notifications inbox with a bell.
+  - Settings, with the owner's profile picture (one of nine, given at random and changed there), and a notifications inbox with a bell;
+  - an installable app (PWA): Install app with this device's steps among the menus, hidden inside the installed app, and an offline page;
+  - a read-only developer console for DEV: the accounts and the audit trail.
 - **Roles:** `USER` is the owner; a screen calls it "Owner". `DEV` never sees business data.
 - **Uploads:** the business logo is the only file a user uploads, up to 500 KB. Illustrations, photographs and the nine profile pictures ship with the app; a user picks an illustration, or their own profile picture, and only its key is stored. Customers keep their initials.
 - **Themes:** exactly two, Golden and Peach, chosen by the user.

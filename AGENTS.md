@@ -628,6 +628,14 @@ Use a native capability abstraction for:
 
 Only add native capabilities when they support existing product requirements.
 
+**The PWA** (Phase 7, plan §139.11.17) is the manifest (`src/app/manifest.ts`),
+the icons (`scripts/app-icons.mjs`), and a service worker (`public/sw.js`). The
+worker keeps only the app's own hashed static files and an offline page fetched
+without cookies. **It never caches a screen or an API answer**: nothing of one
+account may be kept for the next. It is set up in a built app only.
+**Install app** lives with the other menus (More, the sidebar) and is hidden
+inside the installed app (`useInstallApp`).
+
 ---
 
 # 20. Dashboard

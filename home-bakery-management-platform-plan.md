@@ -7551,6 +7551,11 @@ Later the same day:
   - **Audit log:** what was done in every business, by whom, with the values before and after.
   - **Not shown**, because nothing keeps them: **server errors** are only in the server's output, so there is no error log page. The **job queue** has no page either while no worker runs (the user asked; §139.11.15).
   - A developer's account has **no business** (`0028_developer_accounts`). It is added from the Supabase dashboard, never by registering.
+- **Phase 7: the installable app** (the user: "install app button will be with other menus, which will also give small tutorial like instructions showed how to install the pwa, inside pwa that button or menu will be hidden"). §139.11.17 has the detail.
+  - **Install app** is a row in More on a phone, and the sidebar's last place on a tablet or a desktop.
+  - It opens a short sheet with this device's steps: Safari's Share, then Add to Home Screen on an iPhone; Chrome's menu, then Install app on Android; the address bar's install icon on a computer. Where the browser offers to install the app itself, an **Install** button asks it to.
+  - **Inside the installed app, it is not there.**
+  - A **service worker** keeps only the app's own static files and an offline page. It runs in the browser, so nothing more needs hosting (the user asked).
 
 ---
 
@@ -8526,6 +8531,46 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
   database's) and run `npm run worker` beside the app. Every notification then
   comes back, and email goes through the queue with its retries.
 
+### 139.11.17 The installable app — Phase 7 (the user, 2026-09-27)
+
+- **R7.1, the manifest** (`src/app/manifest.ts`). It is named "Ovenly", opens
+  standalone at `/`, and takes Golden's ground for the splash and the status
+  bar. Its icons are the brand mark in cream on caramel
+  (`scripts/app-icons.mjs`): 192 and 512 px, and a 512 px maskable one with the
+  mark inside the middle 60 %. The home-screen icon is `src/app/apple-icon.png`.
+- **iOS** (§139.8 item 7). The page is marked home-screen capable, titled
+  "Ovenly", under a `black-translucent` status bar, which the safe-area
+  insets pay for.
+- **R7.2, the service worker** (`public/sw.js`). It runs in the browser, and
+  nothing runs on the server for it.
+  - **It keeps** Next's hashed files, the bill's fonts and the icons, from the
+    cache first. It also keeps `/offline`, fetched without cookies so it holds
+    nothing of whoever was signed in.
+  - **It never keeps** a screen or an API answer. A screen the network cannot
+    reach answers with the offline page, whose Try again is a plain form.
+  - Each release installs afresh (`/sw.js?v={version}`) and clears the old
+    caches. It is set up in a built app only; in development, one left over is
+    taken away (`src/lib/pwa/serviceWorker.ts`).
+  - The page hands the worker the files it loaded before the worker ran, so the
+    offline page finds its styles. §51's cached products, customers and orders
+    wait until real use asks for them.
+- **IMP-08, the offline banner.** While the connection is down, a bar over the
+  screen says what is shown may be out of date, with Try again
+  (`OfflineBanner`).
+- **R7.3, installing** (`src/lib/pwa/install.ts`, `useInstallApp`,
+  `InstallApp`, `InstallAppSheet`).
+  - **Where:** a row of its own in More, above Sign out, on a phone; the
+    sidebar's last place on a tablet and a desktop, a tooltip on the rail.
+  - **What:** a sheet with this device's three steps, each with the mark the
+    device shows: iPhone and iPad; Android; a computer; or a browser that
+    cannot install, which is told which can. Where the browser offered
+    (`beforeinstallprompt`), **Install** asks it; accepted, the sheet closes.
+  - **Hidden** inside the installed app (standalone, or iOS's own flag), once
+    installed (`appinstalled`), and before the browser has said. The server
+    draws it hidden.
+- **Signed in or not:** the proxy leaves the icons, the manifest, the worker and
+  the offline page alone.
+
 ### 139.11.16 The developer console (the user, 2026-09-27)
 
 §37's developer pages, read-only for now.
@@ -8965,9 +9010,9 @@ Phase 5 closed on 2026-09-26 with R5.10.
 
 | ID | Work | Source | Waits on | Status |
 |---|---|---|---|---|
-| R7.1 | Manifest, maskable icons, theme colours | §133.10 J1 | — | TODO |
-| R7.2 | Service worker: shell cache and the offline page | §133.10 J1, J3; IMP-08 | — | TODO |
-| R7.3 | Install prompt; iOS standalone meta and status-bar style | §139.8 | — | TODO |
+| R7.1 | Manifest, maskable icons, theme colours | §133.10 J1 | — | DONE 2026-09-27 (§139.11.17) |
+| R7.2 | Service worker: shell cache and the offline page | §133.10 J1, J3; IMP-08 | — | DONE 2026-09-27 (§139.11.17) |
+| R7.3 | Install prompt; iOS standalone meta and status-bar style | §139.8 | — | DONE 2026-09-27 (§139.11.17) |
 
 ### Phase 8 — Android
 
