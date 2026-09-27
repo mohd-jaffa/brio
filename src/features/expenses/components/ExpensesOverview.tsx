@@ -90,16 +90,11 @@ export function ExpensesOverview({
       </div>
 
       <section aria-labelledby="expenses-recent">
-        <SectionHeading id="expenses-recent" title={text.recent}>
-          <button
-            type="button"
-            aria-label={text.viewAllName}
-            onClick={onViewAll}
-            className="touch-target rounded-lg px-2 text-sm font-medium text-primary transition-colors hover:bg-surface-hover"
-          >
-            {text.viewAll}
-          </button>
-        </SectionHeading>
+        <SectionHeading
+          id="expenses-recent"
+          title={text.recent}
+          viewAll={{ label: text.viewAll, name: text.viewAllName, onClick: onViewAll }}
+        />
         {summary.recent.length === 0 ? (
           <p className="rounded-2xl border border-border bg-surface px-4 py-6 text-center text-sm text-text-muted shadow-card">
             {text.nothing}

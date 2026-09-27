@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-26T19:18:17+00:00",
+  "generatedAt": "2026-09-27T12:00:00+00:00",
   "title": "Design System: Ovenly",
   "extensions": {
     "colorMeta": {
@@ -228,6 +228,16 @@
           "#ffaea4",
           "#ffd7ce"
         ]
+      },
+      "baked-terracotta-deep": {
+        "role": "primary-strong",
+        "displayName": "Baked Terracotta Deep",
+        "canonical": "oklch(46.2% 0.120 40)"
+      },
+      "scrim": {
+        "role": "scrim",
+        "displayName": "Scrim",
+        "canonical": "oklch(16.4% 0.016 48 / 0.45)"
       }
     },
     "typographyMeta": {
@@ -261,7 +271,7 @@
       },
       "lockup": {
         "displayName": "Lockup",
-        "purpose": "Only the brand lockup and the sign-in intro line; tracked uppercase."
+        "purpose": "The brand lockup, the sign-in intro line, and the business's catch phrase under its name; tracked uppercase, never smaller."
       }
     },
     "shadows": [
@@ -377,9 +387,9 @@
       "name": "Secondary Button",
       "kind": "button",
       "refersTo": "button-secondary",
-      "description": "A caramel tint: a supporting action beside the primary.",
+      "description": "A primary tint: a supporting action beside the primary. Its words take the primary's strong tone: caramel in Golden, deep terracotta in Peach.",
       "html": "<button class=\"ds-btn-secondary\">Add discount</button>",
-      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 16px; border-radius: 12px; font: 600 14px/1.43 Inter, system-ui, sans-serif; border: 0; cursor: pointer; transition: background-color .2s, color .2s, transform .15s; background: color-mix(in oklab, var(--color-primary, #7a4a25) 10%, transparent); color: var(--color-primary, #7a4a25); } .ds-btn-secondary:hover { background: color-mix(in oklab, var(--color-primary, #7a4a25) 20%, transparent); } .ds-btn-secondary:active { transform: scale(.98); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--color-primary, #7a4a25); outline-offset: 2px; box-shadow: 0 0 0 4px var(--color-background, #f6efe5); }"
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 16px; border-radius: 12px; font: 600 14px/1.43 Inter, system-ui, sans-serif; border: 0; cursor: pointer; transition: background-color .2s, color .2s, transform .15s; background: color-mix(in oklab, var(--color-primary, #7a4a25) 10%, transparent); color: var(--color-primary-strong, #7a4a25); } .ds-btn-secondary:hover { background: color-mix(in oklab, var(--color-primary, #7a4a25) 20%, transparent); } .ds-btn-secondary:active { transform: scale(.98); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--color-primary, #7a4a25); outline-offset: 2px; box-shadow: 0 0 0 4px var(--color-background, #f6efe5); }"
     },
     {
       "name": "Ghost Button",

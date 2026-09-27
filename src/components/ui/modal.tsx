@@ -116,7 +116,7 @@ export function Modal({
         "m-0 w-full max-w-none border border-border bg-surface p-0 text-text shadow-elevated",
         "fixed inset-x-0 top-auto bottom-[var(--keyboard-inset)] max-h-[calc(90dvh-var(--keyboard-inset))] rounded-t-3xl",
         "md:inset-0 md:m-auto md:h-fit md:max-h-[85dvh] md:max-w-md md:rounded-2xl",
-        "backdrop:bg-[rgb(20_12_8/0.45)] backdrop:backdrop-blur-[2px]",
+        "backdrop:bg-scrim backdrop:backdrop-blur-[2px]",
         className,
       )}
     >

@@ -20,6 +20,30 @@ describe("Modal", () => {
     expect(dialog).toHaveAttribute("open");
   });
 
+  it("takes a dialog the browser already opened, or already closed, as it finds it", () => {
+    const { rerender } = render(
+      <Modal open={false} labelledBy="t">
+        <h2 id="t">Choose</h2>
+      </Modal>,
+    );
+    const dialog = document.querySelector("dialog")!;
+    dialog.showModal();
+    rerender(
+      <Modal open labelledBy="t">
+        <h2 id="t">Choose</h2>
+      </Modal>,
+    );
+    expect(dialog).toHaveAttribute("open");
+
+    dialog.close();
+    rerender(
+      <Modal open={false} labelledBy="t">
+        <h2 id="t">Choose</h2>
+      </Modal>,
+    );
+    expect(dialog).not.toHaveAttribute("open");
+  });
+
   it("rises rather than slides when asked", () => {
     render(
       <Modal open labelledBy="t" motion="rise" role="alertdialog">

@@ -1,8 +1,9 @@
 "use client";
 
-import { ChevronRight, MapPin, Plus, Trash2, UserPlus, UserRound } from "lucide-react";
+import { MapPin, Plus, Trash2, UserPlus, UserRound } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
+import { ActionRow } from "@/components/ui/action-row";
 import { Avatar } from "@/components/ui/avatar";
 import { Button, IconButton } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
@@ -113,22 +114,18 @@ export function DetailsPanel({
           <Button size="sm" variant="secondary" icon={UserPlus} label={text.newCustomer} onClick={onNewCustomer} />
         }
       >
-        <button
-          type="button"
+        <ActionRow
           onClick={onChooseCustomer}
           aria-label={customer === null ? text.chooseCustomer : text.changeCustomer(customerCard.title)}
           aria-describedby={errors.customer ? "order-customer-error" : undefined}
-          className="focus-inset flex w-full items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3 text-left shadow-card transition-colors hover:bg-surface-hover"
-        >
-          <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary">
-            {customerCard.leading}
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-semibold text-text">{customerCard.title}</span>
-            <span className="block truncate text-sm text-text-muted">{customerCard.subtitle}</span>
-          </span>
-          <ChevronRight size={18} strokeWidth={1.75} aria-hidden="true" className="shrink-0 text-text-muted" />
-        </button>
+          title={customerCard.title}
+          subtitle={customerCard.subtitle}
+          leading={
+            <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary">
+              {customerCard.leading}
+            </span>
+          }
+        />
         <FieldError id="order-customer-error" message={errors.customer} />
       </Block>
 

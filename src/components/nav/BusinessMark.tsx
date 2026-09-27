@@ -46,7 +46,7 @@ export function BusinessMark({
             >
               {business?.name ?? UI_TEXT.appName}
             </span>
-            <span className="block truncate text-[10px] font-semibold uppercase tracking-[0.2em] text-text-muted">
+            <span className="block truncate text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-text-muted">
               {business?.tagline ?? UI_TEXT.appTagline}
             </span>
           </>

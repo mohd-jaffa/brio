@@ -54,47 +54,48 @@ colors:
   bill-ink: "#231a15"
   bill-ink-muted: "#5f534b"
   bill-rule: "#e6ded6"
+  scrim: "#140c0873"
 typography:
   display:
-    fontFamily: "Fraunces, Georgia, serif"
+    fontFamily: "Ovenly Rupee Serif, Fraunces, Georgia, serif"
     fontSize: "2.75rem"
     fontWeight: 600
     lineHeight: 1.04
     letterSpacing: "-0.035em"
   headline:
-    fontFamily: "Fraunces, Georgia, serif"
+    fontFamily: "Ovenly Rupee Serif, Fraunces, Georgia, serif"
     fontSize: "1.75rem"
     fontWeight: 500
     lineHeight: 1.25
     letterSpacing: "-0.025em"
   title:
-    fontFamily: "Fraunces, Georgia, serif"
+    fontFamily: "Ovenly Rupee Serif, Fraunces, Georgia, serif"
     fontSize: "1.125rem"
     fontWeight: 500
     lineHeight: 1.4
   figure:
-    fontFamily: "Fraunces, Georgia, serif"
+    fontFamily: "Ovenly Rupee Serif, Fraunces, Georgia, serif"
     fontSize: "1.5rem"
     fontWeight: 500
     lineHeight: 1.33
     fontFeature: "\"tnum\" 1"
   body:
-    fontFamily: "Inter, system-ui, sans-serif"
+    fontFamily: "Ovenly Rupee Sans, Inter, system-ui, sans-serif"
     fontSize: "0.875rem"
     fontWeight: 400
     lineHeight: 1.43
   body-strong:
-    fontFamily: "Inter, system-ui, sans-serif"
+    fontFamily: "Ovenly Rupee Sans, Inter, system-ui, sans-serif"
     fontSize: "0.875rem"
     fontWeight: 600
     lineHeight: 1.43
   label:
-    fontFamily: "Inter, system-ui, sans-serif"
+    fontFamily: "Ovenly Rupee Sans, Inter, system-ui, sans-serif"
     fontSize: "0.75rem"
     fontWeight: 500
     lineHeight: 1.33
   lockup:
-    fontFamily: "Inter, system-ui, sans-serif"
+    fontFamily: "Ovenly Rupee Sans, Inter, system-ui, sans-serif"
     fontSize: "0.7rem"
     fontWeight: 600
     lineHeight: 1.7
@@ -133,6 +134,9 @@ components:
   button-secondary:
     backgroundColor: "color-mix(in oklab, #7a4a25 10%, transparent)"
     textColor: "{colors.toasted-caramel}"
+  button-secondary-peach:
+    backgroundColor: "color-mix(in oklab, #a94a26 10%, transparent)"
+    textColor: "{colors.baked-terracotta-deep}"
     typography: "{typography.body-strong}"
     rounded: "{rounded.lg}"
     padding: "10px 16px"
@@ -223,6 +227,7 @@ A warm, low-chroma kitchen palette. One caramel (or terracotta) voice does the p
 ### Primary
 - **Toasted Caramel** (Golden) / **Baked Terracotta** (Peach): the pointing colour. It marks the active tab's underline, links, icons, the filled primary button, the active nav label and a bill's header rule and total. As text on paper it clears 4.5 : 1.
 - **Caramel Cream** (Golden) / **Terracotta Blush** (Peach): the soft tint of the primary. It sits behind medallions and the active nav pill, with the primary on top (6.03 : 1 in Golden, 4.62 in Peach).
+- **Primary strong** (`--color-primary-strong`): words on a translucent primary tint, the secondary button's. Golden keeps Toasted Caramel, which holds 4.55 : 1 or better at rest and on hover over any ground. Peach takes **Baked Terracotta Deep**, because terracotta itself falls to 3.58 : 1 on its hover tint over a field; the deep tone holds 4.71 or better.
 - **On-Caramel** / **On-Terracotta**: the cream words set on the primary and on espresso.
 
 ### Secondary
@@ -238,6 +243,7 @@ A warm, low-chroma kitchen palette. One caramel (or terracotta) voice does the p
 - **Oat Hairline** / **Blush Hairline**: every divider and card border.
 - **Crust Ink** / **Plum Ink**: body text (14.3 : 1 and 13.6 : 1 on the ground).
 - **Cocoa Muted** / **Rosewood Muted**: secondary text, at 5.3 : 1 or better on every ground, fields included.
+- **Scrim**: the dimmed page behind a sheet or a dialog, espresso at 45 %, the same in both themes (`--color-scrim`). It is set as a value, not a variable, because a dialog's backdrop does not inherit variables in every browser the app runs in.
 
 ### Status (shared by both themes)
 - **Pending** amber-brown, **Preparing** rust, **Ready** pine, **Out for delivery** slate blue, **Delivered / Completed** leaf green, **Cancelled** brick, **Neutral** stone.
@@ -265,6 +271,7 @@ A warm, low-chroma kitchen palette. One caramel (or terracotta) voice does the p
 
 **Display Font:** Fraunces (with Georgia, serif), a variable serif with its optical-size axis on (its soft and wonky axes are not loaded).
 **Body Font:** Inter (with system-ui, sans-serif).
+**The rupee sign:** each face's ₹ ships as its own 1–2 KB file (Ovenly Rupee Serif and Ovenly Rupee Sans, cut from Fraunces and Inter, SIL OFL). It heads each stack, covering U+20B9 only, so a screen with money does not download a whole extended character set for one glyph. It looks exactly like the face it was cut from.
 
 **Character:** Fraunces brings the warmth of a handwritten ledger heading; Inter keeps every control crisp and legible at 14 px.
 
@@ -300,7 +307,7 @@ A warm, low-chroma kitchen palette. One caramel (or terracotta) voice does the p
   - search, tabs and the list bind at 16 px;
   - sections part at 24 px, and at 32 px on a desktop.
 - **Every edge pays its safe area** (`--safe-top/right/bottom/left`), and heights use `dvh`, never `vh`. On a phone, a screen with the round + keeps its last row clear of it.
-- **Touch:** every target is at least 44 px. A control drawn smaller takes an invisible 44 px halo.
+- **Touch:** every target is at least 44 px. A control drawn smaller takes an invisible 44 px halo (`hit-area`, for controls drawn at 32 px or more). A link inside a line of small text, such as View order in a stock row or an email under a name, takes a 44 px band centred on its line (`hit-area-line`), and only where nothing else a finger could mean sits in that band. Two such links are never stacked closer than 44 px: where they would be, one becomes plain text beside the full-size control that does the same thing (a customer's number, beside Call).
 
 ### Named Rules
 **The What-Is-Due-Leads Rule.** On any screen the first thing read is what needs doing: overdue and due orders, money still owed, stock running low.
@@ -339,7 +346,7 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 - **Shape:** 12 px corners by default, or fully round where the reference sets a pill (the sign-in submits, Mark all as read).
 - **Primary:** Toasted Caramel with cream words, 10 × 16 px padding, 14 px semibold.
 - **Action:** Espresso. The one per screen; it carries the elevated shadow.
-- **Secondary:** a 10 % caramel tint with caramel words.
+- **Secondary:** a 10 % primary tint with the primary's strong tone for its words (see Primary strong).
 - **Ghost:** Oat Paper with a hairline and muted words that darken on hover.
 - **Danger:** a brick tint with brick words.
 - **Sizes:** 12 px text for small, 16 px for large.
@@ -362,6 +369,7 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 ### Rows
 - One line of a list: a tile, an avatar or a medallion; a title (14 px semibold) with one or two lines under it; what it amounts to at the right edge (an amount, a pill, a time); and a chevron when it goes somewhere.
 - The whole row is the target. On a desktop the right edge carries a scannable figure.
+- **Action row** (`ActionRow`): a card-width row that opens something rather than naming a record: a mark, a title and a line under it, and a chevron. Add custom item above the product grid, and the customer on an order, are both one.
 
 ### Inputs / Fields
 - **Style:** Flour Well fill, a hairline border, 12 px corners, 12 × 16 px padding, 14 px medium text.
@@ -382,9 +390,10 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 - On a phone the label sits beside the medallion. From 1024 px the label drops under the figure and a sparkline takes the medallion's row, so every tile is the same height.
 
 ### Navigation
-- **Bottom bar:** five places; the current one gets a Caramel Cream pill with a semibold caramel label.
+- **Bottom bar:** five places in equal columns, the current one on a Caramel Cream pill with a semibold caramel label. It is measured in px, like a native tab bar, so a larger text size cannot push the last place off the edge.
 - **Sidebar and rail:** the same active pill.
-- **Tabs:** underlined for the views of a screen; a single 2 px caramel underline glides to the chosen tab over 300 ms.
+- **Tabs:** underlined for the views of a screen, each 44 px tall; a single 2 px caramel underline glides to the chosen tab over 300 ms.
+- **Section heading:** a serif title with **View all** and an arrow at its end, which goes to another screen or shows another view of this one (Recent expenses → Transactions).
 - **Bell:** a bell with the unread count in a small brick (danger) circle ringed in paper, 1 to 9 then "9+".
 
 ### Response Card

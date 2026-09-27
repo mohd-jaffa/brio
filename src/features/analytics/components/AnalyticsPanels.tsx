@@ -125,15 +125,11 @@ export function OverviewPanel({
         <SalesTrend report={report} compare={desktop} onInterval={onInterval} />
       </div>
       <section aria-labelledby="analytics-top" className="lg:col-span-2 lg:row-span-2">
-        <SectionHeading id="analytics-top" title={text.topProducts}>
-          <button
-            type="button"
-            onClick={onAllProducts}
-            className="touch-target rounded-lg px-2 text-sm font-medium text-primary transition-colors hover:bg-surface-hover"
-          >
-            {text.viewAllProducts}
-          </button>
-        </SectionHeading>
+        <SectionHeading
+          id="analytics-top"
+          title={text.topProducts}
+          viewAll={{ label: text.viewAllProducts, onClick: onAllProducts }}
+        />
         {best.length === 0 ? <Nothing>{text.noProducts}</Nothing> : <ProductRows products={best} detail="orders" />}
       </section>
       <div className="lg:col-span-3">

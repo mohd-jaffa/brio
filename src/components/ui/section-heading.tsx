@@ -2,6 +2,12 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+/** Where the whole list is — another screen, or another view of this one. */
+export type ViewAll = { label: string; name?: string } & ({ href: string } | { onClick: () => void });
+
+const VIEW_ALL =
+  "touch-target inline-flex items-center gap-1 rounded-lg px-2 text-sm font-medium text-primary transition-colors hover:bg-surface-hover";
+
 /**
  * The title over a part of a screen (plan §139.5): "Orders due", "Top
  * products", in the serif, with **View all** — or another control — at its
@@ -15,8 +21,12 @@ export function SectionHeading({
 }: {
   id: string;
   title: string;
-  /** Where the whole list is, and the link's words for a screen reader: "View all orders". */
-  viewAll?: { href: string; label: string; name: string };
+  /**
+   * Where the whole list is: a screen to go to, or a view of this one to show
+   * (Transactions, from Recent expenses). `name` is its words for a screen
+   * reader when the label alone is not enough: "View all orders".
+   */
+  viewAll?: ViewAll;
   /** Controls beside the title, before View all. */
   children?: ReactNode;
 }) {
@@ -29,16 +39,18 @@ export function SectionHeading({
       </h2>
       <div className="flex shrink-0 items-center gap-2">
         {children}
-        {viewAll && (
-          <Link
-            href={viewAll.href}
-            aria-label={viewAll.name}
-            className="touch-target inline-flex items-center gap-1 rounded-lg px-2 text-sm font-medium text-primary transition-colors hover:bg-surface-hover"
-          >
-            {viewAll.label}
-            <ArrowRight size={16} strokeWidth={1.75} aria-hidden="true" />
-          </Link>
-        )}
+        {viewAll &&
+          ("href" in viewAll ? (
+            <Link href={viewAll.href} aria-label={viewAll.name} className={VIEW_ALL}>
+              {viewAll.label}
+              <ArrowRight size={16} strokeWidth={1.75} aria-hidden="true" />
+            </Link>
+          ) : (
+            <button type="button" onClick={viewAll.onClick} aria-label={viewAll.name} className={VIEW_ALL}>
+              {viewAll.label}
+              <ArrowRight size={16} strokeWidth={1.75} aria-hidden="true" />
+            </button>
+          ))}
       </div>
     </div>
   );

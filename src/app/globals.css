@@ -206,6 +206,11 @@
   --color-chart-6: var(--color-chart-6);
   --color-chart-soft: var(--color-chart-soft);
 
+  /* The dimmed page behind a sheet or a dialog, the same in both themes. Set
+     here as a value rather than a variable: a dialog's ::backdrop does not
+     inherit custom properties in every browser the app runs in. */
+  --color-scrim: rgb(20 12 8 / 0.45);
+
   /* Fraunces for display, Inter for everything you operate (plan §137.4);
      each led by its rupee glyph (above). */
   --font-heading: "Ovenly Rupee Serif", var(--font-heading);
@@ -381,7 +386,7 @@
 }
 ::-webkit-scrollbar-thumb {
   background: var(--color-border);
-  border-radius: 3px;
+  border-radius: 9999px;
 }
 
 /* ============================================================

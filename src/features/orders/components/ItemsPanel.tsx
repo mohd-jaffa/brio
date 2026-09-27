@@ -1,8 +1,9 @@
 "use client";
 
-import { ChevronRight, PackageOpen, ReceiptText, type LucideIcon } from "lucide-react";
+import { PackageOpen, ReceiptText, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 
+import { ActionRow } from "@/components/ui/action-row";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ProductCard } from "@/components/ui/product-card";
 import { SearchField } from "@/components/ui/search-field";
@@ -24,23 +25,20 @@ function MoreRow({
   onClick: () => void;
 }) {
   return (
-    <button
-      type="button"
+    <ActionRow
       onClick={onClick}
-      className="focus-inset flex w-full items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3 text-left shadow-card transition-colors hover:bg-surface-hover"
-    >
-      <span
-        aria-hidden="true"
-        className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary"
-      >
-        <Icon size={20} strokeWidth={1.75} />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-sm font-semibold text-text">{title}</span>
-        <span className="block text-sm text-text-muted">{hint}</span>
-      </span>
-      <ChevronRight size={18} strokeWidth={1.75} aria-hidden="true" className="shrink-0 text-text-muted" />
-    </button>
+      wrap
+      title={title}
+      subtitle={hint}
+      leading={
+        <span
+          aria-hidden="true"
+          className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary"
+        >
+          <Icon size={20} strokeWidth={1.75} />
+        </span>
+      }
+    />
   );
 }
 

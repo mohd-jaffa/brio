@@ -90,7 +90,7 @@ export function Hero({
         {subtitle && <p className="mt-2 text-sm text-text-muted sm:text-base">{subtitle}</p>}
         <span aria-hidden="true" className="mt-3 block h-px w-10 bg-primary" />
         {tagline && (
-          <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-text-muted sm:tracking-[0.3em]">
+          <p className="mt-3 text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-text-muted sm:tracking-[0.3em]">
             {tagline}
           </p>
         )}
