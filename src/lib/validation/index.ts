@@ -25,6 +25,7 @@ export {
 } from "./primitives";
 
 export {
+  changeAvatarSchema,
   changeEmailSchema,
   changeNameSchema,
   changePasswordSchema,
@@ -37,6 +38,8 @@ export {
   passwordResetRequestSchema,
   registerSchema,
   roleSchema,
+  type ChangeAvatarInput,
+  type ChangeAvatarPayload,
   type ChangeEmailInput,
   type ChangeEmailPayload,
   type ChangeNameInput,

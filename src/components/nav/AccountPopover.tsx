@@ -3,14 +3,14 @@
 import { ChevronDown } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
-import { Avatar } from "@/components/ui/avatar";
+import { ProfileAvatar } from "@/components/ui/profile-avatar";
 import { UI_TEXT } from "@/constants/messages";
 import { AccountMenu } from "@/features/auth/components/AccountMenu";
 import { useAuth } from "@/features/auth/AuthProvider";
 
 /**
  * The account, at the right of the top bar from 768 px (plan §139.5): the
- * initials, and the name from 1024 px, opening who is signed in and Sign
+ * profile picture, and the name from 1024 px, opening who is signed in and Sign
  * out. The theme is chosen on Settings → Appearance (R5.11). A disclosure — Escape or a click elsewhere closes it, and
  * focus goes back to the button.
  */
@@ -52,7 +52,7 @@ export function AccountPopover() {
         onClick={() => setOpen((shown) => !shown)}
         className="touch-target flex items-center gap-2 rounded-full py-1 pl-1 pr-2 transition-colors hover:bg-surface-hover"
       >
-        <Avatar name={profile.name} size="sm" />
+        <ProfileAvatar avatar={profile.avatar} />
         <span className="hidden max-w-40 truncate text-sm font-medium text-text lg:block">{profile.name}</span>
         <ChevronDown size={16} strokeWidth={1.75} aria-hidden="true" className="text-text-muted" />
       </button>

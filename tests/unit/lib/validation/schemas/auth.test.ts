@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { VALIDATION_MESSAGES } from "@/constants/messages";
-import { changePasswordSchema, registerSchema } from "@/lib/validation/schemas/auth";
+import { changeAvatarSchema, changePasswordSchema, registerSchema } from "@/lib/validation/schemas/auth";
 
 const you = {
   name: "Asha Baker",
@@ -61,5 +61,16 @@ describe("changePasswordSchema", () => {
       confirmPassword: VALIDATION_MESSAGES.passwordsMustMatch,
     });
     expect(changePasswordSchema.safeParse({ newPassword: "hunter22", confirmPassword: "hunter22" }).success).toBe(true);
+  });
+});
+
+describe("changeAvatarSchema", () => {
+  it("takes one of the nine pictures, and nothing else, in the app's words", () => {
+    expect(changeAvatarSchema.parse({ avatar: "tiger" })).toEqual({ avatar: "tiger" });
+    for (const avatar of ["dragon", "", null, undefined]) {
+      const result = changeAvatarSchema.safeParse({ avatar });
+      expect(result.success).toBe(false);
+      expect(result.error?.issues[0].message).toBe(VALIDATION_MESSAGES.chooseOne("profile picture"));
+    }
   });
 });

@@ -1,5 +1,6 @@
 import * as z from "zod";
 
+import { AVATAR_KEYS } from "@/constants/avatars";
 import { VALIDATION_MESSAGES } from "@/constants/messages";
 import { USER_ROLES } from "@/constants/roles";
 import { indianMobile, requiredEmail, requiredLine } from "@/lib/validation/primitives";
@@ -113,6 +114,11 @@ export const changeEmailSchema = z.object({
   password: currentPasswordSchema,
 });
 
+/** The owner's profile picture: one of the nine that ship with the app (the user, 2026-09-27). */
+export const changeAvatarSchema = z.object({
+  avatar: z.enum(AVATAR_KEYS, { error: VALIDATION_MESSAGES.chooseOne("profile picture") }),
+});
+
 /** The token in the link that confirms a new email address. */
 export const confirmEmailChangeSchema = z.object({
   token: z
@@ -137,4 +143,6 @@ export type ChangePhoneInput = z.input<typeof changePhoneSchema>;
 export type ChangePhonePayload = z.output<typeof changePhoneSchema>;
 export type ChangeEmailInput = z.input<typeof changeEmailSchema>;
 export type ChangeEmailPayload = z.output<typeof changeEmailSchema>;
+export type ChangeAvatarInput = z.input<typeof changeAvatarSchema>;
+export type ChangeAvatarPayload = z.output<typeof changeAvatarSchema>;
 export type ConfirmEmailChangePayload = z.output<typeof confirmEmailChangeSchema>;

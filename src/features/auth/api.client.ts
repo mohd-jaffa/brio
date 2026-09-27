@@ -1,6 +1,7 @@
 import { fetcher, postJson } from "@/lib/api/client";
 import { apiRoutes } from "@/lib/query/keys";
 import type {
+  ChangeAvatarInput,
   ChangeEmailInput,
   ChangeNameInput,
   ChangePasswordInput,
@@ -51,6 +52,10 @@ export const AuthClient = {
   /** The owner's own details, each once in 30 days (the user, 2026-09-26). */
   changeName: (payload: ChangeNameInput) =>
     fetcher<AuthProfile>(apiRoutes.auth.name, { method: "PATCH", body: JSON.stringify(payload) }),
+
+  /** The profile picture, as often as the owner likes (the user, 2026-09-27). */
+  changeAvatar: (payload: ChangeAvatarInput) =>
+    fetcher<AuthProfile>(apiRoutes.auth.avatar, { method: "PATCH", body: JSON.stringify(payload) }),
 
   changePhone: (payload: ChangePhoneInput) =>
     fetcher<AuthProfile>(apiRoutes.auth.phone, { method: "PATCH", body: JSON.stringify(payload) }),

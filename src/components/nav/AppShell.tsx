@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useRef, useState, type ReactNode } from "react";
 
-import { Avatar } from "@/components/ui/avatar";
+import { ProfileAvatar } from "@/components/ui/profile-avatar";
 import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { UI_TEXT } from "@/constants/messages";
 import { BOTTOM_NAV, isActivePath, NAV_GROUPS } from "@/constants/navigation";
@@ -23,7 +23,7 @@ import { MoreSheet } from "./MoreSheet";
  * The frame every screen sits in (plan §139.5, §139.9):
  *
  * - **Phone (< 768 px):** a top bar with the business's mark, name and line,
- *   the bell and the account's initials; a five-item bottom bar with a tinted
+ *   the bell and the account's picture; a five-item bottom bar with a tinted
  *   pill on the current place; More opens the rest.
  * - **Tablet (768–1023 px):** a 72 px icon rail, its labels shown as tooltips
  *   and read as each link's name, and a top bar with the bell and the account.
@@ -112,7 +112,7 @@ function AppFrame({ children }: { children: ReactNode }) {
             <NotificationBell />
             {profile && (
               <Link href="/settings" aria-label={UI_TEXT.nav.account(profile.name)} className="touch-target flex items-center justify-center rounded-full">
-                <Avatar name={profile.name} size="sm" />
+                <ProfileAvatar avatar={profile.avatar} />
               </Link>
             )}
           </div>

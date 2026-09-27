@@ -12,6 +12,7 @@ export const TEST_PROFILE: AuthProfile = {
   phone: "+919876543210",
   email: "asha@example.com",
   name: "Asha Baker",
+  avatar: "husky",
   role: "USER",
   bakeryId: "22222222-2222-4222-8222-222222222222",
   isActive: true,

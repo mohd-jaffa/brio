@@ -1,3 +1,4 @@
+import type { AvatarKey } from "@/constants/avatars";
 import { USER_ROLES, type UserRole } from "@/constants/roles";
 
 export { USER_ROLES, type UserRole };
@@ -7,6 +8,8 @@ export interface AuthProfile {
   phone: string;
   email: string;
   name: string;
+  /** The profile picture: one of the nine that ship with the app (0026). */
+  avatar: AvatarKey;
   role: UserRole;
   bakeryId: string;
   isActive: boolean;

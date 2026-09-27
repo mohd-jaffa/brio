@@ -288,6 +288,8 @@ export const UI_TEXT = {
     emailPending: "Check your new inbox",
     emailPendingNote: (email: string) => `A link is on its way to ${email}. Your email changes once you follow it.`,
     detailNotChanged: "Not changed",
+    pictureChanged: "Profile picture changed",
+    pictureNotChanged: "Picture not changed",
     amount: "Amount",
     balanceDue: "Balance due",
     keepOrder: "Keep order",
@@ -1078,6 +1080,10 @@ export const UI_TEXT = {
     version: "Version",
     craftedBy: "Crafted by",
     maker: "jaFFa",
+    // The owner's profile picture, one of nine (the user, 2026-09-27).
+    changePicture: "Change profile picture",
+    pictureTitle: "Choose a profile picture",
+    pictureHint: "It shows on your account, beside your name.",
   },
 
   /** The screens shown when a route is missing or a screen fails (plan §134 P0-2, P1-1). */

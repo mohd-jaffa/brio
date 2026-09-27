@@ -138,6 +138,15 @@ describe("AuthClient", () => {
     expect(mockFetch).toHaveBeenLastCalledWith(apiRoutes.auth.email, expect.objectContaining({ method: "POST" }));
   });
 
+  it("changes the profile picture with PATCH", async () => {
+    answers({ avatar: "tiger" });
+    await expect(AuthClient.changeAvatar({ avatar: "tiger" })).resolves.toEqual({ avatar: "tiger" });
+    expect(mockFetch).toHaveBeenLastCalledWith(
+      apiRoutes.auth.avatar,
+      expect.objectContaining({ method: "PATCH", body: JSON.stringify({ avatar: "tiger" }) }),
+    );
+  });
+
   it("sends a new email's link again, and confirms it with the token from the link", async () => {
     answers({ queued: true });
     await expect(AuthClient.resendEmailChange()).resolves.toEqual({ queued: true });

@@ -1,15 +1,15 @@
 "use client";
 
-import { Heart, Info, KeyRound, Mail, MailCheck, Palette, Smartphone, Store, User } from "lucide-react";
+import { Heart, Info, KeyRound, Mail, MailCheck, Palette, Pencil, Smartphone, Store, User } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 
 import { PLATES, PLATE_FOCUS, PLATE_QUALITY } from "@/assets/plates";
-import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { lazySheet } from "@/components/ui/lazy-sheet";
 import { Medallion } from "@/components/ui/medallion";
 import { PageHeader } from "@/components/ui/page-header";
+import { ProfileAvatar } from "@/components/ui/profile-avatar";
 import { useResponse } from "@/components/ui/response-card";
 import { Row, RowList } from "@/components/ui/row";
 import { ScreenNotice } from "@/components/ui/screen-notice";
@@ -35,6 +35,10 @@ import { SignOutRow } from "./SignOutRow";
 const AccountChangeSheet = lazySheet(
   () => import("./AccountChangeSheet").then((module) => module.AccountChangeSheet),
   (props) => props.field !== undefined,
+);
+const AvatarSheet = lazySheet(
+  () => import("./AvatarSheet").then((module) => module.AvatarSheet),
+  (props) => props.open,
 );
 
 const text = UI_TEXT.settings;
@@ -88,7 +92,8 @@ const ACCOUNT_ICONS = { name: User, phone: Smartphone, email: Mail } as const;
 
 /**
  * Settings (plan §139.10, R5.11), with the reference's Profile screen folded
- * in: who is signed in, for which business, and its catch phrase; then
+ * in: who is signed in — their picture, tapped to choose another of the nine
+ * (the user, 2026-09-27) — for which business, and its catch phrase; then
  * Business details, the account — where the password is changed from, and an
  * unconfirmed email's link is sent again (BUG-16), and where the name, the
  * sign-in number and the email are changed, each once in 30 days, a new email
@@ -102,6 +107,7 @@ export function Settings() {
   const { profile } = useAuth();
   const business = useBusiness();
   const [changing, setChanging] = useState<AccountField | undefined>();
+  const [choosingPicture, setChoosingPicture] = useState(false);
 
   if (!profile) return null;
 
@@ -138,7 +144,24 @@ export function Settings() {
             />
           </div>
           <div className="relative -mt-8 px-5 pb-5">
-            <Avatar name={profile.name} size="lg" className="ring-4 ring-surface" />
+            <button
+              type="button"
+              aria-label={text.changePicture}
+              onClick={() => setChoosingPicture(true)}
+              className="group relative block rounded-full"
+            >
+              <ProfileAvatar
+                avatar={profile.avatar}
+                size="lg"
+                className="ring-4 ring-surface transition-transform duration-200 group-hover:scale-[1.03] group-active:scale-[0.98]"
+              />
+              <span
+                aria-hidden="true"
+                className="absolute bottom-0 right-0 flex size-7 items-center justify-center rounded-full border-2 border-surface bg-primary text-primary-text shadow-card"
+              >
+                <Pencil size={13} strokeWidth={2} />
+              </span>
+            </button>
             <h2 className="mt-3 font-heading text-2xl font-medium leading-tight text-text">{profile.name}</h2>
             <p className="mt-0.5 text-sm text-text-muted">
               {business.data ? text.owner(role, business.data.name) : role}
@@ -228,6 +251,7 @@ export function Settings() {
       </div>
 
       <AccountChangeSheet field={changing} onClose={() => setChanging(undefined)} />
+      <AvatarSheet open={choosingPicture} onClose={() => setChoosingPicture(false)} />
     </div>
   );
 }

@@ -9,14 +9,15 @@ import { ThemeProvider } from "@/lib/theme/ThemeProvider";
 import { authStub, TEST_PROFILE } from "@tests/support/auth";
 import { Providers } from "@tests/support/providers";
 
-const { auth, business, resendConfirmation, resendEmailChange } = vi.hoisted(() => ({
+const { auth, business, changeAvatar, resendConfirmation, resendEmailChange } = vi.hoisted(() => ({
   auth: { current: {} as ReturnType<typeof authStub> },
   business: { current: {} as { data?: BusinessProfile } },
+  changeAvatar: vi.fn(),
   resendConfirmation: vi.fn(),
   resendEmailChange: vi.fn(),
 }));
 vi.mock("@/features/auth/AuthProvider", () => ({ useAuth: () => auth.current }));
-vi.mock("@/features/auth/api.client", () => ({ AuthClient: { resendConfirmation, resendEmailChange } }));
+vi.mock("@/features/auth/api.client", () => ({ AuthClient: { changeAvatar, resendConfirmation, resendEmailChange } }));
 vi.mock("@/features/business/hooks/useBusiness", () => ({ useBusiness: () => business.current }));
 
 const render = (ui: ReactElement) =>
@@ -57,7 +58,10 @@ describe("Settings", () => {
     render(<Settings />);
     expect(screen.getByRole("heading", { level: 1, name: "Settings" })).toBeInTheDocument();
     const profile = screen.getByRole("region", { name: TEST_PROFILE.name });
-    expect(within(profile).getByText("AB")).toBeInTheDocument();
+    // The owner's picture, not their initials (the user, 2026-09-27).
+    expect(within(profile).queryByText("AB")).not.toBeInTheDocument();
+    const picture = within(profile).getByRole("button", { name: "Change profile picture" });
+    expect(picture.querySelector("img")?.getAttribute("src")).toContain("husky");
     expect(within(profile).getByRole("heading", { name: TEST_PROFILE.name })).toBeInTheDocument();
     expect(within(profile).getByText("Owner · Sweet Delights")).toBeInTheDocument();
     expect(within(profile).getByText("“Cakes for every celebration”")).toBeInTheDocument();
@@ -73,6 +77,18 @@ describe("Settings", () => {
     rerender(<Settings />);
     expect(within(profile).getByText("Owner · Sweet Delights")).toBeInTheDocument();
     expect(profile.querySelector("blockquote")).toBeNull();
+  });
+
+  it("opens the nine pictures to choose from when the picture is tapped", async () => {
+    render(<Settings />);
+    await userEvent.click(screen.getByRole("button", { name: "Change profile picture" }));
+    const chooser = await screen.findByRole("dialog", { name: "Choose a profile picture" });
+    expect(within(chooser).getAllByRole("radio")).toHaveLength(9);
+    expect(within(chooser).getByRole("radio", { name: "Husky" })).toHaveAttribute("aria-checked", "true");
+
+    await userEvent.click(within(chooser).getByRole("radio", { name: "Husky" }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Choose a profile picture" })).not.toBeInTheDocument());
+    expect(changeAvatar).not.toHaveBeenCalled();
   });
 
   it("goes to Business details", () => {

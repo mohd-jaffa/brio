@@ -106,13 +106,13 @@ describe("AppShell", () => {
     expect(screen.getAllByRole("link", { name: "Orders" })[0]).not.toHaveAttribute("aria-current");
   });
 
-  it("shows the business's mark and the account's initials on a phone", () => {
+  it("shows the business's mark and the account's picture on a phone", () => {
     shell();
     const [phoneBar] = screen.getAllByRole("banner");
     expect(within(phoneBar).getByText("Asha's Kitchen")).toBeInTheDocument();
     const account = within(phoneBar).getByRole("link", { name: "Account: Asha Baker" });
     expect(account).toHaveAttribute("href", "/settings");
-    expect(account).toHaveTextContent("AB");
+    expect(account.querySelector("img")?.getAttribute("src")).toContain("husky");
   });
 
   it("opens the rest of the app behind More, and says whether it is open", async () => {

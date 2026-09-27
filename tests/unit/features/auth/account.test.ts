@@ -26,7 +26,7 @@ vi.mock("@/lib/supabase/server", () => ({
   createSupabaseAnonClient: () => ({ auth: { signInWithPassword, signOut } }),
 }));
 
-const { changeName, changePhone, confirmEmailChange, requestEmailChange, resendEmailChange, sendEmailChangeConfirmation } =
+const { changeAvatar, changeName, changePhone, confirmEmailChange, requestEmailChange, resendEmailChange, sendEmailChangeConfirmation } =
   await import("@/features/auth/account");
 
 const RECENT = new Date(Date.now() - 2 * 86_400_000).toISOString();
@@ -36,6 +36,7 @@ const profile = (changes: Partial<AuthProfile> = {}): AuthProfile => ({
   phone: "+919876543210",
   email: "asha@example.com",
   name: "Asha Baker",
+  avatar: "husky",
   role: "USER",
   bakeryId: "b-1",
   isActive: true,
@@ -53,6 +54,7 @@ const row = (changes: Record<string, unknown> = {}) => ({
   phone: "+919876543210",
   email: "asha@example.com",
   name: "Asha Baker",
+  avatar: "husky",
   role: "USER",
   bakery_id: "b-1",
   is_active: true,
@@ -161,6 +163,36 @@ describe("changeName", () => {
     expect((await refusal(changeName(tooSoon.admin, tenant, profile(), { name: "Asha B" }))).code).toBe("PROFILE_CHANGE_TOO_SOON");
     const broken = fakeAdmin(() => ({ error: { code: "08006", message: "connection lost" } }));
     expect((await refusal(changeName(broken.admin, tenant, profile(), { name: "Asha B" }))).code).toBe("EXTERNAL_SERVICE_ERROR");
+  });
+});
+
+describe("changeAvatar", () => {
+  it("changes the picture as often as asked, and records who changed it from what", async () => {
+    const { admin, queries } = fakeAdmin(ordinary({ avatar: "tiger" }));
+    const saved = await changeAvatar(admin, tenant, profile({ nameChangedAt: RECENT }), { avatar: "tiger" });
+    expect(saved.avatar).toBe("tiger");
+    expect(updateOf(queries)).toEqual([{ avatar: "tiger" }]);
+    expect(logActionSafe).toHaveBeenCalledWith(tenant, {
+      action: "UPDATE",
+      entity_type: "profiles",
+      entity_id: "u-1",
+      previous_data: { avatar: "husky" },
+      new_data: { avatar: "tiger" },
+    });
+  });
+
+  it("takes the picture already in use as no change, and writes nothing", async () => {
+    const { admin, queries } = fakeAdmin(ordinary());
+    const current = profile();
+    await expect(changeAvatar(admin, tenant, current, { avatar: "husky" })).resolves.toBe(current);
+    expect(queries).toEqual([]);
+    expect(logActionSafe).not.toHaveBeenCalled();
+  });
+
+  it("says a failed write as an outage, and audits nothing", async () => {
+    const broken = fakeAdmin(() => ({ error: { code: "08006", message: "connection lost" } }));
+    expect((await refusal(changeAvatar(broken.admin, tenant, profile(), { avatar: "tiger" }))).code).toBe("EXTERNAL_SERVICE_ERROR");
+    expect(logActionSafe).not.toHaveBeenCalled();
   });
 });
 

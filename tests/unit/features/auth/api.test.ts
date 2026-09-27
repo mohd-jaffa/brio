@@ -15,7 +15,13 @@ vi.mock("@/lib/env/server", () => ({ getServerEnv: () => ({ NEXT_PUBLIC_APP_URL:
 vi.mock("@/lib/logger", () => ({ logger }));
 vi.mock("@/lib/jobs/queue", () => ({ createJob }));
 
-import { queueAccountConfirmation, register, resendConfirmation, sendAccountConfirmation } from "@/features/auth/api";
+import {
+  mapProfile,
+  queueAccountConfirmation,
+  register,
+  resendConfirmation,
+  sendAccountConfirmation,
+} from "@/features/auth/api";
 
 const registration = {
   name: "Priya Menon",
@@ -34,6 +40,7 @@ const profileRow = (overrides: Record<string, unknown> = {}) => ({
   phone: "+919876543210",
   email: "priya@example.com",
   name: "Priya Menon",
+  avatar: "tiger",
   role: "USER",
   bakery_id: "b-1",
   is_active: true,
@@ -147,6 +154,13 @@ describe("register", () => {
     expect(profile).toMatchObject({ id: "u-1", bakery_id: "b-1", role: "USER" });
   });
 
+  it("leaves the profile picture to the database, which draws one of the nine at random (0026)", async () => {
+    const { client, inserted } = fakeAdmin();
+    await register(client, registration);
+
+    expect(inserted.find(([table]) => table === "profiles")?.[1]).not.toHaveProperty("avatar");
+  });
+
   it("queues the confirmation email rather than sending it, naming only the user (BUG-16)", async () => {
     const { client } = fakeAdmin();
     await register(client, registration);
@@ -239,5 +253,13 @@ describe("resendConfirmation", () => {
       httpStatus: 409,
     });
     expect(createJob).not.toHaveBeenCalled();
+  });
+});
+
+describe("mapProfile", () => {
+  it("carries the profile picture, and shows the first of the nine for a key the app no longer has", () => {
+    const row = { ...profileRow(), name_changed_at: null, phone_changed_at: null, email_changed_at: null, pending_email: null };
+    expect(mapProfile(row as Parameters<typeof mapProfile>[0]).avatar).toBe("tiger");
+    expect(mapProfile({ ...row, avatar: "dragon" } as Parameters<typeof mapProfile>[0]).avatar).toBe("pomeranian");
   });
 });

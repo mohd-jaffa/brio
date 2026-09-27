@@ -14,7 +14,13 @@ import { logger } from "@/lib/logger";
 import { createConfiguredMailService } from "@/lib/mail/nodemailer.provider";
 import { createSupabaseAnonClient } from "@/lib/supabase/server";
 import type { Tenant } from "@/lib/supabase/tenant";
-import type { ChangeEmailPayload, ChangeNamePayload, ChangePhonePayload, ConfirmEmailChangePayload } from "@/lib/validation";
+import type {
+  ChangeAvatarPayload,
+  ChangeEmailPayload,
+  ChangeNamePayload,
+  ChangePhonePayload,
+  ConfirmEmailChangePayload,
+} from "@/lib/validation";
 
 import {
   EMAIL_CONFIRMATION_PATH,
@@ -97,6 +103,29 @@ export async function changeName(
     entity_id: profile.id,
     previous_data: { name: profile.name },
     new_data: { name: saved.name },
+  });
+  return saved;
+}
+
+/**
+ * The owner's profile picture (PATCH /api/auth/avatar; the user, 2026-09-27):
+ * one of the nine that ship with the app, as often as they like. The one
+ * already in use is no change, and writes nothing.
+ */
+export async function changeAvatar(
+  adminClient: SupabaseClient,
+  tenant: Tenant,
+  profile: AuthProfile,
+  input: ChangeAvatarPayload,
+): Promise<AuthProfile> {
+  if (input.avatar === profile.avatar) return profile;
+  const saved = await writeProfile(adminClient, profile.id, { avatar: input.avatar });
+  await logActionSafe(tenant, {
+    action: "UPDATE",
+    entity_type: "profiles",
+    entity_id: profile.id,
+    previous_data: { avatar: profile.avatar },
+    new_data: { avatar: saved.avatar },
   });
   return saved;
 }

@@ -1,5 +1,6 @@
 import { type Session, type SupabaseClient } from "@supabase/supabase-js";
 
+import { avatarOr } from "@/constants/avatars";
 import { getServerEnv, type ServerEnv } from "@/lib/env/server";
 import {
   authenticationError,
@@ -32,13 +33,14 @@ import {
 export const EMAIL_CONFIRMATION_PATH = "/confirm-email";
 
 export const PROFILE_COLUMNS =
-  "id, phone, email, name, role, bakery_id, is_active, must_change_password, email_confirmed_at, name_changed_at, phone_changed_at, email_changed_at, pending_email";
+  "id, phone, email, name, avatar, role, bakery_id, is_active, must_change_password, email_confirmed_at, name_changed_at, phone_changed_at, email_changed_at, pending_email";
 
 export interface ProfileRow {
   id: string;
   phone: string;
   email: string;
   name: string;
+  avatar: string;
   role: UserRole;
   bakery_id: string;
   is_active: boolean;
@@ -223,6 +225,7 @@ export function mapProfile(row: ProfileRow): AuthProfile {
     phone: row.phone,
     email: row.email,
     name: row.name,
+    avatar: avatarOr(row.avatar),
     role: row.role,
     bakeryId: row.bakery_id,
     isActive: row.is_active,

@@ -31,7 +31,7 @@ describe("AccountPopover", () => {
   it("names the account and opens who is signed in and Sign out", async () => {
     popover();
     expect(button()).toHaveAttribute("aria-expanded", "false");
-    expect(button()).toHaveTextContent("AB");
+    expect(button().querySelector("img")?.getAttribute("src")).toContain("husky");
     expect(screen.queryByRole("button", { name: /Sign out/ })).not.toBeInTheDocument();
 
     await userEvent.click(button());

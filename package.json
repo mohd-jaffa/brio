@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "avatars": "node scripts/avatars.mjs",
     "illustrations": "node scripts/illustrations.mjs",
     "plates": "node scripts/plates.mjs",
     "worker": "tsx --env-file-if-exists=.env.local src/worker.ts",
