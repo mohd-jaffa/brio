@@ -7532,6 +7532,8 @@ Later the same day:
   - **Change status** offers every status an open order can take: straight on to Delivered or Completed, or back to an earlier one when it was moved by mistake (§139.11.8, revised).
   - **Delivered or Completed, and Cancelled, stay final.** Asked, the user chose to keep them so: stock has followed them.
 - **What cannot be undone asks first** (the user: "keep confirm prompt on such cases, are sure the order is complete, are sure you want to logout, such no reversible actions need a confirm dialog"). Marking an order Delivered or Completed, cancelling it, and signing out now ask on a confirm card. Deleting an expense or a category, clearing an order being built and replacing it with Order again already asked.
+- **Every choice opens the app's own list** (the user: "some of the select dropdown is not having css instead using native list, fix that too, like in analytics the days dropdown list"). The period on Analytics, Expenses and Guest sales, Daily or Weekly beside a trend, and every choice in a form — a payment method, a unit, a stock movement, a category filter, a discount or a charge — open a list in paper and hairline with the chosen one ticked, never the browser's own. It is one kit component (`select-menu`); the range picker's native select is gone.
+  - Opening it no longer shows a different period after the page loads: the remembered period is read once the page has hydrated, so the server's page and the browser's first draw agree.
 
 ---
 
@@ -7725,7 +7727,7 @@ a shared component** (AGENTS §5).
 | `hero` | New | An optional photographic plate (§139.11.12), a two-line serif, a rule and a tracked line. **Home only on phones**; Analytics and Expenses get a compact band, so their numbers stay above the fold. |
 | `stat-tile` | Rewrite | Medallion icon, value (serif when it is a headline amount), label, a delta against the previous period (up green, down rose), and an optional sparkline on desktop. |
 | `tabs` | New | Underlined, scrollable, with optional counts. |
-| `segmented`, `range-picker` | New | Today / Week / Month, and "Last 30 days". |
+| `segmented`, `range-picker` | New | Today / Week / Month, and "Last 30 days". *Since 2026-09-27 the range picker opens the kit's own list (`select-menu`), as every select does.* |
 | `row`, `row-list` | New | Tile or avatar · title block · trailing block (amount, pill) · chevron, with hairline dividers inside **one** card. |
 | `status-pill` | Rewrite of `status-badge` | A tinted pill with a dot (§139.4). |
 | `avatar` | New | Initials on a tint picked deterministically from the name, within the theme's palette. |

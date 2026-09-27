@@ -2565,3 +2565,27 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - None. Delivered/Completed and Cancelled stay final: the user chose so when asked.
+
+## 2026-09-27 — Choices open the app's own list
+
+### Changed
+- **Every select opens a styled list, never the browser's** (the user: "some of the select dropdown is not having css instead using native list … like in analytics the days dropdown list"). One kit component, `src/components/ui/select-menu.tsx`:
+  - **Where it shows:** the period on Analytics, Expenses and Guest sales (`RangePicker`), Daily or Weekly beside a trend (`IntervalSelect`), and every `SelectField`. The fields are payment method (collecting a payment, an expense), unit (a product), what happened (stock), the category filter (expenses) and discount or charge (an order).
+  - **Look:** paper list with a hairline, 44 px choices, the chosen one ticked. It is placed in the top layer, so a sheet never clips it, and opens under or over its control.
+  - **Keyboard:** a select-only combobox (arrows, Home/End, a letter, Enter/Space, Escape/Tab).
+- **`SelectField` is controlled** (`value`, `onChange(value)`). The four forms that registered one now hold it through react-hook-form's `Controller`. The field styles every control shares moved to `field-styles.ts`.
+
+### Fixed
+- **A remembered period no longer breaks the page on load.** `useRememberedRange` read this device's storage during the first render, so the server's page (Last 30 days) and the browser's first draw (the kept period) differed. React then rebuilt the page, which also raised the "script tag while rendering" warning for the theme script. It now reads storage through `useSyncExternalStore`: the default is drawn during hydration, and the kept period right after. It also follows a choice made in another tab.
+
+### Validation
+- **Browser, 1440 px in Golden and 390 px in Peach:**
+  - the period list opens under the pill and takes a choice by keyboard;
+  - Daily/Weekly opens from the chart;
+  - Paid with, inside the expense sheet, opens over the field because there is no room below, and takes UPI;
+  - no page errors.
+- **Console on a fresh load**, with Last 7 days kept for Analytics and This month for Expenses: each screen shows its kept period, with no hydration error and no script warning.
+- **Checks:** `tsc` and `eslint` pass. The full suite passes (1,973 tests), and every new and changed file is at 100 %.
+
+### Blockers
+- None.

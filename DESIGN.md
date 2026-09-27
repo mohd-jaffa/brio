@@ -359,6 +359,13 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 ### Chips
 - Choice chips for small single choices; the segmented control for a period: a Flour Well track with a 4 px inset, and an Oat Paper tile that glides to the chosen segment.
 
+### Select
+- **One component** (`select-menu`) for every choice from a list: the period pill, Daily or Weekly beside a chart, and the select fields in forms. The browser's own list never opens.
+- **The control** takes the look of where it sits: a field's Flour Well well; the period pill in Oat Paper with a card shadow and the calendar mark; a small hairline box beside a chart. A chevron turns over while it is open.
+- **The list:** Oat Paper, one hairline, 12 px corners and the elevated shadow, with a 6 px inset. Each choice is at least 44 px tall. The one the keys are on sits on Flour Well, and the chosen one is semibold with a caramel tick.
+- **Where it opens:** in the top layer, so no scrolling sheet clips it; under the control, or over it where there is more room; lined up with the control's nearer screen edge; at most 288 px tall, then it scrolls. It drops in over 240 ms, as a fade under reduced motion.
+- **Keyboard:** the arrows, Home and End move; a letter jumps; Enter or Space takes; Escape or Tab closes, and Escape never closes the sheet behind it.
+
 ### Cards / Containers
 - **Corner style:** 16 px.
 - **Background:** Oat Paper on the cream ground.
