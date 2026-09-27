@@ -9,6 +9,9 @@ const { router, query, auth } = vi.hoisted(() => ({
   auth: { current: {} as ReturnType<typeof authStub> },
 }));
 
+// Signing in, out, or confirming an email loads a new page: nothing of the last account stays.
+const { loadPage } = vi.hoisted(() => ({ loadPage: vi.fn() }));
+vi.mock("@/lib/navigation/url", () => ({ loadPage }));
 vi.mock("next/navigation", () => ({
   useRouter: () => router,
   usePathname: () => "/login",
@@ -32,14 +35,14 @@ describe("an already-signed-in visitor", () => {
     signInScreen();
 
     expect(screen.getByText("Sign in form")).toBeInTheDocument();
-    expect(router.replace).not.toHaveBeenCalled();
+    expect(loadPage).not.toHaveBeenCalled();
   });
 
   it("is sent on to the app rather than asked to sign in again", async () => {
     auth.current = authStub();
     signInScreen();
 
-    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/"));
+    await waitFor(() => expect(loadPage).toHaveBeenCalledWith("/"));
     expect(screen.queryByText("Sign in form")).not.toBeInTheDocument();
   });
 
@@ -48,13 +51,13 @@ describe("an already-signed-in visitor", () => {
     auth.current = authStub();
     signInScreen();
 
-    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/customers"));
+    await waitFor(() => expect(loadPage).toHaveBeenCalledWith("/customers"));
   });
 
   it("is sent to replace a temporary password first", async () => {
     auth.current = authStub({ requiresPasswordChange: true });
     signInScreen();
 
-    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/change-password"));
+    await waitFor(() => expect(loadPage).toHaveBeenCalledWith("/change-password"));
   });
 });

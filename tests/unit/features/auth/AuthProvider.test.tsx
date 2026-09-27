@@ -1,6 +1,6 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, render, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { SWRConfig } from "swr";
+import { SWRConfig, useSWRConfig } from "swr";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { AuthSessionView } from "@/features/auth/types";
@@ -13,6 +13,9 @@ const { fetcher, client, router } = vi.hoisted(() => ({
   router: { replace: vi.fn(), push: vi.fn(), back: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() },
 }));
 
+// Signing in, out, or confirming an email loads a new page: nothing of the last account stays.
+const { loadPage } = vi.hoisted(() => ({ loadPage: vi.fn() }));
+vi.mock("@/lib/navigation/url", () => ({ loadPage }));
 vi.mock("@/lib/api/client", () => ({ fetcher }));
 vi.mock("@/features/auth/api.client", () => ({ AuthClient: client }));
 vi.mock("next/navigation", () => ({
@@ -116,6 +119,30 @@ describe("what the page arrived knowing", () => {
   });
 });
 
+describe("each account's reads", () => {
+  it("are kept in a cache of their own, begun afresh when who is signed in changes", async () => {
+    const caches: unknown[] = [];
+    let auth: ReturnType<typeof useAuth> | undefined;
+    function Probe() {
+      caches.push(useSWRConfig().cache);
+      auth = useAuth();
+      return null;
+    }
+    const Wrapper = arrivingWith(TEST_SESSION);
+    render(
+      <Wrapper>
+        <Probe />
+      </Wrapper>,
+    );
+    const first = caches.at(-1);
+
+    await act(() => auth!.adopt({ ...TEST_SESSION, profile: { ...TEST_SESSION.profile, id: "someone-else" } }));
+
+    expect(auth!.profile?.id).toBe("someone-else");
+    expect(caches.at(-1)).not.toBe(first);
+  });
+});
+
 describe("signing in and out", () => {
   it("adopts the session the sign-in returned without asking the server again", async () => {
     fetcher.mockRejectedValue(new Error("401"));
@@ -139,7 +166,7 @@ describe("signing in and out", () => {
     await result.current.signOut();
 
     await waitFor(() => expect(result.current.status).toBe("anonymous"));
-    expect(router.replace).toHaveBeenCalledWith("/login");
+    expect(loadPage).toHaveBeenCalledWith("/login");
   });
 
   it("clears what the device kept for the account — an order half built — but not the theme", async () => {
@@ -165,7 +192,7 @@ describe("signing in and out", () => {
 
     await expect(result.current.signOut()).rejects.toThrow();
 
-    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/login"));
+    await waitFor(() => expect(loadPage).toHaveBeenCalledWith("/login"));
   });
 
   it("re-reads the session when asked", async () => {

@@ -12,6 +12,9 @@ const { router, query, auth } = vi.hoisted(() => ({
   auth: { current: {} as ReturnType<typeof authStub> },
 }));
 
+// Signing in, out, or confirming an email loads a new page: nothing of the last account stays.
+const { loadPage } = vi.hoisted(() => ({ loadPage: vi.fn() }));
+vi.mock("@/lib/navigation/url", () => ({ loadPage }));
 vi.mock("next/navigation", () => ({
   useRouter: () => router,
   usePathname: () => "/login",
@@ -80,7 +83,7 @@ describe("signing in", () => {
     await userEvent.type(screen.getByLabelText(/^password/i), "hunter22");
     await userEvent.click(signIn());
 
-    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/"));
+    await waitFor(() => expect(loadPage).toHaveBeenCalledWith("/"));
   });
 
   it("returns to the screen the visitor was trying to reach", async () => {
@@ -91,7 +94,7 @@ describe("signing in", () => {
     await userEvent.type(screen.getByLabelText(/^password/i), "hunter22");
     await userEvent.click(signIn());
 
-    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/orders/o-1"));
+    await waitFor(() => expect(loadPage).toHaveBeenCalledWith("/orders/o-1"));
   });
 
   it("sends a baker holding a temporary password to replace it, and nowhere else", async () => {
@@ -104,7 +107,7 @@ describe("signing in", () => {
     await userEvent.type(screen.getByLabelText(/^password/i), "temp-pass");
     await userEvent.click(signIn());
 
-    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/change-password"));
+    await waitFor(() => expect(loadPage).toHaveBeenCalledWith("/change-password"));
   });
 
   it("shows why a sign-in was refused, in the server's own words", async () => {
@@ -122,7 +125,7 @@ describe("signing in", () => {
     await userEvent.click(signIn());
 
     expect(await screen.findByText(ERROR_MESSAGES.AUTH_INVALID_CREDENTIALS)).toBeInTheDocument();
-    expect(router.replace).not.toHaveBeenCalled();
+    expect(loadPage).not.toHaveBeenCalled();
   });
 
   it("offers the way to a forgotten password", () => {

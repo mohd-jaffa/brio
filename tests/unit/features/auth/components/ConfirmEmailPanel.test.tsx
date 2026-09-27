@@ -10,6 +10,9 @@ const { router, client, auth } = vi.hoisted(() => ({
   auth: { current: {} as ReturnType<typeof authStub> },
 }));
 
+// Signing in, out, or confirming an email loads a new page: nothing of the last account stays.
+const { loadPage } = vi.hoisted(() => ({ loadPage: vi.fn() }));
+vi.mock("@/lib/navigation/url", () => ({ loadPage }));
 vi.mock("next/navigation", () => ({
   useRouter: () => router,
   usePathname: () => "/confirm-email",
@@ -64,7 +67,7 @@ describe("confirming an email address", () => {
       expect(client.confirmEmail).toHaveBeenCalledWith({ accessToken: "a", refreshToken: "r" }),
     );
     await waitFor(() => expect(auth.current.adopt).toHaveBeenCalled());
-    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/"));
+    await waitFor(() => expect(loadPage).toHaveBeenCalledWith("/"));
   });
 
   it("wipes the tokens out of the address bar before anything else", async () => {
@@ -107,7 +110,7 @@ describe("confirming an email address", () => {
     render(<ConfirmEmailPanel />);
 
     expect(await screen.findByText(ERROR_MESSAGES.AUTH_EMAIL_CONFIRM_FAILED)).toBeInTheDocument();
-    expect(router.replace).not.toHaveBeenCalled();
+    expect(loadPage).not.toHaveBeenCalled();
   });
 
   it("says it is working while it waits", () => {
@@ -176,6 +179,6 @@ describe("a welcome link whose page has gone", () => {
     window.location.hash = "#access_token=a&refresh_token=r";
     render(<ConfirmEmailPanel />).unmount();
     refuse(new Error("late"));
-    await waitFor(() => expect(router.replace).not.toHaveBeenCalled());
+    await waitFor(() => expect(loadPage).not.toHaveBeenCalled());
   });
 });

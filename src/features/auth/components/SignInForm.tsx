@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, Lock, Smartphone } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { UI_TEXT } from "@/constants/messages";
 import { AUTH_ROUTES, RETURN_TO_PARAM, returnToPath } from "@/constants/routes";
 import { useApiMutation } from "@/lib/query/useApiMutation";
 import { loginSchema, type LoginInput, type LoginPayload } from "@/lib/validation";
+import { loadPage } from "@/lib/navigation/url";
 
 import { useAuth } from "../AuthProvider";
 import type { AuthSessionView } from "../types";
@@ -28,7 +29,6 @@ import { PasswordField } from "./PasswordField";
  * the screen that sent them here.
  */
 export function SignInForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { signIn } = useAuth();
 
@@ -45,9 +45,8 @@ export function SignInForm() {
 
   const respond = useResponse();
   const { submit, submitting } = useApiMutation<LoginPayload, AuthSessionView>(signIn, {
-    onSuccess: (session) => {
-      router.replace(session.requiresPasswordChange ? AUTH_ROUTES.changePassword : returnTo);
-    },
+    // A new page for the account now signed in, drawn by the server with its data.
+    onSuccess: (session) => loadPage(session.requiresPasswordChange ? AUTH_ROUTES.changePassword : returnTo),
     onError: (failure) =>
       respond.failure(failure, { title: UI_TEXT.outcomes.signInFailed, fallback: "AUTH_INVALID_CREDENTIALS" }),
   });

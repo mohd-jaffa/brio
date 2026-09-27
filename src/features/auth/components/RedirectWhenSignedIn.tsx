@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 
 import { UI_TEXT } from "@/constants/messages";
@@ -8,6 +8,7 @@ import { AUTH_ROUTES, RETURN_TO_PARAM, returnToPath } from "@/constants/routes";
 
 import { useAuth } from "../AuthProvider";
 import { Pending } from "@/components/ui/pending";
+import { loadPage } from "@/lib/navigation/url";
 
 /**
  * The other half of the gate: someone already signed in has no use for the
@@ -16,19 +17,14 @@ import { Pending } from "@/components/ui/pending";
  */
 export function RedirectWhenSignedIn({ children }: { children: ReactNode }) {
   const { status, requiresPasswordChange } = useAuth();
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   const signedIn = status === "authenticated";
 
   useEffect(() => {
     if (!signedIn) return;
-    router.replace(
-      requiresPasswordChange
-        ? AUTH_ROUTES.changePassword
-        : returnToPath(searchParams.get(RETURN_TO_PARAM)),
-    );
-  }, [signedIn, requiresPasswordChange, router, searchParams]);
+    loadPage(requiresPasswordChange ? AUTH_ROUTES.changePassword : returnToPath(searchParams.get(RETURN_TO_PARAM)));
+  }, [signedIn, requiresPasswordChange, searchParams]);
 
   if (signedIn) return <Pending message={UI_TEXT.auth.checkingSession} />;
 

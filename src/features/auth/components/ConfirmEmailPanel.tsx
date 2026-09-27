@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { LinkButton } from "@/components/ui/button";
@@ -12,6 +11,7 @@ import { errorMessage } from "@/lib/errors/errorMessage";
 import { AuthClient } from "../api.client";
 import { useAuth } from "../AuthProvider";
 import { Pending } from "@/components/ui/pending";
+import { loadPage } from "@/lib/navigation/url";
 
 type ConfirmState = "working" | "done" | "changed" | "failed";
 
@@ -57,7 +57,6 @@ export function readEmailChangeToken(fragment: string): string | null {
  * email changes, and a session open here is read again to show it.
  */
 export function ConfirmEmailPanel() {
-  const router = useRouter();
   const { adopt, reload } = useAuth();
   const [state, setState] = useState<ConfirmState>("working");
   const [changing, setChanging] = useState(false);
@@ -111,7 +110,7 @@ export function ConfirmEmailPanel() {
         if (cancelled) return;
         await adopt(session);
         setState("done");
-        router.replace(HOME_ROUTE);
+        loadPage(HOME_ROUTE);
       } catch (failure) {
         if (cancelled) return;
         setNotice({ message: errorMessage(failure, "AUTH_EMAIL_CONFIRM_FAILED"), tone: "danger" });
@@ -124,7 +123,7 @@ export function ConfirmEmailPanel() {
     return () => {
       cancelled = true;
     };
-  }, [adopt, reload, router]);
+  }, [adopt, reload]);
 
   if (state === "working") {
     return <Pending message={changing ? UI_TEXT.auth.confirmingChange : UI_TEXT.auth.confirming} inline />;

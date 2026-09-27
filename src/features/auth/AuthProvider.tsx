@@ -1,14 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
-import { useSWRConfig } from "swr";
+import { SWRConfig, useSWRConfig } from "swr";
 
 import { AUTH_ROUTES } from "@/constants/routes";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiQuery } from "@/lib/query/useApiQuery";
 import { clearUserItems } from "@/lib/storage/userStorage";
 import type { LoginInput } from "@/lib/validation";
+import { loadPage } from "@/lib/navigation/url";
 
 import { AuthClient } from "./api.client";
 import type { AuthProfile, AuthSessionView } from "./types";
@@ -51,7 +51,6 @@ export function AuthProvider({
   initial?: InitialSession;
   children: ReactNode;
 }) {
-  const router = useRouter();
   const { mutate: mutateAll, cache } = useSWRConfig();
   // The answer as it stands: a session is looked at again when the owner
   // comes back to the app; nobody's is not.
@@ -98,9 +97,10 @@ export function AuthProvider({
       await mutate(null, { revalidate: false });
       // So is anything kept on the device for it — an order half built.
       clearUserItems();
-      router.replace(AUTH_ROUTES.signIn);
+      // And a new page, so nothing else of it stays in memory either.
+      loadPage(AUTH_ROUTES.signIn);
     }
-  }, [mutate, mutateAll, router]);
+  }, [mutate, mutateAll]);
 
   const reload = useCallback(async () => {
     await mutate();
@@ -120,8 +120,20 @@ export function AuthProvider({
     };
   }, [data, error, isLoading, signIn, signOut, reload, adopt]);
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {/* Each account's reads in a cache of their own, begun afresh whenever
+          who is signed in changes: one account's rows can never be shown to
+          the next, whatever path the change took. */}
+      <SWRConfig key={value.profile?.id ?? SIGNED_OUT} value={ACCOUNT_CACHE}>
+        {children}
+      </SWRConfig>
+    </AuthContext.Provider>
+  );
 }
+
+const SIGNED_OUT = "signed-out";
+const ACCOUNT_CACHE = { provider: () => new Map() };
 
 export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
