@@ -2653,3 +2653,30 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - None. Hosting a worker later is the switch and one migration (plan §139.11.15).
+
+## 2026-09-27 — Dates open the app's own calendar
+
+### Changed
+- **Every date field opens a calendar in the app's look, never the browser's** (the user: "look into calendar picker, its native now, change it to something which will match our design"). One kit component, `src/components/ui/date-picker.tsx`:
+  - **Where it shows:** a custom period's From and To (`RangePicker`, on Analytics, Expenses and Guest sales), the orders filter's Due from and Due until, an expense's date, and an order's delivery day.
+  - **Look:** a paper panel with a hairline and the lifted shadow. The month is in the display serif between Previous and Next, and weeks run from Monday. The chosen day is filled caramel, today is ringed, and days out of bounds cannot be taken. Today and, on the filter, Clear sit at the foot.
+  - **Keyboard:** the WAI-ARIA date picker dialog — arrows, Page Up/Down (Shift for a year), Home/End, Enter, and Escape, which closes the calendar and not the sheet behind it.
+- **An order's delivery is a day and a time side by side** (`DateTimeField`): the calendar, and the time from the app's list every quarter of an hour. A time saved between two quarters (6:40 PM) is kept and offered in its place. It still holds what the browser's date-and-time control held.
+- **`DateField`** joins the form kit beside `SelectField`. The expense form holds its date through `Controller`.
+- **Where a select's list and the calendar open** is one hook, `anchored-popover.ts`, taken out of `select-menu`: set against the control in the top layer, following it on a scroll, closed by a tap elsewhere.
+- `IconButton` can be disabled: the calendar's Previous and Next at its bounds.
+
+### Fixed
+- **Analytics asked for a custom period before both its dates were chosen**, and the server refused it (400 in the console). It now waits, as Expenses and Guest sales already did.
+
+### Validation
+- **Browser, 390 px in Golden and 1440 px in Peach:**
+  - on Analytics, Custom's From opened the calendar under it, and the keys took the day before today;
+  - inside the orders filter, the calendar opened over the sheet, and Escape closed only the calendar;
+  - in the new-expense sheet, the calendar opened above the field where there was no room below;
+  - on Create order, the delivery's day and time sat side by side, and the time list opened at the chosen time and took 6:30 PM;
+  - no page errors, and no sideways scroll.
+- **Checks:** `tsc` and `eslint` pass. The full suite passes (2,065 tests), and every new and changed file is at 100 %.
+
+### Blockers
+- None.

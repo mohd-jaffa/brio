@@ -7543,6 +7543,8 @@ Later the same day:
   - **Emails are sent by the app itself**, as they are asked for: the confirmation at registration and its Resend, and a new email address's link.
   - **Notifications are only for orders due soon and overdue.** The app looks for them as the bell is read.
   - **The other notifications are paused, not removed**: an order placed or moved, a payment, a customer added, stock running low. They come back with a worker (§139.11.15).
+- **Every date opens the app's own calendar** (the user: "look into calendar picker, its native now, change it to something which will match our design"). A custom period's two ends, the orders filter's due dates, an expense's date and an order's delivery day open a calendar in paper and hairline, with the month in the display serif, the chosen day in caramel and today ringed. The delivery's time is picked from a list every quarter of an hour, and a time already saved between two quarters is kept. It is one kit component (`date-picker`), placed as the select's list is.
+  - Analytics no longer asks for a custom period until both its dates are chosen, as Expenses and Guest sales already did.
 
 ---
 

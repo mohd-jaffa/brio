@@ -366,6 +366,14 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 - **Where it opens:** in the top layer, so no scrolling sheet clips it; under the control, or over it where there is more room; lined up with the control's nearer screen edge; at most 288 px tall, then it scrolls. It drops in over 240 ms, as a fade under reduced motion.
 - **Keyboard:** the arrows, Home and End move; a letter jumps; Enter or Space takes; Escape or Tab closes, and Escape never closes the sheet behind it.
 
+### Date picker
+- **One calendar** (`date-picker`) for every day the app asks for: a custom period's two ends, the orders filter's due dates, an expense's date, and an order's delivery day. The browser's own date control never opens.
+- **The control** sits in the look of where it sits, as a select does: a field's Flour Well, or a small hairline box beside the period pill. It shows the day ("27 Sep 2026") after a calendar mark, or muted words while none is chosen ("Choose a date", "Any day").
+- **The calendar:** Oat Paper, one hairline, 16 px corners and the elevated shadow, 312 px wide with a 12 px inset. The month is in the display serif between round Previous and Next buttons, each dimmed past the bounds. Weeks run from Monday. Days are 40 px circles. The chosen one is filled caramel with its number semibold, today is ringed in caramel, and days out of bounds fade to 35 %. Under a hairline, **Today** is in caramel and, where the field may be empty, **Clear** is muted.
+- **Where it opens:** as the select's list does, in the top layer against its control (`anchored-popover`), at most 440 px tall.
+- **Keyboard:** the focus goes to the chosen day or today. The arrows move a day or a week, Page Up and Page Down a month (with Shift, a year), and Home and End go to the week's ends. Enter takes the day, and Escape closes the calendar and never the sheet behind it.
+- **A day and a time** (an order's delivery) are one field: the calendar, then the time from a select every quarter of an hour, side by side under one label.
+
 ### Profile picture
 - **The owner's own account only** (`profile-avatar`): one of nine animal faces that ship with the app, on a round well of Caramel Cream / Terracotta Blush. 36 px in the top bar and the account menu; 80 px on Settings' profile card, ringed in Oat Paper where it overlaps the plate. A customer keeps their initials (`avatar`).
 - **On Settings it is a button** named "Change profile picture", with a 28 px caramel badge and a pencil at its lower right; it grows a little under a pointer.
