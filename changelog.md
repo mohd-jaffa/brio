@@ -2361,3 +2361,79 @@ These are product or plan decisions rather than layout, and are left for the use
 
 ### Blockers
 - None.
+
+## 2026-09-27 — Audit fixes (`/impeccable audit`, P1–P3)
+
+The audit scored 15/20 and found 1 P1, 6 P2 and 4 P3 issues. Each is fixed below, verified, or left with a reason.
+
+### Accessibility
+- **[P1] Peach secondary buttons now pass AA.**
+  - They measured 4.38 : 1 on the page, 4.09 on a field and 3.58 on hover.
+  - A new role, `--color-primary-strong`, sets words on a primary tint. Golden keeps its caramel, which already held 4.55 or better. Peach takes the deep terracotta, at 4.71 or better on every ground, hover included.
+  - The kit's `secondary` variant uses it (`button.tsx`).
+- **[P2] 44 px targets:**
+  - **Tabs** are 44 px tall, and at least 44 px wide (`tabs.tsx`).
+  - **Forgot password** gets a 44 px row, drawn into the gap around it.
+  - **On sale:** the whole row is the checkbox's label. The classes left from a Tailwind forms plugin the project does not use are gone.
+  - **View order** in a stock row, and a customer's **email**, take a 44 px band centred on their line (`hit-area-line`).
+  - **A customer's number** is now plain text: its link sat 6 px from the email's, so their zones would overlap, and **Call**, just below, dials it.
+- **[P2] The bottom bar at 200 % text:** it is measured in px, like a native tab bar, so a larger text size can no longer push **More** off the edge. A label is cut short only on a 320 px phone at 200 %.
+- **[P2] Landmarks and lists:**
+  - The sign-in screens are a `<main>` landmark.
+  - The customer picker's list items stand aside (`role="none"`), so its radios belong to the group.
+
+### Performance
+- **[P2] The page arrives knowing the session** (`src/features/auth/session.server.ts`). The root layout reads the cookies on the server and hands `AuthProvider` one of three things:
+  - the session view (never a token), drawn signed in, in the page's own HTML;
+  - `null`: signed out, and nothing is asked;
+  - `undefined`: an expired access token, which the browser refreshes as before, because only a route handler may set the new cookies.
+- **Signing out** sets the session to `null` outright, so it cannot fall back to the one the page came with.
+- **The session revalidates** on focus only while someone is signed in.
+- **[P3] The two 401s** a signed-out visitor used to log on every sign-in screen, and on every refocus, are gone.
+- **First visit** (production build, throttled phone), LCP:
+
+  | Screen | Before | After |
+  |---|---|---|
+  | Sign in | 2.63 s | 0.75 s |
+  | Home | 2.66 s | 0.79 s |
+  | Orders | 2.52 s | 0.87 s |
+  | Analytics | 2.62 s | 1.40 s |
+  | Expenses | 2.85 s | 1.71 s |
+  | Create order | 2.95 s | 2.97 s |
+  | Customers | 2.49 s | 2.57 s |
+  | Notifications | 2.47 s | 2.59 s |
+
+  The last three are unchanged within noise: their largest element is their own data (the product grid, the business name in the header, a notification row), which still waits for the browser to ask.
+- **Repeat visits** of a whole page are about 0.1 s slower: Orders 0.58 → 0.70 s, Analytics 0.39 → 0.51 s.
+  - The screens are now rendered per request, so the root `loading.tsx` placeholder streams first, and React 19.2 holds a streamed placeholder for up to 300 ms before it shows the content.
+  - Measured without `loading.tsx`, a repeat visit shows the screen at 0.18 s instead of 0.46 s.
+  - It is kept: removing it would change plan §134 P1-2 ("a tap answers at once instead of leaving the last screen up"), which is the user's to decide.
+- **[P3] The blurred bars** were measured, not changed. With the CPU slowed 6×, Analytics, Customers and Create order scroll at 16.7 ms a frame (p95 17.6), with the blur and without it.
+
+### Implementation integrity
+- **[P3] Two patterns moved into the kit:**
+  - `SectionHeading`'s **View all** can also be a button that shows another view of the screen. Expenses and Analytics use it instead of their own hand-made buttons, and both now carry its arrow.
+  - `ActionRow` (`src/components/ui/action-row.tsx`) is the card-width row that opens something: Add custom item, and the customer on an order.
+- **[P3] Tokens and type:**
+  - The modal backdrop takes `--color-scrim`, set as a value because a dialog's `::backdrop` does not inherit variables in every browser.
+  - The scrollbar thumb takes the pill radius.
+  - The header and hero taglines move from 10 px to the ramp's 0.7 rem.
+  - The forgot-password link moves from 13 px to 14 px.
+- **DESIGN.md and `.impeccable/design.json`** record the ₹ faces in the type stacks, the scrim, the strong primary, the action row, the tap bands, the tabs' height and the bottom bar.
+- **The design detector** drops from 12 findings to 6. The six left are `#000` inside the sign-in plate's image masks, where it sets only transparency: false positives, left as they are.
+- **AGENTS.md** §9 records how the page learns the session.
+
+### Validation
+- **Accessibility sweep:** axe (WCAG 2.2 AA plus best practice) over 17 screens × 2 themes × 390 / 1280 px, and 5 sheets in both themes, finds no violations. The one flag left is the verified false positive: a customer's order row, covered at rest by the fixed Create order button, which scrolls clear.
+- **Console:** no errors on any screen.
+- **Reflow:** clean at 320 px and at 200 % text.
+- **Touch targets:** every tab is 44 × 44 px or more, and the tap bands measure 44 px, with taps at their edges landing on the link.
+- **Sheets:** each traps focus, closes on Escape and returns focus.
+- **Session flows in the browser:** signed out, sign in, a reload while signed in, an expired access token (refreshed), and sign out.
+- **Checks:** `tsc`, `eslint` and the full suite (1,844 tests) pass. Every changed file is at 100 %, including two branches in `modal.tsx` and `SignInForm.tsx` that were already uncovered.
+
+### Blockers
+- None.
+
+### Open decision
+- **Removing the root `loading.tsx`** would show a repeat full load about 0.3 s sooner. A tap in the app would then leave the last screen up, with a pending mark on the tapped place, until the next one arrives, which is not what plan §134 P1-2 says. It needs the user's decision.
