@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useEffect, useState } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -16,6 +16,8 @@ import {
   type OrderDraft,
 } from "@/features/orders/draft";
 import type { Product } from "@/features/products/types";
+import { pickDate } from "@tests/support/date";
+import { choose } from "@tests/support/select";
 
 const cake: Product = {
   id: "p-cake",
@@ -192,8 +194,10 @@ describe("DetailsPanel: the delivery", () => {
     await userEvent.click(screen.getByRole("radio", { name: "Delivery" }));
     expect(screen.getByLabelText(/Delivery address/)).toHaveValue("Flat 302");
 
-    fireEvent.change(screen.getByLabelText(/Date and time/), { target: { value: "2099-12-31T18:30" } });
-    expect(latest().delivery.date).toBe("2099-12-31T18:30");
+    await pickDate("Date and time", "2026-12-31");
+    expect(latest().delivery.date).toMatch(/^2026-12-31T\d{2}:00$/);
+    await choose("Date and time: Time", "6:30 PM");
+    expect(latest().delivery.date).toBe("2026-12-31T18:30");
     await userEvent.type(screen.getByLabelText(/Map link/), "https://maps.app.goo.gl/x");
     expect(latest().delivery.googleMapsLink).toBe("https://maps.app.goo.gl/x");
   });

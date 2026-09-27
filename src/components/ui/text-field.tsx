@@ -8,8 +8,11 @@ import type {
 } from "react";
 
 import { UI_TEXT } from "@/constants/messages";
+import { todayKey } from "@/lib/dates/calendar";
+import { formatClock } from "@/lib/format/date";
 
 import { cn } from "./cn";
+import { DatePicker } from "./date-picker";
 import { FieldError } from "./field-error";
 import { FIELD_WELL } from "./field-styles";
 import { SelectMenu, type SelectOption } from "./select-menu";
@@ -212,6 +215,112 @@ export const SelectField = forwardRef<
     </div>
   );
 });
+
+/**
+ * A day, as a field: the label, the control that shows the day, and the app's
+ * own calendar (`DatePicker`) — never the browser's. It holds "2026-09-27", or
+ * "" for none, and is controlled as the select is: a form holds it through
+ * `Controller`, and `ref` reaches the control.
+ */
+export const DateField = forwardRef<
+  HTMLButtonElement,
+  FieldShell & {
+    value: string;
+    onChange: (value: string) => void;
+    onBlur?: () => void;
+    min?: string;
+    max?: string;
+    /** Shown while no day is chosen: "Any day" on a filter. */
+    placeholder?: string;
+    /** Whether the field may be emptied again. */
+    clearable?: boolean;
+    disabled?: boolean;
+  }
+>(function DateField({ label, error, required, optional, hint, ...rest }, ref) {
+  const { id, errorId, hintId } = useFieldIds(error, hint);
+  return (
+    <div>
+      <Label id={`${id}-label`} htmlFor={id} label={label} required={required} optional={optional} />
+      <DatePicker
+        ref={ref}
+        id={id}
+        label={label}
+        labelledBy={`${id}-label`}
+        invalid={Boolean(error)}
+        describedBy={hintId ?? errorId}
+        {...rest}
+      />
+      <FieldHint id={hintId} hint={hint} />
+      <FieldError id={errorId} message={error} />
+    </div>
+  );
+});
+
+/** The time a day takes when it is chosen before any time is: the morning's first handovers. */
+const FIRST_TIME = "10:00";
+
+/** The times of day offered, every quarter of an hour: "00:00" to "23:45". */
+const QUARTER_HOURS = Array.from(
+  { length: 96 },
+  (_, index) => `${String(Math.floor(index / 4)).padStart(2, "0")}:${String((index % 4) * 15).padStart(2, "0")}`,
+);
+
+/**
+ * A day and a time, as one field: the calendar for the day and a list of the
+ * times, every quarter of an hour, side by side under one label — where the
+ * browser's own date-and-time control used to be. It holds what that control
+ * held, "2026-09-27T18:30" on this device's clock. A time between the quarters
+ * — an order saved at 6:40 — is kept, and offered in its place.
+ */
+export function DateTimeField({
+  label,
+  error,
+  required,
+  optional,
+  hint,
+  value,
+  onChange,
+  min,
+}: FieldShell & {
+  value: string;
+  onChange: (value: string) => void;
+  /** The first day that may be taken. */
+  min?: string;
+}) {
+  const { id, errorId, hintId } = useFieldIds(error, hint);
+  const [day = "", time = ""] = value.split("T");
+  const times = QUARTER_HOURS.includes(time) || !time ? QUARTER_HOURS : [...QUARTER_HOURS, time].sort();
+  const describedBy = hintId ?? errorId;
+  return (
+    <div role="group" aria-labelledby={`${id}-label`}>
+      <Label id={`${id}-label`} htmlFor={id} label={label} required={required} optional={optional} />
+      <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-2">
+        <DatePicker
+          id={id}
+          label={label}
+          labelledBy={`${id}-label`}
+          value={day}
+          min={min}
+          invalid={Boolean(error)}
+          describedBy={describedBy}
+          onChange={(next) => onChange(`${next}T${time || FIRST_TIME}`)}
+        />
+        <SelectMenu
+          label={`${label}: ${UI_TEXT.datePicker.time}`}
+          placeholder={time ? undefined : UI_TEXT.datePicker.chooseTime}
+          value={time}
+          options={times.map((option) => ({ value: option, label: formatClock(option) }))}
+          invalid={Boolean(error)}
+          required={required}
+          describedBy={describedBy}
+          onChange={(next) => onChange(`${day || todayKey()}T${next}`)}
+        />
+      </div>
+      <FieldHint id={hintId} hint={hint} />
+      <FieldError id={errorId} message={error} />
+    </div>
+  );
+}
 
 /** Options built from one of the constant lists and its label map (src/constants/statuses.ts). */
 export function optionsFrom<T extends string>(

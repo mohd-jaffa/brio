@@ -58,6 +58,30 @@ export function monthStartKey(key: string): string {
   return `${key.slice(0, 8)}01`;
 }
 
+/**
+ * The same date some months on (back, for a negative count), kept inside a
+ * shorter month: 31 Jan and one month is 28 Feb.
+ */
+export function addMonthsKey(key: string, months: number): string {
+  const [year, month, day] = key.split("-").map(Number);
+  const first = new Date(Date.UTC(year, month - 1 + months, 1));
+  const last = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
+  first.setUTCDate(Math.min(day, last));
+  return first.toISOString().slice(0, 10);
+}
+
+/**
+ * The month a day falls in as weeks from Monday, as a calendar draws it: null
+ * before its first day and after its last.
+ */
+export function monthWeeks(key: string): (string | null)[][] {
+  const first = monthStartKey(key);
+  const cells: (string | null)[] = Array.from({ length: (new Date(`${first}T00:00:00Z`).getUTCDay() + 6) % 7 }, () => null);
+  for (let day = first; day.slice(0, 7) === first.slice(0, 7); day = nextDayKey(day)) cells.push(day);
+  while (cells.length % 7 !== 0) cells.push(null);
+  return Array.from({ length: cells.length / 7 }, (_, week) => cells.slice(week * 7, week * 7 + 7));
+}
+
 /** Every day from one to another, both included, as keys. */
 export function daysFrom(from: string, to: string): string[] {
   const days: string[] = [];

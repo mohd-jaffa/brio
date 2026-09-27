@@ -46,6 +46,26 @@ export function formatMonth(isoDate: string | null | undefined): string {
   return `${MONTHS[Number(match[2]) - 1]} ${match[1]}`;
 }
 
+const LONG_MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+/** A month in full, for a calendar's heading: "September 2026". */
+export function formatMonthYear(isoDate: string | null | undefined): string {
+  const match = isoDate ? /^(\d{4})-(\d{2})/.exec(isoDate) : null;
+  if (!match) return '—';
+  return `${LONG_MONTHS[Number(match[2]) - 1]} ${match[1]}`;
+}
+
+/** A time of day as a field holds it ("09:15", "18:30"), the way the app writes one: "9:15 AM", "6:30 PM". */
+export function formatClock(time: string | null | undefined): string {
+  const match = time ? /^(\d{2}):(\d{2})$/.exec(time) : null;
+  if (!match) return '—';
+  const hour = Number(match[1]);
+  return `${hour % 12 || 12}:${match[2]} ${hour < 12 ? 'AM' : 'PM'}`;
+}
+
 /** A date without its year, for a row where the year is already obvious: "13 Oct". */
 export function formatDayMonth(isoDate: string | null | undefined): string {
   const match = isoDate ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate) : null;

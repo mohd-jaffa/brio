@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChoiceChips } from "@/components/ui/choice-chips";
 import { Sheet } from "@/components/ui/sheet";
-import { TextField } from "@/components/ui/text-field";
+import { DateField } from "@/components/ui/text-field";
 import { UI_TEXT } from "@/constants/messages";
 import { PAYMENT_STATUS_LABELS, PAYMENT_STATUSES, type PaymentStatus } from "@/constants/statuses";
 
@@ -88,8 +88,22 @@ export function OrderFilterSheet({
     >
       <div className="space-y-5 pb-2">
         <div className="grid grid-cols-2 gap-3">
-          <TextField label={text.dueFrom} type="date" value={from} max={to || undefined} onChange={(event) => setFrom(event.target.value)} />
-          <TextField label={text.dueTo} type="date" value={to} min={from || undefined} onChange={(event) => setTo(event.target.value)} />
+          <DateField
+            label={text.dueFrom}
+            value={from}
+            max={to || undefined}
+            placeholder={UI_TEXT.datePicker.anyDay}
+            clearable
+            onChange={setFrom}
+          />
+          <DateField
+            label={text.dueTo}
+            value={to}
+            min={from || undefined}
+            placeholder={UI_TEXT.datePicker.anyDay}
+            clearable
+            onChange={setTo}
+          />
         </div>
         <fieldset className="space-y-2">
           <legend className="text-sm font-semibold text-text">{text.payment}</legend>

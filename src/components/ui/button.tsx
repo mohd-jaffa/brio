@@ -162,12 +162,15 @@ export function IconButton({
   label,
   onClick,
   tone = "ghost",
+  disabled,
 }: {
   icon: LucideIcon;
   /** Never optional: the icon alone says nothing to a screen reader. */
   label: string;
   onClick: () => void;
   tone?: "ghost" | "danger";
+  /** Shown, but with nothing to do: the calendar's Previous at the first month it may show. */
+  disabled?: boolean;
 }) {
   return (
     <button
@@ -175,8 +178,9 @@ export function IconButton({
       onClick={onClick}
       aria-label={label}
       title={label}
+      disabled={disabled}
       className={cn(
-        "touch-target flex items-center justify-center rounded-full border transition active:scale-95",
+        "touch-target flex items-center justify-center rounded-full border transition enabled:active:scale-95 disabled:cursor-not-allowed disabled:opacity-40",
         tone === "danger"
           ? "border-danger/20 bg-danger-bg text-danger hover:bg-danger/10"
           : "border-border bg-background text-text-muted hover:bg-surface-hover hover:text-text",

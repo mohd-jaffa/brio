@@ -1,5 +1,4 @@
 import { render, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GuestSales } from "@/features/customers/components/GuestSales";
@@ -9,6 +8,7 @@ import { ApiError } from "@/lib/api/client";
 import { anOrderListItem } from "@tests/support/orders";
 import { Providers } from "@tests/support/providers";
 import { choose } from "@tests/support/select";
+import { pickDate } from "@tests/support/date";
 
 const fetcher = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/api/client", async (original) => ({
@@ -73,8 +73,8 @@ describe("GuestSales", () => {
     expect(screen.getByRole("status", { name: "Loading Guest sales" })).toBeInTheDocument();
 
     answers["/api/guest-sales?range=CUSTOM&from=2026-09-01&to=2026-09-10"] = sales({ orders: 5, sales: 250000 });
-    await userEvent.type(screen.getByLabelText("From"), "2026-09-01");
-    await userEvent.type(screen.getByLabelText("To"), "2026-09-10");
+    await pickDate("From", "2026-09-01");
+    await pickDate("To", "2026-09-10");
     expect(await screen.findByText("₹2,500")).toBeInTheDocument();
   });
 

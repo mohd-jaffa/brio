@@ -6,13 +6,13 @@ import {
   useEffect,
   useId,
   useImperativeHandle,
-  useLayoutEffect,
   useRef,
   useState,
   type KeyboardEvent,
   type ReactNode,
 } from "react";
 
+import { useAnchoredPopover } from "./anchored-popover";
 import { cn } from "./cn";
 import { FIELD_WELL } from "./field-styles";
 
@@ -33,30 +33,6 @@ const TRIGGERS = {
 
 /** The list is never taller than this, nor than the room beside the control. */
 const MAX_HEIGHT = 288;
-/** Kept between the list and the control, and between the list and the screen's edge. */
-const GAP = 6;
-const EDGE = 8;
-
-/**
- * Sets the open list against its control: under it where there is room, over
- * it where there is more, as wide as the control at least, lined up with the
- * control's nearer edge of the screen, and never past the screen's edges.
- */
-function place(list: HTMLElement, control: HTMLElement) {
-  const box = control.getBoundingClientRect();
-  const height = window.innerHeight;
-  const below = height - box.bottom - GAP - EDGE;
-  const above = box.top - GAP - EDGE;
-  const up = below < Math.min(list.scrollHeight, MAX_HEIGHT) && above > below;
-
-  list.style.minWidth = `${box.width}px`;
-  list.style.maxHeight = `${Math.max(0, Math.min(MAX_HEIGHT, up ? above : below))}px`;
-  list.style.top = up ? "auto" : `${box.bottom + GAP}px`;
-  list.style.bottom = up ? `${height - box.top + GAP}px` : "auto";
-  const width = list.offsetWidth;
-  const start = box.left + box.width / 2 > window.innerWidth / 2 ? box.right - width : box.left;
-  list.style.left = `${Math.max(EDGE, Math.min(start, window.innerWidth - width - EDGE))}px`;
-}
 
 /**
  * A choice from a short list (plan §139.5; the user, 2026-09-27): a control
@@ -120,7 +96,6 @@ export const SelectMenu = forwardRef<
   const listId = useId();
   const control = useRef<HTMLButtonElement>(null);
   const list = useRef<HTMLUListElement>(null);
-  const shown = useRef(false);
   useImperativeHandle(ref, () => control.current!, []);
 
   const choices: readonly SelectOption[] = placeholder ? [{ value: "", label: placeholder }, ...options] : options;
@@ -139,46 +114,8 @@ export const SelectMenu = forwardRef<
     if (choice && choice.value !== value) onChange(choice.value);
   };
 
-  // Shown in the top layer and set against the control before it paints.
-  useLayoutEffect(() => {
-    const panel = list.current!;
-    if (open) {
-      panel.showPopover();
-      shown.current = true;
-      place(panel, control.current!);
-    } else if (shown.current) {
-      panel.hidePopover();
-      shown.current = false;
-    }
-  }, [open]);
-
-  // Closed by a tap anywhere else. A scroll or a resize — a phone's address
-  // bar folding away, a page still gliding — moves it with its control.
-  useEffect(() => {
-    if (!open) return;
-    const inList = (target: EventTarget | null) => target instanceof Node && list.current?.contains(target);
-    const onPointerDown = (event: PointerEvent) => {
-      if (!inList(event.target) && !(event.target instanceof Node && control.current?.contains(event.target))) {
-        setOpen(false);
-      }
-    };
-    let frame = 0;
-    const follow = (event: Event) => {
-      if (inList(event.target)) return;
-      cancelAnimationFrame(frame);
-      // Cancelled as it closes, so both are still there.
-      frame = requestAnimationFrame(() => place(list.current!, control.current!));
-    };
-    document.addEventListener("pointerdown", onPointerDown, true);
-    document.addEventListener("scroll", follow, true);
-    window.addEventListener("resize", follow);
-    return () => {
-      cancelAnimationFrame(frame);
-      document.removeEventListener("pointerdown", onPointerDown, true);
-      document.removeEventListener("scroll", follow, true);
-      window.removeEventListener("resize", follow);
-    };
-  }, [open]);
+  // In the top layer, set against the control; closed by a tap anywhere else.
+  useAnchoredPopover({ open, panel: list, control, maxHeight: MAX_HEIGHT, onDismiss: () => setOpen(false) });
 
   // The choice the keys are on stays in view as they move.
   useEffect(() => {

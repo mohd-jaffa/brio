@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
 import { FormSheet } from "@/components/ui/form-sheet";
 import { useResponse } from "@/components/ui/response-card";
-import { optionsFrom, SelectField, TextField } from "@/components/ui/text-field";
+import { DateField, optionsFrom, SelectField, TextField } from "@/components/ui/text-field";
 import { UI_TEXT } from "@/constants/messages";
 import { DEFAULT_EXPENSE_CATEGORIES, PAYMENT_METHOD_LABELS, PAYMENT_METHODS } from "@/constants/statuses";
 import { useDisclosure } from "@/hooks/useDisclosure";
@@ -174,12 +174,12 @@ function ExpenseForm({
             error={errors.amount?.message}
             {...register("amount")}
           />
-          <TextField
-            label={text.date}
-            required
-            type="date"
-            error={errors.expenseDate?.message}
-            {...register("expenseDate")}
+          <Controller
+            control={control}
+            name="expenseDate"
+            render={({ field }) => (
+              <DateField label={text.date} required error={errors.expenseDate?.message} {...field} />
+            )}
           />
         </div>
 

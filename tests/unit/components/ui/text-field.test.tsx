@@ -1,8 +1,11 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  DateField,
+  DateTimeField,
   optionsFrom,
   optionsOf,
   SelectField,
@@ -158,6 +161,97 @@ describe("SelectField", () => {
     expect(screen.getByRole("combobox", { name: "Customer" })).toHaveTextContent("Choose a customer…");
     await userEvent.click(screen.getByRole("combobox", { name: "Customer" }));
     expect(screen.getByRole("option", { name: "Choose a customer…" })).toHaveAttribute("aria-selected", "true");
+  });
+});
+
+describe("DateField", () => {
+  it("ties its label to the calendar's control, which says the day, and passes a chosen day on", async () => {
+    const onChange = vi.fn();
+    render(<DateField label="Date" required value="2026-09-20" onChange={onChange} hint="The day it was paid." />);
+    const control = screen.getByLabelText(/Date/, { selector: "button" });
+    expect(control).toHaveAccessibleName("Date 20 Sep 2026");
+    expect(control).toHaveAccessibleDescription("The day it was paid.");
+
+    await userEvent.click(control);
+    await userEvent.click(screen.getByRole("button", { name: "Friday, 18 Sep 2026" }));
+    expect(onChange).toHaveBeenCalledWith("2026-09-18");
+  });
+
+  it("says what is wrong beside it, read with the control", () => {
+    render(<DateField label="Date" value="" onChange={vi.fn()} error="Choose a date." />);
+    const control = screen.getByLabelText(/Date/, { selector: "button" });
+    expect(control).toHaveAttribute("data-invalid", "true");
+    expect(control).toHaveAccessibleDescription("Choose a date.");
+  });
+});
+
+describe("DateTimeField", () => {
+  function Field({ start, onChange = vi.fn() }: { start: string; onChange?: (value: string) => void }) {
+    const [value, setValue] = useState(start);
+    return (
+      <DateTimeField
+        label="Date and time"
+        required
+        value={value}
+        onChange={(next) => {
+          setValue(next);
+          onChange(next);
+        }}
+      />
+    );
+  }
+
+  it("is one group of a day and a time, each from the app's own lists", async () => {
+    const onChange = vi.fn();
+    render(<Field start="2026-09-28T10:00" onChange={onChange} />);
+    const group = screen.getByRole("group", { name: /Date and time/ });
+    expect(within(group).getByRole("button", { name: "Date and time 28 Sep 2026" })).toBeInTheDocument();
+    const time = within(group).getByRole("combobox", { name: "Date and time: Time" });
+    expect(time).toHaveTextContent("10:00 AM");
+
+    await userEvent.click(time);
+    const times = screen.getAllByRole("option");
+    expect(times).toHaveLength(96);
+    expect(times[0]).toHaveTextContent("12:00 AM");
+    expect(times[1]).toHaveTextContent("12:15 AM");
+    await userEvent.click(screen.getByRole("option", { name: "6:30 PM" }));
+    expect(onChange).toHaveBeenLastCalledWith("2026-09-28T18:30");
+
+    await userEvent.click(within(group).getByRole("button", { name: /^Date and time/ }));
+    await userEvent.click(screen.getByRole("button", { name: "Wednesday, 30 Sep 2026" }));
+    expect(onChange).toHaveBeenLastCalledWith("2026-09-30T18:30");
+  });
+
+  it("keeps a time between the quarters, and offers it in its place", async () => {
+    render(<Field start="2026-09-28T18:40" />);
+    const time = screen.getByRole("combobox", { name: "Date and time: Time" });
+    expect(time).toHaveTextContent("6:40 PM");
+    await userEvent.click(time);
+    const labels = screen.getAllByRole("option").map((option) => option.textContent);
+    expect(labels).toHaveLength(97);
+    expect(labels.indexOf("6:40 PM")).toBe(labels.indexOf("6:30 PM") + 1);
+  });
+
+  it("fills in the other half when only one is chosen: the morning's first time, or today", async () => {
+    const onChange = vi.fn();
+    const { unmount } = render(<Field start="" onChange={onChange} />);
+    expect(screen.getByRole("combobox", { name: "Date and time: Time" })).toHaveTextContent("Choose a time");
+    await userEvent.click(screen.getByRole("button", { name: /^Date and time/ }));
+    await userEvent.click(screen.getByRole("button", { name: "Today" }));
+    expect(onChange).toHaveBeenLastCalledWith(expect.stringMatching(/^\d{4}-\d{2}-\d{2}T10:00$/));
+    unmount();
+
+    render(<Field start="" onChange={onChange} />);
+    await userEvent.click(screen.getByRole("combobox", { name: "Date and time: Time" }));
+    await userEvent.click(screen.getByRole("option", { name: "9:00 AM" }));
+    expect(onChange).toHaveBeenLastCalledWith(expect.stringMatching(/^\d{4}-\d{2}-\d{2}T09:00$/));
+  });
+
+  it("says what is wrong beside it, on both halves", () => {
+    render(<DateTimeField label="Date and time" value="2026-09-28T10:00" onChange={vi.fn()} error="Choose when." />);
+    expect(screen.getByRole("button", { name: /^Date and time/ })).toHaveAccessibleDescription("Choose when.");
+    expect(screen.getByRole("combobox", { name: "Date and time: Time" })).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByText("Choose when.")).toBeInTheDocument();
   });
 });
 

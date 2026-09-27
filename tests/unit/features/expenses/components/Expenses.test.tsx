@@ -10,6 +10,7 @@ import { sizeCharts } from "@tests/support/charts";
 import { anExpense, aSummary } from "@tests/support/expenses";
 import { Providers } from "@tests/support/providers";
 import { choose } from "@tests/support/select";
+import { pickDate } from "@tests/support/date";
 
 const fetcher = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/api/client", async (original) => ({
@@ -84,8 +85,8 @@ describe("Expenses", () => {
     expect(screen.getByRole("status", { name: "Loading expenses" })).toBeInTheDocument();
 
     answers["/api/expenses/summary?range=CUSTOM&from=2026-09-01&to=2026-09-02"] = aSummary();
-    await userEvent.type(screen.getByLabelText("From"), "2026-09-01");
-    await userEvent.type(screen.getByLabelText("To"), "2026-09-02");
+    await pickDate("From", "2026-09-01");
+    await pickDate("To", "2026-09-02");
     expect(await screen.findByText("Daily average")).toBeInTheDocument();
   });
 

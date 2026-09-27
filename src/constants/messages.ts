@@ -355,6 +355,22 @@ export const UI_TEXT = {
     to: "To",
   },
 
+  /** The app's own calendar, in place of the browser's (the user, 2026-09-27). */
+  datePicker: {
+    choose: "Choose a date",
+    anyDay: "Any day",
+    calendar: (field: string) => `${field}: pick a day`,
+    previousMonth: "Previous month",
+    nextMonth: "Next month",
+    today: "Today",
+    clear: "Clear",
+    time: "Time",
+    chooseTime: "Choose a time",
+    // Monday first, as the app's weeks are (`weekStartKey`).
+    weekdays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    weekdaysShort: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
+  },
+
   /** How a stat tile says which way its figure moved (plan §139.5). */
   stats: {
     up: "Up",

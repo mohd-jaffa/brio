@@ -2,12 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import {
   addDaysKey,
+  addMonthsKey,
   bakeryHour,
   dayKey,
   dayStart,
   daysFrom,
   dueBucket,
   monthStartKey,
+  monthWeeks,
   nextDayKey,
   todayKey,
   weekStartKey,
@@ -87,5 +89,31 @@ describe("the bakery's calendar arithmetic", () => {
   it("reads the hour on the bakery's clock, not the server's", () => {
     expect(bakeryHour(new Date("2026-09-22T06:00:00Z"))).toBe(11);
     expect(bakeryHour(new Date("2026-09-22T18:40:00Z"))).toBe(0);
+  });
+});
+
+describe("addMonthsKey", () => {
+  it("moves by months, keeping the date inside a shorter month", () => {
+    expect(addMonthsKey("2026-09-20", 1)).toBe("2026-10-20");
+    expect(addMonthsKey("2026-01-31", 1)).toBe("2026-02-28");
+    expect(addMonthsKey("2024-01-31", 1)).toBe("2024-02-29");
+    expect(addMonthsKey("2026-03-31", -1)).toBe("2026-02-28");
+    expect(addMonthsKey("2026-12-15", 1)).toBe("2027-01-15");
+    expect(addMonthsKey("2026-09-20", -12)).toBe("2025-09-20");
+  });
+});
+
+describe("monthWeeks", () => {
+  it("lays a month out in weeks from Monday, empty before its first day and after its last", () => {
+    const weeks = monthWeeks("2026-09-20");
+    expect(weeks).toHaveLength(5);
+    expect(weeks[0]).toEqual([null, "2026-09-01", "2026-09-02", "2026-09-03", "2026-09-04", "2026-09-05", "2026-09-06"]);
+    expect(weeks[4]).toEqual(["2026-09-28", "2026-09-29", "2026-09-30", null, null, null, null]);
+  });
+
+  it("takes six weeks when the month needs them, and four when it fits them exactly", () => {
+    expect(monthWeeks("2026-08-01")).toHaveLength(6);
+    expect(monthWeeks("2021-02-10")).toHaveLength(4);
+    expect(monthWeeks("2021-02-10")[0][0]).toBe("2021-02-01");
   });
 });

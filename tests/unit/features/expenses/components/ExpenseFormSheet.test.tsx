@@ -9,6 +9,7 @@ import { ExpenseFormSheet } from "@/features/expenses/components/ExpenseFormShee
 import { ApiError } from "@/lib/api/client";
 
 import { Providers } from "@tests/support/providers";
+import { pickDate } from "@tests/support/date";
 
 const fetcher = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/api/client", async (original) => ({
@@ -76,7 +77,7 @@ describe("ExpenseFormSheet", () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date("2026-09-24T10:00:00Z"));
     open();
-    expect(screen.getByLabelText(/Date/)).toHaveValue("2026-09-24");
+    expect(screen.getByRole("button", { name: /^Date/ })).toHaveTextContent("24 Sep 2026");
     vi.useRealTimers();
   });
 
@@ -84,7 +85,7 @@ describe("ExpenseFormSheet", () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date("2026-09-24T19:00:00Z")); // 00:30 on the 25th in India
     open();
-    expect(screen.getByLabelText(/Date/)).toHaveValue("2026-09-25");
+    expect(screen.getByRole("button", { name: /^Date/ })).toHaveTextContent("25 Sep 2026");
     vi.useRealTimers();
   });
 
@@ -111,6 +112,21 @@ describe("ExpenseFormSheet", () => {
     );
     await waitFor(() => expect(props.onClose).toHaveBeenCalledOnce());
     expect((await screen.findAllByText("Expense saved"))[0]).toBeInTheDocument();
+  });
+
+  it("takes the day from the app's calendar, and sends it as a day", async () => {
+    vi.mocked(ExpensesClient.createExpense).mockResolvedValue(boxes);
+    open();
+
+    await userEvent.type(screen.getByLabelText(/Description/), "Flour and sugar");
+    await userEvent.type(screen.getByLabelText(/Amount/), "90");
+    await pickDate("Date", "2026-03-15");
+    expect(screen.getByRole("button", { name: /^Date/ })).toHaveTextContent("15 Mar 2026");
+    await userEvent.click(screen.getByRole("button", { name: "Save expense" }));
+
+    await waitFor(() =>
+      expect(ExpensesClient.createExpense).toHaveBeenCalledWith(expect.objectContaining({ expenseDate: "2026-03-15" })),
+    );
   });
 
   it("refuses an expense with no description", async () => {

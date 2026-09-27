@@ -11,7 +11,7 @@ import { FieldError } from "@/components/ui/field-error";
 import { ProductTile } from "@/components/ui/product-tile";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { SegmentedControl } from "@/components/ui/segmented-control";
-import { SelectField, TextAreaField, TextField } from "@/components/ui/text-field";
+import { DateTimeField, SelectField, TextAreaField, TextField } from "@/components/ui/text-field";
 import { UI_TEXT } from "@/constants/messages";
 import { ADJUSTMENT_TYPES, DELIVERY_TYPE_LABELS, DELIVERY_TYPES, type AdjustmentType } from "@/constants/statuses";
 import type { Product } from "@/features/products/types";
@@ -205,13 +205,12 @@ export function DetailsPanel({
           }))}
           onChange={(type) => update((current) => setDeliveryType(current, type))}
         />
-        <TextField
+        <DateTimeField
           label={text.dateTime}
           required
-          type="datetime-local"
           value={delivery.date}
           error={errors["delivery.date"]}
-          onChange={(event) => update((current) => setDelivery(current, { date: event.target.value }))}
+          onChange={(date) => update((current) => setDelivery(current, { date }))}
         />
         {delivery.type === "DELIVERY" && (
           <div className={cn("space-y-3", deliveryArrived && "animate-drop-in")}>

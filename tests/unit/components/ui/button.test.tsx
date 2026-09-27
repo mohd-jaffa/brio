@@ -112,4 +112,12 @@ describe("IconButton", () => {
     await userEvent.click(button);
     expect(onClick).toHaveBeenCalledOnce();
   });
+
+  it("can be shown with nothing to do, and then does nothing", async () => {
+    const onClick = vi.fn();
+    render(<IconButton icon={Trash2} label="Previous month" onClick={onClick} disabled />);
+    await userEvent.click(screen.getByRole("button", { name: "Previous month" }));
+    expect(screen.getByRole("button", { name: "Previous month" })).toBeDisabled();
+    expect(onClick).not.toHaveBeenCalled();
+  });
 });

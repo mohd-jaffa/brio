@@ -6,7 +6,9 @@ import {
   formatDaysAgo,
   formatRecent,
   formatLongDate,
+  formatClock,
   formatMonth,
+  formatMonthYear,
   formatTime,
 } from '@/lib/format/date';
 
@@ -107,5 +109,32 @@ describe('formatRecent', () => {
     expect(formatRecent('2026-09-25T06:00:00Z', now)).toBe('Yesterday');
     expect(formatRecent('2026-09-23T06:00:00Z', now)).toBe('3 days ago');
     expect(formatRecent('2026-09-12T06:00:00Z', now)).toBe('2 weeks ago');
+  });
+});
+
+describe('formatMonthYear', () => {
+  it('names the month in full, for a calendar', () => {
+    expect(formatMonthYear('2026-09-20')).toBe('September 2026');
+    expect(formatMonthYear('2026-01')).toBe('January 2026');
+  });
+
+  it('shows a dash for nothing', () => {
+    expect(formatMonthYear(null)).toBe('—');
+    expect(formatMonthYear('soon')).toBe('—');
+  });
+});
+
+describe('formatClock', () => {
+  it('writes a time of day the way the app does', () => {
+    expect(formatClock('00:00')).toBe('12:00 AM');
+    expect(formatClock('09:15')).toBe('9:15 AM');
+    expect(formatClock('12:30')).toBe('12:30 PM');
+    expect(formatClock('18:45')).toBe('6:45 PM');
+  });
+
+  it('shows a dash for nothing', () => {
+    expect(formatClock('')).toBe('—');
+    expect(formatClock(undefined)).toBe('—');
+    expect(formatClock('6pm')).toBe('—');
   });
 });
