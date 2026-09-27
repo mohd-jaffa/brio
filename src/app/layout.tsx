@@ -3,6 +3,7 @@ import { Fraunces, Inter } from "next/font/google";
 import { ResponseProvider } from "@/components/ui/response-card";
 import { UI_TEXT } from "@/constants/messages";
 import { AuthProvider } from "@/features/auth/AuthProvider";
+import { readInitialSession } from "@/features/auth/session.server";
 import { ThemeProvider } from "@/lib/theme/ThemeProvider";
 import { KeyboardInset } from "@/lib/viewport/KeyboardInset";
 import { DEFAULT_THEME, THEME_BOOT_SCRIPT, THEME_COLORS } from "@/lib/theme/themes";
@@ -47,11 +48,14 @@ export const viewport: Viewport = {
   themeColor: THEME_COLORS[DEFAULT_THEME],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Drawn knowing who is signed in, so a screen shows in the page's own HTML
+  // instead of after the browser has asked (AuthProvider).
+  const session = await readInitialSession();
   return (
     <html
       lang="en"
@@ -70,7 +74,7 @@ export default function RootLayout({
         <ThemeProvider>
           {/* One place every outcome is reported, signed in or not (plan §139.6). */}
           <ResponseProvider>
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider initial={session}>{children}</AuthProvider>
           </ResponseProvider>
           <KeyboardInset />
         </ThemeProvider>

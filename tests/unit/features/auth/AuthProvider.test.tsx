@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import { SWRConfig } from "swr";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { AuthSessionView } from "@/features/auth/types";
+
 import { TEST_SESSION } from "@tests/support/auth";
 
 const { fetcher, client, router } = vi.hoisted(() => ({
@@ -21,17 +23,19 @@ vi.mock("next/navigation", () => ({
 
 const { AuthProvider, useAuth } = await import("@/features/auth/AuthProvider");
 
-function wrapper({ children }: { children: ReactNode }) {
-  return (
-    <SWRConfig
-      value={{ provider: () => new Map(), dedupingInterval: 0, shouldRetryOnError: false, onError: () => {} }}
-    >
-      <AuthProvider>{children}</AuthProvider>
-    </SWRConfig>
-  );
+function arrivingWith(initial?: AuthSessionView | null) {
+  return function wrapper({ children }: { children: ReactNode }) {
+    return (
+      <SWRConfig
+        value={{ provider: () => new Map(), dedupingInterval: 0, shouldRetryOnError: false, onError: () => {} }}
+      >
+        <AuthProvider initial={initial}>{children}</AuthProvider>
+      </SWRConfig>
+    );
+  };
 }
 
-const session = () => renderHook(() => useAuth(), { wrapper });
+const session = (initial?: AuthSessionView | null) => renderHook(() => useAuth(), { wrapper: arrivingWith(initial) });
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -72,6 +76,43 @@ describe("who is signed in", () => {
     const { result } = session();
 
     await waitFor(() => expect(result.current.requiresPasswordChange).toBe(true));
+  });
+});
+
+describe("what the page arrived knowing", () => {
+  it("is signed in at once when the server proved the session, and asks nothing", async () => {
+    const { result } = session(TEST_SESSION);
+
+    expect(result.current.status).toBe("authenticated");
+    expect(result.current.profile?.name).toBe("Asha Baker");
+    await new Promise((settle) => setTimeout(settle, 20));
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("is signed out at once for a visitor with no session, and never asks to be refused", async () => {
+    const { result } = session(null);
+
+    expect(result.current.status).toBe("anonymous");
+    await new Promise((settle) => setTimeout(settle, 20));
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("asks when the server could not tell", async () => {
+    fetcher.mockResolvedValue(TEST_SESSION);
+
+    const { result } = session(undefined);
+
+    expect(result.current.status).toBe("loading");
+    await waitFor(() => expect(result.current.status).toBe("authenticated"));
+  });
+
+  it("stays signed out after signing out, rather than falling back to the session the page came with", async () => {
+    const { result } = session(TEST_SESSION);
+
+    await result.current.signOut();
+
+    await waitFor(() => expect(result.current.status).toBe("anonymous"));
+    expect(result.current.profile).toBeNull();
   });
 });
 

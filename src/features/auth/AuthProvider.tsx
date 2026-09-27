@@ -18,6 +18,11 @@ import type { AuthProfile, AuthSessionView } from "./types";
  * server once and shared, so no screen asks again and no screen keeps its own
  * copy that can go stale; the tokens behind it stay in HttpOnly cookies and
  * never reach this file.
+ *
+ * The page arrives knowing it where it can (`readInitialSession`): signed in,
+ * the screen is drawn at once, without a round trip first; signed out, nothing
+ * is asked, so a visitor on the sign-in screen is not answered with a refusal.
+ * Only a session the server could not settle is read from here.
  */
 export type AuthStatus = "loading" | "authenticated" | "anonymous";
 
@@ -36,14 +41,31 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const router = useRouter();
-  const { mutate: mutateAll } = useSWRConfig();
+type InitialSession = AuthSessionView | null | undefined;
 
-  // A signed-out visitor gets one 401 and no retries: it is the expected
-  // answer here, not a failure worth hammering the server over.
-  const session = useApiQuery<AuthSessionView>(apiRoutes.auth.session, {
+export function AuthProvider({
+  initial,
+  children,
+}: {
+  /** What the server knew: the session, null for signed out, or undefined when it could not tell. */
+  initial?: InitialSession;
+  children: ReactNode;
+}) {
+  const router = useRouter();
+  const { mutate: mutateAll, cache } = useSWRConfig();
+  // The answer as it stands: a session is looked at again when the owner
+  // comes back to the app; nobody's is not.
+  const cached = cache.get(apiRoutes.auth.session)?.data as InitialSession;
+  const signedIn = Boolean(cached === undefined ? initial : cached);
+
+  // A refusal gets no retries: it is the expected answer for a visitor with an
+  // expired session, not a failure worth hammering the server over.
+  const session = useApiQuery<AuthSessionView | null>(apiRoutes.auth.session, {
     shouldRetryOnError: false,
+    fallbackData: initial,
+    revalidateOnMount: initial === undefined,
+    revalidateOnFocus: signedIn,
+    revalidateOnReconnect: signedIn,
   });
 
   const { data, error, isLoading, mutate } = session;
@@ -70,8 +92,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       // Whatever the server said, this browser is done: the cached rows belong
       // to the account that just left and must not be shown to the next one.
-      await mutate(undefined, { revalidate: false });
       await mutateAll(() => true, undefined, { revalidate: false });
+      // Nobody, said outright and last: an emptied session would fall back to
+      // the one the page arrived with.
+      await mutate(null, { revalidate: false });
       // So is anything kept on the device for it — an order half built.
       clearUserItems();
       router.replace(AUTH_ROUTES.signIn);

@@ -275,6 +275,7 @@ The session lives in **HttpOnly cookies** set by the server, never in `localStor
 - A route reads the caller's token with `readAccessToken` (`src/features/auth/guard.ts`), which accepts the cookie or an `Authorization: Bearer` header.
 - The browser attaches nothing. `src/lib/api/client.ts` refreshes the session once and retries when a request is refused for an expired token.
 - `src/proxy.ts` keeps a signed-out visitor out of the app's screens. It gates on cookie presence only; **it is not an authorization check** — that is the route guard and RLS.
+- **The page arrives knowing the session.** The root layout reads the cookies on the server (`readInitialSession`, `src/features/auth/session.server.ts`) and hands `AuthProvider` the session view (never a token), `null` for signed out, or `undefined` when only the browser can settle it (an expired access token, which needs a route handler to refresh). A signed-in screen is drawn in the page's own HTML, and a signed-out visitor is never answered with a 401. It decides nothing about access: the API and RLS still do.
 
 ## Authorization
 
