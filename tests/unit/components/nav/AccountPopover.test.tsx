@@ -1,7 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { ResponseProvider } from "@/components/ui/response-card";
 import { ThemeProvider } from "@/lib/theme/ThemeProvider";
 import { authStub } from "@tests/support/auth";
 
@@ -17,8 +18,10 @@ beforeEach(() => {
 const popover = () =>
   render(
     <ThemeProvider>
-      <p>Outside</p>
-      <AccountPopover />
+      <ResponseProvider>
+        <p>Outside</p>
+        <AccountPopover />
+      </ResponseProvider>
     </ThemeProvider>,
   );
 
@@ -60,6 +63,9 @@ describe("AccountPopover", () => {
     popover();
     await userEvent.click(button());
     await userEvent.click(screen.getByRole("button", { name: /Sign out/ }));
+    await userEvent.click(
+      within(screen.getByRole("alertdialog", { name: "Sign out?" })).getByRole("button", { name: "Sign out" }),
+    );
     expect(button()).toHaveAttribute("aria-expanded", "false");
     expect(auth.current.signOut).toHaveBeenCalled();
   });

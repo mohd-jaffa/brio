@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MORE_NAV } from "@/constants/navigation";
+import { ResponseProvider } from "@/components/ui/response-card";
 import { ThemeProvider } from "@/lib/theme/ThemeProvider";
 import { authStub } from "@tests/support/auth";
 
@@ -18,7 +19,9 @@ beforeEach(() => {
 const sheet = (props: { isOpen: boolean; onClose?: () => void }) =>
   render(
     <ThemeProvider>
-      <MoreSheet onClose={vi.fn()} {...props} />
+      <ResponseProvider>
+        <MoreSheet onClose={vi.fn()} {...props} />
+      </ResponseProvider>
     </ThemeProvider>,
   );
 
@@ -43,11 +46,15 @@ describe("MoreSheet", () => {
     expect(screen.getByRole("link", { name: /^Analytics/ })).toHaveTextContent("How the business is doing");
   });
 
-  it("ends with Sign out, which closes it; the theme is on Settings", async () => {
+  it("ends with Sign out, which asks first and then closes it; the theme is on Settings", async () => {
     const onClose = vi.fn();
     sheet({ isOpen: true, onClose });
     expect(screen.queryByRole("radiogroup", { name: "Theme" })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /^Sign out/ }));
+    expect(onClose).not.toHaveBeenCalled();
+    await userEvent.click(
+      within(screen.getByRole("alertdialog", { name: "Sign out?" })).getByRole("button", { name: "Sign out" }),
+    );
     expect(onClose).toHaveBeenCalled();
     expect(auth.current.signOut).toHaveBeenCalledOnce();
   });

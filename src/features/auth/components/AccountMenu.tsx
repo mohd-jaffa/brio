@@ -1,12 +1,12 @@
 "use client";
 
 import { LogOut } from "lucide-react";
-import { useState } from "react";
 
 import { UI_TEXT } from "@/constants/messages";
 import { ROLE_LABELS } from "@/constants/roles";
 
 import { useAuth } from "../AuthProvider";
+import { useSignOut } from "../hooks/useSignOut";
 
 /**
  * Who is signed in, and the way out. It sits in the sidebar and in the More
@@ -14,16 +14,11 @@ import { useAuth } from "../AuthProvider";
  * matters most on the one screen where it is easy to forget: a shared phone.
  */
 export function AccountMenu({ onSignedOut }: { onSignedOut?: () => void } = {}) {
-  const { profile, signOut } = useAuth();
-  const [signingOut, setSigningOut] = useState(false);
+  const { profile } = useAuth();
+  // Asked first, since it cannot be taken back (`useSignOut`).
+  const { signingOut, signOut } = useSignOut(onSignedOut);
 
   if (!profile) return null;
-
-  const onSignOut = async () => {
-    setSigningOut(true);
-    onSignedOut?.();
-    await signOut();
-  };
 
   return (
     <div className="flex items-center justify-between gap-3">
@@ -36,7 +31,7 @@ export function AccountMenu({ onSignedOut }: { onSignedOut?: () => void } = {}) 
 
       <button
         type="button"
-        onClick={onSignOut}
+        onClick={() => void signOut()}
         disabled={signingOut}
         aria-busy={signingOut || undefined}
         className="touch-target flex shrink-0 items-center gap-1.5 rounded-xl border border-border px-3 py-2 text-xs font-bold text-text-muted transition hover:bg-surface-hover hover:text-text active:scale-95 disabled:opacity-50"

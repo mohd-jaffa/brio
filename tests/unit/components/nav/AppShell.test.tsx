@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ALL_NAV, BOTTOM_NAV } from "@/constants/navigation";
+import { ResponseProvider } from "@/components/ui/response-card";
 import { ThemeProvider } from "@/lib/theme/ThemeProvider";
 import { authStub } from "@tests/support/auth";
 
@@ -28,9 +29,11 @@ beforeEach(() => {
 function shell() {
   return render(
     <ThemeProvider>
-      <AppShell>
-        <p>Screen content</p>
-      </AppShell>
+      <ResponseProvider>
+        <AppShell>
+          <p>Screen content</p>
+        </AppShell>
+      </ResponseProvider>
     </ThemeProvider>,
   );
 }
