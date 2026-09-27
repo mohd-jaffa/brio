@@ -1,21 +1,28 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { isPublicPath, isSignedInPath, returnToPath, signInPath, RETURN_TO_PARAM } from "@/constants/routes";
-import { REFRESH_TOKEN_COOKIE } from "@/features/auth/cookies";
+import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "@/features/auth/cookies";
+import { renewSession } from "@/features/auth/renew";
 
 /**
  * Keeps signed-out visitors out of the app's screens and signed-in bakers off
  * the sign-in screen (plan §19). It decides on the presence of the session
- * cookie alone — it never reads the token or asks Supabase about it, because a
- * proxy runs on every request and is not where authorization belongs.
+ * cookie alone — it never reads the token, because a proxy runs on every
+ * request and is not where authorization belongs.
+ *
+ * One thing more: a screen asked for once the access token has run out (its
+ * cookie expires with it) has the session renewed first (`renewSession`), so
+ * the server can draw the screen signed in, with its data. That asks Supabase
+ * at most once an hour.
  *
  * Nothing here is a security control. Whether a request may actually see a row
  * is settled by the route guard and by RLS (AGENTS.md §7); this only spares a
  * visitor a screen that would have nothing to show them.
  */
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
-  const signedIn = request.cookies.has(REFRESH_TOKEN_COOKIE);
+  const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
+  const signedIn = Boolean(refreshToken);
 
   if (isPublicPath(pathname)) {
     if (!signedIn || isSignedInPath(pathname)) return NextResponse.next();
@@ -24,9 +31,9 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL(returnTo, request.url));
   }
 
-  if (signedIn) return NextResponse.next();
-
-  return NextResponse.redirect(new URL(signInPath(`${pathname}${search}`), request.url));
+  if (!refreshToken) return NextResponse.redirect(new URL(signInPath(`${pathname}${search}`), request.url));
+  if (!request.cookies.has(ACCESS_TOKEN_COOKIE)) return renewSession(request, refreshToken);
+  return NextResponse.next();
 }
 
 export const config = {

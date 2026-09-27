@@ -1,14 +1,26 @@
-import { NextRequest } from "next/server";
-import { describe, expect, it } from "vitest";
+import { NextRequest, NextResponse } from "next/server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AUTH_ROUTES, HOME_ROUTE } from "@/constants/routes";
-import { REFRESH_TOKEN_COOKIE } from "@/features/auth/cookies";
+import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "@/features/auth/cookies";
 
-import { config, proxy } from "@/proxy";
+const { renewSession } = vi.hoisted(() => ({ renewSession: vi.fn() }));
+vi.mock("@/features/auth/renew", () => ({ renewSession }));
 
-function visit(path: string, { signedIn = false } = {}) {
+const { config, proxy } = await import("@/proxy");
+
+beforeEach(() => {
+  renewSession.mockReset();
+  renewSession.mockResolvedValue(NextResponse.next());
+});
+
+/** A signed-in visit carries both cookies; `expired` leaves the access token's out, as the browser does once it runs out. */
+function visit(path: string, { signedIn = false, expired = false } = {}) {
   const request = new NextRequest(new URL(path, "https://ovenly.test"));
-  if (signedIn) request.cookies.set(REFRESH_TOKEN_COOKIE, "refresh-token");
+  if (signedIn) {
+    request.cookies.set(REFRESH_TOKEN_COOKIE, "refresh-token");
+    if (!expired) request.cookies.set(ACCESS_TOKEN_COOKIE, "access-token");
+  }
   return proxy(request);
 }
 
@@ -18,45 +30,58 @@ function destinationOf(response: Response): string | null {
 }
 
 describe("a signed-out visitor", () => {
-  it("is sent to sign in, and told where they were going", () => {
-    expect(destinationOf(visit("/orders?status=PENDING"))).toBe(
+  it("is sent to sign in, and told where they were going", async () => {
+    expect(destinationOf(await visit("/orders?status=PENDING"))).toBe(
       "/login?next=%2Forders%3Fstatus%3DPENDING",
     );
   });
 
-  it("reaches the screens that exist before a session does", () => {
+  it("reaches the screens that exist before a session does", async () => {
     for (const path of [AUTH_ROUTES.signIn, AUTH_ROUTES.register, AUTH_ROUTES.forgotPassword]) {
-      expect(destinationOf(visit(path))).toBeNull();
+      expect(destinationOf(await visit(path))).toBeNull();
     }
   });
 
-  it("cannot reach the change-password screen without one", () => {
-    expect(destinationOf(visit(AUTH_ROUTES.changePassword))).toBe("/login?next=%2Fchange-password");
+  it("cannot reach the change-password screen without one", async () => {
+    expect(destinationOf(await visit(AUTH_ROUTES.changePassword))).toBe("/login?next=%2Fchange-password");
   });
 });
 
 describe("a signed-in baker", () => {
-  it("goes about the app untouched", () => {
-    expect(destinationOf(visit("/orders", { signedIn: true }))).toBeNull();
+  it("goes about the app untouched", async () => {
+    expect(destinationOf(await visit("/orders", { signedIn: true }))).toBeNull();
   });
 
-  it("is sent on from the sign-in screen rather than shown it again", () => {
-    expect(destinationOf(visit(AUTH_ROUTES.signIn, { signedIn: true }))).toBe(HOME_ROUTE);
+  it("is sent on from the sign-in screen rather than shown it again", async () => {
+    expect(destinationOf(await visit(AUTH_ROUTES.signIn, { signedIn: true }))).toBe(HOME_ROUTE);
   });
 
-  it("lands back where they were headed before signing in", () => {
-    expect(destinationOf(visit("/login?next=%2Fcustomers", { signedIn: true }))).toBe("/customers");
+  it("lands back where they were headed before signing in", async () => {
+    expect(destinationOf(await visit("/login?next=%2Fcustomers", { signedIn: true }))).toBe("/customers");
   });
 
-  it("is not carried off to another site by a crafted link", () => {
-    expect(destinationOf(visit("/login?next=https%3A%2F%2Felsewhere.example", { signedIn: true }))).toBe(
+  it("is not carried off to another site by a crafted link", async () => {
+    expect(destinationOf(await visit("/login?next=https%3A%2F%2Felsewhere.example", { signedIn: true }))).toBe(
       HOME_ROUTE,
     );
   });
 
-  it("may still change a temporary password and confirm an email", () => {
-    expect(destinationOf(visit(AUTH_ROUTES.changePassword, { signedIn: true }))).toBeNull();
-    expect(destinationOf(visit(AUTH_ROUTES.confirmEmail, { signedIn: true }))).toBeNull();
+  it("may still change a temporary password and confirm an email", async () => {
+    expect(destinationOf(await visit(AUTH_ROUTES.changePassword, { signedIn: true }))).toBeNull();
+    expect(destinationOf(await visit(AUTH_ROUTES.confirmEmail, { signedIn: true }))).toBeNull();
+  });
+});
+
+describe("a signed-in baker whose access token has run out", () => {
+  it("has the session renewed before the screen is drawn, with its data", async () => {
+    await visit("/orders", { signedIn: true, expired: true });
+    expect(renewSession).toHaveBeenCalledWith(expect.any(NextRequest), "refresh-token");
+  });
+
+  it("is not renewed while the access token lasts, nor on a screen that needs no session", async () => {
+    await visit("/orders", { signedIn: true });
+    await visit(AUTH_ROUTES.confirmEmail, { signedIn: true, expired: true });
+    expect(renewSession).not.toHaveBeenCalled();
   });
 });
 
