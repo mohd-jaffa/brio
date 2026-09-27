@@ -12,7 +12,9 @@ vi.mock("@/lib/api/client", async (original) => ({
   fetcher,
 }));
 
-beforeEach(() => fetcher.mockReset());
+beforeEach(() => {
+  fetcher.mockReset();
+});
 
 describe("useExpenseCategories", () => {
   it("has the defaults on their default pictures until the business's categories arrive", async () => {

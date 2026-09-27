@@ -8,7 +8,9 @@ vi.mock("@/lib/query/useApiQuery", () => ({ useApiQuery }));
 
 import { useUnreadNotifications } from "@/features/notifications/hooks/useUnreadNotifications";
 
-beforeEach(() => useApiQuery.mockReset());
+beforeEach(() => {
+  useApiQuery.mockReset();
+});
 
 describe("useUnreadNotifications", () => {
   it("counts what waits unread, asking again every so often", async () => {

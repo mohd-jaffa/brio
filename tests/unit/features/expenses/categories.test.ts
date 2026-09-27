@@ -30,7 +30,9 @@ function clientWith({
 
 const refusal = (hint: string) => ({ error: { code: "P0001", hint, message: "refused" } });
 
-beforeEach(() => logActionSafe.mockReset());
+beforeEach(() => {
+  logActionSafe.mockReset();
+});
 
 describe("listCategories", () => {
   it("lists the eight on their fixed picture, then the business's own with theirs", async () => {

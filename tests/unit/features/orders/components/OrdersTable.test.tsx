@@ -11,7 +11,9 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 
 const now = new Date("2026-09-26T06:00:00Z");
 
-beforeEach(() => push.mockReset());
+beforeEach(() => {
+  push.mockReset();
+});
 
 describe("OrdersTable", () => {
   it("lays each order out under Order, Due, Customer, Items, Amount and Status (§139.10)", () => {

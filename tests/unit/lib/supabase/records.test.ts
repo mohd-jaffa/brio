@@ -28,7 +28,9 @@ function fakeClient(results: Array<{ data: unknown; error: unknown }>) {
   return { client, log };
 }
 
-beforeEach(() => logActionSafe.mockReset());
+beforeEach(() => {
+  logActionSafe.mockReset();
+});
 
 describe("tenantRecords", () => {
   it("scopes every read to the tenant's business", async () => {

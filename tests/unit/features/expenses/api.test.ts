@@ -16,7 +16,9 @@ import { tenantOf } from "@tests/support/tenant";
 const logActionSafe = vi.fn();
 vi.mock("@/lib/audit/auditLog", () => ({ logActionSafe: (...args: unknown[]) => logActionSafe(...args) }));
 
-beforeEach(() => logActionSafe.mockReset());
+beforeEach(() => {
+  logActionSafe.mockReset();
+});
 
 const now = new Date("2026-09-26T06:00:00Z");
 
