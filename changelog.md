@@ -2437,3 +2437,83 @@ The audit scored 15/20 and found 1 P1, 6 P2 and 4 P3 issues. Each is fixed below
 
 ### Open decision
 - **Removing the root `loading.tsx`** would show a repeat full load about 0.3 s sooner. A tap in the app would then leave the last screen up, with a pending mark on the tapped place, until the next one arrives, which is not what plan §134 P1-2 says. It needs the user's decision.
+
+## 2026-09-27 — Screens arrive ready
+
+The user's list, following the audit and the loading measurements: remove the 0.3 s hold; check the session and load the business and each screen's first data on the server; render as soon as that data is there; a skeleton, not a full-screen loader, for a slow navigation; load heavy sheets only when needed; and keep each account's data to its own session.
+
+### Changed
+- **No full-screen loader** (supersedes §134 P1-2's loading screen).
+  - **Why:** with the screens drawn per request, the root `loading.tsx` streamed first, and React 19.2 holds a streamed placeholder for at least 0.3 s. It is removed.
+  - **Instead:** a navigation still on its way after 150 ms shows the next screen's skeleton in the page's place, with the header and the navigation kept (`src/lib/navigation/pending.ts`, `useNavigationPending`, `ScreenSkeleton`).
+  - **Code navigations too:** a push from code — a row, Order again, a new customer — says so as well (`useOpenScreen`).
+- **The proxy renews an expired access token** before a screen is drawn (`src/features/auth/renew.ts`).
+  - The new cookies go back with the page, set as the refresh route sets them, and the page is drawn with the new token.
+  - A refused refresh clears the cookies and sends the visitor to sign in, remembering where they were.
+- **Screens arrive with their first data** (`AppScreen`, `readScreen`, `ServerData`).
+  - **What is read on the server:** the business and the bell's count on every screen; then each screen's own first data:
+    - Home: the dashboard;
+    - Orders: the first page and the counts;
+    - an order: the order and its payments;
+    - Create order: the products;
+    - Customers: the first page;
+    - a customer: the customer, the summary and their orders;
+    - Products and Inventory: the products, and on Inventory the stock levels;
+    - Notifications: the first page.
+  - **How:** each read is the one its API route makes, for the same business, under the same RLS, parsed by the route's own schema (`routeQuery`). It is handed over as JSON, keyed as the screen's hook asks, and not fetched again on mount (`useSeeded`).
+  - **Password change:** an owner still owing one is sent to replace it before anything is drawn.
+  - **Not read on the server:** Analytics, Expenses and Guest sales. They keep their period on the device, so their figures are still read in the browser.
+- **Create order:**
+  - **Steps:** they change the address through the browser's history (`pushUrl`, `replaceUrl`), so a step never goes back to the server.
+  - **The menu before the draft:** the draft is kept on the device, so on the first step the menu is drawn without it, in the same frame. The counts follow with the draft.
+- **Sheets and forms load when needed** (`lazySheet`). The customer, product, stock, expense, category, custom item, payment, bill and estimate sheets, and the account change sheet, are left out of their screens' first download. They are fetched once the screen is idle, mounted the first time they open, then kept.
+- **Each account's data stays its own.**
+  - Signing in, signing out and confirming an email load a new page (`loadPage`).
+  - `AuthProvider` keeps each signed-in account's reads in a cache of its own, begun afresh when who is signed in changes.
+- **A screen revisited within 30 s** reuses its last render (`experimental.staleTimes.dynamic`). Its figures come from the per-account cache, which revalidates them.
+- **The product card's picture tile is a fixed 144 px** (it was a 4:3 box the picture stretched as it arrived). It looks exactly as before, and nothing below it moves.
+- **Tests:** six tests returned a mock from `beforeEach`, which Vitest then called as a cleanup after every test. They now return nothing.
+
+### Result (production build, throttled phone)
+- **First visit, LCP:** every screen is now at or under 1.7 s. Five were above 2.5 s this morning.
+
+  | Screen | This morning | Now |
+  |---|---|---|
+  | Sign in | 2.63 s | 0.78 s |
+  | Home | 2.66 s | 0.77 s |
+  | Orders | 2.52 s | 0.89 s |
+  | Create order | 2.95 s | 1.25 s |
+  | Customers | 2.49 s | 0.68 s |
+  | Analytics | 2.62 s | 1.29 s |
+  | Expenses | 2.85 s | 1.67 s |
+  | Notifications | 2.47 s | 0.90 s |
+
+- **Repeat visit, LCP:**
+
+  | Screen | This morning | Now |
+  |---|---|---|
+  | Home | 0.63 s | 0.41 s |
+  | Orders | 0.58 s | 0.39 s |
+  | Analytics | 0.39 s | 0.24 s |
+
+- **A screen's heading on a repeat visit:** 0.46 s → 0.18 s.
+- **Layout shift:** 0 on every screen (Create order was 0.015).
+- **Requests:** screens make one or two API calls on a first visit instead of four to six.
+
+### Validation
+- **Browser walk-through, on the production build:**
+  - signing in lands as a new page, drawn with its data;
+  - a slow bottom-bar navigation shows the skeleton, then Orders with its rows and no API call;
+  - a Create order step asks the server nothing, and Back returns to the menu;
+  - the custom item sheet opens at once;
+  - with the access cookie removed, the proxy renews it, with no 401s;
+  - after signing out and into a second, throwaway business, no screen shows the first business. The throwaway account was deleted afterwards.
+- **Link prefetches** of dynamic screens stay small: 1.6 KB, answered in 5 ms, with no page drawn.
+- **Checks:** `tsc`, `eslint` and the full suite (1,878 tests) pass. Every new and changed file is at 100 %.
+
+### Notes
+- **AGENTS.md** §9 records how the page learns the session, the proxy's renewal, `AppScreen`, and the account boundary. Plan: the answers of 2026-09-27, and a revision note on §134 P1-2.
+- **The proxy now asks Supabase,** at most once an hour per signed-in owner, when the access token has run out.
+
+### Blockers
+- None.

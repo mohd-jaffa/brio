@@ -369,6 +369,7 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 ### Rows
 - One line of a list: a tile, an avatar or a medallion; a title (14 px semibold) with one or two lines under it; what it amounts to at the right edge (an amount, a pill, a time); and a chevron when it goes somewhere.
 - The whole row is the target. On a desktop the right edge carries a scannable figure.
+- **Product card:** its picture sits in a 144 px Flour Well tile, 80 % of its height, whatever the card's width; the tile never grows as the picture arrives, so nothing below it moves.
 - **Action row** (`ActionRow`): a card-width row that opens something rather than naming a record: a mark, a title and a line under it, and a chevron. Add custom item above the product grid, and the customer on an order, are both one.
 
 ### Inputs / Fields
@@ -395,6 +396,7 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 - **Tabs:** underlined for the views of a screen, each 44 px tall; a single 2 px caramel underline glides to the chosen tab over 300 ms.
 - **Section heading:** a serif title with **View all** and an arrow at its end, which goes to another screen or shows another view of this one (Recent expenses → Transactions).
 - **Bell:** a bell with the unread count in a small brick (danger) circle ringed in paper, 1 to 9 then "9+".
+- **Arriving at a screen:** a screen arrives drawn, with its data; there is no full-screen loader. A navigation still on its way after 150 ms puts the next screen's skeleton in the page's place (a title bar, a line under it, four rows, in Flour Well), with the header and the navigation kept.
 
 ### Response Card
 - The one way an outcome is reported, on the web and in the app: a medallion, a serif title, the message, up to three facts in a strip, and at most two actions.
