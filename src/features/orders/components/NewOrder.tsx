@@ -2,8 +2,7 @@
 
 import { ArrowRight, Trash2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useRef, useState, type ReactNode } from "react";
-import type { ZodError } from "zod";
+import { useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { CartBar } from "@/components/ui/cart-bar";
@@ -22,7 +21,6 @@ import { useArrived } from "@/hooks/useArrived";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useKept } from "@/hooks/useKept";
 import { useTravelMotion } from "@/hooks/useTravelMotion";
-import { ApiError } from "@/lib/api/client";
 import { formatPaise } from "@/lib/format/currency";
 import { parseRupees } from "@/lib/money";
 import { apiRoutes, withQuery } from "@/lib/query/keys";
@@ -45,13 +43,15 @@ import {
   removeProduct,
   type DraftCustomer,
 } from "../draft";
-import type { OrderEstimate, StockShortfall } from "../estimate";
+import type { OrderEstimate } from "../estimate";
 import { useOrderDraft } from "../hooks/useOrderDraft";
+import { issuesByPath, readStep, STEPS, stockRefusal, within, type Step } from "../steps";
 import type { Order } from "../types";
 import { DetailsPanel } from "./DetailsPanel";
 import { ItemsPanel } from "./ItemsPanel";
 import { OrderSummary } from "./OrderSummary";
 import { PaymentPanel } from "./PaymentPanel";
+import { StepBar } from "./StepBar";
 
 /** Kept out of the screen's first download, and fetched once it is idle (`lazySheet`). */
 const CustomerFormSheet = lazySheet(
@@ -71,64 +71,7 @@ const EstimateBill = lazySheet(
   (props) => props.open,
 );
 
-const STEPS = ["items", "details", "payment"] as const;
-type Step = (typeof STEPS)[number];
-
-/** The paths each step answers for, and every step before it. */
-const STEP_PATHS: Record<Step, readonly string[]> = {
-  items: ["items"],
-  details: ["items", "customer", "delivery", "adjustments", "notes"],
-  payment: ["items", "customer", "delivery", "adjustments", "notes", "payment"],
-};
-
 const ROUTE = "/orders/new";
-
-function readStep(value: string | null): Step {
-  return (STEPS as readonly (string | null)[]).includes(value) ? (value as Step) : "items";
-}
-
-/** The first message under each path — what each field shows. */
-function issuesByPath(error: ZodError): Record<string, string> {
-  const issues: Record<string, string> = {};
-  for (const issue of error.issues) {
-    const path = issue.path.join(".");
-    issues[path] ??= issue.message;
-  }
-  return issues;
-}
-
-function within(issues: Record<string, string>, step: Step): Record<string, string> {
-  return Object.fromEntries(
-    Object.entries(issues).filter(([path]) =>
-      STEP_PATHS[step].some((prefix) => path === prefix || path.startsWith(`${prefix}.`)),
-    ),
-  );
-}
-
-/**
- * The stock refusal as a card that names what is short, in words — "Only 2
- * left of Red Velvet Cake." — with nothing to try again: the order has to
- * change first.
- */
-function stockRefusal(failure: unknown) {
-  if (!(failure instanceof ApiError) || failure.code !== "ORDER_INSUFFICIENT_STOCK") return null;
-  const shortfalls = (failure.details as { shortfalls?: StockShortfall[] } | undefined)?.shortfalls ?? [];
-  if (shortfalls.length === 0) return null;
-  return {
-    title: UI_TEXT.outcomes.orderNotPlaced,
-    message: shortfalls.map(({ name, available }) => UI_TEXT.newOrder.onlyLeft(name, available)).join(" "),
-    requestId: failure.requestId,
-  };
-}
-
-/** A bar that stays at the foot of the step, above the bottom navigation. */
-function StepBar({ children }: { children: ReactNode }) {
-  return (
-    <div className="sticky bottom-[calc(var(--nav-height)+var(--safe-bottom)+0.75rem)] z-20 md:bottom-6 lg:hidden">
-      {children}
-    </div>
-  );
-}
 
 /**
  * Creating an order, items first (plan §139.10, Q11): the product grid and
@@ -181,7 +124,7 @@ export function NewOrder() {
     {
       revalidate: [apiRoutes.orders.list, apiRoutes.products.list],
       onError: (failure) => {
-        const refusal = stockRefusal(failure);
+        const refusal = stockRefusal(failure, UI_TEXT.outcomes.orderNotPlaced);
         if (refusal) return respond.error(refusal);
         respond.failure(failure, {
           title: UI_TEXT.outcomes.orderNotPlaced,

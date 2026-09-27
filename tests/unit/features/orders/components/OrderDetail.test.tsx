@@ -93,6 +93,8 @@ describe("OrderDetail: reading", () => {
     expect(summary).toHaveTextContent("₹1,250");
     expect(summary).toHaveTextContent("Balance due ₹750");
     expect(within(summary).getByRole("button", { name: "Mark as Preparing" })).toBeInTheDocument();
+    // An open order can be changed (§139.11.13).
+    expect(screen.getByRole("link", { name: "Edit ORD-1006" })).toHaveAttribute("href", "/orders/o-1/edit");
 
     expect(await screen.findByRole("link", { name: "Call Meena Gupta" })).toBeInTheDocument();
     const items = screen.getByRole("region", { name: "Items" });
@@ -109,6 +111,16 @@ describe("OrderDetail: reading", () => {
     expect(screen.getByRole("region", { name: "Customer" })).toHaveTextContent("Guest");
     expect(screen.getByRole("region", { name: "Internal notes" })).toHaveTextContent("Ring twice");
     expect(fetcher).not.toHaveBeenCalledWith(expect.stringContaining("/api/customers"));
+  });
+
+  it("offers no Edit once the order is finished", async () => {
+    for (const status of ["DELIVERED", "CANCELLED"] as const) {
+      serve(anOrder({ status }));
+      const view = open();
+      await loaded();
+      expect(screen.queryByRole("link", { name: "Edit ORD-1006" })).not.toBeInTheDocument();
+      view.unmount();
+    }
   });
 
   it("offers no collecting and shows no balance on an order paid in full", async () => {
@@ -157,7 +169,7 @@ describe("OrderDetail: moving it on", () => {
     vi.mocked(OrdersClient.updateStatus).mockResolvedValue(anOrder({ status: "CANCELLED" }));
     open();
     await loaded();
-    await userEvent.click(screen.getByRole("button", { name: "More actions" }));
+    await userEvent.click(screen.getByRole("button", { name: "Change status" }));
     await userEvent.click(screen.getByRole("button", { name: "Cancel order" }));
     await userEvent.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: "Cancel order" }));
     expect(await screen.findByText("Order cancelled")).toBeInTheDocument();

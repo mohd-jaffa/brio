@@ -8,7 +8,11 @@ import {
   customerForDraft,
   draftForm,
   draftTotals,
+  editDraft,
+  editForm,
   itemCount,
+  linePrice,
+  localDateTime,
   newDraft,
   newKey,
   offersCustomerPlace,
@@ -30,7 +34,7 @@ import {
   type DraftCustomer,
   type OrderDraft,
 } from "@/features/orders/draft";
-import { orderFormSchema } from "@/lib/validation";
+import { editOrderFormSchema, orderFormSchema } from "@/lib/validation";
 import { anOrder } from "@tests/support/orders";
 
 const anu: DraftCustomer = {
@@ -276,5 +280,105 @@ describe("a customer, and a past order, as a draft (IMP-03, IMP-04)", () => {
     expect(draft.lines).toHaveLength(1);
     expect(draft.lines[0].custom?.name).toBe("Name topper");
     expect(draft.delivery).toMatchObject({ type: "PICKUP", address: "", googleMapsLink: "" });
+  });
+});
+
+describe("an open order as the edit screen holds it (§139.11.13)", () => {
+  const meena: DraftCustomer = {
+    kind: "CUSTOMER",
+    id: "c-1",
+    name: "Meena Gupta",
+    phone: "+919834567890",
+    address: "Block B-404, Green Park",
+    googleMapsLink: "",
+  };
+
+  it("keeps each line by its id — a product at the price it was ordered at — and the order's own details", () => {
+    const draft = editDraft(anOrder({ notes: "Ring twice" }), meena);
+    expect(draft.lines).toEqual([
+      {
+        key: "i-1",
+        itemId: "i-1",
+        productId: "p-1",
+        agreed: { name: "Red Velvet Cupcakes (Box of 6)", unitPrice: 57500 },
+        quantity: 2,
+        notes: "",
+      },
+      {
+        key: "i-2",
+        itemId: "i-2",
+        custom: { name: "Name topper", unitPrice: 15000 },
+        quantity: 1,
+        notes: "Gold, ‘Anu’",
+      },
+    ]);
+    expect(draft.customer).toBe(meena);
+    expect(draft.delivery).toEqual({
+      type: "DELIVERY",
+      date: localDateTime(new Date("2099-09-27T08:30:00.000Z")),
+      address: "Block B-404, Green Park",
+      googleMapsLink: "https://maps.app.goo.gl/meena",
+      // Meena's own address counts as filled from her; the link was typed.
+      filled: { address: "Block B-404, Green Park", googleMapsLink: "" },
+    });
+    expect(draft.adjustments).toEqual([{ key: "a-1", type: "DISCOUNT", name: "Festive", amount: "50.00" }]);
+    expect(draft.notes).toBe("Ring twice");
+  });
+
+  it("comes to what the order does, at its own prices, whatever the menu says now", () => {
+    const draft = editDraft(anOrder(), meena);
+    expect(draftTotals(draft, () => 99_999).total).toBe(125000);
+  });
+
+  it("reads an order with no address, link or notes as empty fields", () => {
+    const draft = editDraft(anOrder({ delivery: { type: "PICKUP", date: "2099-09-27T08:30:00.000Z" }, notes: undefined }), {
+      kind: "GUEST",
+    });
+    expect(draft.delivery).toMatchObject({ address: "", googleMapsLink: "", filled: { address: "", googleMapsLink: "" } });
+    expect(draft.notes).toBe("");
+  });
+
+  it("sends each kept line's id, and no payment", () => {
+    const draft = addProduct(editDraft(anOrder(), meena), "3f2504e0-4f89-11d3-9a0c-0305e82c3301");
+    const form = editForm(draft);
+    expect(form).not.toHaveProperty("payment");
+    expect(form.items).toEqual([
+      { itemId: "i-1", productId: "p-1", quantity: 2, notes: "" },
+      { itemId: "i-2", custom: { name: "Name topper", unitPrice: 15000 }, quantity: 1, notes: "Gold, ‘Anu’" },
+      { productId: "3f2504e0-4f89-11d3-9a0c-0305e82c3301", quantity: 1, notes: "" },
+    ]);
+    // With real ids, the edit form's schema takes it as it is.
+    const ids = ["3f2504e0-4f89-11d3-9a0c-0305e82c3310", "3f2504e0-4f89-11d3-9a0c-0305e82c3311"];
+    const order = anOrder();
+    const real = editDraft(
+      {
+        ...order,
+        items: order.items.map((item, index) => ({ ...item, id: ids[index], productId: item.productId && "3f2504e0-4f89-11d3-9a0c-0305e82c3312" })),
+      },
+      { ...meena, id: "3f2504e0-4f89-11d3-9a0c-0305e82c3313" },
+    );
+    const parsed = editOrderFormSchema.parse(editForm(real));
+    expect(parsed.items.map((line) => line.itemId)).toEqual(ids);
+    expect(parsed.adjustments).toEqual([{ type: "DISCOUNT", name: "Festive", amount: 5000 }]);
+  });
+});
+
+describe("linePrice", () => {
+  it("is a custom line's own, a kept line's as ordered, or the product's now", () => {
+    const priceOf = (id: string) => (id === "p-1" ? 60000 : undefined);
+    expect(linePrice({ key: "a", custom: { name: "Topper", unitPrice: 15000 }, quantity: 1, notes: "" }, priceOf)).toBe(15000);
+    expect(
+      linePrice({ key: "b", productId: "p-1", agreed: { name: "Cake", unitPrice: 57500 }, quantity: 1, notes: "" }, priceOf),
+    ).toBe(57500);
+    expect(linePrice({ key: "c", productId: "p-1", quantity: 1, notes: "" }, priceOf)).toBe(60000);
+    expect(linePrice({ key: "d", productId: "gone", quantity: 1, notes: "" }, priceOf)).toBeUndefined();
+    expect(linePrice({ key: "e", quantity: 1, notes: "" }, priceOf)).toBeUndefined();
+  });
+});
+
+describe("localDateTime", () => {
+  it("is the wall clock to the minute, as a datetime-local field shows it", () => {
+    const when = new Date(2026, 8, 27, 14, 5, 42);
+    expect(localDateTime(when)).toBe("2026-09-27T14:05");
   });
 });

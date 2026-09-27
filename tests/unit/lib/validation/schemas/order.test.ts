@@ -4,11 +4,13 @@ import { VALIDATION_MESSAGES } from "@/constants/messages";
 import {
   createOrderSchema,
   customItemFormSchema,
+  editOrderFormSchema,
   orderFormSchema,
   orderCountsQuerySchema,
   orderListQuerySchema,
   orderPaymentFormSchema,
   orderPaymentSchema,
+  updateOrderSchema,
   updateOrderStatusSchema,
 } from "@/lib/validation/index";
 
@@ -272,5 +274,51 @@ describe("order", () => {
   it("a status change may name either status, or both", () => {
     expect(updateOrderStatusSchema.parse({ status: "DELIVERED" })).toEqual({ status: "DELIVERED" });
     expect(updateOrderStatusSchema.safeParse({ status: "SHIPPED" }).success).toBe(false);
+  });
+});
+
+describe("an order changed (§139.11.13)", () => {
+  const LINE = "5b0f7a9e-2c1d-4e3f-8a6b-1c2d3e4f5a6b";
+  const change = {
+    customer: { kind: "GUEST" },
+    items: [
+      { itemId: LINE, productId: OTHER_UUID, quantity: 3 },
+      { productId: UUID, quantity: 1 },
+      { itemId: LINE.replace("5b", "6c"), custom: { name: "Name topper", unitPrice: 15000 }, quantity: 1 },
+    ],
+    delivery: { type: "PICKUP", date: "2026-09-23T10:00:00.000Z" },
+  };
+
+  it("names each line already on the order, and says nothing of payment", () => {
+    const parsed = updateOrderSchema.parse({ ...change, payment: { status: "PAID", method: "UPI" } });
+    expect(parsed.items.map((line) => line.itemId)).toEqual([LINE, undefined, LINE.replace("5b", "6c")]);
+    expect(parsed).not.toHaveProperty("payment");
+    expect(parsed.adjustments).toEqual([]);
+  });
+
+  it("refuses a line id that is not an id, against that line", () => {
+    const result = updateOrderSchema.safeParse({ ...change, items: [{ itemId: "i-1", productId: UUID, quantity: 1 }] });
+    expect(result.error?.issues[0]).toMatchObject({ path: ["items", 0, "itemId"], message: VALIDATION_MESSAGES.invalid });
+  });
+
+  it("still needs an item and a place for a delivery", () => {
+    expect(updateOrderSchema.safeParse({ ...change, items: [] }).success).toBe(false);
+    expect(
+      updateOrderSchema.safeParse({ ...change, delivery: { type: "DELIVERY", date: "2026-09-23T10:00:00.000Z" } }).error
+        ?.issues[0].message,
+    ).toBe(VALIDATION_MESSAGES.deliveryNeedsPlace);
+  });
+
+  it("the edit form is the order form without its payment, keeping each line's id", () => {
+    const whole = form({ items: [{ itemId: LINE, productId: OTHER_UUID, quantity: 2, notes: "" }] });
+    const rest = { customer: whole.customer, items: whole.items, adjustments: whole.adjustments, delivery: whole.delivery, notes: whole.notes };
+    const parsed = editOrderFormSchema.parse(rest);
+    expect(parsed.items).toEqual([{ itemId: LINE, productId: OTHER_UUID, quantity: 2, notes: null }]);
+    expect(parsed).not.toHaveProperty("payment");
+    expect(editOrderFormSchema.safeParse({ ...rest, items: [] }).error?.issues[0].path).toEqual(["items"]);
+  });
+
+  it("a new order's lines carry no id, even if one is sent", () => {
+    expect(createOrderSchema.parse({ ...change, payment: { status: "UNPAID" } }).items[0]).not.toHaveProperty("itemId");
   });
 });

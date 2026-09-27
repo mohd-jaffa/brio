@@ -10,6 +10,7 @@ import {
   postFile,
   postOnce,
   postJson,
+  putJson,
   resetSessionRefresh,
 } from '@/lib/api/client';
 
@@ -156,6 +157,17 @@ describe('the JSON verbs', () => {
     expect(mockFetch).toHaveBeenCalledWith('/api/customers/c-1', {
       method: 'PATCH',
       body: JSON.stringify({ name: 'Meena G' }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  });
+
+  it('putJson sends the whole thing as a JSON body', async () => {
+    mockFetchSuccess({ id: 'o-1' });
+
+    await putJson('/api/orders/o-1', { notes: 'Ring twice' });
+    expect(mockFetch).toHaveBeenCalledWith('/api/orders/o-1', {
+      method: 'PUT',
+      body: JSON.stringify({ notes: 'Ring twice' }),
       headers: { 'Content-Type': 'application/json' },
     });
   });

@@ -13,18 +13,21 @@ export const ORDER_STATUSES = ["PENDING", "IN_PROGRESS", "READY", "IN_TRANSIT", 
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 /**
- * Where an order may go next (plan §139.11.8), the usual next step first.
- * Anything else is refused by the server — by the database itself, whose
- * `order_status_next` repeats this table (0016_change_order_status.sql, kept
- * equal by its test). Out for delivery exists only for a delivery order, and a
+ * Where an order may go next (plan §139.11.8, revised 2026-09-27): an open
+ * order may take any other open status — on, or back when it was moved by
+ * mistake — or go straight to Delivered or Cancelled. The usual next step is
+ * first, then the rest onward, then the way back, and Cancel last. Anything
+ * else is refused by the server — by the database itself, whose
+ * `order_status_next` repeats this table (0025_edit_orders.sql, kept equal by
+ * its test). Out for delivery exists only for a delivery order, and a
  * delivered or cancelled order is final: stock has already followed it, and
  * moving it again would move stock again.
  */
 export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
-  PENDING: ["IN_PROGRESS", "CANCELLED"],
-  IN_PROGRESS: ["READY", "IN_TRANSIT", "DELIVERED", "CANCELLED"],
-  READY: ["IN_TRANSIT", "DELIVERED", "CANCELLED"],
-  IN_TRANSIT: ["DELIVERED", "CANCELLED"],
+  PENDING: ["IN_PROGRESS", "READY", "IN_TRANSIT", "DELIVERED", "CANCELLED"],
+  IN_PROGRESS: ["READY", "IN_TRANSIT", "DELIVERED", "PENDING", "CANCELLED"],
+  READY: ["IN_TRANSIT", "DELIVERED", "IN_PROGRESS", "PENDING", "CANCELLED"],
+  IN_TRANSIT: ["DELIVERED", "READY", "IN_PROGRESS", "PENDING", "CANCELLED"],
   DELIVERED: [],
   CANCELLED: [],
 };

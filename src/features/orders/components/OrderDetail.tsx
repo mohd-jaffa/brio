@@ -1,9 +1,9 @@
 "use client";
 
-import { ReceiptText } from "lucide-react";
+import { Pencil, ReceiptText } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Button, LinkButton } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
 import { lazySheet } from "@/components/ui/lazy-sheet";
 import { PageHeader } from "@/components/ui/page-header";
@@ -24,6 +24,7 @@ import { useApiMutation } from "@/lib/query/useApiMutation";
 import { useApiQuery } from "@/lib/query/useApiQuery";
 
 import { OrdersClient } from "../api.client";
+import { isFinal } from "../lifecycle";
 import type { Order } from "../types";
 import { balanceDue, deliveryLabel, paymentPill, statusPill } from "../view";
 import { OrderAgain } from "./OrderAgain";
@@ -43,8 +44,9 @@ const OrderBill = lazySheet(
 );
 
 /**
- * One order (plan §139.10): its number, status and due date; the one next
- * step, with the other moves in a menu (IMP-06); who it is for, with Call,
+ * One order (plan §139.10): its number, status and due date; **Edit** while it
+ * is open (§139.11.13); the one next step, with every other status in Change
+ * status (IMP-06, §139.11.8); who it is for, with Call,
  * WhatsApp and Map (IMP-02); the items and totals; the payments, the balance
  * due and Collect payment (IMP-07); and the bill, built when it is asked for
  * and never stored (AGENTS §15), shared from inside it.
@@ -111,6 +113,16 @@ export function OrderDetail({ id }: { id: string }) {
         subtitle={text.due(deliveryLabel(current), formatDateTime(current.delivery.date))}
         back="/orders"
       >
+        {!isFinal(current.status) && (
+          <LinkButton
+            href={`/orders/${id}/edit`}
+            label={text.edit}
+            accessibleName={text.editName(current.orderNumber)}
+            icon={Pencil}
+            variant="secondary"
+            size="sm"
+          />
+        )}
         <Button
           label={text.viewBill}
           icon={ReceiptText}
@@ -135,7 +147,8 @@ export function OrderDetail({ id }: { id: string }) {
               </span>
               <StatusPill label={payment.label} tone={payment.tone} />
             </div>
-            <div className="text-right">
+            {/* Kept to the right when a long status sends it under the pills. */}
+            <div className="ml-auto text-right">
               <p className="font-heading text-3xl font-medium tabular-nums text-text">
                 {formatPaise(current.pricing.total)}
               </p>

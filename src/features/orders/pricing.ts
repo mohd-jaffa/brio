@@ -5,9 +5,10 @@ import { getCustomerById } from "@/features/customers/api";
 import { getProductsByIds } from "@/features/products/api";
 import { businessRuleError, conflictError } from "@/lib/errors";
 import type { PaymentMethod } from "@/constants/statuses";
-import type { CreateOrderPayload, OrderPayment } from "@/lib/validation";
+import type { CreateOrderItemPayload, CreateOrderPayload, OrderCustomer, OrderPayment } from "@/lib/validation";
 
 import { orderTotals, type OrderTotals } from "./totals";
+import type { OrderItemRow } from "./types";
 
 /**
  * What an order draft comes to, worked out on the server (AGENTS.md §13). Both
@@ -16,9 +17,13 @@ import { orderTotals, type OrderTotals } from "./totals";
  *
  * Nothing the browser sent about money is trusted: a catalogue line takes its
  * name and price from the product as it is now; only a custom line's price is
- * typed, because that is what a custom line is (§139.11.7).
+ * typed, because that is what a custom line is (§139.11.7). A line already on
+ * an order being changed keeps the name and price it was ordered at
+ * (§139.11.13).
  */
 export interface PricedLine {
+  /** The line of the order being changed that this is; absent for a new line. */
+  itemId?: string;
   /** null for a custom line, which moves no stock. */
   productId: string | null;
   name: string;
@@ -48,7 +53,36 @@ export interface PricedDraft {
   payment: PricedPayment;
 }
 
+/** A line as it was asked for; one already on the order names it by `itemId`. */
+type RequestedLine = CreateOrderItemPayload & { itemId?: string };
+
+/** What an order is priced from: who it is for, its lines, and its discounts and charges. */
+export interface OrderRequest {
+  customer: OrderCustomer;
+  items: readonly RequestedLine[];
+  adjustments: CreateOrderPayload["adjustments"];
+}
+
+/** A line already on the order, as it stands. */
+export type KeptLine = Pick<OrderItemRow, "id" | "product_id" | "product_name" | "unit_price">;
+
 export async function priceDraft(tenant: Tenant, input: CreateOrderPayload): Promise<PricedDraft> {
+  const { customer, lines, totals } = await priceOrder(tenant, input);
+  return { customer, lines, totals, payment: pricePayment(input.payment, totals.total) };
+}
+
+/**
+ * The customer, the lines and the totals of an order, new or being changed.
+ * `kept` holds the lines of the order being changed, by id: a line naming one
+ * keeps that line's product, name and price, and takes only its new quantity
+ * and note. A line naming one that is not there — taken off on another device
+ * since — is refused, and nothing is priced.
+ */
+export async function priceOrder(
+  tenant: Tenant,
+  input: OrderRequest,
+  kept: ReadonlyMap<string, KeptLine> = new Map(),
+): Promise<Omit<PricedDraft, "payment">> {
   // A saved customer is read back through this business's records, so one
   // that belongs to another business is refused as not found — never stored
   // (BUG-19). A Guest has nothing to read.
@@ -62,10 +96,23 @@ export async function priceDraft(tenant: Tenant, input: CreateOrderPayload): Pro
           phone,
         }));
 
-  const productIds = input.items.flatMap((item) => ("productId" in item ? [item.productId] : []));
+  const productIds = input.items.flatMap((item) => (!item.itemId && "productId" in item ? [item.productId] : []));
   const products = new Map((await getProductsByIds(tenant, productIds)).map((product) => [product.id, product]));
 
   const lines = input.items.map((item): PricedLine => {
+    if (item.itemId) {
+      const line = kept.get(item.itemId);
+      if (!line) throw conflictError("ORDER_CHANGED", { itemId: item.itemId });
+      return {
+        itemId: line.id,
+        productId: line.product_id,
+        name: line.product_name,
+        unitPrice: line.unit_price,
+        quantity: item.quantity,
+        subtotal: line.unit_price * item.quantity,
+        notes: item.notes,
+      };
+    }
     if ("custom" in item) {
       const { name, unitPrice } = item.custom;
       return { productId: null, name, unitPrice, quantity: item.quantity, subtotal: unitPrice * item.quantity, notes: item.notes };
@@ -93,7 +140,7 @@ export async function priceDraft(tenant: Tenant, input: CreateOrderPayload): Pro
     throw businessRuleError("ORDER_TOTAL_TOO_LARGE", { subtotal: totals.subtotal, total: totals.total });
   }
 
-  return { customer, lines, totals, payment: pricePayment(input.payment, totals.total) };
+  return { customer, lines, totals };
 }
 
 function pricePayment(payment: OrderPayment, total: number): PricedPayment {

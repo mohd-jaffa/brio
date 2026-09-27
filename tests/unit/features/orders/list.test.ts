@@ -25,8 +25,9 @@ const row = (overrides: Partial<OrderListRow> = {}): OrderListRow => ({
   customer_id: "c-1",
   customers: { id: "c-1", name: "Anu Sharma" },
   order_items: [
-    { product_name: "Topper", product_id: null, created_at: "2026-09-26T05:00:02Z", products: null },
-    { product_name: "Truffle cake", product_id: "p-1", created_at: "2026-09-26T05:00:01Z", products: { icon_key: "cake" } },
+    // The lines come back in no particular order; the first placed leads (0025's position).
+    { product_name: "Topper", product_id: null, position: 12, products: null },
+    { product_name: "Truffle cake", product_id: "p-1", position: 11, products: { icon_key: "cake" } },
   ],
   ...overrides,
 });

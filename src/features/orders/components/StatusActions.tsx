@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, MoreHorizontal, XCircle } from "lucide-react";
+import { ArrowRight, MoreHorizontal, Undo2, XCircle } from "lucide-react";
 import { useState } from "react";
 
 import { Button, IconButton } from "@/components/ui/button";
@@ -9,15 +9,19 @@ import { Sheet } from "@/components/ui/sheet";
 import { UI_TEXT } from "@/constants/messages";
 import { orderStatusLabel, type OrderStatus } from "@/constants/statuses";
 
-import { nextStatuses } from "../lifecycle";
+import { isFinal, movesBack, nextStatuses } from "../lifecycle";
 import type { Order } from "../types";
 
 /**
- * Where an order goes next (plan §139.10, IMP-06): **one next-step button** —
- * Pending → Preparing → Ready → … — and the other moves the transition table
- * allows in a menu, Cancel last. Cancelling cannot be undone and puts the
- * stock back, so it asks through a confirm card first. A finished order has
- * nowhere to go, and shows nothing.
+ * Where an order goes next (plan §139.10, §139.11.8): **one next-step button**
+ * — Pending → Preparing → Ready → … — and **Change status** beside it, which
+ * offers every other status the order can take: further on in one step
+ * (straight to Delivered), back to an earlier one when it was moved by
+ * mistake, and Cancel last.
+ *
+ * Delivered or Completed, and Cancelled, cannot be undone — stock follows
+ * them, and the order is final — so either asks through a confirm card first,
+ * wherever it is chosen. A finished order has nowhere to go, and shows nothing.
  */
 export function StatusActions({
   order,
@@ -38,20 +42,26 @@ export function StatusActions({
   const [next, ...others] = moves;
   const label = (status: OrderStatus) => orderStatusLabel(status, order.delivery.type);
 
+  /** Asks before a move that cannot be undone; true to go ahead. */
+  const sure = (status: OrderStatus) =>
+    status === "CANCELLED"
+      ? respond.confirm({
+          title: UI_TEXT.orders.cancelTitle(order.orderNumber),
+          message: UI_TEXT.orders.cancelBody,
+          confirmLabel: UI_TEXT.orders.cancelConfirm,
+          cancelLabel: UI_TEXT.outcomes.keepOrder,
+          tone: "danger",
+        })
+      : respond.confirm({
+          title: text.finalTitle(order.orderNumber, label(status)),
+          message: text.finalBody,
+          confirmLabel: text.moveTo(label(status)),
+          cancelLabel: text.notYet,
+        });
+
   const move = async (status: OrderStatus) => {
     setMenuOpen(false);
-    if (
-      status === "CANCELLED" &&
-      !(await respond.confirm({
-        title: UI_TEXT.orders.cancelTitle(order.orderNumber),
-        message: UI_TEXT.orders.cancelBody,
-        confirmLabel: UI_TEXT.orders.cancelConfirm,
-        cancelLabel: UI_TEXT.outcomes.keepOrder,
-        tone: "danger",
-      }))
-    ) {
-      return;
-    }
+    if (isFinal(status) && !(await sure(status))) return;
     onMove(status);
   };
 
@@ -80,6 +90,14 @@ export function StatusActions({
                   label={UI_TEXT.orders.cancelConfirm}
                   icon={XCircle}
                   variant="danger"
+                  fullWidth
+                  onClick={() => void move(status)}
+                />
+              ) : movesBack(order.status, status) ? (
+                <Button
+                  label={text.moveBack(label(status))}
+                  icon={Undo2}
+                  variant="ghost"
                   fullWidth
                   onClick={() => void move(status)}
                 />

@@ -21,6 +21,7 @@ import { formatPhoneDigits } from "@/lib/phone";
 
 import {
   addAdjustment,
+  linePrice,
   offersCustomerPlace,
   removeAdjustment,
   removeLine,
@@ -139,8 +140,8 @@ export function DetailsPanel({
         <ul role="list" className="space-y-3">
           {draft.lines.map((line, index) => {
             const product = line.productId ? products.get(line.productId) : undefined;
-            const name = line.custom?.name ?? product?.name ?? text.unavailable;
-            const price = line.custom?.unitPrice ?? product?.defaultPrice;
+            const name = line.custom?.name ?? line.agreed?.name ?? product?.name ?? text.unavailable;
+            const price = linePrice(line, (id) => products.get(id)?.defaultPrice);
             return (
               <li
                 key={line.key}

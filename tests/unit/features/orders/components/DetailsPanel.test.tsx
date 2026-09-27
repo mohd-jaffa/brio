@@ -133,6 +133,17 @@ describe("DetailsPanel: the items", () => {
     expect(latest().lines).toHaveLength(1);
   });
 
+  it("shows a line already on an order being changed at the name and price it was ordered at (§139.11.13)", () => {
+    const kept: OrderDraft = {
+      ...newDraft(),
+      lines: [{ key: "i-1", itemId: "i-1", productId: "p-cake", agreed: { name: "Truffle cake (old)", unitPrice: 100000 }, quantity: 2, notes: "" }],
+    };
+    render(<Screen start={kept} />);
+    expect(within(items()[0]).getByText("Truffle cake (old)")).toBeInTheDocument();
+    expect(within(items()[0]).getByText("₹1,000")).toBeInTheDocument();
+    expect(within(items()[0]).getByText("₹2,000")).toBeInTheDocument();
+  });
+
   it("names a product no longer on the list, without a price, and shows the line's issue", () => {
     render(<Screen start={addProduct(newDraft(), "p-gone")} errors={{ "items.0.productId": "Choose a product." }} />);
     expect(within(items()[0]).getByText("No longer available")).toBeInTheDocument();

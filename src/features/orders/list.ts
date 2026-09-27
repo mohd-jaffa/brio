@@ -17,7 +17,7 @@ import type { OrderCounts, OrderListItem, OrderRow } from "./types";
  * request, so a page of orders is one query and one more for the payments.
  */
 export const ORDER_LIST_COLUMNS =
-  "id, order_number, status, delivery_type, delivery_date, total, payment_status, created_at, customer_id, customers(id, name), order_items(product_name, product_id, created_at, products(icon_key))";
+  "id, order_number, status, delivery_type, delivery_date, total, payment_status, created_at, customer_id, customers(id, name), order_items(product_name, product_id, position, products(icon_key))";
 
 type ListColumns =
   | "id"
@@ -35,14 +35,15 @@ export type OrderListRow = Pick<OrderRow, ListColumns> & {
   order_items: {
     product_name: string;
     product_id: string | null;
-    created_at: string;
+    /** The order the lines were put in (0025). */
+    position: number;
     products: { icon_key: string | null } | null;
   }[];
 };
 
 /** One row as a list draws it, given what has been paid on it. */
 export function toOrderListItem(row: OrderListRow, paid = 0): OrderListItem {
-  const [first] = [...row.order_items].sort((a, b) => a.created_at.localeCompare(b.created_at));
+  const [first] = [...row.order_items].sort((a, b) => a.position - b.position);
   return {
     id: row.id,
     orderNumber: row.order_number,

@@ -109,6 +109,7 @@ export const postJson = <T>(url: string, payload?: unknown) => send<T>("POST")(u
 export const postOnce = <T>(url: string, payload: unknown, idempotencyKey: string) =>
   send<T>("POST")(url, payload, { [IDEMPOTENCY_HEADER]: idempotencyKey });
 export const patchJson = <T>(url: string, payload?: unknown) => send<T>("PATCH")(url, payload);
+export const putJson = <T>(url: string, payload?: unknown) => send<T>("PUT")(url, payload);
 export const deleteJson = <T>(url: string) => send<T>("DELETE")(url);
 
 /** A file as the whole body, with its own type: the logo upload (plan §56). */

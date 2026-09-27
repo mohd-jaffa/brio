@@ -1,7 +1,7 @@
 import type { AdjustmentType, DeliveryType, PaymentMethod, PaymentStatus } from "@/constants/statuses";
-import { parseRupees } from "@/lib/money";
+import { paiseToRupees, parseRupees } from "@/lib/money";
 import type { Customer } from "@/features/customers/types";
-import type { OrderFormValues } from "@/lib/validation";
+import type { EditOrderFormValues, OrderFormValues } from "@/lib/validation";
 
 import { orderTotals, type OrderTotals } from "./totals";
 import type { Order } from "./types";
@@ -17,9 +17,13 @@ import type { Order } from "./types";
 export interface DraftLine {
   /** Stable across edits, for the list. */
   key: string;
+  /** The line of the order being changed that this is; absent for a new line (§139.11.13). */
+  itemId?: string;
   productId?: string;
   /** A special request: a name and the price of one, in paise (§139.11.7). */
   custom?: { name: string; unitPrice: number };
+  /** A product line already on the order: the name and price it was ordered at, kept. */
+  agreed?: { name: string; unitPrice: number };
   quantity: number;
   /** Printed under the line on the bill: a cake message (§139.11.6). */
   notes: string;
@@ -80,12 +84,17 @@ export function newKey(): string {
   return `${Date.now().toString(36)}-${counter.toString(36)}`;
 }
 
+/** An instant as a datetime-local field shows it: the wall clock, to the minute. */
+export function localDateTime(when: Date): string {
+  const offset = when.getTimezoneOffset() * 60_000;
+  return new Date(when.getTime() - offset).toISOString().slice(0, 16);
+}
+
 /** Tomorrow at this hour, as a datetime-local field wants it — worked out now, never when the module loaded (BUG-28). */
 export function tomorrowAtThisHour(now: Date): string {
   const when = new Date(now.getTime() + 24 * 60 * 60 * 1000);
   when.setMinutes(0, 0, 0);
-  const offset = when.getTimezoneOffset() * 60_000;
-  return new Date(when.getTime() - offset).toISOString().slice(0, 16);
+  return localDateTime(when);
 }
 
 export function newDraft(now: Date = new Date()): OrderDraft {
@@ -176,6 +185,16 @@ export function itemCount(draft: OrderDraft): number {
   return draft.lines.reduce((count, line) => count + line.quantity, 0);
 }
 
+/**
+ * The price of one of a line: a custom line's own, a line already on the
+ * order at the price it was ordered at, or the product's price now.
+ */
+export function linePrice(line: DraftLine, priceOf: (productId: string) => number | undefined): number | undefined {
+  if (line.custom) return line.custom.unitPrice;
+  if (line.agreed) return line.agreed.unitPrice;
+  return line.productId ? priceOf(line.productId) : undefined;
+}
+
 /** How many of a product are in the order already, for its card. */
 export function quantityOf(draft: OrderDraft, productId: string): number {
   return draft.lines.find((line) => line.productId === productId)?.quantity ?? 0;
@@ -227,6 +246,45 @@ export function customerForDraft(customer: Customer): DraftCustomer {
     phone: customer.phone,
     address: customer.address ?? "",
     googleMapsLink: customer.googleMapsLink ?? "",
+  };
+}
+
+/**
+ * An open order as the edit screen holds it (§139.11.13): each line kept by
+ * its id — a product line at the name and price it was ordered at — who it is
+ * for, how and when it is handed over, its discounts and charges, and its
+ * notes. The address counts as filled from the customer where it is theirs, so
+ * choosing someone else moves it with them as on a new order (§139.11.4).
+ * The payment is not part of it: what has been paid stays on the order.
+ */
+export function editDraft(order: Order, customer: DraftCustomer): OrderDraft {
+  const fresh = newDraft();
+  return {
+    ...fresh,
+    lines: order.items.map((item) => ({
+      key: item.id,
+      itemId: item.id,
+      ...(item.custom
+        ? { custom: { name: item.productName, unitPrice: item.unitPrice } }
+        : { productId: item.productId, agreed: { name: item.productName, unitPrice: item.unitPrice } }),
+      quantity: item.quantity,
+      notes: item.notes ?? "",
+    })),
+    customer,
+    delivery: {
+      type: order.delivery.type,
+      date: localDateTime(new Date(order.delivery.date)),
+      address: order.delivery.address ?? "",
+      googleMapsLink: order.delivery.googleMapsLink ?? "",
+      filled: placeOf(customer),
+    },
+    adjustments: order.adjustments.map((entry) => ({
+      key: entry.id,
+      type: entry.type,
+      name: entry.name,
+      amount: paiseToRupees(entry.amount).toFixed(2),
+    })),
+    notes: order.notes ?? "",
   };
 }
 
@@ -345,7 +403,7 @@ export function setNotes(draft: OrderDraft, notes: string): OrderDraft {
 export function draftTotals(draft: OrderDraft, priceOf: (productId: string) => number | undefined): OrderTotals {
   return orderTotals(
     draft.lines.map((line) => ({
-      unitPrice: line.custom ? line.custom.unitPrice : line.productId ? (priceOf(line.productId) ?? 0) : 0,
+      unitPrice: linePrice(line, priceOf) ?? 0,
       quantity: line.quantity,
     })),
     draft.adjustments.map((entry) => ({
@@ -364,15 +422,13 @@ export function draftForm(draft: OrderDraft): OrderFormValues {
         : draft.customer.kind === "GUEST"
           ? { kind: "GUEST" }
           : { kind: "CUSTOMER", id: draft.customer.id },
-    items: draft.lines.map((line) =>
-      line.custom
-        ? { custom: line.custom, quantity: line.quantity, notes: line.notes }
-        : {
-            productId: line.productId,
-            quantity: line.quantity,
-            notes: line.notes,
-          },
-    ),
+    items: draft.lines.map((line) => {
+      // A line already on the order says which it is (§139.11.13).
+      const kept = line.itemId ? { itemId: line.itemId } : {};
+      return line.custom
+        ? { ...kept, custom: line.custom, quantity: line.quantity, notes: line.notes }
+        : { ...kept, productId: line.productId, quantity: line.quantity, notes: line.notes };
+    }),
     adjustments: draft.adjustments.map(({ type, name, amount }) => ({
       type,
       name,
@@ -387,4 +443,10 @@ export function draftForm(draft: OrderDraft): OrderFormValues {
     payment: draft.payment,
     notes: draft.notes,
   };
+}
+
+/** The draft of an order being changed, as `editOrderFormSchema` reads it: the order form without its payment. */
+export function editForm(draft: OrderDraft): EditOrderFormValues {
+  const { customer, items, adjustments, delivery, notes } = draftForm(draft);
+  return { customer, items, adjustments, delivery, notes };
 }

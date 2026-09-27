@@ -7,7 +7,7 @@ const { getCustomerById, getProductsByIds } = vi.hoisted(() => ({
 vi.mock("@/features/customers/api", () => ({ getCustomerById }));
 vi.mock("@/features/products/api", () => ({ getProductsByIds }));
 
-import { priceDraft } from "@/features/orders/pricing";
+import { priceDraft, priceOrder, type KeptLine } from "@/features/orders/pricing";
 import type { CreateOrderPayload } from "@/lib/validation";
 import { tenantOf } from "@tests/support/tenant";
 
@@ -132,5 +132,50 @@ describe("priceDraft", () => {
       code: "ORDER_TOTAL_TOO_LARGE",
       kind: "BUSINESS_RULE",
     });
+  });
+});
+
+describe("priceOrder: an order being changed (§139.11.13)", () => {
+  const LINE = "3f2504e0-4f89-11d3-9a0c-0305e82c3310";
+  const TOPPER = "3f2504e0-4f89-11d3-9a0c-0305e82c3311";
+  // Ordered at ₹1,000 a cake; the cake costs ₹1,250 now.
+  const kept = new Map<string, KeptLine>([
+    [LINE, { id: LINE, product_id: CAKE, product_name: "Truffle Cake (as ordered)", unit_price: 100_000 }],
+    [TOPPER, { id: TOPPER, product_id: null, product_name: "Name topper", unit_price: 15_000 }],
+  ]);
+
+  it("keeps a line already on the order at the name and price it was ordered at, whatever was sent", async () => {
+    const { lines, totals } = await priceOrder(
+      tenantOf({}),
+      {
+        customer: { kind: "GUEST" },
+        items: [
+          { itemId: LINE, productId: BREAD, quantity: 3, notes: "No nuts" },
+          { itemId: TOPPER, custom: { name: "Changed", unitPrice: 1 }, quantity: 1, notes: null },
+          { productId: CAKE, quantity: 1, notes: null },
+        ],
+        adjustments: [],
+      },
+      kept,
+    );
+    expect(lines).toEqual([
+      { itemId: LINE, productId: CAKE, name: "Truffle Cake (as ordered)", unitPrice: 100_000, quantity: 3, subtotal: 300_000, notes: "No nuts" },
+      { itemId: TOPPER, productId: null, name: "Name topper", unitPrice: 15_000, quantity: 1, subtotal: 15_000, notes: null },
+      // A new line takes today's price.
+      { productId: CAKE, name: "Chocolate Truffle Cake", unitPrice: 125_000, quantity: 1, subtotal: 125_000, notes: null },
+    ]);
+    expect(totals.total).toBe(440_000);
+    // Only the new line's product is read.
+    expect(getProductsByIds).toHaveBeenCalledWith(tenantOf({}), [CAKE]);
+  });
+
+  it("refuses a line the order no longer has: it changed somewhere else", async () => {
+    await expect(
+      priceOrder(tenantOf({}), {
+        customer: { kind: "GUEST" },
+        items: [{ itemId: "3f2504e0-4f89-11d3-9a0c-0305e82c3399", productId: CAKE, quantity: 1, notes: null }],
+        adjustments: [],
+      }),
+    ).rejects.toMatchObject({ code: "ORDER_CHANGED", kind: "CONFLICT" });
   });
 });

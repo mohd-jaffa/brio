@@ -37,6 +37,12 @@ describe("OrderSummary", () => {
     expect(row("Balance due")).toHaveTextContent("₹0");
   });
 
+  it("says what has been paid so far on an order being changed", () => {
+    render(<OrderSummary itemCount={1} totals={totals} adjustments={[]} paid={50000} paidLabel="Paid so far" />);
+    expect(row("Paid so far")).toHaveTextContent("₹500");
+    expect(screen.queryByText("Paid now")).not.toBeInTheDocument();
+  });
+
   it("opens the bill from beside its title, once there is something to bill", async () => {
     const onViewBill = vi.fn();
     const { rerender } = render(<OrderSummary itemCount={0} totals={totals} adjustments={[]} />);

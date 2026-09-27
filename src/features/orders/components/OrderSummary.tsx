@@ -26,6 +26,7 @@ export function OrderSummary({
   totals,
   adjustments,
   paid,
+  paidLabel,
   onViewBill,
 }: {
   itemCount: number;
@@ -33,6 +34,8 @@ export function OrderSummary({
   adjustments: readonly DraftAdjustment[];
   /** Whole paise paid as the order is placed; shown only on the payment step. */
   paid?: number;
+  /** What the paid line says: "Paid now" as an order is placed, "Paid so far" as one is changed. */
+  paidLabel?: string;
   /** Absent while there is nothing to bill. */
   onViewBill?: () => void;
 }) {
@@ -82,7 +85,7 @@ export function OrderSummary({
         {paid !== undefined && (
           <>
             <div className="flex items-center justify-between">
-              <dt className="text-text-muted">{text.paidNow}</dt>
+              <dt className="text-text-muted">{paidLabel ?? text.paidNow}</dt>
               <dd className="tabular-nums text-text">
                 <Amount paise={paid} />
               </dd>

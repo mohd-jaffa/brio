@@ -42,6 +42,8 @@ export interface OrderItemRow {
   quantity: number;
   subtotal: number;
   notes: string | null;
+  /** The order the lines were put in (0025_edit_orders.sql). */
+  position: number;
   created_at: string;
 }
 

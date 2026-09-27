@@ -46,24 +46,33 @@ export const customLineSchema = z.object({
   notes: optionalLine("Item notes", 500),
 });
 
-type CatalogueLine = z.output<typeof catalogueItemSchema>;
-type CustomLine = z.output<typeof customLineSchema>;
-
 /**
  * An order line: from the catalogue, or custom (plan §139.11.7). A line with a
  * `custom` part is read as custom and anything else as a catalogue line, so a
  * mistake is reported against the kind of line it was meant to be — a union
  * would answer only "That value is not valid."
  */
-export const orderItemSchema = z.unknown().transform((line, ctx): CatalogueLine | CustomLine => {
-  const custom = typeof line === "object" && line !== null && "custom" in line;
-  const result = (custom ? customLineSchema : catalogueItemSchema).safeParse(line);
-  if (result.success) return result.data;
-  for (const issue of result.error.issues) {
-    ctx.addIssue({ code: "custom", message: issue.message, path: issue.path });
-  }
-  return z.NEVER;
-});
+function orderLine<Catalogue extends z.ZodType, Custom extends z.ZodType>(catalogue: Catalogue, custom: Custom) {
+  return z.unknown().transform((line, ctx): z.output<Catalogue> | z.output<Custom> => {
+    const isCustom = typeof line === "object" && line !== null && "custom" in line;
+    const result = (isCustom ? custom : catalogue).safeParse(line);
+    if (result.success) return result.data as z.output<Catalogue> | z.output<Custom>;
+    for (const issue of result.error.issues) {
+      ctx.addIssue({ code: "custom", message: issue.message, path: issue.path });
+    }
+    return z.NEVER;
+  });
+}
+
+export const orderItemSchema = orderLine(catalogueItemSchema, customLineSchema);
+
+/**
+ * A line of an order being changed (plan §139.11.13): one already on the
+ * order names it by `itemId`, and keeps the name and price it was ordered at;
+ * a line without one is new.
+ */
+const keptLine = { itemId: z.string().uuid(VALIDATION_MESSAGES.invalid).optional() };
+export const editOrderItemSchema = orderLine(catalogueItemSchema.extend(keptLine), customLineSchema.extend(keptLine));
 
 /**
  * The sheet's own fields: the amount typed in rupees, and a description if
@@ -109,6 +118,16 @@ function hasPlace(delivery: { type: DeliveryType; address: string | null; google
   return delivery.type !== "DELIVERY" || delivery.address !== null || delivery.googleMapsLink !== null;
 }
 const DELIVERY_PLACE = { message: VALIDATION_MESSAGES.deliveryNeedsPlace, path: ["address"] };
+
+/** How and when an order is handed over, as the API takes it. */
+const orderDeliverySchema = z
+  .object({
+    type: z.enum(DELIVERY_TYPES),
+    date: z.string().datetime(VALIDATION_MESSAGES.invalid),
+    address: optionalLines("Delivery address", 500),
+    googleMapsLink: optionalUrl("Map link"),
+  })
+  .refine(hasPlace, DELIVERY_PLACE);
 
 const paymentMethod = z.enum(PAYMENT_METHODS, { error: VALIDATION_MESSAGES.chooseOne("payment method") });
 
@@ -200,17 +219,25 @@ export const createOrderSchema = z.object({
   items: z.array(orderItemSchema).min(1, VALIDATION_MESSAGES.chooseAtLeastOne("item")),
   adjustments: z.array(orderAdjustmentSchema).optional().default([]),
 
-  delivery: z
-    .object({
-      type: z.enum(DELIVERY_TYPES),
-      date: z.string().datetime(VALIDATION_MESSAGES.invalid),
-      address: optionalLines("Delivery address", 500),
-      googleMapsLink: optionalUrl("Map link"),
-    })
-    .refine(hasPlace, DELIVERY_PLACE),
+  delivery: orderDeliverySchema,
 
   payment: orderPaymentSchema,
 
+  notes: optionalLines("Order notes", 1000),
+});
+
+/**
+ * An open order changed (`PUT /api/orders/{id}`, plan §139.11.13): the whole
+ * order as it should now stand — its lines, who it is for, how it is handed
+ * over, its discounts and charges and notes. What has been paid is not here:
+ * payments are recorded on their own (§139.11.9), and decide the payment
+ * status as ever.
+ */
+export const updateOrderSchema = z.object({
+  customer: orderCustomerSchema,
+  items: z.array(editOrderItemSchema).min(1, VALIDATION_MESSAGES.chooseAtLeastOne("item")),
+  adjustments: z.array(orderAdjustmentSchema).optional().default([]),
+  delivery: orderDeliverySchema,
   notes: optionalLines("Order notes", 1000),
 });
 
@@ -224,6 +251,8 @@ export const updateOrderStatusSchema = z.object({
 
 export type CreateOrderInput = z.input<typeof createOrderSchema>;
 export type CreateOrderPayload = z.output<typeof createOrderSchema>;
+export type UpdateOrderInput = z.input<typeof updateOrderSchema>;
+export type UpdateOrderPayload = z.output<typeof updateOrderSchema>;
 export type UpdateOrderStatusInput = z.input<typeof updateOrderStatusSchema>;
 export type UpdateOrderStatusPayload = z.output<typeof updateOrderStatusSchema>;
 export type CreateOrderItemInput = z.input<typeof orderItemSchema>;
@@ -278,6 +307,18 @@ export const orderFormSchema = z.object({
   notes: optionalLines("Order notes", 1000),
 });
 
+/**
+ * An open order being changed, as the edit screen holds it: the order form
+ * without its payment — what has been paid stays on the order — and with each
+ * kept line's `itemId`. The server parses the result again with
+ * `updateOrderSchema`.
+ */
+export const editOrderFormSchema = orderFormSchema.omit({ payment: true }).extend({
+  items: z.array(editOrderItemSchema).min(1, VALIDATION_MESSAGES.chooseAtLeastOne("item")),
+});
+
+export type EditOrderFormValues = z.input<typeof editOrderFormSchema>;
+export type EditOrderFormPayload = z.output<typeof editOrderFormSchema>;
 export type OrderFormValues = z.input<typeof orderFormSchema>;
 export type OrderFormPayload = z.output<typeof orderFormSchema>;
 export type OrderCustomer = z.output<typeof orderCustomerSchema>;

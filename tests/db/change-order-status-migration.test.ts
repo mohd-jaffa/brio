@@ -30,10 +30,12 @@ function databaseNext(status: string, deliveryType: string): string[] {
  * consumption; each move queued one notification, and a refused one none.
  */
 describe("change order status migration", () => {
+  // 0025_edit_orders.sql widened the table (the user, 2026-09-27); its test
+  // keeps it equal to the app's. Every move this one allowed is still allowed.
   it.each(ORDER_STATUSES.flatMap((status) => DELIVERY_TYPES.map((type) => [status, type] as const)))(
-    "allows from %s (%s) exactly the moves the app offers",
+    "every move it allowed from %s (%s) the app still offers",
     (status, deliveryType) => {
-      expect(databaseNext(status, deliveryType)).toEqual(nextStatuses(status, deliveryType));
+      expect(nextStatuses(status, deliveryType)).toEqual(expect.arrayContaining(databaseNext(status, deliveryType)));
     },
   );
 

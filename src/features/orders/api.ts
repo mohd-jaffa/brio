@@ -18,7 +18,8 @@ export async function findOrderById(tenant: Tenant, id: string): Promise<{
   );
 
   const [itemsResponse, adjustmentsResponse] = await Promise.all([
-    client.from("order_items").select("*").eq("order_id", id),
+    // In the order they were put in: an edit rewrites some lines and adds others (0025).
+    client.from("order_items").select("*").eq("order_id", id).order("position"),
     client.from("order_adjustments").select("*").eq("order_id", id),
   ]);
 
