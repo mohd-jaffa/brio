@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { shares } from "@/components/ui/charts/geometry";
 import { IllustrationPicker } from "@/components/ui/illustration-picker";
+import { lazySheet } from "@/components/ui/lazy-sheet";
 import { useResponse } from "@/components/ui/response-card";
 import { Row, RowList } from "@/components/ui/row";
 import { Sheet } from "@/components/ui/sheet";
@@ -20,8 +21,13 @@ import { useApiMutation } from "@/lib/query/useApiMutation";
 
 import { ExpensesClient } from "../api.client";
 import type { ExpenseCategoryItem, ExpenseSummary } from "../types";
-import { ExpenseCategorySheet } from "./ExpenseCategorySheet";
 import { CategoryTile } from "./ExpenseRow";
+
+/** Kept out of the screen's first download, and fetched once it is idle (`lazySheet`). */
+const ExpenseCategorySheet = lazySheet(
+  () => import("./ExpenseCategorySheet").then((module) => module.ExpenseCategorySheet),
+  (props) => props.isOpen,
+);
 
 const text = UI_TEXT.expenses;
 

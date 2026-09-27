@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/lib/theme/ThemeProvider";
 import { authStub } from "@tests/support/auth";
 
 import { AppShell } from "@/components/nav/AppShell";
+import { settleNavigation, SLOW_MS, startNavigation } from "@/lib/navigation/pending";
 
 // The shell is drawn for a signed-in baker; who that is belongs to the auth
 // feature's own tests, not to what the navigation offers.
@@ -47,6 +48,29 @@ describe("AppShell", () => {
   it("puts the screen's own content in the main region", () => {
     shell();
     expect(within(screen.getByRole("main")).getByText("Screen content")).toBeInTheDocument();
+  });
+
+  it("puts the next screen's skeleton in the page's place when it is slow to arrive, keeping the frame", () => {
+    vi.useFakeTimers();
+    try {
+      shell();
+      const main = screen.getByRole("main");
+      act(() => {
+        startNavigation();
+        vi.advanceTimersByTime(SLOW_MS);
+      });
+      expect(within(main).getByRole("status", { name: "Loading…" })).toBeInTheDocument();
+      expect(main).toHaveAttribute("aria-busy", "true");
+      expect(main).toHaveAttribute("data-navigating");
+      expect(screen.getAllByRole("navigation", { name: "Main navigation" }).length).toBeGreaterThan(0);
+
+      act(() => settleNavigation());
+      expect(within(main).queryByRole("status", { name: "Loading…" })).not.toBeInTheDocument();
+      expect(main).not.toHaveAttribute("aria-busy");
+    } finally {
+      settleNavigation();
+      vi.useRealTimers();
+    }
   });
 
   it("offers every destination in the sidebar, in the plan's groups", () => {

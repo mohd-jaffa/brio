@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { cn } from "@/components/ui/cn";
 import { EmptyState } from "@/components/ui/empty-state";
+import { lazySheet } from "@/components/ui/lazy-sheet";
 import { ListScreen } from "@/components/ui/list-screen";
 import { PageHeader } from "@/components/ui/page-header";
 import { ProductTile } from "@/components/ui/product-tile";
@@ -20,8 +21,16 @@ import { apiRoutes } from "@/lib/query/keys";
 import { useApiQuery } from "@/lib/query/useApiQuery";
 
 import type { InventoryBalance } from "../types";
-import { InventoryAdjustmentSheet } from "./InventoryAdjustmentSheet";
-import { StockLedgerSheet } from "./StockLedgerSheet";
+
+/** Kept out of the screen's first download, and fetched once it is idle (`lazySheet`). */
+const InventoryAdjustmentSheet = lazySheet(
+  () => import("./InventoryAdjustmentSheet").then((module) => module.InventoryAdjustmentSheet),
+  (props) => props.isOpen,
+);
+const StockLedgerSheet = lazySheet(
+  () => import("./StockLedgerSheet").then((module) => module.StockLedgerSheet),
+  (props) => props.product !== undefined,
+);
 
 interface StockLine {
   product: Product;

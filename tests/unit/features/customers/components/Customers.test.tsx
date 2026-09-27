@@ -149,7 +149,7 @@ describe("Customers: nothing to show", () => {
     open();
     expect(await screen.findByText("No customers yet")).toBeInTheDocument();
     await userEvent.click(screen.getAllByRole("button", { name: "New customer" }).at(-1)!);
-    expect(screen.getByRole("dialog", { name: "New Customer" })).toBeInTheDocument();
+    expect(await screen.findByRole("dialog", { name: "New Customer" })).toBeInTheDocument();
   });
 
   it("says a segment is empty in its own words, and a search finds no one", async () => {

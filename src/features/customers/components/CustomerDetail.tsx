@@ -1,11 +1,11 @@
 "use client";
 
 import { Mail, MapPin, MessageCircle, Pencil, Phone, Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Avatar } from "@/components/ui/avatar";
 import { Button, LinkButton } from "@/components/ui/button";
+import { lazySheet } from "@/components/ui/lazy-sheet";
 import { ListScreen, LoadFailed } from "@/components/ui/list-screen";
 import { PageHeader } from "@/components/ui/page-header";
 import { RowList } from "@/components/ui/row";
@@ -27,9 +27,15 @@ import { callHref, formatPhoneDigits, whatsAppHref } from "@/lib/phone";
 import { apiRoutes, withQuery } from "@/lib/query/keys";
 import { useApiPages } from "@/lib/query/useApiPages";
 import { useApiQuery } from "@/lib/query/useApiQuery";
+import { useOpenScreen } from "@/hooks/useOpenScreen";
 
 import type { Customer, CustomerSummary } from "../types";
-import { CustomerFormSheet } from "./CustomerFormSheet";
+
+/** Kept out of the screen's first download, and fetched once it is idle (`lazySheet`). */
+const CustomerFormSheet = lazySheet(
+  () => import("./CustomerFormSheet").then((module) => module.CustomerFormSheet),
+  (props) => props.isOpen,
+);
 
 const TABS = ["ORDERS", "NOTES", "ADDRESSES"] as const;
 type Tab = (typeof TABS)[number];
@@ -47,7 +53,7 @@ const QUIET = "rounded-2xl border border-border bg-surface px-4 py-6 text-center
  */
 export function CustomerDetail({ id }: { id: string }) {
   const text = UI_TEXT.customerDetail;
-  const router = useRouter();
+  const openScreen = useOpenScreen();
   const { profile } = useAuth();
   const { update } = useOrderDraft(profile?.id ?? null);
   const form = useDisclosure<Customer>();
@@ -75,7 +81,7 @@ export function CustomerDetail({ id }: { id: string }) {
   const stats = summary.data;
   const createOrder = () => {
     update((draft) => chooseCustomer(draft, customerForDraft(person)));
-    router.push("/orders/new");
+    openScreen("/orders/new");
   };
 
   return (

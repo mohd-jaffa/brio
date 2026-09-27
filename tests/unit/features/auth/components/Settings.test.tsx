@@ -94,7 +94,7 @@ describe("Settings", () => {
   it("opens the sheet for the detail tapped", async () => {
     render(<Settings />);
     await userEvent.click(screen.getByRole("button", { name: /^Sign-in number/ }));
-    expect(screen.getByRole("dialog", { name: "Change sign-in number" })).toBeInTheDocument();
+    expect(await screen.findByRole("dialog", { name: "Change sign-in number" })).toBeInTheDocument();
     await userEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Close" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });

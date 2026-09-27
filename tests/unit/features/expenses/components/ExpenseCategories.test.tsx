@@ -85,7 +85,7 @@ describe("ExpenseCategories", () => {
     expect(onOpenCategory).toHaveBeenCalledWith("Flowers");
 
     await userEvent.click(within(await actionsFor("Flowers")).getByRole("button", { name: "Edit name and picture" }));
-    expect(screen.getByRole("dialog", { name: "Edit Flowers (rose-bunch)" })).toBeInTheDocument();
+    expect(await screen.findByRole("dialog", { name: "Edit Flowers (rose-bunch)" })).toBeInTheDocument();
   });
 
   it("deletes one of the business's own once it is confirmed", async () => {

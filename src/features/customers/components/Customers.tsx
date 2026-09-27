@@ -1,7 +1,6 @@
 "use client";
 
 import { Users } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Avatar } from "@/components/ui/avatar";
@@ -9,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Fab } from "@/components/ui/fab";
 import { GuestMark } from "@/components/ui/guest-mark";
+import { lazySheet } from "@/components/ui/lazy-sheet";
 import { ListScreen } from "@/components/ui/list-screen";
 import { PageHeader } from "@/components/ui/page-header";
 import { Row, RowList } from "@/components/ui/row";
@@ -26,9 +26,15 @@ import { formatPaise } from "@/lib/format/currency";
 import { formatDayMonth, formatDaysAgo } from "@/lib/format/date";
 import { apiRoutes, withQuery } from "@/lib/query/keys";
 import { useApiPages } from "@/lib/query/useApiPages";
+import { useOpenScreen } from "@/hooks/useOpenScreen";
 
 import type { CustomerListItem, GuestSales } from "../types";
-import { CustomerFormSheet } from "./CustomerFormSheet";
+
+/** Kept out of the screen's first download, and fetched once it is idle (`lazySheet`). */
+const CustomerFormSheet = lazySheet(
+  () => import("./CustomerFormSheet").then((module) => module.CustomerFormSheet),
+  (props) => props.isOpen,
+);
 
 type Tab = "ALL" | CustomerFilter;
 const TABS: readonly Tab[] = ["ALL", ...CUSTOMER_FILTERS];
@@ -126,7 +132,7 @@ export function Customers() {
   const [tab, setTab] = useState<Tab>("ALL");
   const [search, setSearch] = useState("");
   const [now] = useState(() => new Date());
-  const router = useRouter();
+  const openScreen = useOpenScreen();
   const form = useDisclosure();
   const searched = useDebouncedValue(search.trim());
 
@@ -182,7 +188,7 @@ export function Customers() {
       <CustomerFormSheet
         isOpen={form.isOpen}
         onClose={form.close}
-        onSuccess={(customer) => router.push(`/customers/${customer.id}`)}
+        onSuccess={(customer) => openScreen(`/customers/${customer.id}`)}
       />
     </div>
   );

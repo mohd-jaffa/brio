@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 import { ProductTile } from "@/components/ui/product-tile";
 import { StatusPill } from "@/components/ui/status-pill";
@@ -9,6 +8,7 @@ import { UI_TEXT } from "@/constants/messages";
 import { formatPaise } from "@/lib/format/currency";
 import { dayKey } from "@/lib/dates/calendar";
 import { formatDayMonth, formatTime } from "@/lib/format/date";
+import { useOpenScreen } from "@/hooks/useOpenScreen";
 
 import type { OrderListItem } from "../types";
 import { itemsLine, listStatusPill } from "../view";
@@ -22,7 +22,7 @@ const CELL = "px-4 py-3";
  * the keyboard reaches each order once; a click anywhere on the row follows it.
  */
 export function OrdersTable({ orders, now }: { orders: readonly OrderListItem[]; now?: Date }) {
-  const router = useRouter();
+  const openScreen = useOpenScreen();
   const text = UI_TEXT.ordersScreen;
   const columns = text.columns;
 
@@ -55,7 +55,7 @@ export function OrdersTable({ orders, now }: { orders: readonly OrderListItem[];
             return (
               <tr
                 key={order.id}
-                onClick={() => router.push(href)}
+                onClick={() => openScreen(href)}
                 className="cursor-pointer transition-colors hover:bg-surface-hover"
               >
                 <td className={CELL}>

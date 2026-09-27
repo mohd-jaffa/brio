@@ -288,6 +288,12 @@
   position: relative;
 }
 
+/* A screen on its way out waits behind the next one's skeleton, as it was, so
+   a navigation that is cancelled simply shows it again (useNavigationPending). */
+main[data-navigating] > :not([data-screen-skeleton]) {
+  display: none;
+}
+
 .hit-area-line::after {
   content: "";
   position: absolute;

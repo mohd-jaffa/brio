@@ -186,7 +186,7 @@ describe("OrderDetail: payment and the bill", () => {
     open();
     await loaded();
     await userEvent.click(screen.getByRole("button", { name: "Collect payment" }));
-    const sheet = screen.getByRole("dialog", { name: "Collect payment" });
+    const sheet = await screen.findByRole("dialog", { name: "Collect payment" });
     expect(within(sheet).getByLabelText(/Amount/)).toHaveValue("750.00");
     await userEvent.click(within(sheet).getByRole("button", { name: "Close" }));
     expect(screen.queryByRole("dialog", { name: "Collect payment" })).not.toBeInTheDocument();

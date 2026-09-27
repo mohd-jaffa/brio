@@ -15,7 +15,7 @@ import { clearUserItems } from "@/lib/storage/userStorage";
 import { aBill, aBusiness } from "@tests/support/bills";
 import { Providers } from "@tests/support/providers";
 
-/** The address bar: `?step=` is read from it, and push and replace change it. */
+/** The address bar: `?step=` is read from it, and the history helpers change it (`pushUrl`, `replaceUrl`). */
 const nav = vi.hoisted(() => {
   let query = "";
   const listeners = new Set<() => void>();
@@ -24,7 +24,7 @@ const nav = vi.hoisted(() => {
     for (const listener of listeners) listener();
   };
   return {
-    router: { push: vi.fn(go), replace: vi.fn(go) },
+    history: { push: vi.fn(go), replace: vi.fn(go) },
     set: (next: string) => {
       query = next;
     },
@@ -39,10 +39,12 @@ const nav = vi.hoisted(() => {
 vi.mock("next/navigation", async () => {
   const { useSyncExternalStore } = await import("react");
   return {
-    useRouter: () => nav.router,
+    useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
     useSearchParams: () => new URLSearchParams(useSyncExternalStore(nav.subscribe, nav.read, nav.read)),
   };
 });
+
+vi.mock("@/lib/navigation/url", () => ({ pushUrl: nav.history.push, replaceUrl: nav.history.replace }));
 
 const auth = vi.hoisted(() => ({ profile: { id: "u-1" } as { id: string } | null }));
 vi.mock("@/features/auth/AuthProvider", () => ({ useAuth: () => ({ profile: auth.profile }) }));
@@ -126,9 +128,18 @@ afterEach(() => {
 });
 
 describe("NewOrder: items", () => {
-  it("waits until it knows who is signed in", () => {
+  it("shows the menu before the draft is read, counting nothing and adding nothing yet; a later step waits", async () => {
     auth.profile = null;
-    open();
+    const { unmount } = open();
+    const add = await screen.findByRole("button", { name: "Add Chocolate truffle cake" });
+    expect(add.closest("[aria-busy]")).toHaveAttribute("aria-busy", "true");
+    await userEvent.click(add);
+    await userEvent.click(screen.getByRole("button", { name: /Add custom item/ }));
+    expect(screen.queryByText(/in the order/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    unmount();
+
+    open("step=details");
     expect(screen.getByRole("status", { name: "Create order" })).toHaveAttribute("aria-busy", "true");
   });
 
@@ -141,7 +152,7 @@ describe("NewOrder: items", () => {
     expect(screen.getAllByText("₹2,500").length).toBeGreaterThan(0);
 
     await userEvent.click(button("Continue to order details"));
-    expect(nav.router.push).toHaveBeenCalledWith("/orders/new?step=details");
+    expect(nav.history.push).toHaveBeenCalledWith("/orders/new?step=details");
     expect(screen.getAllByRole("heading", { name: "Order details" }).length).toBeGreaterThan(0);
   });
 
@@ -161,7 +172,7 @@ describe("NewOrder: items", () => {
   it("adds a custom item from its sheet", async () => {
     open();
     await userEvent.click(await screen.findByRole("button", { name: /Add custom item.*special requests/ }));
-    const sheet = screen.getByRole("dialog", { name: "Custom item" });
+    const sheet = await screen.findByRole("dialog", { name: "Custom item" });
     await userEvent.type(within(sheet).getByLabelText(/Item name/), "Name topper");
     await userEvent.type(within(sheet).getByLabelText(/Amount/), "150");
     await userEvent.click(within(sheet).getByRole("button", { name: "Add custom item" }));
@@ -188,14 +199,14 @@ describe("NewOrder: details", () => {
     store(withCake());
     open("step=details");
     await userEvent.click(button("Proceed to payment"));
-    expect(nav.router.push).not.toHaveBeenCalled();
+    expect(nav.history.push).not.toHaveBeenCalled();
     expect(button("Choose a customer")).toHaveAccessibleDescription("Choose a customer.");
 
     await userEvent.click(button("Choose a customer"));
     await userEvent.click(await screen.findByRole("radio", { name: /Meena Gupta/ }));
     expect(button("Customer: Meena Gupta. Change")).toBeInTheDocument();
     await userEvent.click(button("Proceed to payment"));
-    expect(nav.router.push).toHaveBeenCalledWith("/orders/new?step=payment");
+    expect(nav.history.push).toHaveBeenCalledWith("/orders/new?step=payment");
     expect(screen.getAllByRole("heading", { name: "Payment" }).length).toBeGreaterThan(0);
   });
 
@@ -228,7 +239,7 @@ describe("NewOrder: details", () => {
     store(withCake());
     open("step=details");
     await userEvent.click(button("Add more items"));
-    expect(nav.router.push).toHaveBeenCalledWith("/orders/new");
+    expect(nav.history.push).toHaveBeenCalledWith("/orders/new");
   });
 
   it("makes a new customer on the spot and chooses them, from the button or the picker", async () => {
@@ -238,7 +249,7 @@ describe("NewOrder: details", () => {
 
     await userEvent.click(button("Choose a customer"));
     await userEvent.click(button("Add new customer"));
-    await userEvent.click(button("Close"));
+    await userEvent.click(await screen.findByRole("button", { name: "Close" }));
     await userEvent.click(button("New customer"));
     const sheet = screen.getByRole("dialog", { name: "New customer" });
     await userEvent.type(within(sheet).getByLabelText(/Full name/), "Anu");
@@ -260,7 +271,7 @@ describe("NewOrder: details", () => {
     open("step=details");
 
     await userEvent.click(button("New customer"));
-    await userEvent.type(screen.getByLabelText(/Full name/), "Meena");
+    await userEvent.type(await screen.findByLabelText(/Full name/), "Meena");
     await userEvent.type(screen.getByLabelText(/Phone number/), "9876543210");
     await userEvent.click(button("Save customer"));
     await userEvent.click(
@@ -337,7 +348,7 @@ describe("NewOrder: payment and placing", () => {
     expect(done).toHaveTextContent("ORD-1001 is saved.");
     expect(done).toHaveTextContent("Guest");
     expect(done).toHaveTextContent("₹1,250");
-    expect(nav.router.replace).toHaveBeenCalledWith("/orders/new");
+    expect(nav.history.replace).toHaveBeenCalledWith("/orders/new");
     expect(localStorage.getItem("ovenly_user:u-1:order_draft")).toContain('"lines":[]');
 
     // The card's next step is the bill of the order just placed.
@@ -424,7 +435,7 @@ describe("NewOrder: payment and placing", () => {
     open("step=payment");
     await loaded();
     await userEvent.click(screen.getAllByRole("button", { name: "Place order" })[0]);
-    expect(nav.router.push).toHaveBeenCalledWith("/orders/new?step=details");
+    expect(nav.history.push).toHaveBeenCalledWith("/orders/new?step=details");
     expect(OrdersClient.createOrder).not.toHaveBeenCalled();
   });
 
@@ -433,7 +444,7 @@ describe("NewOrder: payment and placing", () => {
     open("step=payment");
     await loaded();
     await userEvent.click(screen.getAllByRole("button", { name: "Place order" })[0]);
-    expect(nav.router.push).not.toHaveBeenCalled();
+    expect(nav.history.push).not.toHaveBeenCalled();
     expect(screen.getByLabelText(/Amount paid/)).toHaveAttribute("aria-invalid", "true");
   });
 
@@ -443,7 +454,7 @@ describe("NewOrder: payment and placing", () => {
     open();
     await loaded();
     await userEvent.click(screen.getAllByRole("button", { name: "Place order" })[0]);
-    expect(nav.router.push).not.toHaveBeenCalled();
+    expect(nav.history.push).not.toHaveBeenCalled();
     expect(button("Choose a customer")).toHaveAccessibleDescription("Choose a customer.");
   });
 });
@@ -483,7 +494,7 @@ describe("NewOrder: the bill before placing (§139.11.5)", () => {
     await loaded();
     await viewBill();
 
-    const sheet = screen.getByRole("dialog", { name: "Estimate" });
+    const sheet = await screen.findByRole("dialog", { name: "Estimate" });
     expect(await within(sheet).findByRole("heading", { name: "Estimate · not yet confirmed" })).toBeInTheDocument();
     expect(OrdersClient.preview).toHaveBeenCalledWith(
       expect.objectContaining({ customer: { kind: "GUEST" }, items: [{ productId: CAKE, quantity: 1, notes: null }] }),
@@ -531,7 +542,7 @@ describe("NewOrder: the bill before placing (§139.11.5)", () => {
     open("step=payment");
     await loaded();
     await viewBill();
-    expect(nav.router.push).toHaveBeenCalledWith("/orders/new?step=details");
+    expect(nav.history.push).toHaveBeenCalledWith("/orders/new?step=details");
     expect(OrdersClient.preview).not.toHaveBeenCalled();
   });
 });
@@ -551,7 +562,7 @@ describe("NewOrder: clearing", () => {
     await waitFor(() =>
       expect(screen.queryByRole("button", { name: "Remove Chocolate truffle cake" })).not.toBeInTheDocument(),
     );
-    expect(nav.router.replace).toHaveBeenCalledWith("/orders/new");
+    expect(nav.history.replace).toHaveBeenCalledWith("/orders/new");
     expect(screen.queryByRole("button", { name: "Clear all" })).not.toBeInTheDocument();
   });
 });

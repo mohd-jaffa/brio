@@ -86,7 +86,7 @@ describe("Products: the list", () => {
     open();
     expect(await screen.findByText("No products yet")).toBeInTheDocument();
     await userEvent.click(screen.getAllByRole("button", { name: "Add product" }).at(-1)!);
-    expect(screen.getByRole("dialog", { name: "New product" })).toBeInTheDocument();
+    expect(await screen.findByRole("dialog", { name: "New product" })).toBeInTheDocument();
   });
 
   it("says the products could not be loaded", async () => {
@@ -124,7 +124,7 @@ describe("Products: one product's menu", () => {
     expect(screen.getByRole("dialog", { name: "Edit Chocolate truffle cake" })).toBeInTheDocument();
 
     await userEvent.click(within(await menu("Chocolate truffle cake")).getByRole("button", { name: "Record stock" }));
-    expect(screen.getByRole("dialog", { name: "Stock for Chocolate truffle cake" })).toBeInTheDocument();
+    expect(await screen.findByRole("dialog", { name: "Stock for Chocolate truffle cake" })).toBeInTheDocument();
   });
 
   it("takes a product off sale, and puts one back, saying what that means", async () => {

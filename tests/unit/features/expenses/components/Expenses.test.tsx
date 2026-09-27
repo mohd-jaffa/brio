@@ -93,7 +93,7 @@ describe("Expenses", () => {
     await userEvent.click(screen.getByRole("tab", { name: "Transactions" }));
     expect(await screen.findByText("No expenses in this period")).toBeInTheDocument();
     await userEvent.click(screen.getAllByRole("button", { name: "Add expense" }).at(-1)!);
-    expect(screen.getByRole("dialog", { name: "New expense" })).toBeInTheDocument();
+    expect(await screen.findByRole("dialog", { name: "New expense" })).toBeInTheDocument();
   });
 
   it("goes from the latest expenses to every one, and opens one to edit", async () => {

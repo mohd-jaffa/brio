@@ -7,6 +7,7 @@ import { Button, IconButton } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Fab } from "@/components/ui/fab";
+import { lazySheet } from "@/components/ui/lazy-sheet";
 import { ListScreen } from "@/components/ui/list-screen";
 import { PageHeader } from "@/components/ui/page-header";
 import { ProductTile } from "@/components/ui/product-tile";
@@ -16,7 +17,6 @@ import { SearchField } from "@/components/ui/search-field";
 import { Sheet } from "@/components/ui/sheet";
 import { StatusPill } from "@/components/ui/status-pill";
 import { UI_TEXT } from "@/constants/messages";
-import { InventoryAdjustmentSheet } from "@/features/inventory/components/InventoryAdjustmentSheet";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { useKept } from "@/hooks/useKept";
 import { formatPaise } from "@/lib/format/currency";
@@ -26,7 +26,16 @@ import { useApiQuery } from "@/lib/query/useApiQuery";
 
 import { ProductsClient } from "../api.client";
 import type { Product } from "../types";
-import { ProductFormSheet } from "./ProductFormSheet";
+
+/** Kept out of the screen's first download, and fetched once it is idle (`lazySheet`). */
+const InventoryAdjustmentSheet = lazySheet(
+  () => import("@/features/inventory/components/InventoryAdjustmentSheet").then((module) => module.InventoryAdjustmentSheet),
+  (props) => props.isOpen,
+);
+const ProductFormSheet = lazySheet(
+  () => import("./ProductFormSheet").then((module) => module.ProductFormSheet),
+  (props) => props.isOpen,
+);
 
 const text = UI_TEXT.products;
 

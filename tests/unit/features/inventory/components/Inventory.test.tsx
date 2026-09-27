@@ -106,10 +106,10 @@ describe("Inventory", () => {
     open();
     await rows();
     await userEvent.click(screen.getByRole("button", { name: /Truffle cake/ }));
-    const history = screen.getByRole("dialog", { name: "History of Truffle cake" });
+    const history = await screen.findByRole("dialog", { name: "History of Truffle cake" });
     expect(history).toHaveTextContent("Balance 14");
     await userEvent.click(within(history).getByRole("button", { name: "Record stock" }));
-    expect(screen.getByRole("dialog", { name: "Record stock for Truffle cake" })).toBeInTheDocument();
+    expect(await screen.findByRole("dialog", { name: "Record stock for Truffle cake" })).toBeInTheDocument();
     await userEvent.click(within(history).getByRole("button", { name: "Close" }));
     expect(screen.queryByRole("dialog", { name: "History of Truffle cake" })).not.toBeInTheDocument();
   });

@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowRight, Trash2 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import type { ZodError } from "zod";
 
@@ -9,16 +9,15 @@ import { Button } from "@/components/ui/button";
 import { CartBar } from "@/components/ui/cart-bar";
 import { cn } from "@/components/ui/cn";
 import { CustomerPicker, type PickedCustomer } from "@/components/ui/customer-picker";
+import { lazySheet } from "@/components/ui/lazy-sheet";
 import { PageHeader } from "@/components/ui/page-header";
 import { useResponse } from "@/components/ui/response-card";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { UI_TEXT } from "@/constants/messages";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { CustomersClient } from "@/features/customers/api.client";
-import { CustomerFormSheet } from "@/features/customers/components/CustomerFormSheet";
 import type { Customer, CustomerListItem } from "@/features/customers/types";
 import type { Product } from "@/features/products/types";
-import { OrderBill } from "@/features/receipts/components/OrderBill";
 import { useArrived } from "@/hooks/useArrived";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useKept } from "@/hooks/useKept";
@@ -31,6 +30,7 @@ import { useApiMutation } from "@/lib/query/useApiMutation";
 import { useApiPages } from "@/lib/query/useApiPages";
 import { useApiQuery } from "@/lib/query/useApiQuery";
 import { orderFormSchema, type OrderFormPayload } from "@/lib/validation";
+import { pushUrl, replaceUrl } from "@/lib/navigation/url";
 
 import { OrdersClient } from "../api.client";
 import {
@@ -48,12 +48,28 @@ import {
 import type { OrderEstimate, StockShortfall } from "../estimate";
 import { useOrderDraft } from "../hooks/useOrderDraft";
 import type { Order } from "../types";
-import { CustomItemSheet } from "./CustomItemSheet";
 import { DetailsPanel } from "./DetailsPanel";
-import { EstimateBill } from "./EstimateBill";
 import { ItemsPanel } from "./ItemsPanel";
 import { OrderSummary } from "./OrderSummary";
 import { PaymentPanel } from "./PaymentPanel";
+
+/** Kept out of the screen's first download, and fetched once it is idle (`lazySheet`). */
+const CustomerFormSheet = lazySheet(
+  () => import("@/features/customers/components/CustomerFormSheet").then((module) => module.CustomerFormSheet),
+  (props) => props.isOpen,
+);
+const OrderBill = lazySheet(
+  () => import("@/features/receipts/components/OrderBill").then((module) => module.OrderBill),
+  (props) => props.open,
+);
+const CustomItemSheet = lazySheet(
+  () => import("./CustomItemSheet").then((module) => module.CustomItemSheet),
+  (props) => props.open,
+);
+const EstimateBill = lazySheet(
+  () => import("./EstimateBill").then((module) => module.EstimateBill),
+  (props) => props.open,
+);
 
 const STEPS = ["items", "details", "payment"] as const;
 type Step = (typeof STEPS)[number];
@@ -123,9 +139,11 @@ function StepBar({ children }: { children: ReactNode }) {
  * until it is placed or cleared (./hooks/useOrderDraft), and is placed once
  * however often Place order is pressed (§133.3 C2).
  */
+/** Before the draft is read there is nothing to add to: the menu is only shown. */
+const waitForDraft = () => {};
+
 export function NewOrder() {
   const text = UI_TEXT.newOrder;
-  const router = useRouter();
   const step = readStep(useSearchParams().get("step"));
   const respond = useResponse();
   const { profile } = useAuth();
@@ -189,7 +207,34 @@ export function NewOrder() {
   useTravelMotion(stepRegion, STEPS.indexOf(step), "(min-width: 1024px)");
 
   if (!draft) {
-    return (
+    // The draft is kept on this device, so the server cannot see it. On the
+    // first step, the menu is drawn without it: the page arrives with its
+    // products, and the counts on them follow with the draft. Later steps are
+    // the draft itself, so they wait for it.
+    // The same frame the screen draws once it has the draft, so nothing moves.
+    return step === "items" ? (
+      <>
+        <PageHeader title={text.title} subtitle={text.itemsSubtitle} back="/orders" />
+        <div
+          aria-busy="true"
+          className="relative grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-start"
+        >
+          <div className="space-y-4">
+            <ItemsPanel
+              products={onSale}
+              loading={products.isLoading}
+              quantityOf={() => 0}
+              onAdd={waitForDraft}
+              onRemove={waitForDraft}
+              onAddCustom={waitForDraft}
+            />
+          </div>
+          <div className="hidden lg:block">
+            <SkeletonRows rows={3} height="h-32" />
+          </div>
+        </div>
+      </>
+    ) : (
       <div role="status" aria-busy="true" aria-label={text.title}>
         <SkeletonRows rows={3} height="h-32" />
       </div>
@@ -208,7 +253,8 @@ export function NewOrder() {
         ? (parseRupees(draft.payment.amount) ?? 0)
         : 0;
 
-  const goTo = (next: Step) => router.push(next === "items" ? ROUTE : `${ROUTE}?step=${next}`);
+  // A step is the same screen: the address changes, and the server is not asked again.
+  const goTo = (next: Step) => pushUrl(next === "items" ? ROUTE : `${ROUTE}?step=${next}`);
 
   /** Moves on when this step has nothing left to put right; otherwise shows what. */
   const passes = (at: Step) => {
@@ -242,7 +288,7 @@ export function NewOrder() {
     ) {
       clear();
       setTried(null);
-      router.replace(ROUTE);
+      replaceUrl(ROUTE);
     }
   };
 
@@ -272,7 +318,7 @@ export function NewOrder() {
       if (!order) return;
       clear();
       setTried(null);
-      router.replace(ROUTE);
+      replaceUrl(ROUTE);
       respond.success({
         title: text.placed,
         message: text.placedBody(order.orderNumber),

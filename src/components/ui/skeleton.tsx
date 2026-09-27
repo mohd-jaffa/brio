@@ -17,3 +17,21 @@ export function SkeletonRows({ rows = 3, height }: { rows?: number; height?: str
     </div>
   );
 }
+
+/**
+ * A screen on its way (plan §134 P1-2): its title, a line under it and its
+ * rows, in the page's place, while the header and the navigation stay put.
+ * It says so to a screen reader once.
+ */
+export function ScreenSkeleton({ label }: { label: string }) {
+  return (
+    <div role="status" aria-label={label} data-screen-skeleton="" className="space-y-6">
+      <div aria-hidden="true" className="space-y-2">
+        <div className="h-9 w-48 animate-pulse rounded-xl bg-sunken" />
+        <div className="h-4 w-64 max-w-full animate-pulse rounded-lg bg-sunken" />
+      </div>
+      <SkeletonRows rows={4} height="h-20" />
+    </div>
+  );
+}
+

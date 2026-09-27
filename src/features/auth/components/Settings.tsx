@@ -7,6 +7,7 @@ import { useState } from "react";
 import { PLATES, PLATE_FOCUS, PLATE_QUALITY } from "@/assets/plates";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { lazySheet } from "@/components/ui/lazy-sheet";
 import { Medallion } from "@/components/ui/medallion";
 import { PageHeader } from "@/components/ui/page-header";
 import { useResponse } from "@/components/ui/response-card";
@@ -27,8 +28,14 @@ import { useApiMutation } from "@/lib/query/useApiMutation";
 
 import { AuthClient } from "../api.client";
 import { useAuth } from "../AuthProvider";
-import { AccountChangeSheet, type AccountField } from "./AccountChangeSheet";
+import type { AccountField } from "./AccountChangeSheet";
 import { SignOutRow } from "./SignOutRow";
+
+/** Kept out of the screen's first download, and fetched once it is idle (`lazySheet`). */
+const AccountChangeSheet = lazySheet(
+  () => import("./AccountChangeSheet").then((module) => module.AccountChangeSheet),
+  (props) => props.field !== undefined,
+);
 
 const text = UI_TEXT.settings;
 const PLATE = "drip-cake";

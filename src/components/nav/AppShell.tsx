@@ -5,11 +5,13 @@ import { usePathname } from "next/navigation";
 import { useCallback, useRef, useState, type ReactNode } from "react";
 
 import { Avatar } from "@/components/ui/avatar";
+import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { UI_TEXT } from "@/constants/messages";
 import { BOTTOM_NAV, isActivePath, NAV_GROUPS } from "@/constants/navigation";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { RequireAuth } from "@/features/auth/components/RequireAuth";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
+import { useNavigationPending } from "@/hooks/useNavigationPending";
 import { useSettle } from "@/hooks/useSettle";
 
 import { cn } from "../ui/cn";
@@ -51,6 +53,8 @@ function AppFrame({ children }: { children: ReactNode }) {
   // A screen with the round + (Fab) keeps its last row clear of it on a phone.
   const main = useRef<HTMLElement>(null);
   useSettle(main);
+  // On the way to another screen: its skeleton in this one's place, the frame kept.
+  const navigating = useNavigationPending(pathname);
 
   return (
     <div className="flex min-h-dvh bg-background text-text">
@@ -121,8 +125,11 @@ function AppFrame({ children }: { children: ReactNode }) {
 
         <main
           ref={main}
+          aria-busy={navigating || undefined}
+          data-navigating={navigating || undefined}
           className="animate-settle mx-auto w-full overflow-x-clip max-w-[1200px] flex-1 space-y-6 p-4 pb-[calc(var(--nav-height)+var(--safe-bottom)+1.5rem)] has-[[data-fab]]:pb-[calc(var(--nav-height)+var(--safe-bottom)+5.5rem)] md:p-6 md:pb-[calc(var(--safe-bottom)+2rem)] md:has-[[data-fab]]:pb-[calc(var(--safe-bottom)+2rem)] md:pr-[calc(var(--safe-right)+1.5rem)] lg:space-y-8 lg:p-8 lg:pr-[calc(var(--safe-right)+2rem)]"
         >
+          {navigating && <ScreenSkeleton label={UI_TEXT.states.loading} />}
           {children}
         </main>
       </div>

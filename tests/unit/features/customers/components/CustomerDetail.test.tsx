@@ -168,7 +168,7 @@ describe("CustomerDetail: the tabs", () => {
     expect(screen.getByText("Prefers less sugar")).toBeInTheDocument();
     expect(screen.getByText("Only you see these; they are never on a bill.")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Edit notes" }));
-    expect(screen.getByRole("dialog", { name: "Edit Anu Sharma" })).toBeInTheDocument();
+    expect(await screen.findByRole("dialog", { name: "Edit Anu Sharma" })).toBeInTheDocument();
   });
 
   it("says when there are no notes", async () => {

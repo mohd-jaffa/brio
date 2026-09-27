@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { Fab } from "@/components/ui/fab";
 import { Hero } from "@/components/ui/hero";
+import { lazySheet } from "@/components/ui/lazy-sheet";
 import { LoadFailed } from "@/components/ui/list-screen";
 import { PageHeader } from "@/components/ui/page-header";
 import { RangePicker } from "@/components/ui/range-picker";
@@ -20,9 +21,14 @@ import { useApiQuery } from "@/lib/query/useApiQuery";
 import { useExpenseCategories } from "../hooks/useExpenseCategories";
 import type { Expense, ExpenseSummary } from "../types";
 import { ExpenseCategories } from "./ExpenseCategories";
-import { ExpenseFormSheet } from "./ExpenseFormSheet";
 import { ExpensesOverview } from "./ExpensesOverview";
 import { ExpenseTransactions } from "./ExpenseTransactions";
+
+/** Kept out of the screen's first download, and fetched once it is idle (`lazySheet`). */
+const ExpenseFormSheet = lazySheet(
+  () => import("./ExpenseFormSheet").then((module) => module.ExpenseFormSheet),
+  (props) => props.isOpen,
+);
 
 const TABS = ["OVERVIEW", "CATEGORIES", "TRANSACTIONS"] as const;
 type Tab = (typeof TABS)[number];

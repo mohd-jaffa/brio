@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
+import { lazySheet } from "@/components/ui/lazy-sheet";
 import { PageHeader } from "@/components/ui/page-header";
 import { useResponse } from "@/components/ui/response-card";
 import { RollingNumber } from "@/components/ui/rolling-number";
@@ -14,9 +15,7 @@ import { StatusPill } from "@/components/ui/status-pill";
 import { UI_TEXT } from "@/constants/messages";
 import { orderStatusLabel, type OrderStatus } from "@/constants/statuses";
 import type { Customer } from "@/features/customers/types";
-import { PaymentCollectionForm } from "@/features/payments/components/PaymentCollectionForm";
 import type { Payment } from "@/features/payments/types";
-import { OrderBill } from "@/features/receipts/components/OrderBill";
 import { errorMessage } from "@/lib/errors/errorMessage";
 import { formatPaise } from "@/lib/format/currency";
 import { formatDateTime } from "@/lib/format/date";
@@ -32,6 +31,16 @@ import { OrderContact } from "./OrderContact";
 import { OrderLines } from "./OrderLines";
 import { OrderPayments } from "./OrderPayments";
 import { StatusActions } from "./StatusActions";
+
+/** Kept out of the screen's first download, and fetched once it is idle (`lazySheet`). */
+const PaymentCollectionForm = lazySheet(
+  () => import("@/features/payments/components/PaymentCollectionForm").then((module) => module.PaymentCollectionForm),
+  () => true,
+);
+const OrderBill = lazySheet(
+  () => import("@/features/receipts/components/OrderBill").then((module) => module.OrderBill),
+  (props) => props.open,
+);
 
 /**
  * One order (plan §139.10): its number, status and due date; the one next

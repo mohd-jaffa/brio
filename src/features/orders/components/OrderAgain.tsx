@@ -1,7 +1,6 @@
 "use client";
 
 import { RotateCcw } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { useResponse } from "@/components/ui/response-card";
@@ -11,6 +10,7 @@ import type { Customer } from "@/features/customers/types";
 import type { Product } from "@/features/products/types";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiQuery } from "@/lib/query/useApiQuery";
+import { useOpenScreen } from "@/hooks/useOpenScreen";
 
 import { customerForDraft, itemCount, repeatOrder, type DraftCustomer } from "../draft";
 import { useOrderDraft } from "../hooks/useOrderDraft";
@@ -25,7 +25,7 @@ import type { Order } from "../types";
  */
 export function OrderAgain({ order, customer }: { order: Order; customer?: Customer }) {
   const text = UI_TEXT.orderDetail;
-  const router = useRouter();
+  const openScreen = useOpenScreen();
   const respond = useResponse();
   const { profile } = useAuth();
   const { draft, update, clear } = useOrderDraft(profile?.id ?? null);
@@ -54,7 +54,7 @@ export function OrderAgain({ order, customer }: { order: Order; customer?: Custo
           clear();
           update(() => again.draft);
           if (again.left > 0) respond.info({ title: text.leftOutTitle, message: text.leftOut(again.left) });
-          router.push("/orders/new");
+          openScreen("/orders/new");
         }
       : null;
 
