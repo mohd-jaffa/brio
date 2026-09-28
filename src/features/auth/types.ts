@@ -8,7 +8,7 @@ export interface AuthProfile {
   phone: string;
   email: string;
   name: string;
-  /** The profile picture: one of the nine that ship with the app (0026). */
+  /** The profile picture: one of those that ship with the app (0026, 0029). */
   avatar: AvatarKey;
   role: UserRole;
   /** The owner's business; none for a developer, who owns none (0028). */

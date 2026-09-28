@@ -79,11 +79,11 @@ describe("Settings", () => {
     expect(profile.querySelector("blockquote")).toBeNull();
   });
 
-  it("opens the nine pictures to choose from when the picture is tapped", async () => {
+  it("opens the pictures to choose from when the picture is tapped", async () => {
     render(<Settings />);
     await userEvent.click(screen.getByRole("button", { name: "Change profile picture" }));
     const chooser = await screen.findByRole("dialog", { name: "Choose a profile picture" });
-    expect(within(chooser).getAllByRole("radio")).toHaveLength(9);
+    expect(within(chooser).getAllByRole("radio")).toHaveLength(33);
     expect(within(chooser).getByRole("radio", { name: "Husky" })).toHaveAttribute("aria-checked", "true");
 
     await userEvent.click(within(chooser).getByRole("radio", { name: "Husky" }));

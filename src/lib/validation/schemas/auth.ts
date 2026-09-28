@@ -114,7 +114,7 @@ export const changeEmailSchema = z.object({
   password: currentPasswordSchema,
 });
 
-/** The owner's profile picture: one of the nine that ship with the app (the user, 2026-09-27). */
+/** The owner's profile picture: one of those that ship with the app (the user, 2026-09-27). */
 export const changeAvatarSchema = z.object({
   avatar: z.enum(AVATAR_KEYS, { error: VALIDATION_MESSAGES.chooseOne("profile picture") }),
 });

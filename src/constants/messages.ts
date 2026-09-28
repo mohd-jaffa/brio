@@ -1110,7 +1110,7 @@ export const UI_TEXT = {
     version: "Version",
     craftedBy: "Crafted by",
     maker: "jaFFa",
-    // The owner's profile picture, one of nine (the user, 2026-09-27).
+    // The owner's profile picture, an animal or a person (the user, 2026-09-27, 2026-09-28).
     changePicture: "Change profile picture",
     pictureTitle: "Choose a profile picture",
     pictureHint: "It shows on your account, beside your name.",

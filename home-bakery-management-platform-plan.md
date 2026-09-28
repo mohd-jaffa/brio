@@ -7593,6 +7593,7 @@ Later the same day:
   - **Out of Phase 6:** R6.3 (OpenAPI and Swagger) and R6.7 (BugSnag) read **LATER**, and R6.4 is the CI pipeline without SonarQube.
   - **Kept, not dropped:** §119 – §120 (OpenAPI and Swagger UI), §123 (BugSnag) and §124 (SonarQube) stay as written, for the day they are taken up (§139.18).
   - **Meanwhile:** errors go to the server's own structured logs (§104); the API's contract is its route schemas and the table in §139.13; quality is held by lint, the type check, the tests and the coverage gate.
+- **24 people join the profile pictures** (the user: "split and these to the avatars set"). A second sheet, 24 portraits on pastel discs, is cut into pictures beside the nine animals; the chooser shows **Animals** then **People**, and a new account draws from all 33 (`0029_people_avatars`, §139.11.14).
 - **Unread and Read on Notifications** (the user: "keep 2 more filters in notification, read and unread"). They are two more tabs, after All: **All · Unread · Read · Orders · Customers · System**. Each shows every kind; the kind tabs still show read and unread alike (R5.19).
 
 ---
@@ -8543,25 +8544,31 @@ accessibility gaps (§2.2).
 
 - **What:** the owner's own picture is one of **nine animals** — Pomeranian,
   Hamster, Blue bear, Husky, Polar bear, Cream kitten, Ginger cat, Beagle,
-  Tiger — cut from the sheet the user supplied by `scripts/avatars.mjs`
-  (`src/assets/avatars/`). The sheet stays in `design-references/`; the nine
-  pictures are committed. They are app-owned art, **not an upload** (§16): only
+  Tiger — or, since 2026-09-28, one of **24 people**, each on its own pastel
+  disc (the user: "split and these to the avatars set"). Both are cut from the
+  sheets the user supplied by `scripts/avatars.mjs` (`src/assets/avatars/`):
+  an animal on a see-through ground, a person as its disc, which fills the
+  round well. The sheets stay in `design-references/`; the pictures are
+  committed. They are app-owned art, **not an upload** (§16): only
   the key is stored, in `profiles.avatar`.
 - **Who has one:** every account. A new one is **given one at random** as its
   profile is made, whatever path makes it (`random_avatar()`, the column's
   default), and every account that already existed was given one the same way.
-  Only the nine keys are taken (`avatar_keys()`, and `AVATAR_KEYS` in the app).
+  Only the app's keys are taken (`avatar_keys()`, and `AVATAR_KEYS` in the app);
+  `0029_people_avatars` adds the people's, so a new account draws from all 33,
+  and every account keeps the picture it has.
 - **Where it shows:** the owner's own account only — the phone's top bar, the
   account menu from 768 px, and the profile card on Settings. **Customers keep
   their initials**, and nothing else uses the pictures.
 - **Changing it:** tapping the picture on Settings (it carries a small pencil)
-  opens the nine, each named by its animal, the one in use marked — a bottom
-  sheet on a phone, a dialog from 768 px. Tapping another saves it at once
+  opens them under two headings, **Animals** then **People**, each named by
+  what it shows, the one in use marked — a bottom sheet on a phone, a dialog
+  from 768 px. Tapping another saves it at once
   (`PATCH /api/auth/avatar`, audited) and says so on a response card; tapping
   the one in use closes it. It changes as often as the owner likes: the 30-day
   rule is for the name, the sign-in number and the email only.
-- **Licence:** the sheet falls under Q16 with the illustrations: its licence
-  is confirmed before the Play release.
+- **Licence:** both sheets fall under Q16 with the illustrations: their
+  licence is confirmed before the Play release.
 
 ### 139.11.15 No worker for now (the user, 2026-09-27)
 
@@ -8685,6 +8692,7 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `…_profile_avatars` | *Added 2026-09-27 as `0026_profile_avatars` (the user).* `profiles.avatar`, not null, one of **`avatar_keys()`**'s nine; its default **`random_avatar()`** draws one for each new profile, and drew one for each existing profile as the column was added. Both functions are the server's only. | 5 |
 | `…_no_worker` | *Added 2026-09-27 as `0027_no_worker` (the user).* **`worker_enabled()`** (false for now); a `before insert` trigger on `jobs` that holds back `SEND_PUSH_NOTIFICATION` while it is false; open orders long past their day taken as told; **`take_due_order_notices(bakery, from_hour)`**, the service role's, which marks one business's orders due soon and overdue and hands back the facts. | 5 |
 | `…_developer_accounts` | *Added 2026-09-27 as `0028_developer_accounts` (the user).* `profiles.bakery_id` may be null, for a developer only (`profiles_owner_has_business`). Nothing else. | 5 |
+| `…_people_avatars` | *Added 2026-09-28 as `0029_people_avatars` (the user).* `avatar_keys()` takes the 24 people's keys after the nine animals'. Nothing else: the draw, the column and its check are 0026's. | 5 |
 | `…_audit_writes` | Revoke `INSERT` on `audit_logs` from `authenticated`; audit is written by the server with the acting user (§133.7 G1, BUG-20). | 2 |
 | `…_device_tokens` | The push-token registry (§133.5 E2). | 8 |
 | `…_profile_theme` *(if Q14)* | `profiles.theme`. | 1 |

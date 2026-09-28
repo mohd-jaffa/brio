@@ -386,9 +386,9 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 - **A day and a time** (an order's delivery) are one field: the calendar, then the time from a select every quarter of an hour, side by side under one label.
 
 ### Profile picture
-- **The owner's own account only** (`profile-avatar`): one of nine animal faces that ship with the app, on a round well of Caramel Cream / Terracotta Blush. 36 px in the top bar and the account menu; 80 px on Settings' profile card, ringed in Oat Paper where it overlaps the plate. A customer keeps their initials (`avatar`).
+- **The owner's own account only** (`profile-avatar`): one of nine animal faces or 24 people that ship with the app, on a round well of Caramel Cream / Terracotta Blush; a person's own pastel disc fills the well to its edge. 36 px in the top bar and the account menu; 80 px on Settings' profile card, ringed in Oat Paper where it overlaps the plate. A customer keeps their initials (`avatar`).
 - **On Settings it is a button** named "Change profile picture", with a 28 px caramel badge and a pencil at its lower right; it grows a little under a pointer.
-- **The chooser:** the nine in a three-by-three grid, each 80 px over its name in 12 px; the one in use has a caramel ring with a 2 px gap and a caramel tick badge, and its name in semibold. Tapping one saves it, a spinner over that picture meanwhile. A bottom sheet on a phone, a dialog from 768 px.
+- **The chooser:** **Animals** then **People**, each under a small uppercase heading, three across on a phone and four from 640 px, each 80 px over its name in 12 px; the one in use has a caramel ring with a 2 px gap and a caramel tick badge, and its name in semibold. Tapping one saves it, a spinner over that picture meanwhile. A bottom sheet on a phone, a dialog from 768 px.
 
 ### Cards / Containers
 - **Corner style:** 16 px.

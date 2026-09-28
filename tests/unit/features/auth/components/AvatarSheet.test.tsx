@@ -35,11 +35,11 @@ describe("AvatarSheet", () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it("offers the nine pictures in the sheet's order, each named by its animal, the one in use marked", () => {
+  it("offers the animals, then the people, each in its sheet's order and named, the one in use marked", () => {
     render(<AvatarSheet open onClose={vi.fn()} />);
     const group = within(chooser()).getByRole("radiogroup", { name: "Choose a profile picture" });
-    const choices = within(group).getAllByRole("radio");
-    expect(choices.map((choice) => choice.textContent)).toEqual([
+    const animals = within(within(group).getByRole("region", { name: "Animals" })).getAllByRole("radio");
+    expect(animals.map((choice) => choice.textContent)).toEqual([
       "Pomeranian",
       "Hamster",
       "Blue bear",
@@ -50,10 +50,21 @@ describe("AvatarSheet", () => {
       "Beagle",
       "Tiger",
     ]);
-    expect(choices.filter((choice) => choice.getAttribute("aria-checked") === "true")).toEqual([
+    const people = within(within(group).getByRole("region", { name: "People" })).getAllByRole("radio");
+    expect(people).toHaveLength(24);
+    expect(people.slice(0, 3).map((choice) => choice.textContent)).toEqual(["Green hoodie", "Wavy hair", "Round glasses"]);
+    expect(people.at(-1)).toHaveTextContent("Low bun");
+    expect(within(group).getAllByRole("radio").filter((choice) => choice.getAttribute("aria-checked") === "true")).toEqual([
       within(group).getByRole("radio", { name: "Husky" }),
     ]);
     expect(chooser()).toHaveTextContent("It shows on your account, beside your name.");
+  });
+
+  it("saves one of the people as it does an animal", async () => {
+    client.changeAvatar.mockResolvedValue({ ...TEST_PROFILE, avatar: "grandma" });
+    render(<AvatarSheet open onClose={vi.fn()} />);
+    await userEvent.click(within(chooser()).getByRole("radio", { name: "Grandma" }));
+    await waitFor(() => expect(client.changeAvatar).toHaveBeenCalledWith({ avatar: "grandma" }));
   });
 
   it("saves another picture there and then, reads the account again and says so", async () => {

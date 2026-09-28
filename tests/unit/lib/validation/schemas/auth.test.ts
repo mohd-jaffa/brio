@@ -65,8 +65,9 @@ describe("changePasswordSchema", () => {
 });
 
 describe("changeAvatarSchema", () => {
-  it("takes one of the nine pictures, and nothing else, in the app's words", () => {
+  it("takes one of the pictures, and nothing else, in the app's words", () => {
     expect(changeAvatarSchema.parse({ avatar: "tiger" })).toEqual({ avatar: "tiger" });
+    expect(changeAvatarSchema.parse({ avatar: "grandma" })).toEqual({ avatar: "grandma" });
     for (const avatar of ["dragon", "", null, undefined]) {
       const result = changeAvatarSchema.safeParse({ avatar });
       expect(result.success).toBe(false);

@@ -2821,3 +2821,29 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - None.
+
+## 2026-09-28 — 24 people join the profile pictures
+
+### Added
+- **24 people** (the user: "split and these to the avatars set"), beside the nine animals.
+  - **The sheet:** the user supplied 24 portraits, six by four, each on a pastel disc.
+  - **The build** (`scripts/avatars.mjs`): each disc is found as a round shape and cut 1.5 px inside its edge, so no white fringe is kept.
+  - **The output:** a 320 px WebP per person, 11 to 14 KB, the corners see-through. The disc fills the round well it is shown in.
+  - **What was committed:** the pictures are, in `src/assets/avatars/`. The sheet is not: it stays in `design-references/` (`profile-pictures-people.png`, a copy of the file supplied).
+- **Their names:** Green hoodie, Wavy hair, Round glasses, Top bun, Full beard, Sun hat, Curly hair, Flower clip, Headphones, Coffee mug, Green shirt, Purple hoodie, Grandpa, Grandma, Dungarees, Pigtails, Cap, Hoop earrings, Cream hoodie, Daydream, Goatee, Bucket hat, Navy hoodie, Low bun.
+- **`0029_people_avatars.sql`:** `avatar_keys()` takes the 24 keys after the nine. A new account now draws from all 33; every account keeps the picture it has.
+
+### Changed
+- **The chooser** (`AvatarSheet`) shows **Animals** then **People**, each under its heading, three across on a phone and four from 640 px.
+- **The animals are unchanged:** the build writes them byte for byte as before.
+
+### Validation
+- **Database, rolled back:** 33,000 draws landed on all 33 keys, each 956 to 1,042 times. One of the people was taken, and an unknown key was refused.
+- **Browser, 360 px and 1440 px:** the chooser showed all 33 with no sideways scroll. A person set as the owner's picture showed in the top bar and on Settings, with the disc filling the well.
+- **Checks:** `tsc` and `eslint` pass. The full suite passes (2,160 tests), and every changed file is at 100 %.
+
+### Migration notes
+- `0029_people_avatars.sql`: replaces `avatar_keys()`. Nothing else changes.
+
+### Blockers
+- None.

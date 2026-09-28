@@ -11,11 +11,12 @@ const SIZES = {
 } as const;
 
 /**
- * The owner's profile picture (the user, 2026-09-27): one of the nine animals
- * that ship with the app, on a soft round well. Only the owner's own account
- * wears one; a customer keeps their initials (`Avatar`). Beside the name it is
- * decoration and says nothing to a screen reader; where it stands alone — a
- * choice in the chooser — `labelled` gives it the animal's name.
+ * The owner's profile picture (the user, 2026-09-27): one of the animals or
+ * the people that ship with the app, on a soft round well — a person's own
+ * disc fills it. Only the owner's own account wears one; a customer keeps
+ * their initials (`Avatar`). Beside the name it is decoration and says nothing
+ * to a screen reader; where it stands alone — a choice in the chooser —
+ * `labelled` gives it its name.
  */
 export function ProfileAvatar({
   avatar,

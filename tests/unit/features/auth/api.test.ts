@@ -163,7 +163,7 @@ describe("register", () => {
     expect(profile).toMatchObject({ id: "u-1", bakery_id: "b-1", role: "USER" });
   });
 
-  it("leaves the profile picture to the database, which draws one of the nine at random (0026)", async () => {
+  it("leaves the profile picture to the database, which draws one at random (0026)", async () => {
     const { client, inserted } = fakeAdmin();
     await register(client, registration);
 
@@ -301,7 +301,7 @@ describe("resendConfirmation", () => {
 });
 
 describe("mapProfile", () => {
-  it("carries the profile picture, and shows the first of the nine for a key the app no longer has", () => {
+  it("carries the profile picture, and shows the first one for a key the app no longer has", () => {
     const row = { ...profileRow(), name_changed_at: null, phone_changed_at: null, email_changed_at: null, pending_email: null };
     expect(mapProfile(row as Parameters<typeof mapProfile>[0]).avatar).toBe("tiger");
     expect(mapProfile({ ...row, avatar: "dragon" } as Parameters<typeof mapProfile>[0]).avatar).toBe("pomeranian");

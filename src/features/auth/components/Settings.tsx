@@ -92,7 +92,7 @@ const ACCOUNT_ICONS = { name: User, phone: Smartphone, email: Mail } as const;
 
 /**
  * Settings (plan §139.10, R5.11), with the reference's Profile screen folded
- * in: who is signed in — their picture, tapped to choose another of the nine
+ * in: who is signed in — their picture, tapped to choose another
  * (the user, 2026-09-27) — for which business, and its catch phrase; then
  * Business details, the account — where the password is changed from, and an
  * unconfirmed email's link is sent again (BUG-16), and where the name, the

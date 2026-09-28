@@ -21,9 +21,9 @@ function body(name: string): string {
  * neither draw one nor write the column.
  */
 describe("profile avatars migration", () => {
-  it("takes the app's nine keys, in the app's order", () => {
+  it("took the nine animals, which are still the app's first nine keys (0029 adds the people)", () => {
     const keys = body("avatar_keys").match(/array\[([^\]]+)\]/)![1];
-    expect(keys.split(",").map((key) => key.trim().replace(/'/g, ""))).toEqual([...AVATAR_KEYS]);
+    expect(keys.split(",").map((key) => key.trim().replace(/'/g, ""))).toEqual(AVATAR_KEYS.slice(0, 9));
     expect(body("avatar_keys")).toContain("immutable");
   });
 
