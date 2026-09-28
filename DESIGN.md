@@ -296,7 +296,7 @@ A warm, low-chroma kitchen palette. One caramel (or terracotta) voice does the p
   - a top bar with the business's mark, name and catch phrase, the bell and the owner's profile picture;
   - a five-item bottom bar (Home, Orders, Products, Customers, More) with a tinted pill on the current place;
   - 16 px gutters.
-- **Tablet (768 – 1023 px):** a 72 px icon rail whose labels appear as tooltips, a top bar with the bell and the account, and 24 px gutters.
+- **Tablet (768 – 1023 px):** a 72 px icon rail whose labels appear as tooltips, a top bar with the bell and the account, and 24 px gutters. On a screen shorter than the rail (a phone on its side) the rail scrolls, and its tooltips give way.
 - **Desktop (1024 px and up):**
   - a 248 px sidebar in three groups: the daily work, the numbers, and the rest;
   - content capped at 1200 px, with 32 px gutters;
@@ -307,7 +307,7 @@ A warm, low-chroma kitchen palette. One caramel (or terracotta) voice does the p
   - search, tabs and the list bind at 16 px;
   - sections part at 24 px, and at 32 px on a desktop.
 - **Every edge pays its safe area** (`--safe-top/right/bottom/left`), and heights use `dvh`, never `vh`. On a phone, a screen with the round + keeps its last row clear of it.
-- **Touch:** every target is at least 44 px. A control drawn smaller takes an invisible 44 px halo (`hit-area`, for controls drawn at 32 px or more). A link inside a line of small text, such as View order in a stock row or an email under a name, takes a 44 px band centred on its line (`hit-area-line`), and only where nothing else a finger could mean sits in that band. Two such links are never stacked closer than 44 px: where they would be, one becomes plain text beside the full-size control that does the same thing (a customer's number, beside Call).
+- **Touch:** every target is at least 44 px. A control drawn smaller takes an invisible 44 px halo (`hit-area`, for controls drawn at 32 px or more). The quantity between a stepper's − and + is 44 px tall over the stepper's padding, its ring drawn inside. A link inside a line of small text, such as View order in a stock row or an email under a name, takes a 44 px band centred on its line (`hit-area-line`), and only where nothing else a finger could mean sits in that band. Two such links are never stacked closer than 44 px: where they would be, one becomes plain text beside the full-size control that does the same thing (a customer's number, beside Call).
 
 ### Named Rules
 **The What-Is-Due-Leads Rule.** On any screen the first thing read is what needs doing: overdue and due orders, money still owed, stock running low.
@@ -380,8 +380,8 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 ### Date picker
 - **One calendar** (`date-picker`) for every day the app asks for: a custom period's two ends, the orders filter's due dates, an expense's date, and an order's delivery day. The browser's own date control never opens.
 - **The control** sits in the look of where it sits, as a select does: a field's Flour Well, or a small hairline box beside the period pill. It shows the day ("27 Sep 2026") after a calendar mark, or muted words while none is chosen ("Choose a date", "Any day").
-- **The calendar:** Oat Paper, one hairline, 16 px corners and the elevated shadow, 312 px wide with a 12 px inset. The month is in the display serif between round Previous and Next buttons, each dimmed past the bounds. Weeks run from Monday. Days are 40 px circles. The chosen one is filled caramel with its number semibold, today is ringed in caramel, and days out of bounds fade to 35 %. Under a hairline, **Today** is in caramel and, where the field may be empty, **Clear** is muted.
-- **Where it opens:** as the select's list does, in the top layer against its control (`anchored-popover`), at most 440 px tall.
+- **The calendar:** Oat Paper, one hairline, 16 px corners and the elevated shadow, 334 px wide with a 12 px inset. The month is in the display serif between round Previous and Next buttons, each dimmed past the bounds. Weeks run from Monday. Days are 44 px circles, a finger's width. The chosen one is filled caramel with its number semibold, today is ringed in caramel, and days out of bounds fade to 35 %. Under a hairline, **Today** is in caramel and, where the field may be empty, **Clear** is muted.
+- **Where it opens:** as the select's list does, in the top layer against its control (`anchored-popover`), at most 456 px tall: six weeks fit without scrolling.
 - **Keyboard:** the focus goes to the chosen day or today. The arrows move a day or a week, Page Up and Page Down a month (with Shift, a year), and Home and End go to the week's ends. Enter takes the day, and Escape closes the calendar and never the sheet behind it.
 - **A day and a time** (an order's delivery) are one field: the calendar, then the time from a select every quarter of an hour, side by side under one label.
 
@@ -396,6 +396,7 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 - **Shadow:** Card (see Elevation).
 - **Border:** one hairline.
 - **Internal padding:** 16 px, or 12 × 16 px for a row.
+- **A sheet over a sheet** (a picture picker over the product form): Escape closes only the one on top, focus goes back to what opened it, and the form behind keeps what was typed.
 
 ### Rows
 - One line of a list: a tile, an avatar or a medallion; a title (14 px semibold) with one or two lines under it; what it amounts to at the right edge (an amount, a pill, a time); and a chevron when it goes somewhere.
@@ -423,7 +424,7 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 
 ### Navigation
 - **Bottom bar:** five places in equal columns, the current one on a Caramel Cream pill with a semibold caramel label. It is measured in px, like a native tab bar, so a larger text size cannot push the last place off the edge.
-- **Sidebar and rail:** the same active pill.
+- **Sidebar and rail:** the same active pill; a sidebar place is at least 44 px tall, a rail place 48 px square.
 - **Tabs:** underlined for the views of a screen, each 44 px tall; a single 2 px caramel underline glides to the chosen tab over 300 ms.
 - **Section heading:** a serif title with **View all** and an arrow at its end, which goes to another screen or shows another view of this one (Recent expenses → Transactions).
 - **Bell:** a bell with the unread count in a small brick (danger) circle ringed in paper, 1 to 9 then "9+".

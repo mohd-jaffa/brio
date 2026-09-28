@@ -246,16 +246,18 @@ export function DetailsPanel({
 
       <Block title={text.discounts}>
         {draft.adjustments.length > 0 && (
-          <ul role="list" className="space-y-3">
+          // One row where the panel is wide enough, whatever the screen: on a
+          // desktop the panel is a 26rem column.
+          <ul role="list" className="@container space-y-3">
             {draft.adjustments.map((entry, index) => (
               <li
                 key={entry.key}
                 className={cn(
-                  "grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 sm:grid-cols-[9rem_minmax(0,1fr)_8rem_auto]",
+                  "grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 @lg:grid-cols-[9rem_minmax(0,1fr)_8rem_auto]",
                   added(entry.key),
                 )}
               >
-                <div className="col-span-2 sm:col-span-1">
+                <div className="col-span-2 @lg:col-span-1">
                   <SelectField
                     label={text.adjustmentKind}
                     value={entry.type}
@@ -272,7 +274,7 @@ export function DetailsPanel({
                     }
                   />
                 </div>
-                <div className="col-span-2 sm:col-span-1">
+                <div className="col-span-2 @lg:col-span-1">
                   <TextField
                     label={text.adjustmentName}
                     value={entry.name}

@@ -137,7 +137,9 @@ export function QuantityStepper({
         onChange={(event) => setDraft(event.target.value.replace(/\D/g, ""))}
         onKeyDown={keys}
         onBlur={commit}
-        className="w-10 bg-transparent text-center text-sm font-semibold tabular-nums text-text"
+        // 44 px to the touch, as the buttons are: it takes the stepper's full
+        // height, over its padding, and its ring is drawn inside.
+        className="focus-inset -my-1.5 w-11 self-stretch rounded-lg bg-transparent text-center text-sm font-semibold tabular-nums text-text"
       />
       {button(1)}
     </div>

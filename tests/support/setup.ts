@@ -17,9 +17,11 @@ if (typeof HTMLDialogElement !== "undefined" && !HTMLDialogElement.prototype.sho
     this.setAttribute("open", "");
     if (escapable.has(this)) return;
     escapable.add(this);
-    // Escape in a modal dialog fires `cancel`, and closes it unless that is prevented.
+    // Escape in a modal dialog fires `cancel`, and closes it unless that is
+    // prevented — only the one on top, not a dialog it was opened from.
     this.addEventListener("keydown", (event) => {
       if (event.key !== "Escape" || !this.hasAttribute("open")) return;
+      if ((event.target as Element).closest("dialog[open]") !== this) return;
       if (this.dispatchEvent(new Event("cancel", { cancelable: true }))) this.close();
     });
   };

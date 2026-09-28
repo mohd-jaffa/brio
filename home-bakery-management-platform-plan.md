@@ -7979,6 +7979,30 @@ the app edge to edge, behind the status and navigation bars.
 
 Text stays readable at 200 % zoom, and the layout never scrolls sideways.
 
+**The pass, 2026-09-28 (R6.8).** A browser sweep over all 27 screens — the
+owner's 19 (New order's three steps and the not-found page among them), the 5
+signed out and the developer's 3 — at 360, 390, 414, 768, 1024 and 1440 px in
+Golden and Peach; then every sheet, menu, calendar and confirm card, opened as
+an owner opens them.
+
+- **What it checked:** axe (WCAG 2.2 AA and best practice); sideways scroll;
+  targets under 44 px, hit-tested, so a `hit-area` halo counts; controls under
+  a 47 px notch and a 34 px home indicator, and in landscape under 47 px side
+  insets; 200 % zoom (640 px); a keyboard ring at every Tab stop; and in each
+  sheet, focus moving in, Escape closing it, and focus going back.
+- **Clean:** no axe violation on any screen or sheet, no sideways scroll at
+  any width or at 200 %, nothing under the notch or the home indicator, and a
+  ring at every stop.
+- **Fixed:**
+  - Escape on a sheet opened over another — the picture picker over the product
+    form — closed both, and lost what was typed (`Modal`).
+  - The rail did not scroll: on a phone on its side, the last places and
+    Install app were off the screen.
+  - Discounts and charges crushed their Name field to 34 px in the desktop's
+    side column; the row now lays out by the column's width.
+  - Sidebar places were 40 px tall, the calendar's days 40 px, and a stepper's
+    quantity 20 px; all are 44 px now.
+
 ---
 
 ## 139.10 Screens
@@ -9049,7 +9073,7 @@ Phase 5 closed on 2026-09-26 with R5.10.
 | R6.5 | Playwright journeys, tenant isolation included | §133.11 K4 | — | TODO |
 | R6.6 | Database integration tests against local Supabase | §133.11 K5 | — | TODO |
 | R6.7 | BugSnag | §133.11 K2 | — | LATER (2026-09-28, the user: not for now; §123 kept) |
-| R6.8 | An accessibility and responsive pass across every screen | §139.8, §139.9 | — | TODO |
+| R6.8 | An accessibility and responsive pass across every screen | §139.8, §139.9 | — | DONE (2026-09-28 · §139.9, the pass) |
 
 ### Phase 7 — PWA
 

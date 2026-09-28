@@ -86,6 +86,9 @@ export function Modal({
       aria-labelledby={labelledBy}
       onCancel={(event) => {
         // Escape. The modal closes when its owner says so, not on its own.
+        // A modal opened from inside this one (a picker over a form) is its
+        // own: React hands its Escape to this one too, which would close both.
+        if (event.target !== event.currentTarget) return;
         event.preventDefault();
         onDismiss?.();
       }}
@@ -97,7 +100,7 @@ export function Modal({
         // Tab goes round inside. A modal dialog already keeps the page out of
         // reach; this also keeps focus from stepping out to the browser's own
         // toolbar between the last control and the first.
-        if (event.key !== "Tab") return;
+        if (event.key !== "Tab" || (event.target as Element).closest("dialog") !== event.currentTarget) return;
         const stops = [...event.currentTarget.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
           (stop) => !stop.hasAttribute("disabled") && stop.getClientRects().length > 0,
         );

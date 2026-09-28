@@ -2764,3 +2764,41 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - None.
+
+## 2026-09-28 — R6.8: the accessibility and responsive pass
+
+### Checked
+- **All 27 screens:** the owner's 19 (New order's three steps and the not-found page among them), the 5 signed out, and the developer's 3.
+- **Six widths, two themes:** 360, 390, 414, 768, 1024 and 1440 px, in Golden and Peach.
+- **Every sheet, menu, calendar and confirm card**, opened as an owner opens them.
+- **What was measured:**
+  - axe, WCAG 2.2 AA and best practice;
+  - sideways scroll, at every width and at 200 % zoom;
+  - targets under 44 px, hit-tested so the `hit-area` halos count;
+  - controls under a 47 px notch and a 34 px home indicator, and in landscape under 47 px side insets;
+  - a focus ring at every Tab stop;
+  - in each sheet: focus moving in, Escape closing it, and focus going back.
+
+### Fixed
+- **A sheet over a sheet** (`Modal`). Escape on the picture picker closed the product form behind it too, and lost what was typed, because React hands a nested dialog's `cancel` to the one around it. Each modal now answers only its own Escape and its own Tab. The same fix covers every sheet or card opened over another.
+- **The rail scrolls on a short screen** (`AppShell`). On a phone on its side the rail was 718 px of places on a 390 px screen: Expenses, Settings and Install app could not be reached. Below 736 px tall it scrolls, and its tooltips give way there.
+- **Discounts and charges** (`DetailsPanel`). In the desktop's 26rem side column the row crushed its Name field to 34 px, and the label ran into Amount's. It now lays out by the column's width (a container query), so it stacks there and stays one row at 768 px.
+- **44 px targets:**
+  - sidebar places were 40 px tall (`navStyles`);
+  - the calendar's days were 40 px: they are 44 px, the calendar 334 px wide, and six weeks fit without scrolling (`date-picker`);
+  - a stepper's quantity was 20 px tall: it now takes the stepper's full height, 44 px, with its ring drawn inside (`quantity-stepper`).
+
+### Found fine
+- **No axe violation** on any screen or sheet.
+- **No sideways scroll**, and nothing under the notch or the home indicator.
+- **A ring at every stop.**
+- **The select lists keep focus on their control** with `aria-activedescendant`, the ARIA pattern for a select.
+- **The bill's contrast holds** once it has faded in.
+
+### Validation
+- **The sweep again, after the fixes:** clean, the rail scrolling on a phone on its side, and the nested picker closing alone with focus back on its button.
+- **A new test:** a modal inside a modal keeps its own Escape and Tab; it fails without the fix.
+- **Checks:** `tsc` and `eslint` pass. The full suite passes (2,154 tests), and every changed file is at 100 %.
+
+### Blockers
+- None.

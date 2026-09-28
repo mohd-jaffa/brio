@@ -7,7 +7,7 @@ import { cn } from "../ui/cn";
  */
 export function sidebarItemClasses(active: boolean) {
   return cn(
-    "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors",
+    "group relative flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors",
     "md:max-lg:size-12 md:max-lg:justify-center md:max-lg:px-0",
     active
       ? "bg-primary-soft font-semibold text-primary"

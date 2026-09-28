@@ -66,7 +66,13 @@ function AppFrame({ children }: { children: ReactNode }) {
           <BusinessMark textClassName="md:max-lg:sr-only" />
         </div>
 
-        <nav aria-label={UI_TEXT.nav.main} className="flex-1 px-3 pb-4 lg:overflow-y-auto">
+        {/* The sidebar scrolls when it is taller than the screen. So does the
+            rail, but only then — a phone on its side — since scrolling clips
+            its tooltips; its places keep their names for a screen reader. */}
+        <nav
+          aria-label={UI_TEXT.nav.main}
+          className="flex-1 px-3 pb-4 lg:overflow-y-auto [@media(max-height:46rem)]:overflow-y-auto"
+        >
           {NAV_GROUPS.map((group, index) => (
             <ul
               key={group[0].id}

@@ -29,7 +29,7 @@ const TRIGGERS = {
 } as const;
 
 /** Tall enough for six weeks, the heading and the footer; it scrolls where the screen is shorter. */
-const MAX_HEIGHT = 440;
+const MAX_HEIGHT = 456;
 
 /** The day the keys move to, from the one they are on. */
 function moved(from: string, key: string, shift: boolean): string | null {
@@ -219,7 +219,7 @@ export const DatePicker = forwardRef<
         onMouseDown={(event) => event.preventDefault()}
         onKeyDown={onPanelKeyDown}
         onBlur={leave}
-        className="animate-drop-in inset-auto m-0 w-[19.5rem] max-w-[calc(100vw-1rem)] overflow-y-auto overscroll-contain rounded-2xl border border-border bg-surface p-3 text-text shadow-elevated"
+        className="animate-drop-in inset-auto m-0 w-[20.875rem] max-w-[calc(100vw-1rem)] overflow-y-auto overscroll-contain rounded-2xl border border-border bg-surface p-3 text-text shadow-elevated"
       >
         {/* Drawn only while open: a closed calendar is nothing to carry. */}
         {open && (
@@ -269,7 +269,7 @@ export const DatePicker = forwardRef<
                       aria-current={day === today ? "date" : undefined}
                       onClick={() => take(day)}
                       className={cn(
-                        "flex size-10 items-center justify-center rounded-full text-sm tabular-nums transition-colors",
+                        "flex size-11 items-center justify-center rounded-full text-sm tabular-nums transition-colors",
                         "disabled:cursor-not-allowed disabled:opacity-35",
                         day === value
                           ? "bg-primary font-semibold text-primary-text hover:bg-primary-hover"

@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { useState } from "react";
+import { describe, expect, it, vi } from "vitest";
 
 import { Modal } from "@/components/ui/modal";
 
@@ -42,6 +43,44 @@ describe("Modal", () => {
       </Modal>,
     );
     expect(dialog).not.toHaveAttribute("open");
+  });
+
+  it("leaves a modal opened from inside it to answer its own Escape and Tab", async () => {
+    const outer = vi.fn();
+    function Nested() {
+      const [picking, setPicking] = useState(false);
+      return (
+        <Modal open onDismiss={outer} labelledBy="form">
+          <h2 id="form">New product</h2>
+          <button type="button" onClick={() => setPicking(true)}>
+            Change picture
+          </button>
+          <Modal open={picking} onDismiss={() => setPicking(false)} labelledBy="picker">
+            <h2 id="picker">Choose a picture</h2>
+            <button type="button">Cake</button>
+            <button type="button">Bread</button>
+          </Modal>
+        </Modal>
+      );
+    }
+    render(<Nested />);
+    vi.spyOn(HTMLElement.prototype, "getClientRects").mockReturnValue([{}] as unknown as DOMRectList);
+    const opener = screen.getByRole("button", { name: "Change picture" });
+    await userEvent.click(opener);
+    const picker = screen.getByRole("dialog", { name: "Choose a picture" });
+    expect(screen.getByRole("button", { name: "Cake" })).toHaveFocus();
+
+    // Tab goes round inside the picker, not the form it sits in.
+    screen.getByRole("button", { name: "Bread" }).focus();
+    await userEvent.tab();
+    expect(screen.getByRole("button", { name: "Cake" })).toHaveFocus();
+
+    await userEvent.keyboard("{Escape}");
+    expect(picker).not.toHaveAttribute("open");
+    expect(outer).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog", { name: "New product" })).toHaveAttribute("open");
+    expect(opener).toHaveFocus();
+    vi.restoreAllMocks();
   });
 
   it("rises rather than slides when asked", () => {
