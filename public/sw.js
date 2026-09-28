@@ -17,8 +17,7 @@
  * new release installs afresh and the old caches go.
  */
 const VERSION = new URL(self.location.href).searchParams.get("v") || "0";
-// "ovenly-", the app's name in code: a new prefix would leave every cache kept so far behind.
-const CACHE = `ovenly-static-${VERSION}`;
+const CACHE = `brio-static-${VERSION}`;
 const OFFLINE_URL = "/offline";
 
 /** The app's own files that never change once built, and may be kept. */
@@ -44,7 +43,9 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((names) => Promise.all(names.filter((name) => name.startsWith("ovenly-") && name !== CACHE).map((name) => caches.delete(name))))
+      // Every cache on this origin is the worker's own: an older release's, or
+      // one kept under an earlier name.
+      .then((names) => Promise.all(names.filter((name) => name !== CACHE).map((name) => caches.delete(name))))
       .then(() => self.clients.claim()),
   );
 });

@@ -36,7 +36,7 @@ describe("billDocument (§139.11.6)", () => {
         { label: "Balance due", amount: "₹780", emphasis: "strong" },
       ],
       thanks: "Thank you for your order!",
-      footer: { credit: "Made with Brio", host: "ovenly.app", href: "https://ovenly.app" },
+      footer: { credit: "Made with Brio", host: "brio.app", href: "https://brio.app" },
     });
   });
 

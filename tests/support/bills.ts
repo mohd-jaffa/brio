@@ -47,7 +47,7 @@ export function aBill(changes: Partial<Bill> = {}): Bill {
     payments: [{ method: "UPI", reference: "3248", amount: 50_000 }],
     paid: 50_000,
     balanceDue: 78_000,
-    appUrl: "https://ovenly.app",
+    appUrl: "https://brio.app",
     ...changes,
   };
 }

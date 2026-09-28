@@ -41,7 +41,7 @@ beforeEach(() => {
   images = [];
   window.sessionStorage.clear();
   root.removeAttribute("data-launch");
-  delete window.__ovenlyLaunch;
+  delete window.__brioLaunch;
   splash();
   vi.stubGlobal("requestAnimationFrame", (frame: FrameRequestCallback) => frames.push(frame));
   vi.stubGlobal(
@@ -83,7 +83,7 @@ describe("the launch script", () => {
   it("does nothing in a browser tab", () => {
     boot();
     expect(root).not.toHaveAttribute("data-launch");
-    expect(window.__ovenlyLaunch).toBeUndefined();
+    expect(window.__brioLaunch).toBeUndefined();
     expect(images).toHaveLength(0);
   });
 
@@ -125,8 +125,8 @@ describe("the launch script", () => {
     expect(shown()).toBeGreaterThan(60);
     expect(shown()).toBeLessThanOrEqual(69);
 
-    window.__ovenlyLaunch!.ready();
-    window.__ovenlyLaunch!.ready();
+    window.__brioLaunch!.ready();
+    window.__brioLaunch!.ready();
     run(600);
     expect(shown()).toBe(100);
     expect(root).toHaveAttribute("data-launch", "leaving");
@@ -140,7 +140,7 @@ describe("the launch script", () => {
     fontsReady.reject();
     await Promise.resolve();
     await Promise.resolve();
-    window.__ovenlyLaunch!.ready();
+    window.__brioLaunch!.ready();
     run(LAUNCH.min - 200);
     expect(root).toHaveAttribute("data-launch", "on");
     run(400);

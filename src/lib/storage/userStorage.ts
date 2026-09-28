@@ -6,7 +6,7 @@
  * clears all of it (src/features/auth/AuthProvider.tsx), so the next person to
  * use the device never sees it.
  */
-const PREFIX = "ovenly_user:";
+const PREFIX = "brio_user:";
 
 const keyFor = (userId: string, name: string) => `${PREFIX}${userId}:${name}`;
 

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "generatedAt": "2026-09-27T12:00:00+00:00",
-  "title": "Design System: Ovenly",
+  "title": "Design System: Brio",
   "extensions": {
     "colorMeta": {
       "toasted-caramel": {
@@ -450,7 +450,7 @@
   ],
   "narrative": {
     "northStar": "The Home Kitchen Ledger",
-    "overview": "Ovenly is a well-kept order book on a kitchen shelf: warm, homely materials holding figures you can trust. The ground is cream, the pages are oat paper, the ink is a deep crust brown, and the one thing that must be done next is set in espresso. It is warm, calm and exact. Warmth comes from the materials, never from noise; calm comes from restraint, with one strong voice per screen; exactness comes from measured contrast, tabular figures and money that is never a guess.\n\nControls are **soft and certain**: rounded, tinted and gently lifted, and never ambiguous about what can be tapped or where something stands. The owner meets these screens many times a day, often one-handed between batches, so density stays steady and the structure stays predictable. What is due and what is owed always leads.\n\nTwo themes share one vocabulary. **Golden** is caramel on warm cream; **Peach** is terracotta on blush. A screen names a role and the theme supplies the value, so the two can never drift apart.",
+    "overview": "Brio is a well-kept order book on a kitchen shelf: warm, homely materials holding figures you can trust. The ground is cream, the pages are oat paper, the ink is a deep crust brown, and the one thing that must be done next is set in espresso. It is warm, calm and exact. Warmth comes from the materials, never from noise; calm comes from restraint, with one strong voice per screen; exactness comes from measured contrast, tabular figures and money that is never a guess.\n\nControls are **soft and certain**: rounded, tinted and gently lifted, and never ambiguous about what can be tapped or where something stands. The owner meets these screens many times a day, often one-handed between batches, so density stays steady and the structure stays predictable. What is due and what is owed always leads.\n\nTwo themes share one vocabulary. **Golden** is caramel on warm cream; **Peach** is terracotta on blush. A screen names a role and the theme supplies the value, so the two can never drift apart.",
     "keyCharacteristics": [
       "Three warm tones carry depth: the cream ground, oat-paper cards and flour-well fields.",
       "Fraunces serif for titles and headline figures; Inter for everything you operate.",

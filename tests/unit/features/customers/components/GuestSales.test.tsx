@@ -61,7 +61,7 @@ describe("GuestSales", () => {
     answers["/api/guest-sales?range=LAST_7_DAYS"] = sales({ orders: 1, sales: 38000 });
     await choose("Period", "Last 7 days");
     expect(await screen.findByText("₹380")).toBeInTheDocument();
-    expect(localStorage.getItem("ovenly_range_guest-sales")).toContain("LAST_7_DAYS");
+    expect(localStorage.getItem("brio_range_guest-sales")).toContain("LAST_7_DAYS");
   });
 
   it("waits for both dates of a custom period before asking", async () => {

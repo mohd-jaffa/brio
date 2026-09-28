@@ -26,7 +26,7 @@ describe("the console's overview", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Overview" })).toBeInTheDocument();
     const me = screen.getByRole("region", { name: "Signed in as" });
     expect(me).toHaveTextContent("Brio Developer");
-    expect(me).toHaveTextContent("Developer · +91 91234 56789 · dev@ovenly.local");
+    expect(me).toHaveTextContent("Developer · +91 91234 56789 · dev@brio.local");
   });
 
   it("counts the platform: accounts, businesses and audit entries", async () => {

@@ -9,7 +9,7 @@ import { useEffect } from "react";
  */
 export function LaunchReady() {
   useEffect(() => {
-    window.__ovenlyLaunch?.ready();
+    window.__brioLaunch?.ready();
   }, []);
   return null;
 }

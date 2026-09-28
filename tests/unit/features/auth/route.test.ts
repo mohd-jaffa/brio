@@ -39,7 +39,7 @@ const session: AuthenticatedSession = {
   requiresPasswordChange: false,
 };
 
-const request = () => new Request("https://ovenly.test/api/auth/login", { method: "POST" });
+const request = () => new Request("https://brio.test/api/auth/login", { method: "POST" });
 
 describe("a route that issues a session", () => {
   it("sets both cookies", async () => {

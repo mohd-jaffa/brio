@@ -92,7 +92,7 @@ describe("reading a cookie back", () => {
   });
 
   it("does not mistake a cookie whose name merely ends the same way", () => {
-    expect(readCookie(headersWith("not_ovenly_access_token=abc"), ACCESS_TOKEN_COOKIE)).toBeNull();
+    expect(readCookie(headersWith("not_brio_access_token=abc"), ACCESS_TOKEN_COOKIE)).toBeNull();
   });
 
   it("decodes what serializing encoded", () => {

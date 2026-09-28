@@ -124,7 +124,7 @@ export const VALIDATION_MESSAGES = {
 /** The words on buttons, headings and empty states, so no screen invents its own. */
 export const UI_TEXT = {
   // The app's name and line (the user, 2026-09-28: "these are the logos of the
-  // app … change the app name and tagline"). Code keeps "ovenly".
+  // app … change the app name and tagline").
   appName: "Brio",
   appTagline: "Made by you. Managed simply.",
   /** What a browser tab, a search result and a shared link say of the app. */

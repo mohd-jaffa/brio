@@ -70,7 +70,7 @@ describe("Expenses", () => {
     answers["/api/expenses/summary?range=THIS_MONTH"] = aSummary();
     await choose("Period", "This month");
     expect(fetcher).toHaveBeenCalledWith("/api/expenses/summary?range=THIS_MONTH");
-    expect(JSON.parse(localStorage.getItem("ovenly_range_expenses")!)).toEqual({ preset: "THIS_MONTH" });
+    expect(JSON.parse(localStorage.getItem("brio_range_expenses")!)).toEqual({ preset: "THIS_MONTH" });
 
     answers["/api/expenses/summary?range=THIS_MONTH&interval=WEEK"] = aSummary({ interval: "WEEK" });
     await screen.findByRole("combobox", { name: "Group by" });

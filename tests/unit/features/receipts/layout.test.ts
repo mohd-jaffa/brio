@@ -35,7 +35,7 @@ describe("layoutBill", () => {
     expect(order.indexOf("Billed to")).toBeGreaterThan(order.indexOf("BILL"));
     expect(order.indexOf("Red Velvet Cupcakes (Box of 6)")).toBeGreaterThan(order.indexOf("Map link"));
     expect(order.indexOf("Balance due")).toBeGreaterThan(order.indexOf("“Happy birthday, Anu”"));
-    expect(order.at(-1)).toBe("ovenly.app");
+    expect(order.at(-1)).toBe("brio.app");
 
     for (const amount of ["₹1,150", "₹1,280", "₹780", "26 Sep 2026"]) {
       const op = textOf(ops, amount)!;
@@ -49,11 +49,11 @@ describe("layoutBill", () => {
   it("links the map and the footer only where a link can be followed", () => {
     const linked = layoutBill(billDocument(aBill()), measure, { links: true }).ops;
     expect(textOf(linked, "Map link")).toMatchObject({ link: "https://maps.app.goo.gl/meena" });
-    expect(textOf(linked, "ovenly.app")).toMatchObject({ link: "https://ovenly.app" });
+    expect(textOf(linked, "brio.app")).toMatchObject({ link: "https://brio.app" });
 
     const flat = layoutBill(billDocument(aBill()), measure, { links: false }).ops;
     expect(textOf(flat, "Map link")).toBeUndefined();
-    expect(textOf(flat, "ovenly.app")).not.toHaveProperty("link");
+    expect(textOf(flat, "brio.app")).not.toHaveProperty("link");
   });
 
   it("sets an estimate on a band in the theme's colour, with no number", () => {

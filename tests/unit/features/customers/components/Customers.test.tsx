@@ -93,14 +93,14 @@ describe("Customers: the list", () => {
   });
 
   it("names a custom period by its dates, and waits for both before asking", async () => {
-    localStorage.setItem("ovenly_range_guest-sales", JSON.stringify({ preset: "CUSTOM", from: "2026-09-01", to: "2026-09-10" }));
+    localStorage.setItem("brio_range_guest-sales", JSON.stringify({ preset: "CUSTOM", from: "2026-09-01", to: "2026-09-10" }));
     answers["/api/guest-sales?range=CUSTOM&from=2026-09-01&to=2026-09-10"] = guest({ period: { from: "2026-09-01", to: "2026-09-10" } });
     const { unmount } = open();
     const pinned = await screen.findByRole("list", { name: "Guest sales for the period" });
     await waitFor(() => expect(pinned).toHaveTextContent("1 Sep – 10 Sep"));
     unmount();
 
-    localStorage.setItem("ovenly_range_guest-sales", JSON.stringify({ preset: "CUSTOM", from: "2026-09-01" }));
+    localStorage.setItem("brio_range_guest-sales", JSON.stringify({ preset: "CUSTOM", from: "2026-09-01" }));
     fetcher.mockClear();
     open();
     await list();

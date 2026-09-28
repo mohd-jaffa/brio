@@ -1,6 +1,6 @@
 # Brio — Home Business Management Platform
 
-*Made by you. Managed simply.* The code and the repository keep the name `ovenly`.
+*Made by you. Managed simply.*
 
 A mobile-first management app for home bakers: orders, customers, products,
 stock, expenses and bills.

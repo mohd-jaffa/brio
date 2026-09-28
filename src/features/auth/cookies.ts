@@ -10,8 +10,8 @@ import type { AuthenticatedSession } from "./types";
  * baker's cookies attached; Secure is set outside development so the pair is
  * never sent over plain HTTP.
  */
-export const ACCESS_TOKEN_COOKIE = "ovenly_access_token";
-export const REFRESH_TOKEN_COOKIE = "ovenly_refresh_token";
+export const ACCESS_TOKEN_COOKIE = "brio_access_token";
+export const REFRESH_TOKEN_COOKIE = "brio_refresh_token";
 
 /** How long a signed-in baker stays signed in without re-entering a password. */
 export const REFRESH_TOKEN_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;

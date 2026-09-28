@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ============================================================
-   OVENLY DESIGN TOKENS — Golden and Peach (plan §139.4)
+   BRIO DESIGN TOKENS — Golden and Peach (plan §139.4)
 
    One vocabulary for the whole app. A screen never picks a colour; it
    names a role, and the theme on <html data-theme> decides the value.
@@ -17,7 +17,7 @@
    and fetches the extended files only for a letter that needs them
    (src/assets/fonts/README.md). */
 @font-face {
-  font-family: "Ovenly Rupee Sans";
+  font-family: "Brio Rupee Sans";
   src: url("../assets/fonts/rupee-inter.woff2") format("woff2");
   font-weight: 100 900;
   font-display: swap;
@@ -25,7 +25,7 @@
 }
 
 @font-face {
-  font-family: "Ovenly Rupee Serif";
+  font-family: "Brio Rupee Serif";
   src: url("../assets/fonts/rupee-fraunces.woff2") format("woff2");
   font-weight: 100 900;
   font-display: swap;
@@ -240,9 +240,9 @@
 
   /* Fraunces for display, Inter for everything you operate (plan §137.4);
      each led by its rupee glyph (above). */
-  --font-heading: "Ovenly Rupee Serif", var(--font-heading);
-  --font-body: "Ovenly Rupee Sans", var(--font-body);
-  --font-display: "Ovenly Rupee Serif", var(--font-heading);
+  --font-heading: "Brio Rupee Serif", var(--font-heading);
+  --font-body: "Brio Rupee Sans", var(--font-body);
+  --font-display: "Brio Rupee Serif", var(--font-heading);
 
   --shadow-card: var(--shadow-card);
   --shadow-elevated: var(--shadow-elevated);
@@ -256,7 +256,7 @@
     background-color: var(--color-background);
     color: var(--color-text);
     font-family:
-      "Ovenly Rupee Sans",
+      "Brio Rupee Sans",
       var(--font-body),
       system-ui,
       -apple-system,
@@ -276,7 +276,7 @@
   h5,
   h6 {
     font-family:
-      "Ovenly Rupee Serif",
+      "Brio Rupee Serif",
       var(--font-heading),
       system-ui,
       -apple-system,

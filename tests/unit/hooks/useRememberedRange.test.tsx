@@ -22,11 +22,11 @@ describe("useRememberedRange", () => {
   });
 
   it("starts fresh from something it cannot read", () => {
-    localStorage.setItem("ovenly_range_analytics", "{broken");
+    localStorage.setItem("brio_range_analytics", "{broken");
     expect(renderHook(() => useRememberedRange("analytics")).result.current[0].preset).toBe("LAST_30_DAYS");
-    localStorage.setItem("ovenly_range_analytics", JSON.stringify({ preset: "LAST_YEAR" }));
+    localStorage.setItem("brio_range_analytics", JSON.stringify({ preset: "LAST_YEAR" }));
     expect(renderHook(() => useRememberedRange("analytics")).result.current[0].preset).toBe("LAST_30_DAYS");
-    localStorage.setItem("ovenly_range_analytics", JSON.stringify({ from: "2026-09-01" }));
+    localStorage.setItem("brio_range_analytics", JSON.stringify({ from: "2026-09-01" }));
     expect(renderHook(() => useRememberedRange("analytics")).result.current[0].preset).toBe("LAST_30_DAYS");
   });
 
@@ -40,7 +40,7 @@ describe("useRememberedRange", () => {
   });
 
   it("draws the default where storage cannot be seen — the server, and hydration — so the two agree", () => {
-    localStorage.setItem("ovenly_range_analytics", JSON.stringify({ preset: "LAST_7_DAYS" }));
+    localStorage.setItem("brio_range_analytics", JSON.stringify({ preset: "LAST_7_DAYS" }));
     function Period() {
       return <output>{useRememberedRange("analytics")[0].preset}</output>;
     }
@@ -50,8 +50,8 @@ describe("useRememberedRange", () => {
   it("follows a choice made in another tab", () => {
     const { result } = renderHook(() => useRememberedRange("expenses"));
     act(() => {
-      localStorage.setItem("ovenly_range_expenses", JSON.stringify({ preset: "LAST_MONTH" }));
-      window.dispatchEvent(new StorageEvent("storage", { key: "ovenly_range_expenses" }));
+      localStorage.setItem("brio_range_expenses", JSON.stringify({ preset: "LAST_MONTH" }));
+      window.dispatchEvent(new StorageEvent("storage", { key: "brio_range_expenses" }));
     });
     expect(result.current[0].preset).toBe("LAST_MONTH");
   });

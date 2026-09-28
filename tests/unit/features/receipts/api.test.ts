@@ -17,7 +17,7 @@ vi.mock("@/features/business/api", () => ({ getBusiness, readLogo }));
 vi.mock("@/features/receipts/pdf", () => ({ billPdf }));
 vi.mock("sharp", () => ({ default: (input: Buffer) => ({ png: () => ({ toBuffer: () => toPng(input) }) }) }));
 vi.mock("@/lib/logger", () => ({ logger: { info: vi.fn(), warn, error: vi.fn() } }));
-vi.mock("@/lib/env/server", () => ({ getServerEnv: () => ({ NEXT_PUBLIC_APP_URL: "https://ovenly.app" }) }));
+vi.mock("@/lib/env/server", () => ({ getServerEnv: () => ({ NEXT_PUBLIC_APP_URL: "https://brio.app" }) }));
 
 import { getBill, getBillPdf } from "@/features/receipts/api";
 
@@ -49,7 +49,7 @@ describe("getBill", () => {
       billedTo: { kind: "CUSTOMER", name: "Meena Gupta" },
       business: { name: "Sweet Delights Home Bakery" },
       payments: [{ method: "CASH", amount: 50000 }],
-      appUrl: "https://ovenly.app",
+      appUrl: "https://brio.app",
     });
   });
 

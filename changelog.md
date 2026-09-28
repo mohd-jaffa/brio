@@ -587,7 +587,7 @@ references supplied for sign-in and register. Plan §138 records the build and
 ### Blockers
 - None new.
 
-## 2026-09-24 — Ovenly v2 Planned: Redesign, Wider Audience, Android (plan §139)
+## 2026-09-24 — Brio v2 Planned: Redesign, Wider Audience, Android (plan §139)
 
 **Planning only — no code, schema or configuration changed.** Eleven new
 references were reviewed; they are in `design-references/` (gitignored, not
@@ -969,7 +969,7 @@ entry grows with them.
     - the auth headlines and promise ("Good bakes start here.") with the auth screens (R2.8);
     - the "Baker" role label with the role rename (R2.2);
     - "Baking" becoming "Preparing" with the statuses (R3.11);
-    - the receipt's hard-coded "Ovenly Bakery" with the bill's view-model (R4.1);
+    - the receipt's hard-coded "Brio Bakery" with the bill's view-model (R4.1);
     - the units with Products (R5.6);
     - moving each screen's own strings into the catalogue (R5.14).
 - **Fixed: Create order's checkout bar sat over the rail.** It meant to clear the old 256 px sidebar with `md:pl-64`, but its `safe-x` helper is unlayered and wins over padding utilities (R1.6), so it never did. On an 820 px tablet its content began at 26 px, over the new 72 px rail. It now starts where the rail or the sidebar ends (`left`, with the safe inset), measured at 88 px on a tablet and 380 px on a desktop. The cart bar replaces it in R3.9.
@@ -1022,7 +1022,7 @@ Each lands on its own commit; this entry grows with them.
   - **Code:** `SearchField` loses its `global` variant (⌘K, the shortcut hint), which only the top bar was to use, along with its three tests. The shell's note no longer promises search.
 
 ### Added — the business's own name and logo (R2.6, R2.7; plan §139.11.2, §56, §118)
-Phase 2 rows, built now because the user asked for the proposal and it matches the plan. The shell showed the app's name, "Ovenly · Home Business", because the business profile could not be read or edited, and no logo could be uploaded (§133.2 B1–B3).
+Phase 2 rows, built now because the user asked for the proposal and it matches the plan. The shell showed the app's name, "Brio · Home Business", because the business profile could not be read or edited, and no logo could be uploaded (§133.2 B1–B3).
 
 - **Migration `0008_business_profile.sql`.**
   - `bakeries.tagline` (the catch phrase, ≤ 80) and `bakeries.city` (2–80) are new. They are nullable because businesses registered before them have none; registration asks for them from R2.4.
@@ -1066,7 +1066,7 @@ Phase 2 rows, built now because the user asked for the proposal and it matches t
   - its logo, fitted inside a round frame rather than cropped, and fetched at once because it tops every screen;
   - its name, with the full name on hover when it is cut short;
   - its catch phrase.
-  - **Fallbacks.** A quiet placeholder while loading, so the header does not flash "Ovenly". The app's name and line if the profile cannot be loaded. The cake mark with no logo or a logo that fails to load, never a broken image, and "Home Business" with no catch phrase.
+  - **Fallbacks.** A quiet placeholder while loading, so the header does not flash "Brio". The app's name and line if the profile cannot be loaded. The cake mark with no logo or a logo that fails to load, never a broken image, and "Home Business" with no catch phrase.
   - The profile is read once and shared by every part of the shell. It is not re-read on focus, and an edit refreshes it.
 - **Copy:** the account card said "Your bakery's own details are above", now "business".
 - **Tests:** 74 new.
@@ -1086,7 +1086,7 @@ Phase 2 rows, built now because the user asked for the proposal and it matches t
   - Home, Business details, Settings and Create order at 360, 390, 820 and 1280 px, in Golden and Peach (32 captures): the business's name and logo on every one, no sideways scroll, no console errors.
 - **Deliberately not here:**
   - Registration asking for the catch phrase, city and address is R2.4.
-  - The bill printing this header replaces the hard-coded "Ovenly Bakery" with R4.1 (§133.2 B4).
+  - The bill printing this header replaces the hard-coded "Brio Bakery" with R4.1 (§133.2 B4).
   - `next_order_number`, listed in the plan's `_business_profile` migration, lands with R3.2, which uses it, so no column sits unused.
   - OpenAPI has no document yet (§133.11 K1); these endpoints join it when it is written.
 
@@ -1184,7 +1184,7 @@ Each row is committed on its own; this entry grows with them.
   - **The password-reset email stays inline, deliberately.** It carries the temporary password, and a queued job would keep that password in the database in plain text (AGENTS §9).
   - **Checked end to end:**
     - A new account registered through the API. At that point the queue held one pending job carrying only its user id, and Mailpit held no email.
-    - `npm run worker` sent it: one "Confirm your Ovenly account" to the new address.
+    - `npm run worker` sent it: one "Confirm your Brio account" to the new address.
     - The link, opened in a browser, confirmed the account (`email_confirmed_at` set), and Settings stopped offering Resend.
     - Marked unconfirmed again, the account pressed Resend in Settings and saw the card. Two more requests left **one** job queued.
     - The confirmed demo account was refused.
@@ -1244,7 +1244,7 @@ Each row is committed on its own; this entry grows with them.
 - **The phase's exit test, end to end in a browser** (plan §139.18): "a new user registers with every field, edits their business, and the confirmation arrives through the queue."
   - At 390 px, "Nisha Kapoor" registered "Bloom Room · Flowers for every day · Chennai · 3 Beach Road, Besant Nagar" across the two steps.
   - She signed in. Business details showed what she had registered. She changed the catch phrase, and the header read "Bloom Room / Fresh flowers, every morning" at once. The audit row reads "UPDATE bakeries by Nisha Kapoor".
-  - The queue held one pending confirmation. `npm run worker` completed it on the first attempt, and one "Confirm your Ovenly account" reached her address in Mailpit.
+  - The queue held one pending confirmation. `npm run worker` completed it on the first attempt, and one "Confirm your Brio account" reached her address in Mailpit.
   - No errors. The test account was removed afterwards.
 - **Captured at every width in both themes:**
   - Settings, with Resend, at 360, 390, 820 and 1280 px: 8 captures, no sideways scroll.
@@ -1517,13 +1517,13 @@ this entry grows with them.
 
 ### Added
 - **The bill view-model (R4.1, `src/features/receipts`).** `GET /api/orders/{id}/bill` replaces `/receipt`.
-  - **What it carries:** the order, its payments, its customer (or Guest) and the **business profile**, so no bill says "Ovenly Bakery" any more (§133.2 B4).
+  - **What it carries:** the order, its payments, its customer (or Guest) and the **business profile**, so no bill says "Brio Bakery" any more (§133.2 B4).
   - **The estimate:** the browser builds the same shape from `POST /api/orders/preview` and the business.
   - **Wording:** one document (`document.ts`) writes the bill out in words, and all three renderings draw it. These are the screen, the image and the PDF, so they cannot disagree.
 - **The bill on screen (R4.2, R4.6, R4.7).** `BillView` sits in a real dialog, `BillSheet`, with a heading, and reads in order to a screen reader.
   - **Look:** white paper with near-black ink in either theme. The theme's primary shows only in the header rule and the total. Business and total are in Fraunces, and money uses tabular figures.
   - **Wording:** payment methods and delivery types appear as their labels, not enums (BUG-27). Tax appears only when there is some. Internal notes never appear.
-  - **Footer:** "Made with Ovenly · {host of NEXT_PUBLIC_APP_URL}".
+  - **Footer:** "Made with Brio · {host of NEXT_PUBLIC_APP_URL}".
   - **Tokens:** new paper tokens `--color-paper`, `--color-ink`, `--color-ink-muted` and `--color-paper-rule`. A test holds the image and PDF palette (`palette.ts`) to them.
 - **Share (R4.4).** **Share** sits inside the bill where Print used to be (the user).
   - **What it sends:** a PNG of the bill with a one-line caption. Web Share hands them to Android's share sheet, and so to WhatsApp.
@@ -2166,7 +2166,7 @@ this entry grows with them.
 - **`PRODUCT.md`** at the root, through `/impeccable init`: the product record that Impeccable's design work reads. It covers users, purpose, positioning, operating context, capabilities and constraints, brand commitments, evidence on hand, principles and accessibility.
 - **The user's answers:**
   - the owner runs the business from the phone day to day, and sits down at a desk weekly for accounts and analytics, so desktop matters as much as the phone;
-  - Ovenly replaces WhatsApp with a notebook, general billing apps and spreadsheets;
+  - Brio replaces WhatsApp with a notebook, general billing apps and spreadsheets;
   - it launches publicly on the Play Store, with no users or testimonials yet, and none may be invented.
 - **Drawn from the plan and marked as such:** the out-of-scope list (Q7), the open decisions (Q9, Q10, Q16) and the platform. The platform is `web`: the Android app wraps the same web app.
 
@@ -2644,7 +2644,7 @@ The user's list, following the audit and the loading measurements: remove the 0.
   - a signed-in user could not call it.
 - **Running app, local Supabase:**
   - with two orders made untold, opening the app raised "Due soon: ORD-1001 for Guest is due today." and "Overdue: #1002 for Rahul Verma was due on 25 Sep.", each leading to its order, and the bell showed 2 unread;
-  - a registration through the API sent "Confirm your Ovenly account" to the new address at once (the local mail catcher), and queued no job.
+  - a registration through the API sent "Confirm your Brio account" to the new address at once (the local mail catcher), and queued no job.
   - Both were put back afterwards: the throwaway account, its email and the two notices removed, and the orders' stamps restored.
 - **Checks:** `tsc` and `eslint` pass. The full suite passes (2,027 tests), and every new and changed file is at 100 % except the worker's command-line start, which was uncovered before.
 
@@ -2719,8 +2719,8 @@ The user's list, following the audit and the loading measurements: remove the 0.
 ## 2026-09-27 — Phase 7: the installable app
 
 ### Added
-- **The manifest** (`src/app/manifest.ts`; R7.1): "Ovenly", standalone from `/`, Golden's ground for the splash and the status bar. The **icons** are the brand mark in cream on caramel — 192 and 512 px, and a maskable 512 px — built by `scripts/app-icons.mjs` (`npm run app-icons`). The iOS home-screen icon is `src/app/apple-icon.png`.
-- **iOS home-screen settings:** home-screen capable, titled "Ovenly", under a `black-translucent` status bar (§139.8).
+- **The manifest** (`src/app/manifest.ts`; R7.1): "Brio", standalone from `/`, Golden's ground for the splash and the status bar. The **icons** are the brand mark in cream on caramel — 192 and 512 px, and a maskable 512 px — built by `scripts/app-icons.mjs` (`npm run app-icons`). The iOS home-screen icon is `src/app/apple-icon.png`.
+- **iOS home-screen settings:** home-screen capable, titled "Brio", under a `black-translucent` status bar (§139.8).
 - **The service worker** (`public/sw.js`; R7.2). It runs in the browser; nothing more is hosted for it.
   - It keeps Next's hashed files, the bill's fonts and the icons, from the cache first.
   - It keeps `/offline`, fetched without cookies, so it holds nothing of whoever was signed in.
@@ -2889,7 +2889,7 @@ The user's list, following the audit and the loading measurements: remove the 0.
 ## 2026-09-28 — The app is Brio
 
 ### Changed
-- **The name and the line** (the user: "these are the logos of the app. use it where needed. and also change the app name and tagline whereever needed"). The app is **Brio**, with the line **"Made by you. Managed simply."**, in place of Ovenly and "Home Business". It appears in:
+- **The name and the line** (the user: "these are the logos of the app. use it where needed. and also change the app name and tagline whereever needed"). The app is **Brio**, with the line **"Made by you. Managed simply."**, in place of the old name and "Home Business". It appears in:
   - the browser's title and the installed app's name;
   - the sign-in screens ("New to Brio?");
   - the bill's footer ("Made with Brio");
@@ -2897,7 +2897,7 @@ The user's list, following the audit and the loading measurements: remove the 0.
   - the install steps and the offline page;
   - the developer console, and the seed's developer (now "Brio Developer").
 - **A business with no catch phrase** now shows "Home business" under its name, no longer the app's line (`UI_TEXT.businessLine`).
-- **The code keeps `ovenly`,** so renaming signs no one out and loses no setting: the repository, the package, the service worker's cache names, `ovenly_theme` and the other keys a device keeps, the fonts' internal names, and the Supabase project id.
+- **The code kept its old name for now,** so renaming signed no one out and lost no setting. It was renamed the same day (“Everything says brio”, below).
 
 ### Added
 - **The marks** (`scripts/brand.mjs`, `npm run brand`, replacing `app-icons.mjs`), built from the four files supplied, which stay uncommitted in `design-references/brand/`:
@@ -3026,3 +3026,28 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - **App Links** need the production domain and the Play signing key's SHA-256 fingerprint.
+
+## 2026-09-28 — Everything says brio
+
+### Changed
+- **The code takes the new name too** (the user: "make sure everything will be updated to new name and tagline throughout the codebase including the docs"). The earlier choice to keep the old name in code is undone:
+  - the package (`brio`) and the local Supabase project id (`brio`);
+  - the session cookies (`brio_access_token`, `brio_refresh_token`);
+  - the keys a device keeps (`brio_theme`, `brio_range_*`, `brio_user:*`), the launch splash's key and hook (`brio_launched`, `__brioLaunch`) and the in-page events;
+  - the service worker's cache (`brio-static-*`), the ₹ fonts' family names (`Brio Rupee Sans`, `Brio Rupee Serif`) and the bill's canvas fonts;
+  - the seed's developer (`dev@brio.local`), and the test fixtures;
+  - AGENTS.md, the plan, PRODUCT.md, DESIGN.md, the README, `.impeccable/design.json` and this changelog.
+- **The service worker clears every cache but its own** as it takes charge, not only those under its prefix, so a device that installed the app under the old name is left with nothing stale.
+- **The fonts' README** said the cut ₹ files carry their own family names inside them. They keep Inter's and Fraunces' own; the app loads them under its names in `globals.css`.
+
+### Migration notes
+- **Everyone is signed out once** (the cookies' names changed), and what a device kept resets once: the theme, remembered date ranges and an order being built.
+- **The local Supabase stack** now runs as `supabase_*_brio`. Its data came across: the old volumes were copied to the new names before it started, and the local developer's email was moved to `dev@brio.local`. The old `supabase_*_ovenly` volumes are left as a backup.
+- **Still under the old name, outside the code:** the GitHub repository's address (and the push recorded on 2026-09-21) until it is renamed on GitHub, and the project's folder.
+
+### Validation
+- `tsc` and `eslint` pass, and the full suite passes (2,200 tests).
+- Local Supabase started from the copied volumes with all 29 migrations and its data.
+
+### Blockers
+- None.

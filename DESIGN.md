@@ -57,45 +57,45 @@ colors:
   scrim: "#140c0873"
 typography:
   display:
-    fontFamily: "Ovenly Rupee Serif, Fraunces, Georgia, serif"
+    fontFamily: "Brio Rupee Serif, Fraunces, Georgia, serif"
     fontSize: "2.75rem"
     fontWeight: 600
     lineHeight: 1.04
     letterSpacing: "-0.035em"
   headline:
-    fontFamily: "Ovenly Rupee Serif, Fraunces, Georgia, serif"
+    fontFamily: "Brio Rupee Serif, Fraunces, Georgia, serif"
     fontSize: "1.75rem"
     fontWeight: 500
     lineHeight: 1.25
     letterSpacing: "-0.025em"
   title:
-    fontFamily: "Ovenly Rupee Serif, Fraunces, Georgia, serif"
+    fontFamily: "Brio Rupee Serif, Fraunces, Georgia, serif"
     fontSize: "1.125rem"
     fontWeight: 500
     lineHeight: 1.4
   figure:
-    fontFamily: "Ovenly Rupee Serif, Fraunces, Georgia, serif"
+    fontFamily: "Brio Rupee Serif, Fraunces, Georgia, serif"
     fontSize: "1.5rem"
     fontWeight: 500
     lineHeight: 1.33
     fontFeature: "\"tnum\" 1"
   body:
-    fontFamily: "Ovenly Rupee Sans, Inter, system-ui, sans-serif"
+    fontFamily: "Brio Rupee Sans, Inter, system-ui, sans-serif"
     fontSize: "0.875rem"
     fontWeight: 400
     lineHeight: 1.43
   body-strong:
-    fontFamily: "Ovenly Rupee Sans, Inter, system-ui, sans-serif"
+    fontFamily: "Brio Rupee Sans, Inter, system-ui, sans-serif"
     fontSize: "0.875rem"
     fontWeight: 600
     lineHeight: 1.43
   label:
-    fontFamily: "Ovenly Rupee Sans, Inter, system-ui, sans-serif"
+    fontFamily: "Brio Rupee Sans, Inter, system-ui, sans-serif"
     fontSize: "0.75rem"
     fontWeight: 500
     lineHeight: 1.33
   lockup:
-    fontFamily: "Ovenly Rupee Sans, Inter, system-ui, sans-serif"
+    fontFamily: "Brio Rupee Sans, Inter, system-ui, sans-serif"
     fontSize: "0.7rem"
     fontWeight: 600
     lineHeight: 1.7
@@ -271,7 +271,7 @@ A warm, low-chroma kitchen palette. One caramel (or terracotta) voice does the p
 
 **Display Font:** Fraunces (with Georgia, serif), a variable serif with its optical-size axis on (its soft and wonky axes are not loaded).
 **Body Font:** Inter (with system-ui, sans-serif).
-**The rupee sign:** each face's ₹ ships as its own 1–2 KB file (Ovenly Rupee Serif and Ovenly Rupee Sans, cut from Fraunces and Inter, SIL OFL). It heads each stack, covering U+20B9 only, so a screen with money does not download a whole extended character set for one glyph. It looks exactly like the face it was cut from.
+**The rupee sign:** each face's ₹ ships as its own 1–2 KB file (Brio Rupee Serif and Brio Rupee Sans, cut from Fraunces and Inter, SIL OFL). It heads each stack, covering U+20B9 only, so a screen with money does not download a whole extended character set for one glyph. It looks exactly like the face it was cut from.
 
 **Character:** Fraunces brings the warmth of a handwritten ledger heading; Inter keeps every control crisp and legible at 14 px.
 

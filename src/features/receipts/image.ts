@@ -16,10 +16,10 @@ import type { Bill } from "./types";
 
 /** The family each face is registered under, apart from the page's own fonts. */
 const FAMILIES: Record<BillFace, string> = {
-  serif: "Ovenly Bill Serif",
-  sans: "Ovenly Bill Sans",
-  sansBold: "Ovenly Bill Sans Bold",
-  sansItalic: "Ovenly Bill Sans Italic",
+  serif: "Brio Bill Serif",
+  sans: "Brio Bill Sans",
+  sansBold: "Brio Bill Sans Bold",
+  sansItalic: "Brio Bill Sans Italic",
 };
 
 /** iOS will not draw a canvas larger than this many pixels. */

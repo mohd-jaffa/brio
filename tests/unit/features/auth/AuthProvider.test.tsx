@@ -171,15 +171,15 @@ describe("signing in and out", () => {
 
   it("clears what the device kept for the account — an order half built — but not the theme", async () => {
     fetcher.mockResolvedValue(TEST_SESSION);
-    localStorage.setItem("ovenly_user:u-1:order_draft", "{}");
-    localStorage.setItem("ovenly_theme", "peach");
+    localStorage.setItem("brio_user:u-1:order_draft", "{}");
+    localStorage.setItem("brio_theme", "peach");
 
     const { result } = session();
     await waitFor(() => expect(result.current.status).toBe("authenticated"));
     await result.current.signOut();
 
-    expect(localStorage.getItem("ovenly_user:u-1:order_draft")).toBeNull();
-    expect(localStorage.getItem("ovenly_theme")).toBe("peach");
+    expect(localStorage.getItem("brio_user:u-1:order_draft")).toBeNull();
+    expect(localStorage.getItem("brio_theme")).toBe("peach");
     localStorage.clear();
   });
 

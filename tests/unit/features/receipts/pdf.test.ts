@@ -54,7 +54,7 @@ describe("billPdf (§139.11.6, §133.8 H1)", () => {
     expect(pages(pdf)).toBe(1);
     expect(raw).toContain("/MediaBox [0 0 419.53 595.28]");
     expect(raw).toMatch(/\/URI \(https:\/\/maps\.app\.goo\.gl\/meena\)/);
-    expect(raw).toMatch(/\/URI \(https:\/\/ovenly\.app\)/);
+    expect(raw).toMatch(/\/URI \(https:\/\/brio\.app\)/);
     expect(raw).toContain("Inter");
     expect(raw).toContain("Fraunces");
     expect(raw).not.toContain("Helvetica");

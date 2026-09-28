@@ -13,7 +13,7 @@ export const LAUNCH = {
   /** The splash element; its bar is `${id}-bar`, its track `${id}-track`. */
   id: "launch-splash",
   /** Set in this launch's session storage once it has shown. */
-  key: "ovenly_launched",
+  key: "brio_launched",
   /** The Android app adds this to its user agent (capacitor.config.ts). */
   agent: "BrioAndroid",
   min: 900,
@@ -24,14 +24,14 @@ export const LAUNCH = {
   steps: { page: 0.3, fonts: 0.15, art: 0.2, app: 0.35 },
 } as const;
 
-/** What `LaunchReady` calls once the app has come to life (`window.__ovenlyLaunch`). */
+/** What `LaunchReady` calls once the app has come to life (`window.__brioLaunch`). */
 export interface LaunchControl {
   ready: () => void;
 }
 
 declare global {
   interface Window {
-    __ovenlyLaunch?: LaunchControl;
+    __brioLaunch?: LaunchControl;
   }
 }
 
@@ -68,7 +68,7 @@ w.requestAnimationFrame(frame);}
 var art=new Image();art.onload=art.onerror=function(){reach("art");};
 art.src=w.matchMedia&&w.matchMedia("(orientation: landscape)").matches?c.landscape:c.portrait;
 new Image().src=c.wordmark;
-w.__ovenlyLaunch={ready:function(){reach("app");}};
+w.__brioLaunch={ready:function(){reach("app");}};
 if(d.readyState==="loading")d.addEventListener("DOMContentLoaded",function(){reach("page");});else reach("page");
 if(d.fonts&&d.fonts.ready)d.fonts.ready.then(function(){reach("fonts");},function(){reach("fonts");});else reach("fonts");
 w.requestAnimationFrame(frame);

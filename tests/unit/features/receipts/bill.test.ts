@@ -6,7 +6,7 @@ import { billFileName, estimateBill, orderBill } from "@/features/receipts/bill"
 import { aBusiness } from "@tests/support/bills";
 import { anOrder, aPayment } from "@tests/support/orders";
 
-const appUrl = "https://ovenly.app";
+const appUrl = "https://brio.app";
 
 describe("orderBill (§139.11.6)", () => {
   it("is the order as its customer reads it, from the business's own profile", () => {

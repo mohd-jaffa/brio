@@ -33,7 +33,7 @@ const estimate: OrderEstimate = {
 };
 
 beforeEach(() => {
-  vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://ovenly.app");
+  vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://brio.app");
   fetcher.mockResolvedValue(aBusiness());
   useBillShare.mockReturnValue({ share, sharing: false });
 });
@@ -54,7 +54,7 @@ describe("EstimateBill (§139.11.5)", () => {
     const sheet = screen.getByRole("dialog", { name: "Estimate" });
     const bill = await within(sheet).findByRole("article", { name: "Estimate · not yet confirmed" });
     expect(bill).toHaveTextContent("Sweet Delights Home Bakery");
-    expect(bill).toHaveTextContent("Made with Brio · ovenly.app");
+    expect(bill).toHaveTextContent("Made with Brio · brio.app");
     expect(useBillShare).toHaveBeenLastCalledWith(expect.objectContaining({ kind: "ESTIMATE", orderNumber: null }));
 
     await userEvent.click(within(sheet).getByRole("button", { name: "Share" }));

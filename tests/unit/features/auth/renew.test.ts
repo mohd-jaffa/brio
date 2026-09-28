@@ -14,9 +14,9 @@ vi.mock("@/lib/supabase/server", () => ({
 const { renewSession } = await import("@/features/auth/renew");
 
 function pageRequest(path = "/orders?status=PENDING") {
-  const request = new NextRequest(new URL(path, "https://ovenly.test"));
+  const request = new NextRequest(new URL(path, "https://brio.test"));
   request.cookies.set(REFRESH_TOKEN_COOKIE, "refresh-old");
-  request.cookies.set("ovenly_theme", "peach");
+  request.cookies.set("brio_theme", "peach");
   return request;
 }
 
@@ -39,7 +39,7 @@ describe("renewSession", () => {
     const forwarded = response.headers.get("x-middleware-request-cookie") ?? "";
     expect(forwarded).toContain(`${ACCESS_TOKEN_COOKIE}=access-new`);
     expect(forwarded).toContain(`${REFRESH_TOKEN_COOKIE}=refresh-new`);
-    expect(forwarded).toContain("ovenly_theme=peach");
+    expect(forwarded).toContain("brio_theme=peach");
     expect(forwarded).not.toContain("refresh-old");
     expect(response.headers.get("location")).toBeNull();
   });
@@ -47,7 +47,7 @@ describe("renewSession", () => {
   it("renews a request that carries no other cookie", async () => {
     refreshSession.mockResolvedValue({ accessToken: "access-new", refreshToken: "refresh-new", expiresAt: null });
 
-    const response = await renewSession(new NextRequest(new URL("/", "https://ovenly.test")), "refresh-old");
+    const response = await renewSession(new NextRequest(new URL("/", "https://brio.test")), "refresh-old");
 
     expect(response.headers.get("x-middleware-request-cookie")).toBe(
       `${ACCESS_TOKEN_COOKIE}=access-new; ${REFRESH_TOKEN_COOKIE}=refresh-new`,
@@ -64,7 +64,7 @@ describe("renewSession", () => {
     const location = new URL(response.headers.get("location")!);
     expect(location.pathname + location.search).toBe("/login?next=%2Forders%3Fstatus%3DPENDING");
     expect(response.headers.getSetCookie()).toEqual(
-      expect.arrayContaining([expect.stringMatching(/^ovenly_access_token=; .*Max-Age=0/), expect.stringMatching(/^ovenly_refresh_token=; .*Max-Age=0/)]),
+      expect.arrayContaining([expect.stringMatching(/^brio_access_token=; .*Max-Age=0/), expect.stringMatching(/^brio_refresh_token=; .*Max-Age=0/)]),
     );
   });
 

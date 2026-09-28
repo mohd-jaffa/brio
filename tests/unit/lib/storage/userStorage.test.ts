@@ -16,7 +16,7 @@ afterEach(() => {
 describe("what the device keeps for a user", () => {
   it("keeps a value under the user's own key, and gives it back", () => {
     writeUserItem("u-1", "order_draft", { lines: [1] });
-    expect(localStorage.getItem("ovenly_user:u-1:order_draft")).toBe('{"lines":[1]}');
+    expect(localStorage.getItem("brio_user:u-1:order_draft")).toBe('{"lines":[1]}');
     expect(readUserItem("u-1", "order_draft")).toEqual({ lines: [1] });
     expect(readUserItem("u-2", "order_draft")).toBeNull();
   });
@@ -32,12 +32,12 @@ describe("what the device keeps for a user", () => {
     const stop = onUserItemsCleared(cleared);
     writeUserItem("u-1", "a", 1);
     writeUserItem("u-2", "b", 2);
-    localStorage.setItem("ovenly_theme", "peach");
+    localStorage.setItem("brio_theme", "peach");
 
     clearUserItems();
     expect(readUserItem("u-1", "a")).toBeNull();
     expect(readUserItem("u-2", "b")).toBeNull();
-    expect(localStorage.getItem("ovenly_theme")).toBe("peach");
+    expect(localStorage.getItem("brio_theme")).toBe("peach");
     expect(cleared).toHaveBeenCalledOnce();
 
     stop();
@@ -46,7 +46,7 @@ describe("what the device keeps for a user", () => {
   });
 
   it("does nothing, and throws nothing, when storage refuses or holds nonsense", () => {
-    localStorage.setItem("ovenly_user:u-1:bad", "{not json");
+    localStorage.setItem("brio_user:u-1:bad", "{not json");
     expect(readUserItem("u-1", "bad")).toBeNull();
 
     const refuse = () => {

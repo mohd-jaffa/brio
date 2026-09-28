@@ -32,20 +32,20 @@ describe("the pre-paint theme script (BUG-15)", () => {
   });
 
   it("applies the stored theme to <html> and to the toolbar colour", () => {
-    window.localStorage.setItem("ovenly_theme", "peach");
+    window.localStorage.setItem("brio_theme", "peach");
     boot();
     expect(document.documentElement.getAttribute("data-theme")).toBe("peach");
     expect(document.querySelector('meta[name="theme-color"]')).toHaveAttribute("content", THEME_COLORS.peach);
   });
 
   it("treats a stored Clean as Golden", () => {
-    window.localStorage.setItem("ovenly_theme", "clean");
+    window.localStorage.setItem("brio_theme", "clean");
     boot();
     expect(document.documentElement.getAttribute("data-theme")).toBe("golden");
   });
 
   it("ignores a stored value that is not a direction", () => {
-    window.localStorage.setItem("ovenly_theme", "<script>");
+    window.localStorage.setItem("brio_theme", "<script>");
     boot();
     expect(document.documentElement.getAttribute("data-theme")).toBe("golden");
   });

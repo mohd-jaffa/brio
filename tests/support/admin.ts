@@ -9,7 +9,7 @@ export const DEV_PROFILE = {
   id: "f1f2f3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f",
   name: "Brio Developer",
   phone: "+919123456789",
-  email: "dev@ovenly.local",
+  email: "dev@brio.local",
   avatar: "pomeranian" as const,
   role: "DEV" as const,
   bakeryId: null,

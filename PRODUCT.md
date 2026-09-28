@@ -72,7 +72,7 @@ Built around **made-to-order work from home**, not a shop counter:
 
 ## Brand Commitments
 
-- **Name:** Brio, with the line **"Made by you. Managed simply."** (the user, 2026-09-28; it was Ovenly). The code keeps `ovenly`: the repository, the caches and the keys a device keeps.
+- **Name:** Brio, with the line **"Made by you. Managed simply."** (the user, 2026-09-28). The code says `brio` too.
 - **The mark:** a cream "b" with an orange leaf on dark green, and the wordmark "Brio" with the leaf over its i. They are the app's own. The screens stay in Golden and Peach; the green and the leaf's orange belong to the marks.
 - **The business leads.** Its name, catch phrase and logo head the app's header and every bill. Brio appears on the sign-in screens, as the installed app's icon, and in the bill's footer by name and web link.
 - **Maker credit:** Settings → About reads **Crafted by · jaFFa**. There is no illustration credit in the app (the user, 2026-09-26).

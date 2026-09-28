@@ -32,7 +32,7 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
-const CHANGED = "ovenly:themechange";
+const CHANGED = "brio:themechange";
 
 function subscribe(onChange: () => void) {
   window.addEventListener(CHANGED, onChange);

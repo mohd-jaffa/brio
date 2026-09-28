@@ -92,7 +92,7 @@ const rahul: Customer = {
 const placed = { id: "o-1", orderNumber: "ORD-1001", pricing: { total: 125000 } } as Order;
 
 function store(draft: OrderDraft) {
-  localStorage.setItem("ovenly_user:u-1:order_draft", JSON.stringify(draft));
+  localStorage.setItem("brio_user:u-1:order_draft", JSON.stringify(draft));
 }
 
 function open(query = "") {
@@ -349,7 +349,7 @@ describe("NewOrder: payment and placing", () => {
     expect(done).toHaveTextContent("Guest");
     expect(done).toHaveTextContent("₹1,250");
     expect(nav.history.replace).toHaveBeenCalledWith("/orders/new");
-    expect(localStorage.getItem("ovenly_user:u-1:order_draft")).toContain('"lines":[]');
+    expect(localStorage.getItem("brio_user:u-1:order_draft")).toContain('"lines":[]');
 
     // The card's next step is the bill of the order just placed.
     await userEvent.click(within(done).getByRole("button", { name: "View bill" }));

@@ -40,7 +40,7 @@ describe("useOrderDraft", () => {
 
   it("comes back as it was after a refresh", () => {
     const stored = addProduct(newDraft(), "p-9");
-    localStorage.setItem("ovenly_user:u-2:order_draft", JSON.stringify(stored));
+    localStorage.setItem("brio_user:u-2:order_draft", JSON.stringify(stored));
     const { result } = renderHook(() => useOrderDraft("u-2"));
     expect(result.current.draft?.lines[0].productId).toBe("p-9");
   });

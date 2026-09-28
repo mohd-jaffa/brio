@@ -19,7 +19,7 @@ export const THEME_COLORS: Record<Theme, string> = {
   peach: "#fbeee6",
 };
 
-export const THEME_STORAGE_KEY = "ovenly_theme";
+export const THEME_STORAGE_KEY = "brio_theme";
 
 /** A stored "clean" — the direction Golden replaced — reads as Golden. */
 const RENAMED: Record<string, Theme> = { clean: "golden" };

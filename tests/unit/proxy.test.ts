@@ -16,7 +16,7 @@ beforeEach(() => {
 
 /** A signed-in visit carries both cookies; `expired` leaves the access token's out, as the browser does once it runs out. */
 function visit(path: string, { signedIn = false, expired = false } = {}) {
-  const request = new NextRequest(new URL(path, "https://ovenly.test"));
+  const request = new NextRequest(new URL(path, "https://brio.test"));
   if (signedIn) {
     request.cookies.set(REFRESH_TOKEN_COOKIE, "refresh-token");
     if (!expired) request.cookies.set(ACCESS_TOKEN_COOKIE, "access-token");

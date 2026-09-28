@@ -4,8 +4,8 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 
 import { DATE_RANGES, DEFAULT_DATE_RANGE, type DateRange } from "@/constants/ranges";
 
-const KEY = (screen: string) => `ovenly_range_${screen}`;
-const CHANGED = "ovenly:rangechange";
+const KEY = (screen: string) => `brio_range_${screen}`;
+const CHANGED = "brio:rangechange";
 
 function subscribe(onChange: () => void) {
   window.addEventListener(CHANGED, onChange);

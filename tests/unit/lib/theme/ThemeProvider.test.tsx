@@ -35,7 +35,7 @@ describe("ThemeProvider", () => {
     expect(result.current.theme).toBe("peach");
     expect(document.documentElement.getAttribute("data-theme")).toBe("peach");
     expect(document.querySelector('meta[name="theme-color"]')).toHaveAttribute("content", "#fbeee6");
-    expect(window.localStorage.getItem("ovenly_theme")).toBe("peach");
+    expect(window.localStorage.getItem("brio_theme")).toBe("peach");
   });
 
   it("toggles between the two approved directions", () => {

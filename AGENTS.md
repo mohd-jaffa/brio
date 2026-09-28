@@ -6,7 +6,7 @@
 
 This repository contains the Home Bakery Management Platform.
 
-The app is called **Brio** — *"Made by you. Managed simply."* (the user, 2026-09-28; it was Ovenly). The code keeps `ovenly`: the repository, the package, the cache names and the keys a device stores, so renaming it signs no one out and loses no setting. A screen, an email or a bill says Brio, through `UI_TEXT.appName`.
+The app is called **Brio** — *"Made by you. Managed simply."* (the user, 2026-09-28). The code says `brio` too: the package, the cookies, the keys a device stores, the caches and the local Supabase project. A screen, an email or a bill says Brio, through `UI_TEXT.appName`.
 
 The product is a mobile-first internal management application for **home businesses** — home bakers first, and also hamper makers, florists and gift makers (plan §139.1).
 

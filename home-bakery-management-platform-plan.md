@@ -6590,7 +6590,7 @@ Every gap recorded here has been implemented. The entry is kept rather than dele
 | B1 | No bakery profile endpoint. The Settings name and phone fields were hard-coded and have been removed; the section says so. **Closed 2026-09-25 by R2.6:** `GET, PATCH /api/business` and Business details. | no `/api/bakery` route |
 | B2 | No logo upload: no storage bucket, no server-side size and content-type validation, no atomic replace-then-delete. **Closed 2026-09-25 by R2.7:** the private `business-logos` bucket, the size and first-bytes checks, and store → switch → delete. | §56, §118 |
 | B3 | `bakeries` has a SELECT policy only. An UPDATE policy is needed before profile editing can work at all. **Closed 2026-09-25 by R2.6** as §139.11.2 decided instead: `bakeries` stays SELECT-only, and edits go through owner-checked functions (`0008_business_profile.sql`). | `supabase/migrations/0001_auth_foundation.sql` |
-| B4 | **Closed 2026-09-26 by R4.1:** the bill is built from the business profile. The receipt header prints a hard-coded `"Ovenly Bakery"` instead of the bakery's own name. | `src/features/receipts/api.ts` |
+| B4 | **Closed 2026-09-26 by R4.1:** the bill is built from the business profile. The receipt header prints a hard-coded `"Brio Bakery"` instead of the bakery's own name. | `src/features/receipts/api.ts` |
 
 ---
 
@@ -6788,7 +6788,7 @@ the file and line it lives at.
 | **P2-4** | **Settings leads with two dead sections.** "Brand Logo" offers a full-width, primary-styled "Upload New Logo" control (`src/app/settings/page.tsx:76`) that can only ever fail — there is no endpoint (§133.2) — and "Bakery Profile" is a paragraph plus a permanently disabled "Save Details" button (`:100`) that has nothing to save. The only section that works, "Your Account", is third. Either disable the upload affordance as visibly as the button below it, or hold both sections until §133.2 lands. |
 | **P2-5** | **Quick Actions interrupts the operational scan.** Plan §20 orders the dashboard: what needs attention → pending orders → pending payments → today → low stock → snapshot. Quick Actions currently sits between Pending Orders and Low Stock Alerts, so the baker reads two overdue orders, then four buttons, then the stock warning. |
 | **P2-6** | **No skip link.** With a nine-item sidebar on every screen, a keyboard user tabs through the whole nav before reaching content, on every navigation. |
-| **P2-7** | **Only the five auth screens set a title.** Every other page inherits the root metadata, so eleven routes share the tab title "Ovenly — Home Bakery Management" — indistinguishable in history, bookmarks and tab strips. |
+| **P2-7** | **Only the five auth screens set a title.** Every other page inherits the root metadata, so eleven routes share the tab title "Brio — Home Bakery Management" — indistinguishable in history, bookmarks and tab strips. |
 
 ---
 
@@ -6860,7 +6860,7 @@ delivered by this software. Captured from order #1004 on a phone:
 
 | # | Finding |
 |---|---------|
-| **D1-1** | **It is signed "Ovenly Bakery".** `src/features/receipts/api.ts:14` hard-codes the platform's name, so every bill Priya hands a customer is branded with her software vendor instead of *Sweet Delights Home Bakery*. This is logged as a data gap in §133.2 B4; through this lens it is the single most damaging detail in the product. |
+| **D1-1** | **It is signed "Brio Bakery".** `src/features/receipts/api.ts:14` hard-codes the platform's name, so every bill Priya hands a customer is branded with her software vendor instead of *Sweet Delights Home Bakery*. This is logged as a data gap in §133.2 B4; through this lens it is the single most damaging detail in the product. |
 | **D1-2** | **The only action is "Print Receipt".** Plan §12 ends the order flow at "View / **Share** Bill" and §15 says "Preview / PDF → **Share / Download**". On a phone, in India, for a home baker, print is the one action nobody will take. There is no WhatsApp share, no image, no PDF, no copy-link. The payoff of the entire order flow is a print dialog. |
 | **D1-3** | **The bill is a dead end for the customer.** It carries no bakery phone, no address, no way to order again — nothing but line items and "THANK YOU!". The one moment the bakery is in a customer's hand, it asks for nothing and offers nothing. |
 | **D1-4** | **It does not say whether it has been paid.** #1004 is UNPAID and the bill shows Subtotal / Tax / Total with no balance due and no PAID mark. That is the fact both parties most need. |
@@ -7468,7 +7468,7 @@ Shared work rather than per-screen work:
 
 ---
 
-# 139. Ovenly v2 — Redesign, Product Expansion and the Android App (planned 2026-09-24)
+# 139. Brio v2 — Redesign, Product Expansion and the Android App (planned 2026-09-24)
 
 > **Status: planned only. Nothing in this section is implemented.** It is the
 > plan of record for the next body of work, and **§139.19 is its tracker** —
@@ -7594,7 +7594,7 @@ Later the same day:
   - **Kept, not dropped:** §119 – §120 (OpenAPI and Swagger UI), §123 (BugSnag) and §124 (SonarQube) stay as written, for the day they are taken up (§139.18).
   - **Meanwhile:** errors go to the server's own structured logs (§104); the API's contract is its route schemas and the table in §139.13; quality is held by lint, the type check, the tests and the coverage gate.
 - **A launch splash** (the user: "use these 2 images as small branded splash + loader … a real progress bar should be there as loader, this is for returning user launching the app"). It shows when Brio is opened as an app, once a launch, with a bar that fills as the launch really goes (§139.11.19). Onboarding for a new account comes later, from the user's own content.
-- **The app is Brio** (the user: "these are the logos of the app. use it where needed. and also change the app name and tagline whereever needed"). Its line is **"Made by you. Managed simply."** Four files came with it: the icon (a cream "b" and an orange leaf on dark green), the wordmark, the two side by side, and a sheet of variants. Every name a person reads says Brio; the code keeps `ovenly` (§139.11.18).
+- **The app is Brio** (the user: "these are the logos of the app. use it where needed. and also change the app name and tagline whereever needed"). Its line is **"Made by you. Managed simply."** Four files came with it: the icon (a cream "b" and an orange leaf on dark green), the wordmark, the two side by side, and a sheet of variants. Every name a person reads says Brio, and so does the code (§139.11.18).
 - **Empty states get their own drawings** (the user: "use this where needed, i think some of them from these can be used in our app now"). Of a supplied sheet of fifteen, the six that match a list the app has — orders, products, customers, stock, expenses and the inbox — are cut and shown over those empty states; the rest are of things the app does not have (§139.21.4, R9.5).
   - **Taken out again the same day** (the user: "the empty state illustrators look so low quality, either increase the quality or just remove the illustrator just keep the rest"). Each drawing was about 260 px wide on the sheet, so it could not be drawn sharper. Each empty state keeps its icon, title, hint and action; the inbox keeps **All quiet**.
 - **24 people join the profile pictures** (the user: "split and these to the avatars set"). A second sheet, 24 portraits on pastel discs, is cut into pictures beside the nine animals; the chooser shows **Animals** then **People**, and a new account draws from all 33 (`0029_people_avatars`, §139.11.14).
@@ -8272,12 +8272,12 @@ and an offline screen (PWA and Android).
 │ Balance due                 ₹1,050  │
 │─────────────────────────────────────│
 │ Thank you for your order!           │
-│ Made with Ovenly · ovenly.app       │  app name + web root link, small
+│ Made with Brio · brio.app           │  app name + web root link, small
 └─────────────────────────────────────┘
 ```
 
-- **Content:** the **business profile** (not the hard-coded "Ovenly Bakery" — §133.2 B4); the order number and date **in the business's timezone** (BUG-07); the customer or Guest; delivery; items with quantity × unit price and the line total; each adjustment by name; tax **only if it is not 0**; total; paid; **balance due**; payment method by its **label** (BUG-27). Internal order notes **never** appear on a bill.
-- **Footer:** "Made with Ovenly" and the host of `NEXT_PUBLIC_APP_URL`, linked in the PDF.
+- **Content:** the **business profile** (not the hard-coded "Brio Bakery" — §133.2 B4); the order number and date **in the business's timezone** (BUG-07); the customer or Guest; delivery; items with quantity × unit price and the line total; each adjustment by name; tax **only if it is not 0**; total; paid; **balance due**; payment method by its **label** (BUG-27). Internal order notes **never** appear on a bill.
+- **Footer:** "Made with Brio" and the host of `NEXT_PUBLIC_APP_URL`, linked in the PDF.
 - **Look:** a white sheet with near-black text for print and legibility; the theme shows only in the header rule and the total; the serif for the name and total; **tabular numerals** for money; no monospace (it reads as a costume). Designed at receipt width, and scaling cleanly to A5 for the PDF.
 - **Output — every one generated on demand, none stored:**
   - **Share as an image (PNG)** — WhatsApp shows an image inline, and it is the common case. Web Share with files where it is supported; download plus copied text where it is not; the native share sheet on Android (§139.17).
@@ -8607,13 +8607,13 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
 
 ### 139.11.17 The installable app — Phase 7 (the user, 2026-09-27)
 
-- **R7.1, the manifest** (`src/app/manifest.ts`). It is named "Ovenly", opens
+- **R7.1, the manifest** (`src/app/manifest.ts`). It is named "Brio", opens
   standalone at `/`, and takes Golden's ground for the splash and the status
   bar. Its icons are the brand mark in cream on caramel
   (`scripts/app-icons.mjs`): 192 and 512 px, and a 512 px maskable one with the
   mark inside the middle 60 %. The home-screen icon is `src/app/apple-icon.png`.
 - **iOS** (§139.8 item 7). The page is marked home-screen capable, titled
-  "Ovenly", under a `black-translucent` status bar, which the safe-area
+  "Brio", under a `black-translucent` status bar, which the safe-area
   insets pay for.
 - **R7.2, the service worker** (`public/sw.js`). It runs in the browser, and
   nothing runs on the server for it.
@@ -8672,15 +8672,18 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
 ### 139.11.18 The brand: Brio (the user, 2026-09-28)
 
 - **Name and line:** **Brio** — *"Made by you. Managed simply."* It replaces
-  Ovenly and "Home Business" wherever a person reads the app's name: the
+  the old name and "Home Business" wherever a person reads the app's name: the
   browser's title, the installed app's name, the sign-in screens, the bill's
   footer, the emails, the install steps, the offline page and the developer
   console (`UI_TEXT.appName`, `appTagline`, `appTitle`, `appShortName`).
-- **What keeps "ovenly"** — nothing a person reads: the repository and the
-  package, the service worker's cache names (a new prefix would strand the
-  caches kept so far), the keys a device stores (`ovenly_theme`, so no one
-  loses their theme), the fonts' internal family names, and the Supabase
-  project id. As with *bakery* and *business* (§139.11.1).
+- **The code says `brio` too** (the user, 2026-09-28: "make sure everything
+  will be updated to new name and tagline throughout the codebase"): the
+  package, the session cookies, the keys a device stores, the service
+  worker's caches, the fonts' family names and the local Supabase project id.
+  Renaming them signed everyone out once and reset what a device kept — the
+  theme, remembered date ranges, an order being built — and the service
+  worker clears every cache but its own. Internal names still say *bakery*
+  (§139.11.1).
 - **A business still leads** its own header and bills. With no catch phrase,
   its header reads "Home business" (`UI_TEXT.businessLine`), no longer the
   app's line.

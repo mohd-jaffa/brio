@@ -66,7 +66,7 @@ describe("Analytics", () => {
     answers["/api/analytics/overview?range=THIS_MONTH"] = aReport();
     await choose("Period", "This month");
     expect(fetcher).toHaveBeenCalledWith("/api/analytics/overview?range=THIS_MONTH");
-    expect(JSON.parse(localStorage.getItem("ovenly_range_analytics")!)).toEqual({ preset: "THIS_MONTH" });
+    expect(JSON.parse(localStorage.getItem("brio_range_analytics")!)).toEqual({ preset: "THIS_MONTH" });
   });
 
   it("waits for both dates of a custom period before asking", async () => {

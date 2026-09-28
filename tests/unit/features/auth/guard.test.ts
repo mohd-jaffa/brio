@@ -39,7 +39,7 @@ const profile = (role: AuthProfile["role"]): AuthProfile => ({
 });
 
 function requestWith(headers: Record<string, string>) {
-  return new Request("https://ovenly.test/api/orders", { headers });
+  return new Request("https://brio.test/api/orders", { headers });
 }
 
 function codeOf(run: () => unknown): string {
@@ -123,7 +123,7 @@ describe("a route that changes the owner's own account", () => {
     profile: profile("USER"),
     requiresPasswordChange,
   });
-  const call = () => new Request("https://ovenly.test/api/auth/name", { headers: { authorization: "Bearer t" } });
+  const call = () => new Request("https://brio.test/api/auth/name", { headers: { authorization: "Bearer t" } });
 
   it("hands over the session, the tenant and the server's client", async () => {
     getSession.mockResolvedValue(signedIn());
@@ -175,7 +175,7 @@ describe("a developer console route (plan §37)", () => {
     profile: { ...profile(role), bakeryId: role === "DEV" ? null : "b-1" },
     requiresPasswordChange,
   });
-  const call = () => new Request("https://ovenly.test/api/admin/overview", { headers: { authorization: "Bearer t" } });
+  const call = () => new Request("https://brio.test/api/admin/overview", { headers: { authorization: "Bearer t" } });
 
   it("serves a developer, handing over the session and the server's client to read with", async () => {
     getSession.mockResolvedValue(signedIn("DEV"));

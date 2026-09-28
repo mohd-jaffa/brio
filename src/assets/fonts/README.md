@@ -12,9 +12,9 @@ woff2) from the Latin-extended files next/font downloads from Google Fonts:
   axes pinned at 0, as the app draws them.
 
 Both typefaces are licensed under the SIL Open Font License 1.1, which allows
-modified versions to be bundled with software. The cut files carry their own
-family names ("Ovenly Rupee Sans", "Ovenly Rupee Serif") rather than the
-originals'.
+modified versions to be bundled with software. The app loads the cut files
+under family names of its own ("Brio Rupee Sans", "Brio Rupee Serif",
+`src/app/globals.css`) rather than the originals'.
 
 - Inter — Copyright 2020 The Inter Project Authors (https://github.com/rsms/inter)
 - Fraunces — Copyright 2020 The Fraunces Project Authors (https://github.com/undercasetype/Fraunces)

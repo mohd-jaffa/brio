@@ -103,20 +103,20 @@ describe("the service worker", () => {
     const [request] = sw.network.mock.calls[0];
     expect(new URL(request.url).pathname).toBe("/offline");
     expect(request.credentials).toBe("omit");
-    expect([...sw.stores.keys()]).toEqual(["ovenly-static-0.1.0"]);
+    expect([...sw.stores.keys()]).toEqual(["brio-static-0.1.0"]);
   });
 
-  it("clears an older release's cache as it takes charge, and nothing that is not its own", async () => {
+  it("clears every other cache as it takes charge: an older release's, or one under an earlier name", async () => {
     const older = worker("0.0.9");
     await older.dispatch("install");
     const stores = older.stores;
-    stores.set("ovenly-static-0.1.0", new Map());
-    stores.set("someone-else", new Map());
+    stores.set("brio-static-0.1.0", new Map());
+    stores.set("earlier-static-0.0.8", new Map());
     // The new release's worker, over the same caches.
     const current = worker("0.1.0");
     for (const [name, entries] of stores) current.stores.set(name, entries);
     await current.dispatch("activate");
-    expect([...current.stores.keys()].sort()).toEqual(["ovenly-static-0.1.0", "someone-else"]);
+    expect([...current.stores.keys()]).toEqual(["brio-static-0.1.0"]);
   });
 
   it("keeps the app's own unchanging files, and serves them from the cache after", async () => {
@@ -193,6 +193,6 @@ describe("the service worker", () => {
   it("names its caches for version 0 when the page gave none", async () => {
     const unnamed = worker("");
     await unnamed.dispatch("install");
-    expect([...unnamed.stores.keys()]).toEqual(["ovenly-static-0"]);
+    expect([...unnamed.stores.keys()]).toEqual(["brio-static-0"]);
   });
 });

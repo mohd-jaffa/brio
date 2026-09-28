@@ -43,7 +43,7 @@ beforeEach(() => {
 });
 
 const signedIn = (overrides: Record<string, unknown> = {}) => {
-  jar.set("ovenly_access_token", "access-1");
+  jar.set("brio_access_token", "access-1");
   getSession.mockResolvedValue({
     ...TEST_SESSION,
     accessToken: "access-1",
@@ -60,8 +60,8 @@ describe("readInitialSession", () => {
   });
 
   it("hands over the session its access token proves, and never the token", async () => {
-    jar.set("ovenly_access_token", "access-1");
-    jar.set("ovenly_refresh_token", "refresh-1");
+    jar.set("brio_access_token", "access-1");
+    jar.set("brio_refresh_token", "refresh-1");
     getSession.mockResolvedValue({ ...TEST_SESSION, accessToken: "access-1", refreshToken: "" });
 
     const view = await readInitialSession();
@@ -72,13 +72,13 @@ describe("readInitialSession", () => {
   });
 
   it("leaves an expired access token to the browser, which can refresh it", async () => {
-    jar.set("ovenly_refresh_token", "refresh-1");
+    jar.set("brio_refresh_token", "refresh-1");
     expect(await readInitialSession()).toBeUndefined();
     expect(getSession).not.toHaveBeenCalled();
   });
 
   it("leaves a refused token to the browser too, rather than failing the page", async () => {
-    jar.set("ovenly_access_token", "stale");
+    jar.set("brio_access_token", "stale");
     getSession.mockRejectedValue(new Error("AUTH_SESSION_INVALID"));
     expect(await readInitialSession()).toBeUndefined();
   });

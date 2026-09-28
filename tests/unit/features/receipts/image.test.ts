@@ -52,7 +52,7 @@ describe("paintBill", () => {
     );
     expect(calls[0]).toEqual(["scale", 3, 3]);
     expect(calls).toContainEqual(["fillRect", 0, 0, 360, 400]);
-    expect(calls).toContainEqual(["=font", '22px "Ovenly Bill Serif"']);
+    expect(calls).toContainEqual(["=font", '22px "Brio Bill Serif"']);
     expect(calls).toContainEqual(["=fillStyle", BILL_ACCENT.peach]);
     expect(calls).toContainEqual(["fillText", "₹1,280", 24, 40]);
     expect(calls).toContainEqual(["setLineDash", [4, 3]]);

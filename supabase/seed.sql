@@ -229,7 +229,7 @@ end $$;
 do $$
 declare
   v_dev_id     uuid := 'f1f2f3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f';
-  v_email      text := 'dev@ovenly.local';
+  v_email      text := 'dev@brio.local';
   v_phone      text := '+919123456789';
   v_auth_phone text := '919123456789';
   v_password   text := 'Password123!';
