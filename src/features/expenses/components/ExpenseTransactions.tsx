@@ -1,5 +1,7 @@
 "use client";
 
+import { ReceiptText } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ListScreen } from "@/components/ui/list-screen";
@@ -78,7 +80,7 @@ export function ExpenseTransactions({
         noMatches={category && text.noneInCategory(category)}
         empty={
           <EmptyState
-            art="bar-chart"
+            icon={ReceiptText}
             title={text.emptyTitle}
             hint={text.emptyHint}
             action={<Button label={text.add} variant="secondary" onClick={onAdd} />}

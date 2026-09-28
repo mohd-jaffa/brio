@@ -10,7 +10,6 @@
     "typecheck": "tsc --noEmit",
     "avatars": "node scripts/avatars.mjs",
     "brand": "node scripts/brand.mjs",
-    "empty-art": "node scripts/empty-art.mjs",
     "splash": "node scripts/splash.mjs",
     "illustrations": "node scripts/illustrations.mjs",
     "plates": "node scripts/plates.mjs",

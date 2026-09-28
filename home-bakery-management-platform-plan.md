@@ -7596,6 +7596,7 @@ Later the same day:
 - **A launch splash** (the user: "use these 2 images as small branded splash + loader … a real progress bar should be there as loader, this is for returning user launching the app"). It shows when Brio is opened as an app, once a launch, with a bar that fills as the launch really goes (§139.11.19). Onboarding for a new account comes later, from the user's own content.
 - **The app is Brio** (the user: "these are the logos of the app. use it where needed. and also change the app name and tagline whereever needed"). Its line is **"Made by you. Managed simply."** Four files came with it: the icon (a cream "b" and an orange leaf on dark green), the wordmark, the two side by side, and a sheet of variants. Every name a person reads says Brio; the code keeps `ovenly` (§139.11.18).
 - **Empty states get their own drawings** (the user: "use this where needed, i think some of them from these can be used in our app now"). Of a supplied sheet of fifteen, the six that match a list the app has — orders, products, customers, stock, expenses and the inbox — are cut and shown over those empty states; the rest are of things the app does not have (§139.21.4, R9.5).
+  - **Taken out again the same day** (the user: "the empty state illustrators look so low quality, either increase the quality or just remove the illustrator just keep the rest"). Each drawing was about 260 px wide on the sheet, so it could not be drawn sharper. Each empty state keeps its icon, title, hint and action; the inbox keeps **All quiet**.
 - **24 people join the profile pictures** (the user: "split and these to the avatars set"). A second sheet, 24 portraits on pastel discs, is cut into pictures beside the nine animals; the chooser shows **Animals** then **People**, and a new account draws from all 33 (`0029_people_avatars`, §139.11.14).
 - **Unread and Read on Notifications** (the user: "keep 2 more filters in notification, read and unread"). They are two more tabs, after All: **All · Unread · Read · Orders · Customers · System**. Each shows every kind; the kind tabs still show read and unread alike (R5.19).
 
@@ -9174,7 +9175,7 @@ the native layer (R8.3).
 | R9.2 | Order placed: the order's own illustration, and one warm line | §139.21.3 | R9.1 | TODO |
 | R9.3 | Paid in full: its own card when a payment clears the balance | §139.21.3 | R9.1 | TODO |
 | R9.4 | Delivered and Completed: their own card when an order finishes | §139.21.3 | R9.1 | TODO |
-| R9.5 | Empty states in the app's own art | §139.21.4 | — | DONE (2026-09-28 · the drawings the user supplied, `src/assets/empty/`) |
+| R9.5 | Empty states in the app's own art | §139.21.4 | — | TODO (2026-09-28: the supplied drawings were shown and taken out, too low in resolution; the icons are back, and the inbox reads "All quiet") |
 | R9.6 | The inbox caught up: the badge leaves, and the list says so | §139.21.5 | — | TODO |
 | R9.7 | Warmer system screens: not found, the error boundary, the global error | §139.21.6 | — | TODO |
 | R9.8 | A light haptic on the three milestones, on Android | §139.21.2 | R8.3 | TODO |
@@ -9216,10 +9217,10 @@ stays plainly out of the way everywhere else.
 - **Motion:** an illustration settles in with a short drop, 400 ms at most, on
   the kit's `--ease-out-expo`. Under reduced motion it only fades. Nothing
   loops, bounces or plays a sound.
-- **Art:** only the illustration library the app already ships (§139.11.10),
-  and — for the empty states only — the drawings the user supplied for them
-  (2026-09-28, §139.21.4). There are no new dependencies, and the licence
-  check of Q16 applies to both. An illustration is decorative (`alt=""`); the card's
+- **Art:** only the illustration library the app already ships (§139.11.10).
+  There are no new assets and no new dependencies, and the licence check of
+  Q16 still applies. *(The empty states' own drawings, allowed on
+  2026-09-28, were taken out the same day: §139.21.4.)* An illustration is decorative (`alt=""`); the card's
   title and message carry the meaning.
 - **Nothing is delayed.** No moment holds up the task behind it, and the card
   closes, or offers its next step, exactly as it does today.
@@ -9257,12 +9258,13 @@ stays plainly out of the way everywhere else.
   keeps its title, its hint and its one action; the drawing is decorative
   (`alt=""`), sits in a fixed 176 × 128 px box, and settles in with a short
   drop that only fades under reduced motion.
-- **The art** (the user, 2026-09-28: "use this where needed, i think some of
-  them from these can be used in our app now"): a sheet of fifteen empty-state
-  drawings, in cream, sage and a leaf of orange. The six that match a list the
-  app has are cut by `scripts/empty-art.mjs` into `src/assets/empty/`, their
-  white ground see-through; the sheet stays in `design-references/`. It
-  replaces the library illustrations this table first named.
+- **The art** (the user, 2026-09-28): a supplied sheet of fifteen empty-state
+  drawings. The six that match a list the app has were shown for a day and
+  **taken out** (the user: "look so low quality … just remove the
+  illustrator just keep the rest"): each was about 260 px wide on the sheet,
+  too few pixels for a phone's screen. **Each empty state keeps its icon in
+  the medallion**, its title, its hint and its action; the inbox's title
+  stays **All quiet**. The table below records what was shown.
 - **Not used**, because the app has no such thing: bookings, deliveries as a
   list, favourites, reviews, messages, templates, media (no uploads, §16), a
   store to set up, and "nothing here yet". **No results** stays a plain line

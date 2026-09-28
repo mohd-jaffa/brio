@@ -404,9 +404,9 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 - **The chooser:** **Animals** then **People**, each under a small uppercase heading, three across on a phone and four from 640 px, each 80 px over its name in 12 px; the one in use has a caramel ring with a 2 px gap and a caramel tick badge, and its name in semibold. Tapping one saves it, a spinner over that picture meanwhile. A bottom sheet on a phone, a dialog from 768 px.
 
 ### Empty State
-- **A drawing of what is missing** (`empty-state`, plan §139.21.4): cream, sage and a leaf of orange on a soft cream backdrop that fades into the page, in a 176 × 128 px box. Orders a clipboard, Products and the order screen's grid an open box, Customers three figures, Inventory a market stall, Expenses a bar chart, Notifications a bell.
-- **Under it,** the title in the serif (20 px), a muted hint, and one secondary action. The drawing settles in with a 6 px drop over 240 ms, and only fades under reduced motion.
-- **A search or a tab that matches nothing** keeps a plain line, with no drawing.
+- **An icon in the kit's medallion** (`empty-state`), the title in the serif (20 px), a muted hint, and one secondary action. The inbox's title is **All quiet**.
+- **A search or a tab that matches nothing** keeps a plain line, with no medallion.
+- *Drawings were tried here on 2026-09-28 and taken out the same day: the supplied ones were too small to stay sharp on a phone.*
 
 ### Cards / Containers
 - **Corner style:** 16 px.

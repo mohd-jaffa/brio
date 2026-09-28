@@ -25,16 +25,4 @@ describe("EmptyState", () => {
     await userEvent.click(screen.getByRole("button", { name: "Add Your First Customer" }));
     expect(onClick).toHaveBeenCalledOnce();
   });
-
-  it("draws what is missing in place of the icon, as decoration, settling in", () => {
-    const { container } = render(<EmptyState art="people" title="No customers yet" />);
-
-    const drawing = container.querySelector("img")!;
-    expect(drawing).toHaveAttribute("alt", "");
-    expect(drawing.getAttribute("src")).toContain("people.webp");
-    expect(drawing.parentElement).toHaveClass("animate-drop-in");
-    expect(screen.queryByRole("img")).not.toBeInTheDocument();
-    expect(container.querySelector(".bg-primary-soft")).not.toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "No customers yet" })).toBeInTheDocument();
-  });
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { ReceiptText, type LucideIcon } from "lucide-react";
+import { PackageOpen, ReceiptText, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 
 import { ActionRow } from "@/components/ui/action-row";
@@ -85,7 +85,7 @@ export function ItemsPanel({
           <SkeletonRows rows={2} height="h-40" />
         </div>
       ) : products.length === 0 ? (
-        <EmptyState art="open-box" title={text.noProducts} hint={text.noProductsHint} />
+        <EmptyState icon={PackageOpen} title={text.noProducts} hint={text.noProductsHint} />
       ) : shown.length === 0 ? (
         <p role="status" className="py-6 text-center text-sm text-text-muted">
           {text.noMatches(search.trim())}

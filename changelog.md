@@ -2943,3 +2943,19 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - None.
+
+## 2026-09-28 — Empty states: the drawings taken out
+
+### Changed
+- **The empty states' drawings are removed** (the user: "the empty state illustrators look so low quality, either increase the quality or just remove the illustrator just keep the rest of the thing there").
+  - **Why not sharper:** each drawing was only about 260 px wide on the supplied sheet. A phone draws them at 176 px across three pixels to the point, so there was nothing to make them sharper from.
+  - **What each empty state shows:** its icon in the medallion again, with its title, hint and action.
+  - **The inbox** keeps the title **All quiet**.
+- **Removed:** `EmptyState`'s `art`, `src/assets/empty/`, `scripts/empty-art.mjs` and its npm script. The sheet stays in `design-references/`.
+- **The plan:** R9.5 reads TODO again, with the reason.
+
+### Validation
+- **Checks:** `tsc` and `eslint` pass, and the full suite passes (2,181 tests).
+
+### Blockers
+- None.

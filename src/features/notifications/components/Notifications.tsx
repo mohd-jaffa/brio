@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCheck } from "lucide-react";
+import { Bell, CheckCheck } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -43,7 +43,7 @@ function NotificationList({ tab }: { tab: NotificationTab }) {
       loadFailed="NOTIFICATIONS_LOAD_FAILED"
       data={pages.data}
       noMatches={tab === "ALL" ? undefined : text.noneInTab[tab]}
-      empty={<EmptyState art="bell" title={text.emptyTitle} hint={text.emptyHint} />}
+      empty={<EmptyState icon={Bell} title={text.emptyTitle} hint={text.emptyHint} />}
       renderList={(items) => (
         <RowList label={text.tabNames[tab]}>
           {items.map((notification) => (
