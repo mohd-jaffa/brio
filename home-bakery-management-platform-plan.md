@@ -7593,6 +7593,7 @@ Later the same day:
   - **Out of Phase 6:** R6.3 (OpenAPI and Swagger) and R6.7 (BugSnag) read **LATER**, and R6.4 is the CI pipeline without SonarQube.
   - **Kept, not dropped:** §119 – §120 (OpenAPI and Swagger UI), §123 (BugSnag) and §124 (SonarQube) stay as written, for the day they are taken up (§139.18).
   - **Meanwhile:** errors go to the server's own structured logs (§104); the API's contract is its route schemas and the table in §139.13; quality is held by lint, the type check, the tests and the coverage gate.
+- **The app is Brio** (the user: "these are the logos of the app. use it where needed. and also change the app name and tagline whereever needed"). Its line is **"Made by you. Managed simply."** Four files came with it: the icon (a cream "b" and an orange leaf on dark green), the wordmark, the two side by side, and a sheet of variants. Every name a person reads says Brio; the code keeps `ovenly` (§139.11.18).
 - **Empty states get their own drawings** (the user: "use this where needed, i think some of them from these can be used in our app now"). Of a supplied sheet of fifteen, the six that match a list the app has — orders, products, customers, stock, expenses and the inbox — are cut and shown over those empty states; the rest are of things the app does not have (§139.21.4, R9.5).
 - **24 people join the profile pictures** (the user: "split and these to the avatars set"). A second sheet, 24 portraits on pastel discs, is cut into pictures beside the nine animals; the chooser shows **Animals** then **People**, and a new account draws from all 33 (`0029_people_avatars`, §139.11.14).
 - **Unread and Read on Notifications** (the user: "keep 2 more filters in notification, read and unread"). They are two more tabs, after All: **All · Unread · Read · Orders · Customers · System**. Each shows every kind; the kind tabs still show read and unread alike (R5.19).
@@ -8665,6 +8666,32 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
 - **Accounts:** a developer owns no business (`profiles.bakery_id` may be null
   for DEV only, 0028). One is added from the Supabase dashboard: the user with
   its mobile number, then a `profiles` row with the role DEV.
+
+### 139.11.18 The brand: Brio (the user, 2026-09-28)
+
+- **Name and line:** **Brio** — *"Made by you. Managed simply."* It replaces
+  Ovenly and "Home Business" wherever a person reads the app's name: the
+  browser's title, the installed app's name, the sign-in screens, the bill's
+  footer, the emails, the install steps, the offline page and the developer
+  console (`UI_TEXT.appName`, `appTagline`, `appTitle`, `appShortName`).
+- **What keeps "ovenly"** — nothing a person reads: the repository and the
+  package, the service worker's cache names (a new prefix would strand the
+  caches kept so far), the keys a device stores (`ovenly_theme`, so no one
+  loses their theme), the fonts' internal family names, and the Supabase
+  project id. As with *bakery* and *business* (§139.11.1).
+- **A business still leads** its own header and bills. With no catch phrase,
+  its header reads "Home business" (`UI_TEXT.businessLine`), no longer the
+  app's line.
+- **The marks** (`scripts/brand.mjs`, from `design-references/brand/`, which
+  is not committed):
+  - **the icon** — the installed app's icons (the rounded square for "any",
+    the mark on green to every edge for Android's maskable and for iOS), the
+    favicon, the install sheet and the developer console;
+  - **the wordmark** — the sign-in screens, 44 px tall, over the line, in
+    place of the drawn seedling (`BrandMark`, removed) and the name in type;
+  - **the leaf** — the sign-in screens' closing promise.
+- **The palette stays Golden and Peach.** The marks' green and orange are
+  theirs alone.
 
 ---
 

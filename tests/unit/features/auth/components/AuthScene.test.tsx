@@ -36,7 +36,16 @@ describe("AuthScene", () => {
     expect(image?.getAttribute("src")).toMatch(/cake-table/);
     expect(image).toHaveAttribute("loading", "eager");
     expect(image).toHaveAttribute("fetchpriority", "high");
-    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    // The only picture a screen reader meets is the wordmark, read as the app's name.
+    expect(screen.getAllByRole("img")).toEqual([screen.getByRole("img", { name: "Brio" })]);
+  });
+
+  it("names the app with its wordmark, and its line under it", () => {
+    scene();
+    const wordmark = screen.getByRole("img", { name: "Brio" });
+    expect(wordmark.getAttribute("src")).toMatch(/wordmark/);
+    expect(wordmark).toHaveAttribute("loading", "eager");
+    expect(screen.getByText("Made by you. Managed simply.")).toBeInTheDocument();
   });
 
   it("offers the other front door and a way back, when it has them", () => {

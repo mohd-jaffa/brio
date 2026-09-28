@@ -50,21 +50,21 @@ describe("BusinessMark", () => {
     const { container } = render(<BusinessMark />);
     expect(container.querySelector("img")).not.toBeInTheDocument();
     expect(container.querySelector('[aria-hidden="true"]')).toHaveClass("size-10");
-    expect(screen.getByText("Home Business")).toBeInTheDocument();
+    expect(screen.getByText("Home business")).toBeInTheDocument();
   });
 
   it("holds a quiet placeholder while loading, rather than flashing the app's name", () => {
     query.current = {};
     render(<BusinessMark />);
-    expect(screen.queryByText("Ovenly")).not.toBeInTheDocument();
+    expect(screen.queryByText("Brio")).not.toBeInTheDocument();
     expect(screen.getByText("Loading…").parentElement).toHaveAttribute("aria-busy", "true");
   });
 
   it("falls back to the app's own name and line when the business cannot be loaded", () => {
     query.current = { error: new Error("offline") };
     render(<BusinessMark />);
-    expect(screen.getByText("Ovenly")).toBeInTheDocument();
-    expect(screen.getByText("Home Business")).toBeInTheDocument();
+    expect(screen.getByText("Brio")).toBeInTheDocument();
+    expect(screen.getByText("Made by you. Managed simply.")).toBeInTheDocument();
   });
 
   it("comes smaller, and can hide its words from sight but not from a screen reader", () => {

@@ -5,8 +5,8 @@ import { DEFAULT_THEME, THEME_COLORS } from "@/lib/theme/themes";
 
 /**
  * The installed app (plan §139.19 R7.1): its name, how it opens — standalone,
- * with no browser around it — and its icons, the brand mark on caramel
- * (`scripts/app-icons.mjs`), one of them shaped for Android's masks. The
+ * with no browser around it — and its icons, the "b" and its leaf on dark
+ * green (`scripts/brand.mjs`), one of them shaped for Android's masks. The
  * splash and the status bar take the page ground of the default theme; once
  * open, the theme-color meta follows the chosen one.
  */

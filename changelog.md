@@ -2885,3 +2885,34 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - None.
+
+## 2026-09-28 — The app is Brio
+
+### Changed
+- **The name and the line** (the user: "these are the logos of the app. use it where needed. and also change the app name and tagline whereever needed"). The app is **Brio**, with the line **"Made by you. Managed simply."**, in place of Ovenly and "Home Business". It appears in:
+  - the browser's title and the installed app's name;
+  - the sign-in screens ("New to Brio?");
+  - the bill's footer ("Made with Brio");
+  - both emails;
+  - the install steps and the offline page;
+  - the developer console, and the seed's developer (now "Brio Developer").
+- **A business with no catch phrase** now shows "Home business" under its name, no longer the app's line (`UI_TEXT.businessLine`).
+- **The code keeps `ovenly`,** so renaming signs no one out and loses no setting: the repository, the package, the service worker's cache names, `ovenly_theme` and the other keys a device keeps, the fonts' internal names, and the Supabase project id.
+
+### Added
+- **The marks** (`scripts/brand.mjs`, `npm run brand`, replacing `app-icons.mjs`), built from the four files supplied, which stay uncommitted in `design-references/brand/`:
+  - **the installed app's icons:** 192 and 512 px (the rounded square), the maskable 512 px, and iOS's 180 px (the mark on green to every edge, inside the safe zone). The PNGs are 256-colour and dithered: 4 to 68 KB, no banding;
+  - **the favicon:** 16, 32 and 48 px in one `.ico`;
+  - **`src/assets/brand/`:** the icon, the wordmark and the leaf, with their white ground made see-through.
+- **Where they show:**
+  - **the sign-in screens:** the wordmark over the line, in place of the drawn seedling (`BrandMark`, removed) and the name in type. The leaf marks the closing promise;
+  - **the install sheet:** the icon, beside what installing gives;
+  - **the developer console:** the icon, in place of its "O".
+
+### Validation
+- **Browser, 390 px and 1440 px:** the sign-in screen, the install sheet and the developer console.
+- **Served files:** the manifest ("Brio — Made by you. Managed simply.", "Brio"), the favicon, the iOS icon and both Android icons.
+- **Checks:** `tsc` and `eslint` pass. The full suite passes (2,167 tests, new ones for the brand map and the two mail templates). Every changed file is at 100 %, save a guard in `DevShell` that was uncovered before.
+
+### Blockers
+- None.

@@ -39,7 +39,7 @@ export interface BillDocument {
 
 const phoneLine = (phone: string) => `${UI_TEXT.fields.phonePrefix} ${formatPhoneDigits(phone)}`;
 
-/** The app's web root as the footer shows it — "ovenly.app" — or nothing if it is not a URL. */
+/** The app's web root as the footer shows it — its host alone — or nothing if it is not a URL. */
 function appLink(appUrl: string): { host: string; href: string } | null {
   try {
     const url = new URL(appUrl);

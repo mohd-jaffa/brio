@@ -5,15 +5,17 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { BRAND, brandWidth } from "@/assets/brand";
 import { PLATES, PLATE_FOCUS, PLATE_QUALITY } from "@/assets/plates";
 import { UI_TEXT } from "@/constants/messages";
 
-import { BrandMark } from "./BrandMark";
+const WORDMARK_HEIGHT = 44;
 
 /**
  * The frame every authentication screen shares (plan §138, §139.10). Daylight
- * on a warm wall, the app's mark and a line set over it, and a sheet that
- * rises from the bottom carrying the form.
+ * on a warm wall, the app's wordmark and its line set over it (the user,
+ * 2026-09-28: Brio, "Made by you. Managed simply."), and a sheet that rises
+ * from the bottom carrying the form.
  *
  * The photograph is the cake-table plate (§139.11.12): a bake and dried
  * florals against a warm wall, as the references show. It takes the right of
@@ -97,16 +99,16 @@ export function AuthScene({
           />
         </div>
 
-        <span className="block text-primary">
-          <BrandMark />
-        </span>
-
-        <p className="mt-3 font-display text-[1.75rem] font-semibold leading-none tracking-[-0.02em]">
-          {UI_TEXT.appName}
-        </p>
-        <p className="mt-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.34em] text-text-muted">
-          {UI_TEXT.appTagline}
-        </p>
+        {/* The wordmark is the app's name: it is read as one. */}
+        <Image
+          src={BRAND.wordmark.src}
+          alt={UI_TEXT.appName}
+          width={brandWidth("wordmark", WORDMARK_HEIGHT)}
+          height={WORDMARK_HEIGHT}
+          loading="eager"
+          className="block"
+        />
+        <p className="mt-2 text-[0.75rem] font-medium tracking-[0.12em] text-text-muted">{UI_TEXT.appTagline}</p>
 
         <h1 className="mt-9 max-w-[7.5em] font-display text-[2.75rem] font-semibold leading-[1.04] tracking-[-0.035em] text-balance">
           {headline.map((line) => (
@@ -139,9 +141,7 @@ export function AuthScene({
 export function AuthPromise({ children }: { children: string }) {
   return (
     <p className="flex items-center justify-center gap-2.5 rounded-2xl bg-sunken px-4 py-3.5 text-center text-sm text-text-muted">
-      <span className="shrink-0 text-primary">
-        <BrandMark size={17} />
-      </span>
+      <Image src={BRAND.leaf.src} alt="" width={brandWidth("leaf", 16)} height={16} className="shrink-0" />
       <span className="font-display italic">{children}</span>
     </p>
   );

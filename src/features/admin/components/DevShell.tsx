@@ -1,10 +1,12 @@
 "use client";
 
 import { LayoutDashboard, LogOut, ScrollText, Users, type LucideIcon } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 
+import { BRAND } from "@/assets/brand";
 import { cn } from "@/components/ui/cn";
 import { Pending } from "@/components/ui/pending";
 import { ProfileAvatar } from "@/components/ui/profile-avatar";
@@ -52,8 +54,8 @@ function SignedIn() {
 
 /**
  * The developer console's frame (plan §37; the user, 2026-09-27): plain
- * white and blue (`data-theme="dev"`, globals.css), a top bar with the
- * console's name and who is signed in, and its places as tabs — the
+ * white and blue (`data-theme="dev"`, globals.css), a top bar with the app's
+ * icon and the console's name and who is signed in, and its places as tabs — the
  * overview, the accounts and the audit log. Read-only. The job queue has no
  * page while no worker runs (WORKER_ENABLED): nothing new is queued.
  *
@@ -81,12 +83,7 @@ export function DevShell({ children }: { children: ReactNode }) {
       <header className="safe-top [--safe-pt:0.75rem] safe-x [--safe-px:1rem] sticky top-0 z-20 border-b border-border bg-surface md:[--safe-px:1.5rem]">
         <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-3 pb-3">
           <div className="flex min-w-0 items-center gap-3">
-            <span
-              aria-hidden="true"
-              className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-text"
-            >
-              O
-            </span>
+            <Image src={BRAND.icon.src} alt="" width={36} height={36} className="size-9 shrink-0" />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-text">{text.product}</p>
               <p className="truncate text-xs font-medium text-primary">{text.console}</p>

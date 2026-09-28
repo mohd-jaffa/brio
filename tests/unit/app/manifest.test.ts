@@ -6,8 +6,8 @@ describe("the web app manifest", () => {
   it("opens the app standalone from the root, named as the app is", () => {
     expect(manifest()).toMatchObject({
       id: "/",
-      name: "Ovenly — Home Business Management",
-      short_name: "Ovenly",
+      name: "Brio — Made by you. Managed simply.",
+      short_name: "Brio",
       start_url: "/",
       scope: "/",
       display: "standalone",

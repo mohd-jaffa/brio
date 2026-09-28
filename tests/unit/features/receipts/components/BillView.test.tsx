@@ -13,7 +13,7 @@ describe("BillView (§139.11.6)", () => {
     show();
     const bill = screen.getByRole("article", { name: "Bill ORD-1006" });
     expect(bill.textContent?.replace(/\s+/g, " ")).toMatch(
-      /Sweet Delights Home Bakery.*Cakes for every celebration.*12 Rose Street.*Bill.*ORD-1006.*26 Sep 2026.*Billed to.*Meena Gupta.*Delivery.*Block B-404.*Red Velvet Cupcakes.*Name topper.*Happy birthday, Anu.*Subtotal.*Festive.*Total.*₹1,280.*Paid · UPI · ref 3248.*Balance due.*₹780.*Thank you for your order!.*Made with Ovenly · ovenly\.app/,
+      /Sweet Delights Home Bakery.*Cakes for every celebration.*12 Rose Street.*Bill.*ORD-1006.*26 Sep 2026.*Billed to.*Meena Gupta.*Delivery.*Block B-404.*Red Velvet Cupcakes.*Name topper.*Happy birthday, Anu.*Subtotal.*Festive.*Total.*₹1,280.*Paid · UPI · ref 3248.*Balance due.*₹780.*Thank you for your order!.*Made with Brio · ovenly\.app/,
     );
     expect(screen.getByRole("link", { name: "Map link" })).toHaveAttribute("href", "https://maps.app.goo.gl/meena");
     expect(screen.getByRole("link", { name: "ovenly.app" })).toHaveAttribute("href", "https://ovenly.app");
@@ -54,6 +54,6 @@ describe("BillView (§139.11.6)", () => {
     expect(container.querySelector("img")).toBeNull();
     expect(screen.queryByText("Cakes for every celebration")).not.toBeInTheDocument();
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
-    expect(screen.getByText("Made with Ovenly")).toBeInTheDocument();
+    expect(screen.getByText("Made with Brio")).toBeInTheDocument();
   });
 });

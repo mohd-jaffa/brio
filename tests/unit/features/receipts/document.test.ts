@@ -36,7 +36,7 @@ describe("billDocument (§139.11.6)", () => {
         { label: "Balance due", amount: "₹780", emphasis: "strong" },
       ],
       thanks: "Thank you for your order!",
-      footer: { credit: "Made with Ovenly", host: "ovenly.app", href: "https://ovenly.app" },
+      footer: { credit: "Made with Brio", host: "ovenly.app", href: "https://ovenly.app" },
     });
   });
 
@@ -85,7 +85,7 @@ describe("billDocument (§139.11.6)", () => {
       aBill({ business: aBusiness({ tagline: null, address: null, city: null, phone: "" }), appUrl: "not a url" }),
     );
     expect(document.business).toMatchObject({ tagline: null, contact: [] });
-    expect(document.footer).toEqual({ credit: "Made with Ovenly", host: null, href: null });
+    expect(document.footer).toEqual({ credit: "Made with Brio", host: null, href: null });
   });
 });
 

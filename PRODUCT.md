@@ -18,7 +18,7 @@ One responsive Next.js app serves every device: the browser, an installable PWA 
 
 ## Product Purpose
 
-Ovenly runs the business side of a made-to-order home business: customers, products, orders, payments, stock, expenses, deliveries, bills, notifications and analytics, all in one place (plan §1).
+Brio runs the business side of a made-to-order home business: customers, products, orders, payments, stock, expenses, deliveries, bills, notifications and analytics, all in one place (plan §1).
 
 It exists to replace three things owners juggle today:
 - WhatsApp chats plus a notebook or memory, where orders and dues slip on busy days;
@@ -72,8 +72,9 @@ Built around **made-to-order work from home**, not a shop counter:
 
 ## Brand Commitments
 
-- **Name:** Ovenly. Its metadata calls it "Home Business Management".
-- **The business leads.** Its name, catch phrase and logo head the app's header and every bill. Ovenly appears only in the bill's footer, by name and web link.
+- **Name:** Brio, with the line **"Made by you. Managed simply."** (the user, 2026-09-28; it was Ovenly). The code keeps `ovenly`: the repository, the caches and the keys a device keeps.
+- **The mark:** a cream "b" with an orange leaf on dark green, and the wordmark "Brio" with the leaf over its i. They are the app's own. The screens stay in Golden and Peach; the green and the leaf's orange belong to the marks.
+- **The business leads.** Its name, catch phrase and logo head the app's header and every bill. Brio appears on the sign-in screens, as the installed app's icon, and in the bill's footer by name and web link.
 - **Maker credit:** Settings → About reads **Crafted by · jaFFa**. There is no illustration credit in the app (the user, 2026-09-26).
 - **Voice: warm and quiet** (the user, 2026-09-26).
   - Plain, factual English, with one warm phrase at most at a moment that earns it.

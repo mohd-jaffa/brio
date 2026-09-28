@@ -39,7 +39,7 @@ describe("the developer console's frame", () => {
     open();
     const bar = screen.getByRole("banner");
     expect(bar).toHaveTextContent("Developer console");
-    expect(within(bar).getByText("Ovenly Developer")).toBeInTheDocument();
+    expect(within(bar).getByText("Brio Developer")).toBeInTheDocument();
     expect(within(bar).getByText("Developer · +91 91234 56789")).toBeInTheDocument();
     expect(screen.getByText("Console page")).toBeInTheDocument();
   });

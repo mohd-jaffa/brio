@@ -1,5 +1,5 @@
 -- ============================================================
--- Ovenly — demo data for local development
+-- Brio — demo data for local development
 --
 -- Sign in with:   mobile 9876543210   password Password123!
 -- The developer console (/admin):   mobile 9123456789   password Password123!
@@ -247,7 +247,7 @@ begin
     v_email, extensions.crypt(v_password, extensions.gen_salt('bf')), now(),
     v_auth_phone, now(),
     '{"provider":"phone","providers":["phone","email"]}'::jsonb,
-    jsonb_build_object('name', 'Ovenly Developer'),
+    jsonb_build_object('name', 'Brio Developer'),
     '', '', '', '',
     now() - interval '30 days', now(), null
   )
@@ -264,6 +264,6 @@ begin
   on conflict (provider_id, provider) do nothing;
 
   insert into public.profiles (id, phone, email, name, role, bakery_id, is_active, must_change_password, email_confirmed_at, created_at)
-  values (v_dev_id, v_phone, v_email, 'Ovenly Developer', 'DEV', null, true, false, now(), now() - interval '30 days')
+  values (v_dev_id, v_phone, v_email, 'Brio Developer', 'DEV', null, true, false, now(), now() - interval '30 days')
   on conflict (id) do nothing;
 end $$;

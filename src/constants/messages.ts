@@ -123,12 +123,16 @@ export const VALIDATION_MESSAGES = {
 
 /** The words on buttons, headings and empty states, so no screen invents its own. */
 export const UI_TEXT = {
-  appName: "Ovenly",
-  appTagline: "Home Business",
+  // The app's name and line (the user, 2026-09-28: "these are the logos of the
+  // app … change the app name and tagline"). Code keeps "ovenly".
+  appName: "Brio",
+  appTagline: "Made by you. Managed simply.",
   /** What a browser tab, a search result and a shared link say of the app. */
-  appTitle: "Ovenly — Home Business Management",
+  appTitle: "Brio — Made by you. Managed simply.",
   /** The name under the icon once the app is installed (plan §139.19 R7.1). */
-  appShortName: "Ovenly",
+  appShortName: "Brio",
+  /** The line under a business's name in the header when it has no catch phrase of its own. */
+  businessLine: "Home business",
   appDescription:
     "Mobile-first management for home businesses — bakers, hamper makers, florists and gift makers. Orders, customers, stock, expenses and bills in one place.",
 
@@ -178,7 +182,7 @@ export const UI_TEXT = {
     cityPlaceholder: "e.g. Pune",
     addressPlaceholder: "Where your business is — it is printed on your bills",
     haveAccount: "Already have an account?",
-    noAccount: "New to Ovenly?",
+    noAccount: "New to Brio?",
     sendResetEmail: "Email me a temporary password",
     resetSent:
       "If that email belongs to an account, a temporary password is on its way. Sign in with it and you will be asked to choose a new one.",
@@ -1121,7 +1125,7 @@ export const UI_TEXT = {
    * white and blue, for DEV only. It shows what the app already keeps.
    */
   admin: {
-    product: "Ovenly",
+    product: "Brio",
     console: "Developer console",
     nav: "Developer console",
     places: {
@@ -1177,7 +1181,7 @@ export const UI_TEXT = {
   /** No connection (plan §139.19 R7.2, IMP-08): the offline page, and the banner while one drops. */
   offline: {
     title: "You’re offline",
-    body: "Ovenly needs a connection to show your orders, customers and stock. Check your connection, then try again.",
+    body: "Brio needs a connection to show your orders, customers and stock. Check your connection, then try again.",
     retry: "Try again",
     banner: "You’re offline. What’s on screen may be out of date.",
   },
@@ -1189,9 +1193,9 @@ export const UI_TEXT = {
    */
   install: {
     menu: "Install app",
-    hint: "Add Ovenly to your home screen",
-    title: "Install Ovenly",
-    intro: "Open Ovenly from your home screen like any app: full screen, one tap away.",
+    hint: "Add Brio to your home screen",
+    title: "Install Brio",
+    intro: "Open Brio from your home screen like any app: full screen, one tap away.",
     installNow: "Install",
     orFollow: "Or follow these steps",
     stepsFor: {
@@ -1202,26 +1206,26 @@ export const UI_TEXT = {
     },
     steps: {
       ios: [
-        "Open Ovenly in Safari.",
+        "Open Brio in Safari.",
         "Tap the Share button at the bottom of the screen.",
         "Scroll down and tap Add to Home Screen, then Add.",
       ],
       android: [
-        "Open Ovenly in Chrome.",
+        "Open Brio in Chrome.",
         "Tap the menu (three dots) at the top right.",
         "Tap Install app or Add to Home screen, then Install.",
       ],
       desktop: [
-        "Open Ovenly in Chrome or Edge.",
+        "Open Brio in Chrome or Edge.",
         "Click the install icon at the right of the address bar — or open the browser’s menu.",
-        "Choose Install Ovenly, then Install.",
+        "Choose Install Brio, then Install.",
       ],
       other: [
-        "Open Ovenly in Chrome, Edge or Safari: this browser cannot install apps.",
+        "Open Brio in Chrome, Edge or Safari: this browser cannot install apps.",
         "Open the browser’s menu, or its Share button on an iPhone.",
         "Choose Install app or Add to Home Screen.",
       ],
     },
-    done: "Once it is on your home screen, open Ovenly from there. This option goes away inside the app.",
+    done: "Once it is on your home screen, open Brio from there. This option goes away inside the app.",
   },
 } as const;

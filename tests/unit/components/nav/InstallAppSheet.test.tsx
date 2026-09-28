@@ -15,7 +15,7 @@ beforeEach(() => {
   install.current = { offered: true, canPrompt: false, platform: "ios", install: vi.fn() };
 });
 
-const sheet = () => screen.getByRole("dialog", { name: "Install Ovenly" });
+const sheet = () => screen.getByRole("dialog", { name: "Install Brio" });
 const steps = () => within(sheet()).getAllByRole("listitem").map((step) => step.textContent);
 
 describe("InstallAppSheet", () => {
@@ -23,7 +23,7 @@ describe("InstallAppSheet", () => {
     render(<InstallAppSheet open onClose={vi.fn()} />);
     expect(within(sheet()).getByRole("heading", { name: "On iPhone or iPad" })).toBeInTheDocument();
     expect(steps()).toEqual([
-      "1Open Ovenly in Safari.",
+      "1Open Brio in Safari.",
       "2Tap the Share button at the bottom of the screen.",
       "3Scroll down and tap Add to Home Screen, then Add.",
     ]);
@@ -32,9 +32,9 @@ describe("InstallAppSheet", () => {
 
   it("shows each device its own steps", () => {
     for (const [platform, heading, first] of [
-      ["android", "On Android", "Open Ovenly in Chrome."],
-      ["desktop", "On a computer", "Open Ovenly in Chrome or Edge."],
-      ["other", "In your browser", "Open Ovenly in Chrome, Edge or Safari: this browser cannot install apps."],
+      ["android", "On Android", "Open Brio in Chrome."],
+      ["desktop", "On a computer", "Open Brio in Chrome or Edge."],
+      ["other", "In your browser", "Open Brio in Chrome, Edge or Safari: this browser cannot install apps."],
     ] as const) {
       install.current = { ...install.current, platform };
       const { unmount } = render(<InstallAppSheet open onClose={vi.fn()} />);

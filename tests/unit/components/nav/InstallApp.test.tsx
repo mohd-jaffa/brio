@@ -19,11 +19,11 @@ describe("InstallApp", () => {
   it("is a row among More's places on a phone, opening this device's steps", async () => {
     render(<InstallApp variant="row" />, { wrapper: Providers });
     const row = screen.getByRole("button", { name: /Install app/ });
-    expect(row).toHaveTextContent("Add Ovenly to your home screen");
+    expect(row).toHaveTextContent("Add Brio to your home screen");
     await userEvent.click(row);
-    expect(await screen.findByRole("dialog", { name: "Install Ovenly" })).toBeInTheDocument();
+    expect(await screen.findByRole("dialog", { name: "Install Brio" })).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Close" }));
-    expect(screen.queryByRole("dialog", { name: "Install Ovenly" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Install Brio" })).not.toBeInTheDocument();
   });
 
   it("is the sidebar's last place on a tablet and a desktop", async () => {
@@ -31,7 +31,7 @@ describe("InstallApp", () => {
     const place = screen.getByRole("button", { name: "Install app" });
     expect(place).toHaveAttribute("aria-haspopup", "dialog");
     await userEvent.click(place);
-    expect(await screen.findByRole("dialog", { name: "Install Ovenly" })).toBeInTheDocument();
+    expect(await screen.findByRole("dialog", { name: "Install Brio" })).toBeInTheDocument();
   });
 
   it("is not there inside the installed app, nor before the browser has said", () => {

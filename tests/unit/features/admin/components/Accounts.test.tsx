@@ -15,7 +15,7 @@ beforeEach(() => {
   answering(fetcher, {
     "/api/admin/users": {
       items: [
-        anAccount("u-dev", { name: "Ovenly Developer", role: "DEV", business: null, avatar: "pomeranian" }),
+        anAccount("u-dev", { name: "Brio Developer", role: "DEV", business: null, avatar: "pomeranian" }),
         anAccount("u-1"),
       ],
       nextCursor: "20",
@@ -43,7 +43,7 @@ describe("the console's accounts", () => {
     expect(owner.getByText("Sweet Delights, Bengaluru")).toBeInTheDocument();
     expect(owner.getByText("26 Jun 2026")).toBeInTheDocument();
 
-    const developer = within(card("Ovenly Developer"));
+    const developer = within(card("Brio Developer"));
     expect(developer.getByText("Developer")).toBeInTheDocument();
     expect(developer.getByText("None")).toBeInTheDocument();
   });

@@ -84,7 +84,7 @@ describe("layoutBill", () => {
     expect(first.x + measure(first.text, first.face, first.size)).toBeLessThan(textOf(ops, "−₹50")!.x);
     expect(textOf(ops, "−₹50")!.y).toBe(first.y);
     expect(textOf(ops, "Cakes for every celebration")).toBeUndefined();
-    expect(textOf(ops, "Made with Ovenly")).toBeDefined();
+    expect(textOf(ops, "Made with Brio")).toBeDefined();
   });
 
   it("offers a place to end a page between every block, each lower than the last", () => {

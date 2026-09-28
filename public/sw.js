@@ -1,5 +1,5 @@
 /*
- * Ovenly's service worker (plan §139.19 R7.2; §51: not offline-first in V1).
+ * Brio's service worker (plan §139.19 R7.2; §51: not offline-first in V1).
  *
  * It runs in the browser, on the owner's own device — nothing on the server
  * (the user, 2026-09-27). It keeps the smallest thing that is safe to keep:
@@ -17,6 +17,7 @@
  * new release installs afresh and the old caches go.
  */
 const VERSION = new URL(self.location.href).searchParams.get("v") || "0";
+// "ovenly-", the app's name in code: a new prefix would leave every cache kept so far behind.
 const CACHE = `ovenly-static-${VERSION}`;
 const OFFLINE_URL = "/offline";
 

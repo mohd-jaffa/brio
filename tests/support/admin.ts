@@ -7,7 +7,7 @@ import { authStub, TEST_PROFILE } from "@tests/support/auth";
 export const DEV_PROFILE = {
   ...TEST_PROFILE,
   id: "f1f2f3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f",
-  name: "Ovenly Developer",
+  name: "Brio Developer",
   phone: "+919123456789",
   email: "dev@ovenly.local",
   avatar: "pomeranian" as const,

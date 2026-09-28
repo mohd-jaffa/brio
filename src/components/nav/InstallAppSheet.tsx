@@ -11,7 +11,9 @@ import {
   SquarePlus,
   type LucideIcon,
 } from "lucide-react";
+import Image from "next/image";
 
+import { BRAND } from "@/assets/brand";
 import { Button } from "@/components/ui/button";
 import { Sheet } from "@/components/ui/sheet";
 import { UI_TEXT } from "@/constants/messages";
@@ -29,7 +31,7 @@ const STEP_ICONS: Record<InstallPlatform, readonly LucideIcon[]> = {
 };
 
 /**
- * Installing Ovenly (plan §139.19 R7.3; the user, 2026-09-27: "which will
+ * Installing the app (plan §139.19 R7.3; the user, 2026-09-27: "which will
  * also give small tutorial like instructions showed how to install the pwa").
  * Where the browser will install it itself, **Install** asks it to; the steps
  * for this device follow either way, each with the mark the device shows
@@ -43,7 +45,11 @@ export function InstallAppSheet({ open, onClose }: { open: boolean; onClose: () 
   return (
     <Sheet open={open} onClose={onClose} title={text.title}>
       <div className="space-y-5 pb-2">
-        <p className="text-sm text-text-muted">{text.intro}</p>
+        {/* The icon it will have on the home screen, beside what installing gives. */}
+        <div className="flex items-center gap-4">
+          <Image src={BRAND.icon.src} alt="" width={56} height={56} className="size-14 shrink-0" />
+          <p className="text-sm text-text-muted">{text.intro}</p>
+        </div>
 
         {canPrompt && (
           <Button

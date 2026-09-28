@@ -1,10 +1,12 @@
+import { UI_TEXT } from "@/constants/messages";
+
 interface PasswordResetTemplateInput {
   name: string;
   temporaryPassword: string;
 }
 
 export function passwordResetTemplate(input: PasswordResetTemplateInput) {
-  const subject = "Your Ovenly temporary password";
+  const subject = `Your ${UI_TEXT.appName} temporary password`;
   const text = [
     `Hi ${input.name},`,
     "",

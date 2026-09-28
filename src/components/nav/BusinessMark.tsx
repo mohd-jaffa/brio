@@ -10,8 +10,8 @@ import { cn } from "../ui/cn";
  * The business's own mark, name and catch phrase, at the head of the phone's
  * top bar and the sidebar (plan §139.5, §139.11.2). Until the profile has
  * loaded, the words are a quiet placeholder rather than the app's name, so
- * the header does not flash "Ovenly" before the business. If it cannot be
- * loaded, the app's own name and line stand in. With no logo, or no catch
+ * the header does not flash the app's name before the business. If it cannot
+ * be loaded, the app's own name and line stand in. With no logo, or no catch
  * phrase, the cake mark and a neutral line take their places.
  */
 export function BusinessMark({
@@ -47,7 +47,7 @@ export function BusinessMark({
               {business?.name ?? UI_TEXT.appName}
             </span>
             <span className="block truncate text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-text-muted">
-              {business?.tagline ?? UI_TEXT.appTagline}
+              {business ? (business.tagline ?? UI_TEXT.businessLine) : UI_TEXT.appTagline}
             </span>
           </>
         )}

@@ -6,6 +6,8 @@
 
 This repository contains the Home Bakery Management Platform.
 
+The app is called **Brio** — *"Made by you. Managed simply."* (the user, 2026-09-28; it was Ovenly). The code keeps `ovenly`: the repository, the package, the cache names and the keys a device stores, so renaming it signs no one out and loses no setting. A screen, an email or a bill says Brio, through `UI_TEXT.appName`.
+
 The product is a mobile-first internal management application for **home businesses** — home bakers first, and also hamper makers, florists and gift makers (plan §139.1).
 
 **Words.** Anything a user reads says **business**, not *bakery*: "Business details", "your business". Internal names keep `bakery` — the `bakeries` table, `bakery_id`, `bakeryId` — because renaming them would touch every table, policy and module for no visible gain (plan §139.11.1). New code does not mix the two: `bakery` in identifiers, "business" in copy.
@@ -508,7 +510,7 @@ reference change through `update_business_profile` and `set_business_logo`,
 which act only for the owner.
 - Do not introduce image uploads for products, customers, orders, expenses, receipts, menu items, or users unless the plan is explicitly changed.
 
-**App-owned artwork is not an upload.** The illustration library (`artwork/illustrations/`, shipped from `src/assets/illustrations/`, plan §139.11.10), the photographic plates (`src/assets/plates/`, §139.11.12) the profile pictures — nine animals and 24 people (`src/assets/avatars/`, §139.11.14) — and the empty states' drawings (`src/assets/empty/`, §139.21.4) ship with the app. A user **chooses** an illustration for a product or an expense category, and a profile picture for their own account — a new account is given one at random (`0026_profile_avatars`, `0029_people_avatars`); nothing they choose is stored except its key. The profile pictures are for the owner's account only: a customer keeps their initials. Their masters are committed; the design references in `design-references/` are not, and the plates and the profile pictures are built from them.
+**App-owned artwork is not an upload.** The illustration library (`artwork/illustrations/`, shipped from `src/assets/illustrations/`, plan §139.11.10), the photographic plates (`src/assets/plates/`, §139.11.12) the profile pictures — nine animals and 24 people (`src/assets/avatars/`, §139.11.14) — the empty states' drawings (`src/assets/empty/`, §139.21.4) and the brand's marks (`src/assets/brand/`, the installed app's icons) ship with the app. A user **chooses** an illustration for a product or an expense category, and a profile picture for their own account — a new account is given one at random (`0026_profile_avatars`, `0029_people_avatars`); nothing they choose is stored except its key. The profile pictures are for the owner's account only: a customer keeps their initials. Their masters are committed; the design references in `design-references/` are not, and the plates and the profile pictures are built from them.
 
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: Ovenly
+name: Brio
 description: The Home Kitchen Ledger — warm, calm and exact business management for home businesses, in two themes, Golden and Peach.
 colors:
   # Golden — the default theme (and where a stored "clean" lands)
@@ -200,13 +200,13 @@ components:
     padding: "16px 20px"
 ---
 
-# Design System: Ovenly
+# Design System: Brio
 
 ## Overview
 
 **Creative North Star: "The Home Kitchen Ledger"**
 
-Ovenly is a well-kept order book on a kitchen shelf: warm, homely materials holding figures you can trust. The ground is cream, the pages are oat paper, the ink is a deep crust brown, and the one thing that must be done next is set in espresso. It is warm, calm and exact. Warmth comes from the materials, never from noise; calm comes from restraint, with one strong voice per screen; exactness comes from measured contrast, tabular figures and money that is never a guess.
+Brio is a well-kept order book on a kitchen shelf: warm, homely materials holding figures you can trust. The ground is cream, the pages are oat paper, the ink is a deep crust brown, and the one thing that must be done next is set in espresso. It is warm, calm and exact. Warmth comes from the materials, never from noise; calm comes from restraint, with one strong voice per screen; exactness comes from measured contrast, tabular figures and money that is never a guess.
 
 Controls are **soft and certain**: rounded, tinted and gently lifted, and never ambiguous about what can be tapped or where something stands. The owner meets these screens many times a day, often one-handed between batches, so density stays steady and the structure stays predictable. What is due and what is owed always leads.
 
@@ -282,7 +282,7 @@ A warm, low-chroma kitchen palette. One caramel (or terracotta) voice does the p
 - **Figure** (500, 1.5rem, tabular numerals): headline amounts in stat tiles and a customer's figures. Counts stay in Inter semibold.
 - **Body** (400 / 500, 0.875rem, 1.43): rows, fields, messages. Row titles take 600.
 - **Label** (500, 0.75rem): pills, helper text, captions, table headers.
-- **Lockup** (600, 0.7rem, 0.34em, uppercase): only the brand lockup and the intro line on the sign-in screens.
+- **Lockup** (600, 0.7rem, 0.34em, uppercase): only the intro line on the sign-in screens. The app's own line under its wordmark is 500, 0.75rem, 0.12em, in sentence case, as the brand sets it.
 
 ### Named Rules
 **The Serif for Figures Rule.** Titles and money in headline position are set in Fraunces; anything you type, tap or scan in a list is Inter.
@@ -366,15 +366,23 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 - **Where it opens:** in the top layer, so no scrolling sheet clips it; under the control, or over it where there is more room; lined up with the control's nearer screen edge; at most 288 px tall, then it scrolls. It drops in over 240 ms, as a fade under reduced motion.
 - **Keyboard:** the arrows, Home and End move; a letter jumps; Enter or Space takes; Escape or Tab closes, and Escape never closes the sheet behind it.
 
+### The brand
+- **Brio** (the user, 2026-09-28), built from the supplied files by `scripts/brand.mjs` into `src/assets/brand/`, `public/icons/` and the favicon:
+  - **the icon:** a cream "b" with an orange leaf, on a dark green rounded square;
+  - **the wordmark:** "Brio" in a heavy serif, dark green, the leaf over its i;
+  - **the leaf** alone, the smallest mark.
+- **Where:** the wordmark (44 px tall) with the line "Made by you. Managed simply." heads the sign-in screens, where the seedling mark and the name in type used to be; the leaf (16 px) marks their closing promise; the icon stands in the install sheet and the developer console, and is the installed app's icon and the favicon.
+- **Its colours stay in the marks.** The screens keep Golden and Peach; nothing else takes the green or the leaf's orange. A business's own mark still leads its header and its bills.
+
 ### Installing the app
-- **Install app** stands with the other menus: a row of its own in More, above Sign out, with a download medallion and "Add Ovenly to your home screen"; the sidebar's last place on a tablet and a desktop. It is not there inside the installed app.
-- **The sheet:** a line on what installing gives, then **Install** where the browser offers it (full width, primary), then three numbered steps. Each is a Flour Well card with a caramel number disc on the left and, on the right, the mark the device shows for that step (Safari's Share, Chrome's three dots, an add-to-home square). The heading names the device ("On iPhone or iPad"). A muted line ends it.
+- **Install app** stands with the other menus: a row of its own in More, above Sign out, with a download medallion and "Add Brio to your home screen"; the sidebar's last place on a tablet and a desktop. It is not there inside the installed app.
+- **The sheet:** the app's icon at 56 px beside a line on what installing gives, then **Install** where the browser offers it (full width, primary), then three numbered steps. Each is a Flour Well card with a caramel number disc on the left and, on the right, the mark the device shows for that step (Safari's Share, Chrome's three dots, an add-to-home square). The heading names the device ("On iPhone or iPad"). A muted line ends it.
 - **Offline:** a whole-screen stop, like Not found, with the crossed-out wifi mark, "You're offline" in the display serif, and **Try again**. While the app is open and the connection drops, a quiet warning-tinted bar sits over the screen with **Try again**.
-- **Icons:** the brand mark in cream on caramel; the maskable one keeps the mark inside the middle 60 %.
+- **Icons:** the "b" and its leaf on dark green (see The brand); the maskable one keeps the mark inside the middle 56 %, green to every edge.
 
 ### The developer console
 - **Its own look, and only there** (the user, 2026-09-27): white and blue with the sans throughout, `data-theme="dev"`. It is set on the page while the console is open, so its sign-out card takes it too, and it never reaches an owner's screens. Ground #f5f7fb, paper white, well #eef2f8, hairline #dde4ee, ink #0f1b2d, muted #4a5a70, blue #1d4ed8 on white 6.7 : 1.
-- **Frame:** a white top bar with a blue "O" mark, "Ovenly · Developer console", who is signed in, and Sign out; under it, tabs for Overview, Users and Audit log, the open one underlined in blue.
+- **Frame:** a white top bar with the app's icon at 36 px, "Brio · Developer console", who is signed in, and Sign out; under it, tabs for Overview, Users and Audit log, the open one underlined in blue.
 - **Pages:** the kit's cards, stat tiles and list states. Stored values (an audit entry's before and after) are shown as indented JSON in the mono face, in a well that scrolls sideways.
 
 ### Date picker
