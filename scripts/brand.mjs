@@ -201,7 +201,8 @@ const written = {
   "src/app/apple-icon.png": await fullBleed(180, APPLE_SHARE, lifted),
   "src/app/favicon.ico": await favicon(rounded, [16, 32, 48]),
   [`${ASSETS}/icon.webp`]: await sharp(rounded).resize(192, 192).webp({ quality: 90, alphaQuality: 95, effort: 6 }).toBuffer(),
-  [`${ASSETS}/wordmark.webp`]: await sharp(wordmark).resize({ height: 200 }).webp({ quality: 90, alphaQuality: 95, effort: 6 }).toBuffer(),
+  // Tall enough for the launch splash's largest, 380 px wide on a 2× screen.
+  [`${ASSETS}/wordmark.webp`]: await sharp(wordmark).resize({ height: 360 }).webp({ quality: 90, alphaQuality: 95, effort: 6 }).toBuffer(),
   [`${ASSETS}/leaf.webp`]: await sharp(leaf).resize({ height: 96 }).webp({ quality: 90, alphaQuality: 95, effort: 6 }).toBuffer(),
 };
 for (const [file, bytes] of Object.entries(written)) fs.writeFileSync(file, bytes);

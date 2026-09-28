@@ -1,9 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
+import { BRAND } from "@/assets/brand";
+import { SPLASH_ART } from "@/assets/splash";
+import { LaunchReady } from "@/components/launch/LaunchReady";
+import { LaunchSplash } from "@/components/launch/LaunchSplash";
 import { ResponseProvider } from "@/components/ui/response-card";
 import { UI_TEXT } from "@/constants/messages";
 import { AuthProvider } from "@/features/auth/AuthProvider";
 import { readInitialSession } from "@/features/auth/session.server";
+import { assetUrl, launchBootScript } from "@/lib/launch/splash";
 import { ThemeProvider } from "@/lib/theme/ThemeProvider";
 import { PwaSetup } from "@/lib/pwa/PwaSetup";
 import { KeyboardInset } from "@/lib/viewport/KeyboardInset";
@@ -71,11 +76,22 @@ export default async function RootLayout({
       <head>
         {/* Sets the stored theme before anything paints (BUG-15). */}
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+        {/* Shows the launch splash when the app is opened as an app, before anything paints. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: launchBootScript({
+              portrait: assetUrl(SPLASH_ART.portrait),
+              landscape: assetUrl(SPLASH_ART.landscape),
+              wordmark: assetUrl(BRAND.wordmark.src),
+            }),
+          }}
+        />
       </head>
       {/* Extensions such as Grammarly write attributes onto <body> before React
           hydrates. This ignores only <body>'s own attributes, one level deep;
           a real mismatch anywhere below it is still reported. */}
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        <LaunchSplash />
         <ThemeProvider>
           {/* One place every outcome is reported, signed in or not (plan §139.6). */}
           <ResponseProvider>
@@ -83,6 +99,7 @@ export default async function RootLayout({
           </ResponseProvider>
           <KeyboardInset />
           <PwaSetup />
+          <LaunchReady />
         </ThemeProvider>
       </body>
     </html>

@@ -133,6 +133,10 @@ export const UI_TEXT = {
   appShortName: "Brio",
   /** The line under a business's name in the header when it has no catch phrase of its own. */
   businessLine: "Home business",
+  /** The launch splash (the user, 2026-09-28): what its bar says to a screen reader. */
+  launch: {
+    opening: "Opening Brio",
+  },
   appDescription:
     "Mobile-first management for home businesses — bakers, hamper makers, florists and gift makers. Orders, customers, stock, expenses and bills in one place.",
 

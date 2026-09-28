@@ -2916,3 +2916,30 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - None.
+
+## 2026-09-28 — The launch splash
+
+### Added
+- **A branded splash with a real loader** (the user: "use these 2 images as small branded splash + loader … a real progress bar should be there as loader, this is for returning user launching the app").
+- **When it shows:** Brio opened as an app — the installed web app, or the Android app by its user agent — once a launch. Never in a browser tab, and not on a reload within the same launch.
+- **The art** (`scripts/splash.mjs`, `npm run splash`): the two supplied scenes, portrait and landscape, with their drawn wordmark, line and bar painted out of the cream middle.
+  - Each painted box is checked to sit on plain cream, then filled from its smoothed edges with the cream's own grain.
+  - They are 77 KB and 72 KB in `src/assets/splash/`. The originals stay in `design-references/brand/`.
+- **In the middle:** the real wordmark, the line, and a bar that fills as the launch goes.
+  - **The steps:** the page read (30 %), the fonts (15 %), the art (20 %) and the app hydrated (35 %).
+  - **How it moves:** the bar eases toward what has happened, never past a step still to come.
+  - **Timing:** at least 0.9 s, at most 8 s, then a 0.3 s fade.
+- **How it's built:**
+  - `launchBootScript` runs in `<head>` before the first paint.
+  - `LaunchSplash` is drawn with every page, hidden until `<html data-launch>`. Its pictures are backgrounds, so an ordinary visit downloads nothing.
+  - `LaunchReady` reports the app ready.
+- **The wordmark** is now 793 × 360 px (`npm run brand`), sharp at the splash's largest.
+
+### Validation
+- **Browser, as the Android app** (390 px upright; 1280 px on its side): the splash came at once. The bar went from 4 % to 100 % by 1.0 s, and the splash was gone by 1.3 s.
+- **A reload** in the same launch went straight to the page.
+- **In a browser tab** nothing showed and none of the art was fetched.
+- **Checks:** `tsc` and `eslint` pass. The full suite passes (2,183 tests), and the new files are at 100 %.
+
+### Blockers
+- None.

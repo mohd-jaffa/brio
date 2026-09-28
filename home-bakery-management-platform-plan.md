@@ -7593,6 +7593,7 @@ Later the same day:
   - **Out of Phase 6:** R6.3 (OpenAPI and Swagger) and R6.7 (BugSnag) read **LATER**, and R6.4 is the CI pipeline without SonarQube.
   - **Kept, not dropped:** §119 – §120 (OpenAPI and Swagger UI), §123 (BugSnag) and §124 (SonarQube) stay as written, for the day they are taken up (§139.18).
   - **Meanwhile:** errors go to the server's own structured logs (§104); the API's contract is its route schemas and the table in §139.13; quality is held by lint, the type check, the tests and the coverage gate.
+- **A launch splash** (the user: "use these 2 images as small branded splash + loader … a real progress bar should be there as loader, this is for returning user launching the app"). It shows when Brio is opened as an app, once a launch, with a bar that fills as the launch really goes (§139.11.19). Onboarding for a new account comes later, from the user's own content.
 - **The app is Brio** (the user: "these are the logos of the app. use it where needed. and also change the app name and tagline whereever needed"). Its line is **"Made by you. Managed simply."** Four files came with it: the icon (a cream "b" and an orange leaf on dark green), the wordmark, the two side by side, and a sheet of variants. Every name a person reads says Brio; the code keeps `ovenly` (§139.11.18).
 - **Empty states get their own drawings** (the user: "use this where needed, i think some of them from these can be used in our app now"). Of a supplied sheet of fifteen, the six that match a list the app has — orders, products, customers, stock, expenses and the inbox — are cut and shown over those empty states; the rest are of things the app does not have (§139.21.4, R9.5).
 - **24 people join the profile pictures** (the user: "split and these to the avatars set"). A second sheet, 24 portraits on pastel discs, is cut into pictures beside the nine animals; the chooser shows **Animals** then **People**, and a new account draws from all 33 (`0029_people_avatars`, §139.11.14).
@@ -8692,6 +8693,28 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
   - **the leaf** — the sign-in screens' closing promise.
 - **The palette stays Golden and Peach.** The marks' green and orange are
   theirs alone.
+
+### 139.11.19 The launch splash (the user, 2026-09-28)
+
+- **When:** Brio opened as an app — the installed web app, or the Android app
+  (its user agent says `BrioAndroid`) — once per launch. Never in a browser
+  tab, and not on a reload within the same launch (session storage). A new
+  account's onboarding is separate, and waits for the user's content.
+- **What:** the supplied bakery scene (portrait or landscape, to the
+  screen), with the wordmark, "Made by you. Managed simply." and a bar in its
+  cream middle. The scene is built by `scripts/splash.mjs`, which paints out
+  the supplied wordmark, line and bar; the page sets real ones there.
+- **The bar is real:** it moves as the launch goes — the page read (30 %),
+  the fonts in (15 %), the art drawn (20 %) and the app ready (35 %,
+  `LaunchReady`) — easing toward what has happened and never past a step not
+  yet reached. It stays at least 0.9 s, so it can be read, and at most 8 s;
+  full, it fades over 0.3 s (at once under reduced motion).
+- **How:** a script in `<head>` (`launchBootScript`) decides before the first
+  paint and drives the bar; the splash (`LaunchSplash`) is drawn with every
+  page but shown only while `<html data-launch>` is set, and its pictures are
+  backgrounds, so an ordinary visit fetches nothing.
+- **On Android** the system's own splash (the icon on cream) shows first; the
+  Android work (Phase 8) hides it as this one appears.
 
 ---
 

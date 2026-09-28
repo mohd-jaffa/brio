@@ -374,6 +374,11 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 - **Where:** the wordmark (44 px tall) with the line "Made by you. Managed simply." heads the sign-in screens, where the seedling mark and the name in type used to be; the leaf (16 px) marks their closing promise; the icon stands in the install sheet and the developer console, and is the installed app's icon and the favicon.
 - **Its colours stay in the marks.** The screens keep Golden and Peach; nothing else takes the green or the leaf's orange. A business's own mark still leads its header and its bills.
 
+### Launch Splash
+- **When the app opens as an app** (installed, or the Android app), once a launch: the supplied bakery scene full screen — whisk, cake, piping bag round the edges, the counter at the foot — portrait or landscape to the screen, its middle plain cream `#fdfaf2`.
+- **In the middle:** the wordmark (48 vmin, 170 – 380 px), the line "Made by you. Managed simply." in the sans, green `#0e2d1b`, 0.04em; and a pill bar (28 vmin, 112 – 220 px wide), deep green `#03351d` on warm sand `#efdec6`, filling from the left as the launch goes.
+- **It leaves** once full, fading over 300 ms, at least 0.9 s after it came; under reduced motion it just goes. These colours are the splash's own, whatever the theme.
+
 ### Installing the app
 - **Install app** stands with the other menus: a row of its own in More, above Sign out, with a download medallion and "Add Brio to your home screen"; the sidebar's last place on a tablet and a desktop. It is not there inside the installed app.
 - **The sheet:** the app's icon at 56 px beside a line on what installing gives, then **Install** where the browser offers it (full width, primary), then three numbered steps. Each is a Flour Well card with a caramel number disc on the left and, on the right, the mark the device shows for that step (Safari's Share, Chrome's three dots, an add-to-home square). The heading names the device ("On iPhone or iPad"). A muted line ends it.

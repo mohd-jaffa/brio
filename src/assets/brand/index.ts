@@ -16,7 +16,7 @@ import wordmark from "./wordmark.webp";
  */
 export const BRAND = {
   icon: { src: icon, width: 192, height: 192 },
-  wordmark: { src: wordmark, width: 441, height: 200 },
+  wordmark: { src: wordmark, width: 793, height: 360 },
   leaf: { src: leaf, width: 107, height: 96 },
 } as const satisfies Record<string, { src: StaticImageData; width: number; height: number }>;
 

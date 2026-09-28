@@ -924,3 +924,87 @@ a {
 .animate-rise {
   animation: rise 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+
+/* ============================================================
+   The launch splash (LaunchSplash; the user, 2026-09-28)
+   Shown only while <html data-launch> is set, by the launch script in
+   <head>, when the app is opened as an app. Its art and wordmark are
+   backgrounds, so nothing is fetched until it shows. Its colours are the
+   supplied splash's own, whatever the theme: the cream of its middle, the
+   wordmark's green, and the bar's green on warm sand.
+   ============================================================ */
+.launch-splash {
+  display: none;
+}
+
+html[data-launch] .launch-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--safe-top) var(--safe-right) calc(var(--safe-bottom) + 4dvh) var(--safe-left);
+  background: #fdfaf2 var(--launch-portrait) center / cover no-repeat;
+}
+
+@media (orientation: landscape) {
+  html[data-launch] .launch-splash {
+    background-image: var(--launch-landscape);
+  }
+}
+
+/* The page under it stays still while it shows. */
+html[data-launch] body {
+  overflow: hidden;
+}
+
+html[data-launch="leaving"] .launch-splash {
+  opacity: 0;
+  transition: opacity 300ms ease-out;
+}
+
+.launch-splash-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.launch-splash-wordmark {
+  width: clamp(170px, 48vmin, 380px);
+  aspect-ratio: 793 / 360;
+  background: var(--launch-wordmark) center / contain no-repeat;
+}
+
+.launch-splash-line {
+  margin-top: clamp(6px, 1.6vmin, 14px);
+  color: #0e2d1b;
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: clamp(13px, 3.4vmin, 22px);
+  letter-spacing: 0.04em;
+}
+
+.launch-splash-track {
+  margin-top: clamp(22px, 6vmin, 52px);
+  width: clamp(112px, 28vmin, 220px);
+  height: clamp(6px, 1.8vmin, 10px);
+  overflow: hidden;
+  border-radius: 999px;
+  background: #efdec6;
+}
+
+.launch-splash-bar {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #03351d;
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-launch="leaving"] .launch-splash {
+    transition: none;
+  }
+}
