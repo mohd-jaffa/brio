@@ -1,6 +1,5 @@
 "use client";
 
-import { Package } from "lucide-react";
 import { useState } from "react";
 
 import { cn } from "@/components/ui/cn";
@@ -100,7 +99,7 @@ export function Inventory() {
         loadFailed="INVENTORY_LOAD_FAILED"
         data={lines}
         noMatches={search.trim() ? UI_TEXT.states.noResults(search.trim()) : undefined}
-        empty={<EmptyState icon={Package} title={text.emptyTitle} hint={text.emptyHint} />}
+        empty={<EmptyState art="storefront" title={text.emptyTitle} hint={text.emptyHint} />}
         renderList={(items) => (
           <RowList label={text.list}>
             {items.map((line) => (

@@ -1,6 +1,5 @@
 "use client";
 
-import { ShoppingBag } from "lucide-react";
 import { useState } from "react";
 
 import { LinkButton } from "@/components/ui/button";
@@ -89,7 +88,7 @@ export function Orders() {
           noMatches={narrowed ? (searched ? UI_TEXT.states.noResults(searched) : text.noneHere) : undefined}
           empty={
             <EmptyState
-              icon={ShoppingBag}
+              art="clipboard"
               title={text.emptyTitle}
               hint={text.emptyHint}
               action={<LinkButton href="/orders/new" label={text.newOrder} variant="secondary" />}

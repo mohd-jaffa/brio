@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "app-icons": "node scripts/app-icons.mjs",
     "avatars": "node scripts/avatars.mjs",
+    "empty-art": "node scripts/empty-art.mjs",
     "illustrations": "node scripts/illustrations.mjs",
     "plates": "node scripts/plates.mjs",
     "worker": "tsx --env-file-if-exists=.env.local src/worker.ts",

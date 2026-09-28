@@ -7593,6 +7593,7 @@ Later the same day:
   - **Out of Phase 6:** R6.3 (OpenAPI and Swagger) and R6.7 (BugSnag) read **LATER**, and R6.4 is the CI pipeline without SonarQube.
   - **Kept, not dropped:** §119 – §120 (OpenAPI and Swagger UI), §123 (BugSnag) and §124 (SonarQube) stay as written, for the day they are taken up (§139.18).
   - **Meanwhile:** errors go to the server's own structured logs (§104); the API's contract is its route schemas and the table in §139.13; quality is held by lint, the type check, the tests and the coverage gate.
+- **Empty states get their own drawings** (the user: "use this where needed, i think some of them from these can be used in our app now"). Of a supplied sheet of fifteen, the six that match a list the app has — orders, products, customers, stock, expenses and the inbox — are cut and shown over those empty states; the rest are of things the app does not have (§139.21.4, R9.5).
 - **24 people join the profile pictures** (the user: "split and these to the avatars set"). A second sheet, 24 portraits on pastel discs, is cut into pictures beside the nine animals; the chooser shows **Animals** then **People**, and a new account draws from all 33 (`0029_people_avatars`, §139.11.14).
 - **Unread and Read on Notifications** (the user: "keep 2 more filters in notification, read and unread"). They are two more tabs, after All: **All · Unread · Read · Orders · Customers · System**. Each shows every kind; the kind tabs still show read and unread alike (R5.19).
 
@@ -9123,7 +9124,7 @@ the native layer (R8.3).
 | R9.2 | Order placed: the order's own illustration, and one warm line | §139.21.3 | R9.1 | TODO |
 | R9.3 | Paid in full: its own card when a payment clears the balance | §139.21.3 | R9.1 | TODO |
 | R9.4 | Delivered and Completed: their own card when an order finishes | §139.21.3 | R9.1 | TODO |
-| R9.5 | Empty states in the app's own art | §139.21.4 | — | TODO |
+| R9.5 | Empty states in the app's own art | §139.21.4 | — | DONE (2026-09-28 · the drawings the user supplied, `src/assets/empty/`) |
 | R9.6 | The inbox caught up: the badge leaves, and the list says so | §139.21.5 | — | TODO |
 | R9.7 | Warmer system screens: not found, the error boundary, the global error | §139.21.6 | — | TODO |
 | R9.8 | A light haptic on the three milestones, on Android | §139.21.2 | R8.3 | TODO |
@@ -9145,7 +9146,7 @@ the native layer (R8.3).
 ## 139.21 Delight (Phase 9)
 
 *Added 2026-09-26 by the user, through `/impeccable delight`, and recorded
-under §31. Nothing here is built yet.*
+under §31. The empty states (R9.5) are built, 2026-09-28; the rest is not.*
 
 ### 139.21.1 The thesis, and its rules
 
@@ -9165,9 +9166,10 @@ stays plainly out of the way everywhere else.
 - **Motion:** an illustration settles in with a short drop, 400 ms at most, on
   the kit's `--ease-out-expo`. Under reduced motion it only fades. Nothing
   loops, bounces or plays a sound.
-- **Art:** only the illustration library the app already ships (§139.11.10).
-  There are no new assets and no new dependencies, and the licence check of
-  Q16 still applies. An illustration is decorative (`alt=""`); the card's
+- **Art:** only the illustration library the app already ships (§139.11.10),
+  and — for the empty states only — the drawings the user supplied for them
+  (2026-09-28, §139.21.4). There are no new dependencies, and the licence
+  check of Q16 applies to both. An illustration is decorative (`alt=""`); the card's
   title and message carry the meaning.
 - **Nothing is delayed.** No moment holds up the task behind it, and the card
   closes, or offers its next step, exactly as it does today.
@@ -9201,18 +9203,29 @@ stays plainly out of the way everywhere else.
 
 ### 139.21.4 Empty states in the app's own art (R9.5)
 
-- **The kit:** `EmptyState` accepts an illustration in place of its lucide
-  icon. It keeps its title, its hint and its one action, and settles in with
-  the screen (`useSettle`).
+- **The kit:** `EmptyState` accepts a drawing in place of its lucide icon. It
+  keeps its title, its hint and its one action; the drawing is decorative
+  (`alt=""`), sits in a fixed 176 × 128 px box, and settles in with a short
+  drop that only fades under reduced motion.
+- **The art** (the user, 2026-09-28: "use this where needed, i think some of
+  them from these can be used in our app now"): a sheet of fifteen empty-state
+  drawings, in cream, sage and a leaf of orange. The six that match a list the
+  app has are cut by `scripts/empty-art.mjs` into `src/assets/empty/`, their
+  white ground see-through; the sheet stays in `design-references/`. It
+  replaces the library illustrations this table first named.
+- **Not used**, because the app has no such thing: bookings, deliveries as a
+  list, favourites, reviews, messages, templates, media (no uploads, §16), a
+  store to set up, and "nothing here yet". **No results** stays a plain line
+  (below).
 
-| Screen | Illustration | Title |
+| Screen | Drawing | Title |
 |---|---|---|
-| Orders | `delivery-scooter` | unchanged |
-| Products, and the order screen's empty grid | `cupcake` | unchanged |
-| Customers | `heart-gift-box` | unchanged |
-| Expenses | `gold-coins` | unchanged |
-| Inventory | `cake-squares` | unchanged |
-| Notifications | `teddy-bear` | **All quiet** (in place of "Nothing yet") |
+| Orders | `clipboard` | unchanged |
+| Products, and the order screen's empty grid | `open-box` | unchanged |
+| Customers | `people` | unchanged |
+| Expenses (Transactions) | `bar-chart` | unchanged |
+| Inventory | `storefront` | unchanged |
+| Notifications | `bell` | **All quiet** (in place of "Nothing yet") |
 
 - **Stays plain:** a search or a tab that matches nothing ("No customer
   matches that") is not an empty state. It keeps its plain line.

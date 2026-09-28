@@ -131,7 +131,7 @@ describe("Notifications", () => {
   it("says what shows up here, while nothing has", async () => {
     answers["/api/notifications"] = { items: [], nextCursor: null };
     open();
-    expect(await screen.findByText("Nothing yet")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "All quiet" })).toBeInTheDocument();
     expect(screen.getByText(/New orders, orders due, payments, low stock and new customers/)).toBeInTheDocument();
   });
 

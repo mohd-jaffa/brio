@@ -2847,3 +2847,41 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - None.
+
+## 2026-09-28 — Empty states get their own drawings (R9.5)
+
+### Added
+- **Six drawings** (the user: "use this where needed, i think some of them from these can be used in our app now").
+  - **The sheet:** the user supplied fifteen empty-state drawings. `scripts/empty-art.mjs` (`npm run empty-art`) cuts the six that match a list the app has, clear of their captions. It makes their white ground see-through from the edges inwards, so the drawings' own pale paper stays.
+  - **What was committed:** the drawings, 24 to 29 KB each, in `src/assets/empty/`. The sheet stays in `design-references/` (`empty-states.png`, a copy of the file supplied).
+- **Where each is shown:**
+
+  | Screen | Drawing |
+  |---|---|
+  | Orders | a clipboard |
+  | Products, and the order screen's empty grid | an open box |
+  | Customers | three figures |
+  | Inventory | a market stall |
+  | Expenses (Transactions) | a bar chart |
+  | Notifications | a bell, titled **All quiet** in place of "Nothing yet" |
+
+- **`EmptyState` takes `art`** in place of `icon`, as one or the other.
+  - The drawing is decorative (`alt=""`) and sits in a fixed 176 × 128 px box, so its space is kept while it loads.
+  - It settles in with the kit's short drop, and only fades under reduced motion.
+  - The developer console keeps its icons.
+
+### Not used
+- **The other nine drawings are of things the app does not have:** bookings, deliveries as a list, favourites, reviews, messages, templates, media (no uploads, AGENTS §16), setting up a store, and "nothing here yet".
+- **"No results found":** a search that matches nothing keeps its plain line (plan §139.21.4).
+
+### Changed
+- **The plan:** §139.21.1's "no new assets" now allows these drawings for the empty states, and §139.21.4 names them.
+
+### Validation
+- **Browser, 390 px Golden and 1440 px Peach:** each empty state showed its drawing, title and action, with no failed requests.
+  - The screens were those of a throwaway business registered for the purpose.
+  - The business was then deleted, with its account and its confirmation email. The local database is back to its 2 accounts and 1 business.
+- **Checks:** `tsc` and `eslint` pass. The full suite passes (2,162 tests, new ones for the drawing and the art map), and every changed file is at 100 %.
+
+### Blockers
+- None.

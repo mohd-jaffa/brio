@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal, Package, PackagePlus, Pencil, PauseCircle, PlayCircle } from "lucide-react";
+import { MoreHorizontal, PackagePlus, Pencil, PauseCircle, PlayCircle } from "lucide-react";
 import { useState } from "react";
 
 import { Button, IconButton } from "@/components/ui/button";
@@ -196,7 +196,7 @@ export function Products() {
         noMatches={needle ? UI_TEXT.states.noResults(search.trim()) : undefined}
         empty={
           <EmptyState
-            icon={Package}
+            art="open-box"
             title={text.emptyTitle}
             hint={text.emptyHint}
             action={<Button label={text.add} variant="secondary" onClick={() => form.open()} />}

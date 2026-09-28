@@ -1,6 +1,5 @@
 "use client";
 
-import { Users } from "lucide-react";
 import { useState } from "react";
 
 import { Avatar } from "@/components/ui/avatar";
@@ -168,7 +167,7 @@ export function Customers() {
             }
             empty={
               <EmptyState
-                icon={Users}
+                art="people"
                 title={text.emptyTitle}
                 hint={text.emptyHint}
                 action={<Button label={text.newCustomer} variant="secondary" onClick={() => form.open()} />}

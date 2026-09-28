@@ -1036,7 +1036,7 @@ export const UI_TEXT = {
     } as Record<NotificationTab, string>,
     markAllRead: "Mark all as read",
     unread: "Unread",
-    emptyTitle: "Nothing yet",
+    emptyTitle: "All quiet",
     emptyHint: "New orders, orders due, payments, low stock and new customers show up here as they happen.",
     noneInTab: {
       UNREAD: "Nothing unread",
