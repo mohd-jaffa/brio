@@ -107,6 +107,22 @@ repository and never in anything the browser receives.
 
 ---
 
+## The Android app
+
+Brio's Android app is Capacitor 8 loading the hosted web app (plan §139.17).
+There is no separate Android code base: `src/` is the one app, and
+`src/lib/native/` is the only part that knows it may be on Android.
+
+1. Install **Android Studio 2025.2.1 or later** (it brings the Android SDK and
+   its own JDK).
+2. Set `ANDROID_APP_URL` in `.env.local` (see `.env.example`):
+   `http://10.0.2.2:3000` reaches `npm run dev` from the emulator.
+3. `npm run android:sync`, then `npm run android:open`, and run it from
+   Android Studio.
+
+A release uses the deployed HTTPS address, and is signed only by CI, with the
+upload key held as a secret.
+
 ## Checks
 
 ```bash

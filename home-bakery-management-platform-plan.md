@@ -7649,8 +7649,8 @@ tracker rows that waited on them no longer wait.
 | **Q6** | **Photography.** The references are photo-led. §16/§118 allow **only** the logo upload. | **Answered 2026-09-24: no uploads, as planned.** The supplied photographs are used as **backgrounds** where needed (§139.11.12). Products show **illustrations** (§139.11.10), not photographs. | — | R1.13, R2.8 |
 | **Q7** | **Reference features outside the plan:** Messages/chat, Staff/team, Suppliers, a Wholesale customer type, Language and Currency settings, Payment-methods settings, a barcode scanner, a dark-mode toggle, a multi-business switcher, "Today's special", Help & Support, and the copy "the customer will be notified". | **Answered 2026-09-24: omit all of them**, Help & Support included. The **Regular / New** customer tabs stay: they are derived from order history and are not on this list. | — | R5.11 |
 | **Q8** | **Wording for the wider audience.** The tagline "Home Bakery", the auth headlines ("Good bakes start here.") and the product units (piece, kg, gram, box, dozen) are bakery-only. | Tagline "Home Business"; neutral auth headlines; units add **set, bunch, pack** | Same as the default | R1.14, R2.8, R5.6 |
-| **Q9** | **How the Android app ships:** the hosted app inside a native shell, or a static export bundled into the APK (§139.17.1). | Hosted app in a native shell | Hosted app in a native shell | R8.1 |
-| **Q10** | **Android identity and Play requirements:** the application id (e.g. `app.ovenly`), the Play developer account, a **Privacy Policy page**, and **account deletion** (in the app and via the web). Play requires both for an app that creates accounts and stores personal data — here, the customers' names, phones and addresses. **Neither exists** (§138.2 F). | — | Build both pages in Phase 8 | R8.2, R8.10 |
+| **Q9** | **How the Android app ships:** the hosted app inside a native shell, or a static export bundled into the APK (§139.17.1). | **Answered 2026-09-28: the hosted app in a native shell (Capacitor)**, knowing Capacitor calls `server.url` "not intended for production" (§139.17.1). | — | R8.1 |
+| **Q10** | **Android identity and Play requirements:** the application id (**answered 2026-09-28: `in.brio.app`**), the Play developer account, a **Privacy Policy page**, and **account deletion** (in the app and via the web). Play requires both for an app that creates accounts and stores personal data — here, the customers' names, phones and addresses. **Neither exists** (§138.2 F). | — | Build both pages in Phase 8 | R8.2, R8.10 |
 | **Q11** | **Order-flow sequence.** The references put items first and the customer second; AGENTS §12 puts the customer first. | Items first | **Items first** — a Guest walk-in never needs a customer step | R3.9 |
 | **Q12** | **Guest orders:** anonymous, or with an optional name for the bill? | Anonymous; the bill reads "Guest" | Anonymous | R3.5 |
 | **Q13** | **Success cards:** close on their own after about 3 seconds when they offer no next step, or always need a tap? | Close on their own | Close on their own (errors and confirmations never do) | R1.10 |
@@ -8919,6 +8919,41 @@ the rest.**
 | **Store policy** | The app must add native value — push, native share, haptics, deep links — which this plan does. | Fine. |
 | **Risk** | Capacitor describes `server.url` mainly for live reload. **Re-check the current Capacitor guidance and Play policy when this phase starts,** and record the decision. | A rework of authentication and routing. |
 
+**The decision (R8.1; the user, 2026-09-28): A, the hosted app in a native
+shell, with Capacitor 8.** Re-checked as this phase began:
+
+- **Capacitor's own documentation** says `server.url` "is intended for use
+  with live-reload servers. This is not intended for use in production." It
+  works; the risks are a native binary and a web deploy that disagree, and no
+  app when there is no network. So every native call checks its plugin is
+  there before using it (§139.17.2), and a bundled page answers when the app
+  cannot be reached (`server.errorPath`).
+- **Google Play's Minimum Functionality policy** refuses an app that only
+  shows a website. The native capabilities below — sharing and saving bills,
+  haptics, the back button, the status bar, push — are what make it an app.
+- **Rejected:** B, which would need tokens held in JavaScript (AGENTS §9), and
+  a Trusted Web Activity, which would replace Capacitor (the approved stack)
+  and give up the native layer.
+
+**The layout** (the user asked for one that is production-grade and cannot
+be confused with the web app):
+
+```text
+src/                     the one app: the browser, the installed web app and Android share it
+  lib/native/            the only code that knows about Android — each capability's web
+                         and Android halves; lint refuses @capacitor/* anywhere else
+android/                 the Android project Capacitor generated (Gradle, manifest, icons,
+                         splash); its generated parts are git-ignored
+capacitor.config.ts      the app id (in.brio.app), its name, the hosted address, plugins
+scripts/android-shell.mjs  builds the pages bundled into the app, then syncs
+.capacitor/shell/        those pages (the offline page); built, never committed
+```
+
+The address comes from `ANDROID_APP_URL` when syncing (`npm run
+android:sync`): HTTPS for a release, plain HTTP only for a development
+server on a private address (`src/lib/native/shell.ts`). Nothing about it is
+committed: Capacitor's generated config is git-ignored.
+
 ### 139.17.2 The native capability layer
 
 `src/lib/native/` — the only place that knows whether the app is running inside
@@ -8945,7 +8980,7 @@ into it.
 - **The back button** closes the response card, then any sheet, then goes back a screen; on Home it leaves the app.
 - **Links:** map links, `tel:` and `wa.me` open **outside** the app (only the app's own domain is navigable inside the WebView).
 - **Deep links:** Android App Links (`/.well-known/assetlinks.json`) open the confirmation and password-reset links **in the app**; the Supabase redirect URLs are updated to match.
-- **Splash screen and adaptive icon** are drawn from `BrandMark`.
+- **Splash screen and adaptive icon** are drawn from the Brio icon (`scripts/brand.mjs`; §139.11.18), the system splash on the launch splash's cream (§139.11.19).
 - **Offline:** a bundled screen with Retry.
 
 ### 139.17.4 Push notifications (§133.5 E2, E3)
@@ -9150,17 +9185,17 @@ Phase 5 closed on 2026-09-26 with R5.10.
 
 | ID | Work | Source | Waits on | Status |
 |---|---|---|---|---|
-| R8.1 | Record the delivery-model decision | §139.17.1 | Q9 | TODO |
-| R8.2 | Capacitor project, application id, config | §139.17 | Q10 | TODO |
+| R8.1 | Record the delivery-model decision | §139.17.1 | Q9 | DONE (2026-09-28 · §139.17.1, the decision) |
+| R8.2 | Capacitor project, application id, config | §139.17 | Q10 | DONE (2026-09-28 · Capacitor 8, `in.brio.app`, `android/`; not yet built: no Android SDK on the machine, the user's choice) |
 | R8.3 | The native capability layer | §139.17.2; IMP-09 | — | TODO |
 | R8.4 | Insets and edge-to-edge verified on devices | §139.17.3 | — | TODO |
 | R8.5 | The back button and App Links | §139.17.3 | — | TODO |
 | R8.6 | Push: device tokens, FCM, the worker | §133.5 E2, E3 | — | TODO |
 | R8.7 | Native bill sharing, PNG and PDF | §139.17.2 | — | TODO |
-| R8.8 | Splash screen and adaptive icon | §139.17.3 | — | TODO |
-| R8.9 | The offline screen | IMP-08 | — | TODO |
+| R8.8 | Splash screen and adaptive icon | §139.17.3 | — | DONE (2026-09-28 · adaptive and themed icons, the system splash on cream; seen on a device with R8.12) |
+| R8.9 | The offline screen | IMP-08 | — | DONE (2026-09-28 · `server.errorPath`, built by `scripts/android-shell.mjs`) |
 | R8.10 | A Privacy Policy page and account deletion | §139.17.5 | Q10 | TODO |
-| R8.11 | Signing, versioning, the CI build, Play internal testing, data safety | §139.17.5 | — | TODO |
+| R8.11 | Signing, versioning, the CI build, Play internal testing, data safety | §139.17.5 | — | DOING (2026-09-28: the version and the upload signing come from CI's environment; the CI build, Play and the data-safety form are to come) |
 | R8.12 | The device matrix | §139.17.5 | — | TODO |
 
 ### Phase 9 — Delight

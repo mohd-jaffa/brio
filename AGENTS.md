@@ -630,6 +630,25 @@ Use a native capability abstraction for:
 
 Only add native capabilities when they support existing product requirements.
 
+**The Android app** (Phase 8, plan §139.17): Capacitor 8 loading the hosted app,
+`in.brio.app`, Android only — there is no iOS app; iPhones use the installable
+web app. Where things live:
+
+```text
+src/lib/native/        the only code that talks to Capacitor: each capability's web and
+                       Android halves. Screens import @/lib/native; ESLint refuses
+                       @capacitor/* anywhere else.
+android/               the native project (Gradle, manifest, icons, splash), committed;
+                       what Capacitor generates into it is git-ignored.
+capacitor.config.ts    the app id, name, hosted address (ANDROID_APP_URL) and plugins.
+.capacitor/shell/      the pages bundled into the app (offline), built by
+                       `npm run android:sync`; never committed.
+```
+
+`npm run android:sync` builds the bundled pages and syncs; `npm run
+android:open` opens Android Studio. The upload key and the build number come
+from CI (`BRIO_UPLOAD_KEYSTORE*`, `BRIO_VERSION_CODE`), never the repository.
+
 **The PWA** (Phase 7, plan §139.11.17) is the manifest (`src/app/manifest.ts`),
 the icons (`scripts/app-icons.mjs`), and a service worker (`public/sw.js`). The
 worker keeps only the app's own hashed static files and an offline page fetched

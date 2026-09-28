@@ -43,3 +43,6 @@ next-env.d.ts
 
 # Design reference images — kept locally, never committed
 /design-references/
+
+# The Android app's bundled pages, built by `npm run android:sync`
+/.capacitor/

@@ -2959,3 +2959,44 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - None.
+
+## 2026-09-28 — Phase 8 begins: the Android project
+
+### Decided
+- **R8.1, how the app ships** (the user): **Capacitor 8 loading the hosted app**, the plan's option A.
+  - **Rechecked first:** Capacitor's documentation now calls `server.url` "not intended for use in production". Google Play refuses apps that only show a website.
+  - **So:** every native call will check its plugin is there, a bundled page answers when the app cannot be reached, and the native capabilities are what make it an app. The reasoning is in plan §139.17.1.
+- **The application id** (Q10, the user): **`in.brio.app`**.
+- **No build yet** (the user: "scaffold only for now"). This Mac has no Android SDK, so no APK is built.
+
+### Added
+- **The layout** (the user asked for one that is production-grade and cannot be confused with the web app; AGENTS §19, plan §139.17.1):
+  - `src/` stays the one app.
+  - `src/lib/native/` is the only code that talks to Capacitor. ESLint refuses `@capacitor/*` imports anywhere else.
+  - `android/` is Capacitor's standard native project, with its generated parts git-ignored.
+  - `capacitor.config.ts` joins the two.
+- **The hosted address** comes from `ANDROID_APP_URL` when syncing (`src/lib/native/shell.ts`).
+  - A release needs HTTPS. Plain HTTP is allowed only for a development server on a private address, such as the emulator's `10.0.2.2`.
+  - Nothing of it is committed.
+- **The offline page** (R8.9): `scripts/android-shell.mjs` builds the pages bundled into the app. The Android shell shows the offline page when the app cannot be reached (`server.errorPath`), and **Try again** reopens it.
+  - The page is plain HTML in Golden's colours with the app's icon, and says the web app's own words (`UI_TEXT.offline`).
+- **Icons and splash** (R8.8), from the Brio icon by `npm run brand`:
+  - the adaptive icon: the mark over the icon's green gradient, inside the safe middle;
+  - a monochrome layer for Android 13's themed icons;
+  - square and round fallbacks;
+  - the system splash on the launch splash's cream.
+  - Capacitor's own logo and splash images are removed.
+- **Version and signing** (R8.11, begun). The version name is `package.json`'s. The version code is `BRIO_VERSION_CODE` from CI. A release is signed only when CI provides `BRIO_UPLOAD_KEYSTORE` and its passwords, and the key is never in the repository.
+- **npm scripts:** `android:sync` and `android:open`.
+- **`.env.example`:** documents `ANDROID_APP_URL`. The sender name reads Brio.
+
+### Validation
+- **Gradle 8.14.3** configures the whole Android project without errors, reading the version from `package.json`. Building needs the Android SDK.
+- **The Android XML** is well formed (`xmllint`).
+- **The icons** were composed as a launcher would, in a circle, a squircle and themed.
+- **Checks:** `tsc` and `eslint` pass, and the lint rule catches a Capacitor import outside the native layer. The full suite passes (2,184 tests).
+
+### Blockers
+- **Push (R8.6):** waits on the worker, which is off (§139.11.15). There is nothing to send a push from.
+- **The Privacy Policy page and account deletion (R8.10)** need the details only the user can give: a contact address, and who is responsible for the data.
+- **Seen on a device (R8.4, R8.12):** needs Android Studio or a phone.

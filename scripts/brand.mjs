@@ -19,6 +19,18 @@
 //   src/assets/brand/wordmark.webp           the wordmark, its ground see-through
 //   src/assets/brand/leaf.webp               the leaf alone, the smallest mark
 //
+// And, once the Android project exists (npx cap add android), its launcher
+// icons and splash in android/app/src/main/res/:
+//
+//   mipmap-*/ic_launcher_foreground.png      the mark alone, for the adaptive
+//                                            icon, inside its safe middle
+//   mipmap-*/ic_launcher_monochrome.png      the mark as one colour, for
+//                                            Android 13's themed icons
+//   drawable/ic_launcher_background.xml      the icon's green, as a gradient
+//   mipmap-*/ic_launcher.png, _round.png     the whole icon, for Android 7
+//   drawable-xxhdpi/splash_icon.png          the icon the splash centres on
+//                                            cream before Android 12
+//
 // A white ground becomes see-through by colour-to-alpha against white: from
 // the border inwards for the icon, whose "b" is cream and must stay; over the
 // whole of the wordmark, whose letters hold white counters.
@@ -205,7 +217,55 @@ const written = {
   [`${ASSETS}/wordmark.webp`]: await sharp(wordmark).resize({ height: 360 }).webp({ quality: 90, alphaQuality: 95, effort: 6 }).toBuffer(),
   [`${ASSETS}/leaf.webp`]: await sharp(leaf).resize({ height: 96 }).webp({ quality: 90, alphaQuality: 95, effort: 6 }).toBuffer(),
 };
-for (const [file, bytes] of Object.entries(written)) fs.writeFileSync(file, bytes);
+// Android's densities, as multiples of a density-independent pixel.
+const DENSITIES = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 };
+// An adaptive icon is 108 dp, of which only the middle 66 dp is sure to show.
+const ADAPTIVE_SHARE = 0.4;
+const RES = "android/app/src/main/res";
+
+/** The mark alone, centred on a see-through square `size` px, `share` of it tall — in one colour if `solid`. */
+async function markOnly(size, share, { mark }, solid = false) {
+  const tall = Math.round(size * share);
+  const wide = Math.round((tall * mark.info.width) / mark.info.height);
+  let scaled = sharp(mark.data).resize(wide, tall);
+  if (solid) {
+    // Its shape only: Android colours a themed icon itself.
+    const alpha = await scaled.clone().extractChannel("alpha").toBuffer();
+    scaled = sharp({ create: { width: wide, height: tall, channels: 3, background: "#ffffff" } }).joinChannel(alpha);
+  }
+  return sharp({ create: { width: size, height: size, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+    .composite([{ input: await scaled.png().toBuffer(), left: Math.round((size - wide) / 2), top: Math.round((size - tall) / 2) }])
+    .png(PNG)
+    .toBuffer();
+}
+
+if (fs.existsSync(RES)) {
+  const circle = (size) =>
+    Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${size / 2}"/></svg>`);
+  for (const [bucket, scale] of Object.entries(DENSITIES)) {
+    const launcher = Math.round(48 * scale);
+    const adaptive = Math.round(108 * scale);
+    written[`${RES}/mipmap-${bucket}/ic_launcher.png`] = await sharp(rounded).resize(launcher, launcher).png(PNG).toBuffer();
+    written[`${RES}/mipmap-${bucket}/ic_launcher_round.png`] = await sharp(await fullBleed(launcher, APPLE_SHARE, lifted))
+      .composite([{ input: circle(launcher), blend: "dest-in" }])
+      .png(PNG)
+      .toBuffer();
+    written[`${RES}/mipmap-${bucket}/ic_launcher_foreground.png`] = await markOnly(adaptive, ADAPTIVE_SHARE, lifted);
+    written[`${RES}/mipmap-${bucket}/ic_launcher_monochrome.png`] = await markOnly(adaptive, ADAPTIVE_SHARE, lifted, true);
+  }
+  written[`${RES}/drawable-xxhdpi/splash_icon.png`] = await sharp(rounded).resize(288, 288).png(PNG).toBuffer();
+  written[`${RES}/drawable/ic_launcher_background.xml`] = Buffer.from(`<?xml version="1.0" encoding="utf-8"?>
+<!-- The icon's green (scripts/brand.mjs), behind the adaptive icon's mark. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient android:angle="315" android:startColor="${lifted.green[0]}" android:endColor="${lifted.green[1]}" />
+</shape>
+`);
+}
+
+for (const [file, bytes] of Object.entries(written)) {
+  fs.mkdirSync(file.slice(0, file.lastIndexOf("/")), { recursive: true });
+  fs.writeFileSync(file, bytes);
+}
 console.log(
   Object.entries(written)
     .map(([file, bytes]) => `${file}: ${Math.round(bytes.length / 1024)} KB`)
