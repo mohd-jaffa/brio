@@ -7593,6 +7593,7 @@ Later the same day:
   - **Out of Phase 6:** R6.3 (OpenAPI and Swagger) and R6.7 (BugSnag) read **LATER**, and R6.4 is the CI pipeline without SonarQube.
   - **Kept, not dropped:** §119 – §120 (OpenAPI and Swagger UI), §123 (BugSnag) and §124 (SonarQube) stay as written, for the day they are taken up (§139.18).
   - **Meanwhile:** errors go to the server's own structured logs (§104); the API's contract is its route schemas and the table in §139.13; quality is held by lint, the type check, the tests and the coverage gate.
+- **Unread and Read on Notifications** (the user: "keep 2 more filters in notification, read and unread"). They are two more tabs, after All: **All · Unread · Read · Orders · Customers · System**. Each shows every kind; the kind tabs still show read and unread alike (R5.19).
 
 ---
 
@@ -8153,9 +8154,10 @@ timezone, with the previous period for every delta.
 ### Notifications
 
 A bell in the top bar, carrying the unread count — 1 to 9, then "9+" (the user,
-2026-09-26). The screen has **Mark all as read** and tabs **All · Orders ·
-Customers · System** — which needs a `kind` column on the existing
-`notifications` table. Tapping a row follows its `action_url` and marks it read
+2026-09-26). The screen has **Mark all as read** and tabs **All · Unread ·
+Read · Orders · Customers · System** — the kinds need a `kind` column on the
+existing `notifications` table; Unread and Read (the user, 2026-09-28) read
+`is_read`, whatever the kind. Tapping a row follows its `action_url` and marks it read
 (§133.5 E1). *Built 2026-09-26 (R5.10): the worker writes each notification
 from its job (`0022_notification_kind`); orders due soon and overdue are swept
 every minute (`0023_order_due_notifications`).*
@@ -8719,7 +8721,7 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `GET, POST /api/expense-categories`, `PATCH, DELETE /api/expense-categories/{category}` | New (§139.11.10; the user, 2026-09-26). GET lists the eight, then the business's own, each with its illustration. POST `{ name, iconKey }` adds one of its own; PATCH `{ name, iconKey }` renames it or changes its picture; DELETE removes one no expense is filed under. The eight are never changed (`EXPENSE_CATEGORY_DEFAULT_FIXED`), a name is taken once (`EXPENSE_CATEGORY_ALREADY_EXISTS`), and a category in use stays (`EXPENSE_CATEGORY_IN_USE`). Done 2026-09-26 (R5.16). |
 | `POST /api/products`, `PATCH /api/products/{id}` | Accept `iconKey`: a registry key, or null for the default. |
 | ~~`GET, POST, PATCH /api/categories`~~ | **Dropped 2026-09-25:** products need no categories. |
-| `GET /api/notifications`, `POST /api/notifications/read-all` | New (§133.5 E1). GET `?tab=ALL\|ORDERS\|CUSTOMERS\|SYSTEM&cursor=` pages the inbox, newest first; read-all answers how many it marked. Done 2026-09-26 (R5.10). |
+| `GET /api/notifications`, `POST /api/notifications/read-all` | New (§133.5 E1). GET `?tab=ALL\|UNREAD\|READ\|ORDERS\|CUSTOMERS\|SYSTEM&cursor=` pages the inbox, newest first (Unread and Read added 2026-09-28, R5.19); read-all answers how many it marked. Done 2026-09-26 (R5.10). |
 | `GET /api/notifications/unread`, `POST /api/notifications/{id}/read` | New (R5.10): the bell's count, and one notification marked read as it is opened — one of another business's is not found. |
 
 ~~**OpenAPI** is updated with every change (§133.11 K1).~~ OpenAPI is kept for
@@ -9061,6 +9063,7 @@ Phase 5 closed on 2026-09-26 with R5.10.
 | R5.17 | Profile details once every 30 days: the owner's name, sign-in number and email from Settings, the business's name on Business details; the sign-in number and email with the current password; a new email confirmed before it takes effect (the user, 2026-09-26) | §139.10 | — | DONE (2026-09-26 · `0021_profile_changes`; the confirmation mail is registration's until the user sets its own) |
 | R5.16 | Expense category illustrations: the Categories tab, the picker, the expense form's category field, `/api/expense-categories`; **the business's own categories** — made, renamed, pictured and deleted while unused, the eight defaults fixed (the user, 2026-09-26) | §139.11.10 | — | DONE (2026-09-26 · `0020_expense_categories`) |
 | R5.18 | The library grows (the user, 2026-09-27): 17 files, two of them sheets, make 31 illustrations, in three new groups; the build clears named holes and steps a busy drawing's quality down to fit 40 KB | §139.11.10 | Q16 | DONE (2026-09-27 · 59 illustrations; no migration) |
+| R5.19 | Notifications: **Unread** and **Read** tabs, after All (the user, 2026-09-28) | §139.10 | — | DONE (2026-09-28 · `?tab=UNREAD\|READ`; no migration) |
 
 ### Phase 6 — Hardening
 

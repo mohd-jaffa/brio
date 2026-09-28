@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { DUE_NOTICE_FROM_HOUR } from "@/constants/limits";
-import { NOTIFICATION_TAB_KINDS, type NotificationKind } from "@/constants/statuses";
+import { NOTIFICATION_TAB_FILTERS, type NotificationKind } from "@/constants/statuses";
 import { pageWindow, toPage, type Page } from "@/lib/api/pagination";
 import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
 import type { Tenant } from "@/lib/supabase/tenant";
@@ -36,12 +36,15 @@ function toNotification(row: NotificationRow): AppNotification {
 
 /**
  * `GET /api/notifications` (plan §139.10): the business's notifications,
- * newest first and a page at a time, narrowed to one tab's kinds.
+ * newest first and a page at a time, narrowed to one tab's — the unread, the
+ * read, or some kinds.
  */
 export async function listNotifications(tenant: Tenant, query: NotificationListQuery): Promise<Page<AppNotification>> {
   const window = pageWindow(query.cursor);
+  const { read, kinds } = NOTIFICATION_TAB_FILTERS[query.tab];
   let request = tenant.supabase.from("notifications").select(COLUMNS).eq("bakery_id", tenant.bakeryId);
-  if (query.tab !== "ALL") request = request.in("kind", [...NOTIFICATION_TAB_KINDS[query.tab]]);
+  if (read !== undefined) request = request.eq("is_read", read);
+  if (kinds) request = request.in("kind", [...kinds]);
 
   const { data, error } = await request
     .order("created_at", { ascending: false })

@@ -66,6 +66,19 @@ describe("listNotifications", () => {
     expect(fake.argsOf(fake.queries[0], "range")).toEqual([[20, 20 + PAGE_SIZE]]);
   });
 
+  it("narrows to the unread or the read, whatever their kind", async () => {
+    for (const [tab, read] of [["UNREAD", false], ["READ", true]] as const) {
+      const fake = fakeSupabase(() => ({ data: [aRow("n-1", { is_read: read })] }));
+      const page = await listNotifications(tenantOf(fake.client), { tab });
+      expect(page.items[0].read).toBe(read);
+      expect(fake.argsOf(fake.queries[0], "eq")).toEqual([
+        ["bakery_id", "b-1"],
+        ["is_read", read],
+      ]);
+      expect(fake.argsOf(fake.queries[0], "in")).toEqual([]);
+    }
+  });
+
   it("answers an empty inbox, and passes a failure on in the app's words", async () => {
     expect(await listNotifications(tenantOf(fakeSupabase(() => ({ data: null })).client), { tab: "SYSTEM" })).toEqual({
       items: [],

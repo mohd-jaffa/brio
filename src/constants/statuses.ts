@@ -216,16 +216,20 @@ export const NOTIFICATION_KINDS = ["ORDER", "PAYMENT", "STOCK", "CUSTOMER", "SYS
 export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];
 
 /**
- * The inbox's tabs (plan §139.10: All · Orders · Customers · System) and the
- * kinds each shows: a payment is about an order, and stock is the business's
- * own, so it sits with the system's.
+ * The inbox's tabs (plan §139.10: All · Orders · Customers · System; Unread
+ * and Read, the user, 2026-09-28) and what each shows: the unread or the
+ * read, or some kinds — a payment is about an order, and stock is the
+ * business's own, so it sits with the system's. A tab that names neither
+ * shows everything.
  */
-export const NOTIFICATION_TABS = ["ALL", "ORDERS", "CUSTOMERS", "SYSTEM"] as const;
+export const NOTIFICATION_TABS = ["ALL", "UNREAD", "READ", "ORDERS", "CUSTOMERS", "SYSTEM"] as const;
 export type NotificationTab = (typeof NOTIFICATION_TABS)[number];
 
-export const NOTIFICATION_TAB_KINDS: Record<NotificationTab, readonly NotificationKind[]> = {
-  ALL: NOTIFICATION_KINDS,
-  ORDERS: ["ORDER", "PAYMENT"],
-  CUSTOMERS: ["CUSTOMER"],
-  SYSTEM: ["STOCK", "SYSTEM"],
+export const NOTIFICATION_TAB_FILTERS: Record<NotificationTab, { read?: boolean; kinds?: readonly NotificationKind[] }> = {
+  ALL: {},
+  UNREAD: { read: false },
+  READ: { read: true },
+  ORDERS: { kinds: ["ORDER", "PAYMENT"] },
+  CUSTOMERS: { kinds: ["CUSTOMER"] },
+  SYSTEM: { kinds: ["STOCK", "SYSTEM"] },
 };

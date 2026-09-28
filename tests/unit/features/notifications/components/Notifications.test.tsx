@@ -111,6 +111,23 @@ describe("Notifications", () => {
     expect(fetcher).toHaveBeenCalledWith("/api/notifications?tab=CUSTOMERS");
   });
 
+  it("shows the unread or the read on their own tabs, and says when there are none", async () => {
+    answers["/api/notifications?tab=UNREAD"] = { items: [aNotification("ORD-2")], nextCursor: null };
+    answers["/api/notifications?tab=READ"] = { items: [], nextCursor: null };
+    open();
+    await list();
+    expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual(["All", "Unread", "Read", "Orders", "Customers", "System"]);
+
+    await userEvent.click(screen.getByRole("tab", { name: "Unread" }));
+    const unread = await screen.findByRole("list", { name: "Unread" });
+    expect(within(unread).getAllByRole("link")).toHaveLength(1);
+    expect(fetcher).toHaveBeenCalledWith("/api/notifications?tab=UNREAD");
+
+    await userEvent.click(screen.getByRole("tab", { name: "Read" }));
+    expect(await screen.findByText("Nothing read yet")).toBeInTheDocument();
+    expect(fetcher).toHaveBeenCalledWith("/api/notifications?tab=READ");
+  });
+
   it("says what shows up here, while nothing has", async () => {
     answers["/api/notifications"] = { items: [], nextCursor: null };
     open();

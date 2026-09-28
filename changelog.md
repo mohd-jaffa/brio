@@ -2802,3 +2802,22 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - None.
+
+## 2026-09-28 — Notifications: Unread and Read
+
+### Added
+- **Two more tabs on Notifications** (R5.19; the user: "keep 2 more filters in notification, read and unread"): **All · Unread · Read · Orders · Customers · System**.
+  - Unread and Read show every kind. The kind tabs still show read and unread alike.
+  - `GET /api/notifications?tab=UNREAD|READ` filters on `is_read`, which is already indexed, so no migration is needed.
+  - With none to show, Unread says "Nothing unread" and Read "Nothing read yet".
+
+### Changed
+- **One table says what each tab shows:** `NOTIFICATION_TAB_FILTERS` (the read state or the kinds) replaces `NOTIFICATION_TAB_KINDS`.
+- **The tabs' name for a screen reader** is "Which notifications", no longer "Notifications by kind".
+
+### Validation
+- **Browser, 360 px and 1440 px:** the six tabs show, scrolling sideways on a phone. Unread said "Nothing unread" and Read listed all nine (the local inbox has none unread), with no failed requests.
+- **Checks:** `tsc` and `eslint` pass. The full suite passes (2,156 tests, new ones for both tabs), and every changed file is at 100 %.
+
+### Blockers
+- None.
