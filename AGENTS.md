@@ -645,6 +645,12 @@ capacitor.config.ts    the app id, name, hosted address (ANDROID_APP_URL) and pl
                        `npm run android:sync`; never committed.
 ```
 
+The native layer holds only capabilities something calls (plan §139.17.2):
+`share` and `saveFile` (the bill), the back button (`NativeSetup`), and
+`isAndroidApp` / `hasPlugins`. Every Android half checks its plugin is in the
+installed build and falls back to the web half: the app loads the hosted web
+app, so a deploy can be newer than the install.
+
 `npm run android:sync` builds the bundled pages and syncs; `npm run
 android:open` opens Android Studio. The upload key and the build number come
 from CI (`BRIO_UPLOAD_KEYSTORE*`, `BRIO_VERSION_CODE`), never the repository.

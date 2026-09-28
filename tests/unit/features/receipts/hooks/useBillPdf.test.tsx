@@ -22,6 +22,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   document.documentElement.setAttribute("data-theme", "golden");
   getFile.mockResolvedValue(pdf);
+  saveFile.mockResolvedValue("SAVED");
 });
 
 const mount = (bill?: Bill) => renderHook(() => useBillPdf("o-1", bill), { wrapper: Providers });
@@ -37,6 +38,18 @@ describe("useBillPdf", () => {
       await screen.findByText("ORD-1006 - Sweet Delights Home Bakery.pdf is in your downloads."),
     ).toBeInTheDocument();
     expect(result.current.downloading).toBe(false);
+  });
+
+  it("says nothing more when the Android app's share sheet took it, or was closed", async () => {
+    for (const outcome of ["SHARED", "CANCELLED"]) {
+      saveFile.mockResolvedValue(outcome);
+      const { result, unmount } = mount(aBill());
+      await act(() => result.current.download());
+      expect(saveFile).toHaveBeenCalled();
+      expect(screen.queryByText(/is in your downloads/)).not.toBeInTheDocument();
+      expect(result.current.downloading).toBe(false);
+      unmount();
+    }
   });
 
   it("reports a PDF that could not be made, in the API's words", async () => {

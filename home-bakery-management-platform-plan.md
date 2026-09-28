@@ -8973,6 +8973,27 @@ into it.
 | `network` | `online`/`offline` events | Network |
 | `push` | Web Push later, if at all | Push Notifications (FCM) |
 
+**Built 2026-09-28 (R8.3), only where a caller exists** (AGENTS §19: "only
+add native capabilities when they support existing product requirements"):
+
+- **`share` and `saveFile`** (the bill's Share and Download PDF, R8.7): on
+  Android the file is written to the app's cache — cleared before the next —
+  and handed to the system's share sheet. A browser is unchanged.
+- **`app`: the back button** (`NativeSetup`, `goBack`): an open list, then the
+  card or sheet on top — closed as Escape would, so a card that waits for an
+  answer still waits — then back a screen; on Home and at sign-in it leaves
+  the app.
+- **`isAndroidApp`, `hasPlugins`**: every Android half checks its plugin is in
+  the installed build, and falls back to the web half if not (§139.17.1).
+  Install app is not offered inside the Android app.
+- **`statusBar` and the insets need no code:** Capacitor 8's core
+  `SystemBars` (`insetsHandling: "css"`, dark icons) gives the page correct
+  `env(safe-area-inset-*)`, which `--safe-*` already reads.
+- **`network`** needs none either: the WebView's `online` and `offline`
+  events drive the offline banner as in a browser.
+- **Waiting for their first caller:** `haptic` (the milestones, R9.8),
+  `keyboard` (if the device check, R8.4, finds the page covered), deep links
+  (R8.5's App Links) and `push` (R8.6, which waits on the worker).
 ### 139.17.3 Behaviour on the device
 
 - **Edge to edge:** the safe-area system (§139.8). **Verify on real devices that the WebView reports the insets;** if one does not, the native layer writes them into `--safe-*`.
@@ -9187,11 +9208,11 @@ Phase 5 closed on 2026-09-26 with R5.10.
 |---|---|---|---|---|
 | R8.1 | Record the delivery-model decision | §139.17.1 | Q9 | DONE (2026-09-28 · §139.17.1, the decision) |
 | R8.2 | Capacitor project, application id, config | §139.17 | Q10 | DONE (2026-09-28 · Capacitor 8, `in.brio.app`, `android/`; not yet built: no Android SDK on the machine, the user's choice) |
-| R8.3 | The native capability layer | §139.17.2; IMP-09 | — | TODO |
+| R8.3 | The native capability layer | §139.17.2; IMP-09 | — | DONE (2026-09-28 · share, save, the back button, platform checks; the rest waits for its caller — §139.17.2) |
 | R8.4 | Insets and edge-to-edge verified on devices | §139.17.3 | — | TODO |
-| R8.5 | The back button and App Links | §139.17.3 | — | TODO |
+| R8.5 | The back button and App Links | §139.17.3 | — | DOING (2026-09-28: the back button is done; App Links wait for the domain and the signing key's fingerprint) |
 | R8.6 | Push: device tokens, FCM, the worker | §133.5 E2, E3 | — | TODO |
-| R8.7 | Native bill sharing, PNG and PDF | §139.17.2 | — | TODO |
+| R8.7 | Native bill sharing, PNG and PDF | §139.17.2 | — | DONE (2026-09-28 · Filesystem + Share; the PDF saves through the share sheet) |
 | R8.8 | Splash screen and adaptive icon | §139.17.3 | — | DONE (2026-09-28 · adaptive and themed icons, the system splash on cream; seen on a device with R8.12) |
 | R8.9 | The offline screen | IMP-08 | — | DONE (2026-09-28 · `server.errorPath`, built by `scripts/android-shell.mjs`) |
 | R8.10 | A Privacy Policy page and account deletion | §139.17.5 | Q10 | TODO |

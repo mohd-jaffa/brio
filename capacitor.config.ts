@@ -22,8 +22,9 @@ const config: CapacitorConfig = {
   appName: "Brio",
   // The pages bundled into the app: built by scripts/android-shell.mjs, never committed.
   webDir: ".capacitor/shell",
-  // Golden's ground, behind the page while it loads.
-  backgroundColor: "#f6efe5",
+  // The launch splash's cream (LaunchSplash), behind the page while it loads:
+  // the system's splash, this and the splash are one colour.
+  backgroundColor: "#fdfaf2",
   server: {
     url: server.url,
     cleartext: server.cleartext,
@@ -31,11 +32,22 @@ const config: CapacitorConfig = {
     errorPath: "offline.html",
   },
   android: {
-    // Lets the server tell the Android app from a browser, should it need to.
+    // Tells the page it is in the Android app, before any script can ask
+    // Capacitor: the launch splash shows for it (src/lib/launch/splash.ts).
     appendUserAgent: "BrioAndroid",
     allowMixedContent: false,
     // Inspectable from Chrome only when pointed at a development server.
     webContentsDebuggingEnabled: server.cleartext,
+  },
+  plugins: {
+    // Edge to edge: the WebView reports the system bars' insets to the page,
+    // which pays them through --safe-* (plan §139.8), and the bars' icons are
+    // dark, for both themes' light grounds.
+    SystemBars: {
+      insetsHandling: "css",
+      initialViewportFitValueHint: "cover",
+      style: "LIGHT",
+    },
   },
 };
 

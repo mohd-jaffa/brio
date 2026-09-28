@@ -9,6 +9,7 @@ import { UI_TEXT } from "@/constants/messages";
 import { AuthProvider } from "@/features/auth/AuthProvider";
 import { readInitialSession } from "@/features/auth/session.server";
 import { assetUrl, launchBootScript } from "@/lib/launch/splash";
+import { NativeSetup } from "@/lib/native/NativeSetup";
 import { ThemeProvider } from "@/lib/theme/ThemeProvider";
 import { PwaSetup } from "@/lib/pwa/PwaSetup";
 import { KeyboardInset } from "@/lib/viewport/KeyboardInset";
@@ -100,6 +101,7 @@ export default async function RootLayout({
           <KeyboardInset />
           <PwaSetup />
           <LaunchReady />
+          <NativeSetup />
         </ThemeProvider>
       </body>
     </html>

@@ -3000,3 +3000,29 @@ The user's list, following the audit and the loading measurements: remove the 0.
 - **Push (R8.6):** waits on the worker, which is off (§139.11.15). There is nothing to send a push from.
 - **The Privacy Policy page and account deletion (R8.10)** need the details only the user can give: a contact address, and who is responsible for the data.
 - **Seen on a device (R8.4, R8.12):** needs Android Studio or a phone.
+
+## 2026-09-28 — Phase 8: the native capability layer
+
+### Added
+- **R8.3, `src/lib/native`**, built only where something calls it:
+  - **`isAndroidApp` and `hasPlugins`:** every Android half checks its plugin is in the installed build, and falls back to the web half. The app loads the hosted web app, so a deploy can be newer than the install (plan §139.17.1).
+  - **`share` and `saveFile`** (R8.7): on Android the bill's PNG or PDF is written to the app's cache and handed to the system's share sheet. The folder is cleared before each new file, so nothing is kept (AGENTS §15). **Download PDF** goes the same way on Android, since a WebView cannot download a blob. Its "PDF saved" card now shows only where a file was really downloaded.
+  - **The back button** (R8.5, first half; `NativeSetup`, `goBack`):
+    - it closes an open list first, then the card or sheet on top, each as Escape would;
+    - then it goes back a screen;
+    - on Home and at sign-in it leaves the app.
+- **Plugins:** `@capacitor/app`, `@capacitor/share` and `@capacitor/filesystem` 8.x, synced into the Android project.
+- **Install app** is not offered inside the Android app.
+
+### Decided
+- **No code for the status bar or the insets.** Capacitor 8's core `SystemBars` (`insetsHandling: "css"`, dark icons) gives the page correct safe-area insets, which `--safe-*` already reads.
+- **No splash plugin.** The system splash hands straight to a WebView painted the launch splash's cream, then to the launch splash. With no plugin to hide it, no splash can be left stuck: the offline page has no plugins to call one.
+- **Waiting for their first caller:** haptics (R9.8), the keyboard plugin (if the device check finds the page covered), App Links (the domain and the key's fingerprint) and push (R8.6, which waits on the worker).
+
+### Validation
+- **Unit tests:** every step of the back button, sharing and saving on Android (shared, closed, failed, unreadable), the platform checks, and Install app hidden in the app. The native layer is at 100 %.
+- **Gradle** configures the app, Capacitor and the three plugins.
+- **Checks:** `tsc` and `eslint` pass, and the full suite passes (2,200 tests). In a browser, Install app is still offered and Download PDF still downloads.
+
+### Blockers
+- **App Links** need the production domain and the Play signing key's SHA-256 fingerprint.

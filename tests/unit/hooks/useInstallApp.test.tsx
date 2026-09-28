@@ -2,6 +2,9 @@ import { act, renderHook } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+const native = vi.hoisted(() => ({ android: false }));
+vi.mock("@/lib/native", () => ({ isAndroidApp: () => native.android }));
+
 import { useInstallApp } from "@/hooks/useInstallApp";
 import { listenForInstall, resetInstall } from "@/lib/pwa/install";
 
@@ -10,6 +13,7 @@ const ANDROID = "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 Chr
 let stop: () => void = () => {};
 
 beforeEach(() => {
+  native.android = false;
   resetInstall();
   Object.defineProperty(window, "matchMedia", {
     configurable: true,
@@ -40,6 +44,15 @@ describe("useInstallApp", () => {
       stop = listenForInstall();
     });
     expect(result.current).toMatchObject({ offered: true, canPrompt: false, platform: "android" });
+  });
+
+  it("offers nothing inside the Android app, which is already installed", () => {
+    native.android = true;
+    const { result } = renderHook(() => useInstallApp());
+    act(() => {
+      stop = listenForInstall();
+    });
+    expect(result.current.offered).toBe(false);
   });
 
   it("offers nothing inside the installed app", () => {
