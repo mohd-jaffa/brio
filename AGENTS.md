@@ -23,9 +23,9 @@ Primary stack:
 - PWA for web/iOS browser usage
 - Zod
 - React Hook Form
-- OpenAPI / Swagger
-- BugSnag
-- SonarQube
+
+Kept for later, in no phase now (plan §139.18): OpenAPI / Swagger, BugSnag and
+SonarQube.
 
 The authoritative product and architecture specification is:
 
@@ -794,11 +794,13 @@ Critical mutation endpoints must be safe against duplicate submissions.
 
 # 25. OpenAPI / Swagger
 
-Maintain OpenAPI documentation for the API.
+**Kept for later** (the user, 2026-09-28; plan §139.18). There is no OpenAPI
+document and no Swagger UI, and none is added until the user brings it back.
+Meanwhile the API's contract is its route schemas (`src/lib/validation/schemas/`)
+and the route table in plan §139.13.
 
-Swagger UI should be developer-only/protected in production.
-
-Keep documentation synchronized with the actual API.
+When it is taken up (plan §119 – §120): Swagger UI is developer-only or
+protected in production, and the document is kept in step with the API.
 
 ---
 
@@ -883,14 +885,15 @@ Push / PR
 → Integration Tests
 → E2E
 → Build
-→ SonarQube
 → Quality Gate
 → Staging
 → Smoke Test
 → Production
 ```
 
-BugSnag is used for runtime monitoring after the application reaches the appropriate hardening stage.
+**SonarQube and BugSnag are kept for later** (the user, 2026-09-28; plan
+§139.18). The pipeline runs without them, and errors go to the server's own
+structured logs (§11).
 
 ---
 

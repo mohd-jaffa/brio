@@ -2749,3 +2749,18 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - None. The user asked whether the service worker needs hosting: it does not, it runs in the browser.
+
+## 2026-09-28 — SonarQube, BugSnag and Swagger kept for later
+
+### Changed
+- **The plan** (the user: "no need of sonarqube and bugsnag for now. remove from phase, keep it like for later. also swagger not needed"):
+  - **Phase 6** no longer holds OpenAPI, SonarQube or BugSnag. R6.3 (OpenAPI and Swagger) and R6.7 (BugSnag) read **LATER**, a new tracker status. R6.4 is the CI pipeline without SonarQube.
+  - **§119 – §120, §123 and §124** stay as written, each marked *kept for later*, as are the lines that name them in §122, §125, §127 – §130, §133 and §139.13.
+  - A *Kept for later* note under §139.18 lists the three.
+- **AGENTS.md** follows: the stack lists them as kept for later, §25 says no OpenAPI document or Swagger UI is added for now, and §27's pipeline has no SonarQube.
+
+### Validation
+- Documentation only; no code named any of the three.
+
+### Blockers
+- None.

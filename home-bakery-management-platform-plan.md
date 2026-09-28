@@ -5050,6 +5050,9 @@ This restricted upload policy keeps storage, validation, security, backup, and c
 
 # 119. Swagger UI / OpenAPI
 
+> **Kept for later** (the user, 2026-09-28): in no phase now (§139.18). This
+> section stays as written for the day it is taken up.
+
 Swagger UI is a good fit for this application because it has a defined API/service layer and will benefit from discoverable API contracts.
 
 Use:
@@ -5097,6 +5100,9 @@ Receipts
 ---
 
 # 120. OpenAPI Architecture
+
+> **Kept for later** (the user, 2026-09-28): in no phase now (§139.18). This
+> section stays as written for the day it is taken up.
 
 Keep OpenAPI documentation separate from business logic.
 
@@ -5190,6 +5196,9 @@ Update Order Status
 
 # 122. Final Pre-Release Quality Phase
 
+> **Changed 2026-09-28** (the user): BugSnag and SonarQube are kept for later
+> (§139.18). The rest of this phase stands.
+
 Before the first production release, add a dedicated quality and observability phase.
 
 This phase should include:
@@ -5208,6 +5217,9 @@ These should be integrated before the production release rather than added after
 ---
 
 # 123. BugSnag Integration
+
+> **Kept for later** (the user, 2026-09-28): in no phase now (§139.18). This
+> section stays as written for the day it is taken up.
 
 Add BugSnag during the final release-hardening phase.
 
@@ -5251,6 +5263,9 @@ Sensitive customer information
 
 # 124. SonarQube Integration
 
+> **Kept for later** (the user, 2026-09-28): in no phase now (§139.18). This
+> section stays as written for the day it is taken up.
+
 Add SonarQube to the final release-hardening phase.
 
 Use it to analyze:
@@ -5292,6 +5307,9 @@ Critical quality/security failures should block release.
 ---
 
 # 125. Final Pre-Release Pipeline
+
+> **Changed 2026-09-28** (the user): SonarQube and BugSnag are kept for later
+> (§139.18). Until then the pipeline is the one below without them.
 
 ```text
 Developer
@@ -5453,10 +5471,10 @@ Error Logger
 Audit Logger
 Request Correlation IDs
 Mail Service / Nodemailer
-OpenAPI / Swagger
 Testing
-BugSnag
-SonarQube
+OpenAPI / Swagger — later (2026-09-28)
+BugSnag — later (2026-09-28)
+SonarQube — later (2026-09-28)
 ```
 
 ---
@@ -5501,16 +5519,16 @@ SonarQube
 | Redis | Not required initially |
 | Notifications | Worker-based |
 | User uploads | Bakery logo only; maximum 500 KB; one active logo per bakery |
-| API documentation | OpenAPI + Swagger UI |
-| Swagger production access | DEV-only/protected |
+| API documentation | OpenAPI + Swagger UI — kept for later (2026-09-28) |
+| Swagger production access | DEV-only/protected, once Swagger is taken up |
 | Receipts | Generated on demand; not stored; native share/download |
 | Analytics | Database queries + aggregates |
 | Public menu | SSG/ISR |
 | QR | One permanent QR per baker |
 | UI | Mobile-first responsive |
 | Themes | Clean White + Peach Bakery |
-| Error monitoring | BugSnag before release |
-| Code quality | SonarQube before release |
+| Error monitoring | BugSnag — kept for later (2026-09-28); the server's structured logs meanwhile |
+| Code quality | SonarQube — kept for later (2026-09-28); lint, types, tests and coverage meanwhile |
 | Phase 1 | Internal bakery management |
 | Phase 2 | Menu Builder + public QR menu |
 
@@ -6160,6 +6178,9 @@ When versioning becomes necessary, introduce it deliberately with a migration/de
 
 ## 41. Keep OpenAPI / Swagger as the API Contract
 
+> **Kept for later** (the user, 2026-09-28): in no phase now (§139.18). This
+> section stays as written for the day it is taken up.
+
 Maintain OpenAPI documentation for the meaningful API surface.
 
 Document:
@@ -6228,6 +6249,9 @@ Integration tests should cover:
 
 ## 44. Add BugSnag During Final Release Hardening
 
+> **Kept for later** (the user, 2026-09-28): in no phase now (§139.18). This
+> section stays as written for the day it is taken up.
+
 BugSnag should be introduced in the final hardening phase rather than becoming a reason to add unnecessary infrastructure early.
 
 Capture relevant runtime failures from:
@@ -6243,6 +6267,9 @@ Redact secrets and sensitive user data before sending error reports.
 ---
 
 ## 45. Add SonarQube to CI Quality Gates
+
+> **Kept for later** (the user, 2026-09-28): in no phase now (§139.18). This
+> section stays as written for the day it is taken up.
 
 SonarQube should evaluate the codebase for issues such as:
 
@@ -6295,6 +6322,9 @@ BugSnag / Monitoring
 
 Production deployment should not proceed when required quality/security checks fail.
 
+SonarQube and BugSnag are kept for later (the user, 2026-09-28); until then the
+pipeline runs without them.
+
 ---
 
 ## 47. Perform a Security, Reliability, and Tenant-Isolation Release Review
@@ -6318,7 +6348,7 @@ Checklist:
 - Worker recovery tested
 - Backup/restore procedure tested
 - Error responses do not expose internals
-- Swagger access is protected
+- Swagger access is protected (once Swagger is taken up — kept for later, 2026-09-28)
 - Production environment variables verified
 
 ---
@@ -6344,9 +6374,9 @@ Next.js
        ├── Audit Logging
        ├── Request IDs
        ├── Mail Service
-       ├── OpenAPI
-       ├── BugSnag
-       └── SonarQube
+       ├── OpenAPI — later
+       ├── BugSnag — later
+       └── SonarQube — later
 
 Supabase
 ├── PostgreSQL
@@ -6426,9 +6456,9 @@ The 48 items should not all be implemented at once. Use the following priority o
 34  Analytics separation
 36  Complete UI state handling
 39  Mobile performance budget
-41  OpenAPI/Swagger contract
-44  BugSnag
-45  SonarQube
+41  OpenAPI/Swagger contract   — later (2026-09-28)
+44  BugSnag                    — later (2026-09-28)
+45  SonarQube                  — later (2026-09-28)
 46  CI/CD quality gates
 ```
 
@@ -6654,9 +6684,9 @@ The queue table and the claim/complete/fail helpers exist. Nothing runs them.
 
 | # | Gap |
 |---|-----|
-| K1 | No OpenAPI/Swagger document and no Swagger UI (§119–§120). |
-| K2 | No BugSnag (§123). |
-| K3 | No SonarQube and no CI pipeline — there is no `.github/` directory, so none of §125 runs anywhere (§124–§125). |
+| K1 | No OpenAPI/Swagger document and no Swagger UI (§119–§120). *Kept for later (2026-09-28): R6.3.* |
+| K2 | No BugSnag (§123). *Kept for later (2026-09-28): R6.7.* |
+| K3 | No SonarQube and no CI pipeline — there is no `.github/` directory, so none of §125 runs anywhere (§124–§125). *SonarQube kept for later (2026-09-28); the pipeline stays in Phase 6 (R6.4).* |
 | K4 | The "E2E" suite is a Vitest test that reads route files and checks their shape. There is no browser journey and no Playwright (§121). |
 | K5 | There are no integration tests against a real database. `tests/db` reads the migration SQL as text; it proves the file says the right thing, not that the database does. |
 | K6 | No rate limiting on authentication or on any mutation. |
@@ -6695,11 +6725,11 @@ The following UI/UX, native platform integration, and production hardening items
 |---|-----------------------|----------------------|------------------------|
 | **L1** | **PWA Manifest & Service Worker** | Web / PWA | Create `public/manifest.json`, PWA icons (192x192, 512x512), service worker caching strategy for offline access, and PWA install prompt. |
 | **L2** | **Capacitor Android Native Container** | Android App | Configure `@capacitor/core`, `@capacitor/android`, native capability abstractions (Push, Filesystem, Haptics), and Android build scripts. |
-| **L3** | **OpenAPI / Swagger Documentation** | API Spec | Export OpenAPI 3.0 contract (`src/docs/openapi.json`) and developer-protected Swagger UI endpoint (`/api/docs`). |
+| **L3** | **OpenAPI / Swagger Documentation** | API Spec | Export OpenAPI 3.0 contract (`src/docs/openapi.json`) and developer-protected Swagger UI endpoint (`/api/docs`). *Kept for later (2026-09-28).* |
 | **L4** | **Playwright E2E Test Suite** | Testing | Implement browser-based E2E journey tests (`Login -> Customer -> Product -> Stock -> Order -> Bill -> Share`) verifying tenant isolation. |
-| **L5** | **GitHub Actions CI/CD & SonarQube** | DevOps | Create `.github/workflows/ci.yml` pipeline enforcing typecheck, vitest unit/component tests, Playwright E2E, Next build, and SonarQube quality gate. |
+| **L5** | **GitHub Actions CI/CD & SonarQube** | DevOps | Create `.github/workflows/ci.yml` pipeline enforcing typecheck, vitest unit/component tests, Playwright E2E, Next build, and SonarQube quality gate. *SonarQube kept for later (2026-09-28).* |
 | **L6** | **PDF Export & WhatsApp Receipt Share** | Receipts | Add on-demand client-side PDF generation (`jspdf`/`html2canvas`) and WhatsApp direct share URL (`wa.me`) while preserving the zero-storage policy (§132). |
-| **L7** | **BugSnag Production Monitoring** | Observability | Integrate BugSnag runtime exception monitoring on client and server boundaries. |
+| **L7** | **BugSnag Production Monitoring** | Observability | Integrate BugSnag runtime exception monitoring on client and server boundaries. *Kept for later (2026-09-28).* |
 | **L8** | **Impeccable Layout & Mobile-First Container System** | UI / Responsive Layout | Optimize screen container constraints (360px, 390px, 414px mobile, fluid desktop sidebar), bottom navigation bar, dynamic viewport height, sheet modal placement, and responsive data grid views. |
 | **L9** | **Impeccable Quieter Design & Noise Reduction** | Visual Design / UI Polish | Perform visual noise reduction across all screens: implement subtle micro-animations, softened status badges, restrained color palettes, muted borders/shadows, and high-density typography optimized for home bakery operations. |
 | **L10** | **Impeccable Bolder Design & Visual Impact** | Visual Identity / Contrast | Elevate visual impact across dashboard and operational views: implement bold display typography hierarchy, high-contrast KPI metric cards, expressive brand color accents (warm terracotta & cacao), and high-visibility action triggers. |
@@ -7556,6 +7586,13 @@ Later the same day:
   - It opens a short sheet with this device's steps: Safari's Share, then Add to Home Screen on an iPhone; Chrome's menu, then Install app on Android; the address bar's install icon on a computer. Where the browser offers to install the app itself, an **Install** button asks it to.
   - **Inside the installed app, it is not there.**
   - A **service worker** keeps only the app's own static files and an offline page. It runs in the browser, so nothing more needs hosting (the user asked).
+
+## Answers and additions (2026-09-28)
+
+- **SonarQube, BugSnag and Swagger are kept for later** (the user: "no need of sonarqube and bugsnag for now. remove from phase, keep it like for later. also swagger not needed").
+  - **Out of Phase 6:** R6.3 (OpenAPI and Swagger) and R6.7 (BugSnag) read **LATER**, and R6.4 is the CI pipeline without SonarQube.
+  - **Kept, not dropped:** §119 – §120 (OpenAPI and Swagger UI), §123 (BugSnag) and §124 (SonarQube) stay as written, for the day they are taken up (§139.18).
+  - **Meanwhile:** errors go to the server's own structured logs (§104); the API's contract is its route schemas and the table in §139.13; quality is held by lint, the type check, the tests and the coverage gate.
 
 ---
 
@@ -8661,7 +8698,9 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `GET /api/notifications`, `POST /api/notifications/read-all` | New (§133.5 E1). GET `?tab=ALL\|ORDERS\|CUSTOMERS\|SYSTEM&cursor=` pages the inbox, newest first; read-all answers how many it marked. Done 2026-09-26 (R5.10). |
 | `GET /api/notifications/unread`, `POST /api/notifications/{id}/read` | New (R5.10): the bell's count, and one notification marked read as it is opened — one of another business's is not found. |
 
-**OpenAPI** is updated with every change (§133.11 K1).
+~~**OpenAPI** is updated with every change (§133.11 K1).~~ OpenAPI is kept for
+later (the user, 2026-09-28): this table and the route schemas in
+`src/lib/validation/schemas/` are the API's contract meanwhile.
 
 ---
 
@@ -8854,7 +8893,7 @@ green; the screens it touched are captured at every width in both themes;
 | **3 — Orders** | One-transaction creation with idempotency; order numbers; the oversell guard; Guest; customers on the fly; delivery autofill; custom items; statuses; payment at creation; the estimate endpoint. | 2 | A guest order and a new-customer order can each be placed twice by a double tap and produce **one** order; stock and payments reconcile. |
 | **4 — The bill** | The bill component; the estimate before saving; share as an image; the PDF; print. | 3 | A bill and an estimate share to WhatsApp from a phone, and nothing is stored. |
 | **5 — Screens** | Home, Orders, Customers and Guest sales, Customer detail, Products and categories (with the icon picker), Inventory, Expenses and Analytics (with their charts and the category illustrations), Notifications, More, Settings, Business details — responsive, both themes. | 1, 3 (for order screens), 4 | Every screen matches §139.10 at 360 – 1440 px in both themes, the charts match §139.11.11, and no hard-coded strings remain. |
-| **6 — Hardening** | The worker system completed, rate limiting, OpenAPI, CI with SonarQube, Playwright journeys, database integration tests, BugSnag, an accessibility pass. | 5 | CI runs the full §125 pipeline, and the E2E journey in AGENTS §26 passes, tenant isolation included. |
+| **6 — Hardening** | The worker system completed, rate limiting, CI, Playwright journeys, database integration tests, an accessibility pass. | 5 | CI runs §125's pipeline without SonarQube, and the E2E journey in AGENTS §26 passes, tenant isolation included. |
 | **7 — PWA** | Manifest, icons, the service worker, the offline page, install. | 6 | Installable on Android Chrome and iOS Safari; opens offline to the offline page. |
 | **8 — Android** | The Capacitor app (§139.17). | 7, Q9, Q10 | A signed build on the Play internal track passes the device matrix. |
 | **9 — Delight** | Personality at the moments that earn it, warm and quiet (§139.21): the order milestones, empty states in the app's own art, the inbox caught up, warmer system screens. | 5 (the milestone haptic: R8.3) | Each moment matches §139.21 at 360 – 1440 px in both themes and under reduced motion; routine saves are unchanged; the detector is clean; every changed component is at 100% coverage. |
@@ -8862,12 +8901,18 @@ green; the screens it touched are captured at every width in both themes;
 **The menu builder** (§45–§49) stays a later product phase and is not part of this
 roadmap.
 
+**Kept for later** (the user, 2026-09-28): **SonarQube** (§124), **BugSnag**
+(§123) and **OpenAPI with Swagger UI** (§119 – §120). They are in no phase.
+Their sections stay as written, and their rows read LATER until the user
+brings them back.
+
 ---
 
 ## 139.19 Tracker
 
-**How to use it.** Status is one of **TODO**, **DOING**, **DONE (date · commit)**
-or **BLOCKED (reason)**. When a row is done, also close whatever its *Source*
+**How to use it.** Status is one of **TODO**, **DOING**, **DONE (date · commit)**,
+**BLOCKED (reason)**, or **LATER (date)** — out of every phase, kept for a
+later day. When a row is done, also close whatever its *Source*
 names (§133, §134 and so on). *Waits on* names the open question whose answer
 the row needs; without an answer it is built on that question's default
 (§139.2). Rows are never deleted.
@@ -8999,11 +9044,11 @@ Phase 5 closed on 2026-09-26 with R5.10.
 |---|---|---|---|---|
 | R6.1 | Jobs enqueued with the service role; exponential backoff; the Menu and Cleanup workers | §133.6 F6–F8 | — | TODO |
 | R6.2 | Rate limiting | §133.11 K6 | — | BLOCKED (the counter store needs a decision — changelog, 2026-09-23) |
-| R6.3 | OpenAPI and Swagger | §133.11 K1 | — | TODO |
-| R6.4 | CI pipeline with SonarQube | §133.11 K3 | — | TODO |
+| R6.3 | OpenAPI and Swagger | §133.11 K1 | — | LATER (2026-09-28, the user: not needed for now; §119 – §120 kept) |
+| R6.4 | CI pipeline ~~with SonarQube~~ — SonarQube kept for later (2026-09-28) | §133.11 K3 | — | TODO |
 | R6.5 | Playwright journeys, tenant isolation included | §133.11 K4 | — | TODO |
 | R6.6 | Database integration tests against local Supabase | §133.11 K5 | — | TODO |
-| R6.7 | BugSnag | §133.11 K2 | — | TODO |
+| R6.7 | BugSnag | §133.11 K2 | — | LATER (2026-09-28, the user: not for now; §123 kept) |
 | R6.8 | An accessibility and responsive pass across every screen | §139.8, §139.9 | — | TODO |
 
 ### Phase 7 — PWA
