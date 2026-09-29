@@ -3779,3 +3779,18 @@ A second `/impeccable optimize` pass, on the built app at 390 px, with a throttl
 
 ### Blockers
 - None.
+
+## 2026-09-29 — CI: the install no longer asks for the Mac's own Tailwind engine
+
+### Fixed
+- **CI failed at `npm ci`, eight seconds in**, on the first push to run it (`3c91425`): `EBADPLATFORM` for `@tailwindcss/oxide-darwin-arm64`.
+  - `b8dfc9c` had listed that package as a dependency of the app, to fix a Mac install that was missing it. It is built for macOS on Apple silicon only, and npm refuses to install a required package on any other machine, so the Linux runner stopped.
+  - It is no longer listed in `package.json`. `@tailwindcss/oxide` already names every platform's build as optional, and npm installs the one that fits the machine.
+  - The lockfile was refreshed without reinstalling. The Mac build is now optional there, and npm added the entries for the WebAssembly build's bundled packages. No version changed.
+
+### Validation
+- On Linux, in a `node:22` container with the repository's tracked files: `npm ci` installs, and lint, the format check, the type check and the unit tests (2,465) pass. That is CI's first job, step for step.
+- On the Mac, a fresh `npm ci` from the new lockfile still installs `@tailwindcss/oxide-darwin-arm64`, and Tailwind's engine loads.
+
+### Blockers
+- None.
