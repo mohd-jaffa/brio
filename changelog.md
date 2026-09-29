@@ -3500,3 +3500,14 @@ The user: "complete phase 8 first then phase 6". Their answers: the device check
 
 ### Blockers
 - None.
+
+## 2026-09-29 — The plan records the figures' and charts' motion
+
+### Changed
+- **Plan §139.5, Motion:** the figures' roll and the charts' move between datasets (`8873f53`) are now written into the plan, which the user confirmed they asked for. The plan stays the source of truth for what moves.
+
+### Validation
+- Documentation only.
+
+### Blockers
+- None.

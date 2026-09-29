@@ -7827,6 +7827,10 @@ a shared component** (AGENTS §5).
   - **When it doesn't play:** on a list's first showing, on a list that is hidden, or when more than six items change at once, which only fades in the new ones.
 - **Loading:** content fades in over the skeleton it replaces, on every screen, because the app's main region watches for it (`useSettle`). Cached content simply shows.
 - **Controls:** the Custom dates drop in, and a pressed control shrinks slightly and eases back. Only colour, shadow, opacity and transform animate, never layout.
+- **Figures and charts** (the user, 2026-09-29):
+  - **Figures:** Home's four figures, Analytics' four and a ring's total roll the way they moved, up or down, like the order flow's till (`RollingNumber`). Under reduced motion the roll is a short fade.
+  - **Charts:** a line, bar or ring moves from the values it showed to the next period's or grouping's over 520 ms, instead of snapping (`useAnimatedValues`). A new point or slice grows from nothing. An interrupted move carries on from where it had reached. Under reduced motion the new values show at once.
+  - **What stays still:** a chart's first showing, which keeps its own entrance, and its words. The table, the tooltip and the summary always hold the final values.
 
 ---
 
