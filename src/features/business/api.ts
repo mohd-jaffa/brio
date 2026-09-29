@@ -1,3 +1,5 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import type { Tenant } from "@/lib/supabase/tenant";
 
 import { LOGO_BUCKET, type LogoMimeType } from "@/constants/uploads";
@@ -9,7 +11,7 @@ import { apiRoutes } from "@/lib/query/keys";
 import { requireRow } from "@/lib/supabase/writes";
 import type { BusinessProfilePayload } from "@/lib/validation";
 
-import { logoPath, logoVersion, sniffLogoType } from "./logo";
+import { logoFolder, logoPath, logoVersion, sniffLogoType } from "./logo";
 import type { BusinessProfile, BusinessRow } from "./types";
 
 /**
@@ -84,6 +86,23 @@ async function removeLogoFile(tenant: Tenant, path: string) {
   if (error) {
     logger.warn("Logo file not removed", { bakeryId, logoId: logoVersion(path), reason: error.message });
   }
+}
+
+/**
+ * Every file of a business — its logo, and any earlier one a failed removal
+ * left behind — removed once the business itself is gone (an account deleted,
+ * 0030_account_deletion.sql). Read and removed by the server, since no one
+ * owns the business any more. Failing is logged, not fatal: the business and
+ * everything in its tables are already deleted.
+ */
+export async function removeBusinessFiles(adminClient: SupabaseClient, bakeryId: string) {
+  const folder = logoFolder(bakeryId);
+  const bucket = adminClient.storage.from(LOGO_BUCKET);
+  const listed = await bucket.list(folder);
+  const paths = (listed.data ?? []).map((file) => `${folder}/${file.name}`);
+  const removed = paths.length > 0 ? await bucket.remove(paths) : { error: null };
+  const failure = listed.error ?? removed.error;
+  if (failure) logger.warn("Business files not removed", { bakeryId, reason: failure.message });
 }
 
 /**

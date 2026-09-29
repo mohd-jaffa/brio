@@ -128,6 +128,16 @@ describe("signing in", () => {
     expect(loadPage).not.toHaveBeenCalled();
   });
 
+  it("says an account was just deleted, and nothing of the kind otherwise", () => {
+    const { unmount } = render(<SignInForm />, { wrapper: Providers });
+    expect(screen.queryByText(UI_TEXT.deleteAccount.deleted)).not.toBeInTheDocument();
+    unmount();
+
+    query.current = new URLSearchParams("deleted=1");
+    render(<SignInForm />, { wrapper: Providers });
+    expect(screen.getByRole("alert")).toHaveTextContent(UI_TEXT.deleteAccount.deleted);
+  });
+
   it("offers the way to a forgotten password", () => {
     render(<SignInForm />, { wrapper: Providers });
 

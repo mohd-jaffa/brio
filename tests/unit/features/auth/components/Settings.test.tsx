@@ -107,6 +107,15 @@ describe("Settings", () => {
     expect(within(account).getByRole("link", { name: /^Change password/ })).toHaveAttribute("href", "/change-password");
   });
 
+  it("offers deleting the account beside changing the password, on a screen of its own", () => {
+    render(<Settings />);
+    const account = screen.getByRole("region", { name: "Account" });
+    expect(within(account).getByRole("link", { name: /^Delete account Deletes everything, for good/ })).toHaveAttribute(
+      "href",
+      "/settings/delete-account",
+    );
+  });
+
   it("opens the sheet for the detail tapped", async () => {
     render(<Settings />);
     await userEvent.click(screen.getByRole("button", { name: /^Sign-in number/ }));
@@ -154,11 +163,12 @@ describe("Settings", () => {
     expect(appearance).toHaveTextContent("Kept on this device.");
   });
 
-  it("says which version this is, and who made it", () => {
+  it("says which version this is, who made it, and where the privacy policy is", () => {
     render(<Settings />);
     const about = screen.getByRole("region", { name: "About" });
     expect(within(about).getByText("Version").closest("li")).toHaveTextContent("0.1.0");
     expect(within(about).getByText("Crafted by").closest("li")).toHaveTextContent("jaFFa");
+    expect(within(about).getByRole("link", { name: /^Privacy policy/ })).toHaveAttribute("href", "/privacy");
     expect(about).not.toHaveTextContent("Vecteezy");
   });
 

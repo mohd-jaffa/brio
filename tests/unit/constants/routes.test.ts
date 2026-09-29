@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   AUTH_ROUTES,
+  DELETE_ACCOUNT_ROUTE,
   HOME_ROUTE,
+  PRIVACY_ROUTE,
+  accountDeletedPath,
   isPublicPath,
   isSignedInPath,
   returnToPath,
@@ -52,5 +55,16 @@ describe("the sign-in detour", () => {
     expect(returnToPath(AUTH_ROUTES.signIn)).toBe(HOME_ROUTE);
     expect(returnToPath(`${AUTH_ROUTES.register}?x=1`)).toBe(HOME_ROUTE);
     expect(returnToPath(null)).toBe(HOME_ROUTE);
+  });
+});
+
+describe("privacy and leaving", () => {
+  it("keeps the privacy policy and account deletion where Settings and Play link to them", () => {
+    expect(PRIVACY_ROUTE).toBe("/privacy");
+    expect(DELETE_ACCOUNT_ROUTE).toBe("/settings/delete-account");
+  });
+
+  it("tells the sign-in screen an account was just deleted", () => {
+    expect(accountDeletedPath()).toBe("/login?deleted=1");
   });
 });

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { VALIDATION_MESSAGES } from "@/constants/messages";
-import { changeAvatarSchema, changePasswordSchema, registerSchema } from "@/lib/validation/schemas/auth";
+import { changeAvatarSchema, changePasswordSchema, deleteAccountSchema, registerSchema } from "@/lib/validation/schemas/auth";
 
 const you = {
   name: "Asha Baker",
@@ -73,5 +73,32 @@ describe("changeAvatarSchema", () => {
       expect(result.success).toBe(false);
       expect(result.error?.issues[0].message).toBe(VALIDATION_MESSAGES.chooseOne("profile picture"));
     }
+  });
+});
+
+describe("deleteAccountSchema", () => {
+  const typed = { phone: "98765 43210", email: " Asha@Example.com ", password: " pass word ", confirmPassword: " pass word " };
+
+  it("reads the number and the email as the account keeps them, and the password exactly as typed", () => {
+    expect(deleteAccountSchema.parse(typed)).toEqual({
+      phone: "+919876543210",
+      email: "asha@example.com",
+      password: " pass word ",
+      confirmPassword: " pass word ",
+    });
+  });
+
+  it("asks for every field, in the app's words", () => {
+    const empty = deleteAccountSchema.safeParse({ phone: "", email: "", password: "", confirmPassword: "" });
+    const first = (field: string) => empty.error?.issues.find((issue) => issue.path[0] === field)?.message;
+    expect(first("phone")).toBe(VALIDATION_MESSAGES.required("Mobile number"));
+    expect(first("email")).toBe(VALIDATION_MESSAGES.required("Email address"));
+    expect(first("password")).toBe(VALIDATION_MESSAGES.required("Password"));
+  });
+
+  it("wants the same password twice", () => {
+    expect(issues(deleteAccountSchema.safeParse({ ...typed, confirmPassword: "another" }))).toEqual({
+      confirmPassword: VALIDATION_MESSAGES.passwordsMustMatch,
+    });
   });
 });

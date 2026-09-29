@@ -15,6 +15,18 @@ export const AUTH_ROUTES = {
 /** Where a signed-in baker lands when they have nowhere particular to go. */
 export const HOME_ROUTE = "/";
 
+/**
+ * The privacy policy (plan §139.17.5, R8.10): open to anyone, signed in or
+ * not — Google Play links to it — so the proxy does not run for it.
+ */
+export const PRIVACY_ROUTE = "/privacy";
+
+/** Where an owner deletes their account; the privacy policy links here for the web. */
+export const DELETE_ACCOUNT_ROUTE = "/settings/delete-account";
+
+/** Tells the sign-in screen an account was just deleted, so it can say so. */
+export const ACCOUNT_DELETED_PARAM = "deleted";
+
 /** The developer console's pages (plan §37): DEV only. */
 export const ADMIN_ROUTES = {
   overview: "/admin",
@@ -55,6 +67,11 @@ export function isSignedInPath(pathname: string): boolean {
 export function signInPath(returnTo?: string | null): string {
   if (!returnTo || returnTo === HOME_ROUTE) return AUTH_ROUTES.signIn;
   return `${AUTH_ROUTES.signIn}?${RETURN_TO_PARAM}=${encodeURIComponent(returnTo)}`;
+}
+
+/** The sign-in screen after an account has been deleted. */
+export function accountDeletedPath(): string {
+  return `${AUTH_ROUTES.signIn}?${ACCOUNT_DELETED_PARAM}=1`;
 }
 
 /**

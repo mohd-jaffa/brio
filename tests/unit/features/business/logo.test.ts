@@ -1,7 +1,7 @@
 import { Blob as NodeBlob } from "node:buffer";
 import { describe, expect, it } from "vitest";
 
-import { isLogoMimeType, logoPath, logoResponse, logoVersion, sniffLogoType } from "@/features/business/logo";
+import { isLogoMimeType, logoFolder, logoPath, logoResponse, logoVersion, sniffLogoType } from "@/features/business/logo";
 
 const bytes = (...values: number[]) => new Uint8Array(values);
 const PNG = bytes(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0);
@@ -43,6 +43,7 @@ describe("logoPath and logoVersion", () => {
     const path = logoPath("b-1", "c9fe50e7-67e4-467c-95f5-f4a37c186e8a");
     expect(path).toBe("bakeries/b-1/logo/c9fe50e7-67e4-467c-95f5-f4a37c186e8a");
     expect(logoVersion(path)).toBe("c9fe50e7-67e4-467c-95f5-f4a37c186e8a");
+    expect(path.startsWith(`${logoFolder("b-1")}/`)).toBe(true);
   });
 });
 

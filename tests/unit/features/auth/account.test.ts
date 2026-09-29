@@ -7,13 +7,14 @@ import type { AuthProfile } from "@/features/auth/types";
 import { AppError } from "@/lib/errors";
 import type { Tenant } from "@/lib/supabase/tenant";
 
-const { sendMail, createJob, logActionSafe, logger, signInWithPassword, signOut, mode } = vi.hoisted(() => ({
+const { sendMail, createJob, logActionSafe, logger, signInWithPassword, signOut, removeBusinessFiles, mode } = vi.hoisted(() => ({
   sendMail: vi.fn(),
   createJob: vi.fn(),
   logActionSafe: vi.fn(),
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
   signInWithPassword: vi.fn(),
   signOut: vi.fn(),
+  removeBusinessFiles: vi.fn(),
   // Whether a worker runs (WORKER_ENABLED): none for now, and each path is kept.
   mode: { worker: false },
 }));
@@ -30,12 +31,21 @@ vi.mock("@/lib/env/server", () => ({ getServerEnv: () => ({ NEXT_PUBLIC_APP_URL:
 vi.mock("@/lib/jobs/queue", () => ({ createJob }));
 vi.mock("@/lib/audit/auditLog", () => ({ logActionSafe }));
 vi.mock("@/lib/logger", () => ({ logger }));
+vi.mock("@/features/business/api", () => ({ removeBusinessFiles }));
 vi.mock("@/lib/supabase/server", () => ({
   createSupabaseAnonClient: () => ({ auth: { signInWithPassword, signOut } }),
 }));
 
-const { changeAvatar, changeName, changePhone, confirmEmailChange, requestEmailChange, resendEmailChange, sendEmailChangeConfirmation } =
-  await import("@/features/auth/account");
+const {
+  changeAvatar,
+  changeName,
+  changePhone,
+  confirmEmailChange,
+  deleteAccount,
+  requestEmailChange,
+  resendEmailChange,
+  sendEmailChangeConfirmation,
+} = await import("@/features/auth/account");
 
 const RECENT = new Date(Date.now() - 2 * 86_400_000).toISOString();
 
@@ -439,5 +449,64 @@ describe("confirmEmailChange", () => {
     const worse = fakeAdmin(failing, [null, { message: "down" }]);
     await refusal(confirmEmailChange(worse.admin, { token: TOKEN }));
     expect(logger.error).toHaveBeenCalledOnce();
+  });
+});
+
+describe("deleteAccount", () => {
+  const input = {
+    phone: "+919876543210",
+    email: "asha@example.com",
+    password: "Password123!",
+    confirmPassword: "Password123!",
+  };
+
+  /** The service-role client as deleting uses it: one call to the database's function. */
+  function deleting(answer: Answer = { data: "b-1", error: null }) {
+    const rpc = vi.fn().mockResolvedValue({ data: answer.data ?? null, error: answer.error ?? null });
+    return { admin: { rpc } as unknown as SupabaseClient, rpc };
+  }
+
+  it("checks the password on a session of its own, deletes it all in one call, then the logo's files, and logs it by id", async () => {
+    const { admin, rpc } = deleting();
+    expect(await deleteAccount(admin, profile(), input)).toEqual({ deleted: true });
+    expect(signInWithPassword).toHaveBeenCalledWith({ phone: "+919876543210", password: "Password123!" });
+    expect(signOut).toHaveBeenCalledWith({ scope: "local" });
+    expect(rpc).toHaveBeenCalledWith("delete_account", { p_user_id: "u-1" });
+    expect(removeBusinessFiles).toHaveBeenCalledWith(admin, "b-1");
+    expect(logger.info).toHaveBeenCalledWith("Account deleted", { userId: "u-1", bakeryId: "b-1" });
+    // The trail was the business's, and went with it.
+    expect(logActionSafe).not.toHaveBeenCalled();
+  });
+
+  it("takes the email however the account has it written", async () => {
+    const { admin, rpc } = deleting();
+    await deleteAccount(admin, profile({ email: "Asha@Example.com" }), input);
+    expect(rpc).toHaveBeenCalledOnce();
+  });
+
+  it("refuses another number, another email and a wrong password, before anything is deleted", async () => {
+    const { admin, rpc } = deleting();
+    expect(await refusal(deleteAccount(admin, profile(), { ...input, phone: "+919000022222" }))).toEqual({
+      code: "ACCOUNT_PHONE_MISMATCH",
+      status: 400,
+    });
+    expect(await refusal(deleteAccount(admin, profile(), { ...input, email: "someone@example.com" }))).toEqual({
+      code: "ACCOUNT_EMAIL_MISMATCH",
+      status: 400,
+    });
+    expect(signInWithPassword).not.toHaveBeenCalled();
+
+    signInWithPassword.mockResolvedValue({ data: { session: null }, error: { message: "Invalid login credentials" } });
+    // A 400, not a 401: the caller's own session is fine, and stays.
+    expect(await refusal(deleteAccount(admin, profile(), input))).toEqual({ code: "AUTH_PASSWORD_INCORRECT", status: 400 });
+    expect(rpc).not.toHaveBeenCalled();
+    expect(removeBusinessFiles).not.toHaveBeenCalled();
+  });
+
+  it("says the database's refusal in the app's words, and removes no files", async () => {
+    const { admin } = deleting({ error: { code: "P0001", hint: "RECORD_NOT_FOUND", message: "no such owner" } });
+    expect(await refusal(deleteAccount(admin, profile(), input))).toEqual({ code: "RECORD_NOT_FOUND", status: 404 });
+    expect(removeBusinessFiles).not.toHaveBeenCalled();
+    expect(logger.info).not.toHaveBeenCalled();
   });
 });

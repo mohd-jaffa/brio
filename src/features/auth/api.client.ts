@@ -7,6 +7,7 @@ import type {
   ChangePasswordInput,
   ChangePhoneInput,
   ConfirmEmailInput,
+  DeleteAccountInput,
   LoginInput,
   PasswordResetRequestInput,
   RegisterInput,
@@ -66,4 +67,8 @@ export const AuthClient = {
   resendEmailChange: () => postJson<{ queued: boolean }>(apiRoutes.auth.emailResend),
 
   confirmEmailChange: (token: string) => postJson<{ email: string }>(apiRoutes.auth.emailConfirm, { token }),
+
+  /** The account and everything of its business, deleted for good (R8.10). */
+  deleteAccount: (payload: DeleteAccountInput) =>
+    fetcher<{ deleted: boolean }>(apiRoutes.auth.account, { method: "DELETE", body: JSON.stringify(payload) }),
 };

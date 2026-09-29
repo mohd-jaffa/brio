@@ -4,6 +4,7 @@ import { type SupabaseClient } from "@supabase/supabase-js";
 
 import { JOB_TYPES, WORKER_ENABLED } from "@/constants/jobs";
 import { EMAIL_CHANGE_LINK_HOURS } from "@/constants/limits";
+import { removeBusinessFiles } from "@/features/business/api";
 import { logActionSafe } from "@/lib/audit/auditLog";
 import { changeReopensAt } from "@/lib/dates/cooldown";
 import { getServerEnv } from "@/lib/env/server";
@@ -21,6 +22,7 @@ import type {
   ChangeNamePayload,
   ChangePhonePayload,
   ConfirmEmailChangePayload,
+  DeleteAccountPayload,
 } from "@/lib/validation";
 
 import {
@@ -345,4 +347,34 @@ export async function confirmEmailChange(
     );
   }
   return { email: saved.email };
+}
+
+/**
+ * The owner's account and everything of their business, deleted for good
+ * (DELETE /api/auth/account; plan §139.17.5, R8.10; the user, 2026-09-28).
+ * The owner types this account's sign-in number and email, and their password
+ * twice (the schema holds the two to each other); the number and the email
+ * must be this account's, and the password its password, before anything is
+ * touched. The database then deletes it all in one transaction
+ * (`delete_account`, 0030), and the logo's files go from Storage after.
+ *
+ * Nothing is written to the audit trail: the trail was the business's, and
+ * went with it. The server's log keeps that it happened, by id alone.
+ */
+export async function deleteAccount(
+  adminClient: SupabaseClient,
+  profile: AuthProfile,
+  input: DeleteAccountPayload,
+): Promise<{ deleted: true }> {
+  if (input.phone !== profile.phone) throw validationError("ACCOUNT_PHONE_MISMATCH");
+  if (input.email !== profile.email.toLowerCase()) throw validationError("ACCOUNT_EMAIL_MISMATCH");
+  await assertPassword(profile.phone, input.password);
+
+  const { data, error } = await adminClient.rpc("delete_account", { p_user_id: profile.id });
+  if (error) throw fromPostgrestError(error);
+
+  const bakeryId = data as string;
+  await removeBusinessFiles(adminClient, bakeryId);
+  logger.info("Account deleted", { userId: profile.id, bakeryId });
+  return { deleted: true };
 }

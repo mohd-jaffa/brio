@@ -119,6 +119,21 @@ export const changeAvatarSchema = z.object({
   avatar: z.enum(AVATAR_KEYS, { error: VALIDATION_MESSAGES.chooseOne("profile picture") }),
 });
 
+/**
+ * Deleting the account (R8.10; the user, 2026-09-28): the account's own
+ * sign-in number and email typed out, and the password twice. The two
+ * passwords must agree here; the server checks the number and the email are
+ * this account's, and the password is its password.
+ */
+export const deleteAccountSchema = z
+  .object({
+    phone: phoneSchema,
+    email: emailSchema,
+    password: z.string().min(1, VALIDATION_MESSAGES.required("Password")),
+    confirmPassword: z.string({ error: VALIDATION_MESSAGES.required("Password, again") }),
+  })
+  .refine(...matching<{ password: string; confirmPassword: string }>("password"));
+
 /** The token in the link that confirms a new email address. */
 export const confirmEmailChangeSchema = z.object({
   token: z
@@ -143,6 +158,8 @@ export type ChangePhoneInput = z.input<typeof changePhoneSchema>;
 export type ChangePhonePayload = z.output<typeof changePhoneSchema>;
 export type ChangeEmailInput = z.input<typeof changeEmailSchema>;
 export type ChangeEmailPayload = z.output<typeof changeEmailSchema>;
+export type DeleteAccountInput = z.input<typeof deleteAccountSchema>;
+export type DeleteAccountPayload = z.output<typeof deleteAccountSchema>;
 export type ChangeAvatarInput = z.input<typeof changeAvatarSchema>;
 export type ChangeAvatarPayload = z.output<typeof changeAvatarSchema>;
 export type ConfirmEmailChangePayload = z.output<typeof confirmEmailChangeSchema>;

@@ -21,6 +21,7 @@ export const apiRoutes = {
     email: "/api/auth/email",
     emailResend: "/api/auth/email/resend",
     emailConfirm: "/api/auth/email/confirm",
+    account: "/api/auth/account",
   },
   customers: {
     list: "/api/customers",

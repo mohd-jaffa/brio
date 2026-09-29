@@ -294,6 +294,18 @@ The session lives in **HttpOnly cookies** set by the server, never in `localStor
 - `assertRole` has no default. A route names the roles it serves, and `withBakeryRoute` serves `BUSINESS_ROLES` (`USER` only) unless told otherwise — DEV does not inherit access to business data (plan §5).
 - A baker owing a password change is refused everywhere but the screen that replaces it, on the server (`assertPasswordChanged`) as well as in the browser (`RequireAuth`).
 
+## Privacy and deleting an account
+
+The privacy policy is `/privacy` (R8.10), open without a session. Its words are
+`PRIVACY_POLICY` (`src/constants/privacy.ts`). **When the app starts keeping
+something new, or a new service sees it, the policy and its `updated` date
+change with it.** An owner deletes their account from Settings
+(`/settings/delete-account`, `DELETE /api/auth/account`). That takes the
+sign-in number, the email and the password twice, and `delete_account`
+(`0030_account_deletion.sql`, service role only) removes everything in one
+transaction. A new table owned by a business must cascade from `bakeries`, or
+deleting an account will fail.
+
 Never:
 
 - log plaintext passwords

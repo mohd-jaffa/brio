@@ -7388,7 +7388,7 @@ Recorded because each is a decision, not an oversight.
 | **C** | **No bakery name field.** | **Added, required.** `registerSchema` needs it and the `bakeries` row is created from it. |
 | **D** | **No confirm-password field.** | **Added, required.** `registerSchema` requires it. |
 | **E** | **Continue with Google / Apple.** | **Not built.** New authentication methods need explicit approval under §31, and none is in the plan. The dividers and buttons are omitted rather than shown dead. |
-| **F** | **Terms of Service / Privacy Policy links.** | **Not built.** Neither page exists; a link to nothing is worse than no link. |
+| **F** | **Terms of Service / Privacy Policy links.** | **Not built.** Neither page exists; a link to nothing is worse than no link. (2026-09-28: the privacy policy now exists, at `/privacy`, and is reached from Settings → About — R8.10. There are no terms of service.) |
 | **G** | **A photographic background.** | **A composed one.** The references are mockups with the interface drawn into them, so there is no plate to cut out, and a geometric stand-in for a photographic subject reads worse than atmosphere. The canvas is built from light: three soft shafts with feathered edges, the shadow between them, a warm pool where a bake would sit, and daylight from the upper left. `--auth-photo` on `.auth-canvas` is the single hook a real photograph drops into — no other change needed. |
 
 ---
@@ -7650,7 +7650,7 @@ tracker rows that waited on them no longer wait.
 | **Q7** | **Reference features outside the plan:** Messages/chat, Staff/team, Suppliers, a Wholesale customer type, Language and Currency settings, Payment-methods settings, a barcode scanner, a dark-mode toggle, a multi-business switcher, "Today's special", Help & Support, and the copy "the customer will be notified". | **Answered 2026-09-24: omit all of them**, Help & Support included. The **Regular / New** customer tabs stay: they are derived from order history and are not on this list. | — | R5.11 |
 | **Q8** | **Wording for the wider audience.** The tagline "Home Bakery", the auth headlines ("Good bakes start here.") and the product units (piece, kg, gram, box, dozen) are bakery-only. | Tagline "Home Business"; neutral auth headlines; units add **set, bunch, pack** | Same as the default | R1.14, R2.8, R5.6 |
 | **Q9** | **How the Android app ships:** the hosted app inside a native shell, or a static export bundled into the APK (§139.17.1). | **Answered 2026-09-28: the hosted app in a native shell (Capacitor)**, knowing Capacitor calls `server.url` "not intended for production" (§139.17.1). | — | R8.1 |
-| **Q10** | **Android identity and Play requirements:** the application id (**answered 2026-09-28: `in.brio.app`**), the Play developer account, a **Privacy Policy page**, and **account deletion** (in the app and via the web). Play requires both for an app that creates accounts and stores personal data — here, the customers' names, phones and addresses. **Neither exists** (§138.2 F). | — | Build both pages in Phase 8 | R8.2, R8.10 |
+| **Q10** | **Android identity and Play requirements:** the application id (**answered 2026-09-28: `in.brio.app`**), the Play developer account, a **Privacy Policy page**, and **account deletion** (in the app and via the web). Play requires both for an app that creates accounts and stores personal data — here, the customers' names, phones and addresses. **Answered 2026-09-28:** the policy is written by us and names **jaFFa** as responsible; the address to write to is `SUPPORT_EMAIL` (else the address mail is sent from). **Both are built** (R8.10, §139.17.5). The Play developer account is still to come. | — | — | R8.2, R8.10 |
 | **Q11** | **Order-flow sequence.** The references put items first and the customer second; AGENTS §12 puts the customer first. | Items first | **Items first** — a Guest walk-in never needs a customer step | R3.9 |
 | **Q12** | **Guest orders:** anonymous, or with an optional name for the bill? | Anonymous; the bill reads "Guest" | Anonymous | R3.5 |
 | **Q13** | **Success cards:** close on their own after about 3 seconds when they offer no next step, or always need a tap? | Close on their own | Close on their own (errors and confirmations never do) | R1.10 |
@@ -8178,7 +8178,7 @@ A profile card (the owner's profile picture, tapped to choose another — §139.
 quote). Then **Business details**; **Account** (name, email, the sign-in number,
 change password); **Appearance** (Golden or Peach); **Notifications** (the
 Android permission); **About** (the version, the privacy policy, and **Crafted by · jaFFa** — the user, 2026-09-26, in place of the illustration credit); **Sign out**.
-The Notifications row — the Android permission — joins with push (R8.6), and the privacy policy with its page (R8.10); until then About shows the version and the maker.
+The Notifications row — the Android permission — joins with push (R8.6). **Account** ends with **Delete account** (R8.10), in red, under Change password; **About** shows the version, the maker and **Privacy policy**.
 The reference's separate Profile screen is folded in here.
 
 ### Business details
@@ -9017,6 +9017,8 @@ removed (E3).
 ### 139.17.5 Release
 
 - **Before anything else (Q10):** the application id, the Play developer account, a **Privacy Policy page**, and **account deletion** both in the app and through a web link. Play requires both for an app that creates accounts and stores personal data.
+- **The privacy policy** (R8.10, built 2026-09-28) is `/privacy`, open to anyone signed in or not, as Play needs. Its words are `PRIVACY_POLICY` (`src/constants/privacy.ts`): who is responsible (jaFFa), what is kept and why, who else sees it (Supabase, the host, the mail provider), how long, the owner's choices, deleting, children, changes, and the address to write to (`SUPPORT_EMAIL`, else the address mail is sent from). A change to what the app keeps changes the policy and its date.
+- **Deleting an account** (R8.10) is Settings → Account → **Delete account** (`/settings/delete-account`), which the policy links to as the web way. The screen says plainly, first, that everything goes at once and for good, and lists what; it says to share any bill still needed first, or to sign out instead. It asks for the account's sign-in number, its email, and the password twice, then asks once more on a danger card naming the business. The server checks the number, the email and the password (`DELETE /api/auth/account`), and `delete_account` (`0030_account_deletion.sql`, service role only) removes the queue's work, the profile, the business with every row it owns, and the sign-in in one transaction; the logo's files follow. The cookies are cleared, the device's keys go, and the owner lands on sign in with a notice. A developer's account is not deleted this way.
 - **Signing:** an upload keystore held as a CI secret, never in the repository. `versionCode` comes from the CI build number.
 - **Target SDK:** whatever Play requires at the time.
 - **Play Console:** the data-safety form — the app stores the business's customers' names, phone numbers and addresses, and sells nothing. Release to internal testing → closed testing → production.
@@ -9218,7 +9220,7 @@ Phase 5 closed on 2026-09-26 with R5.10.
 | R8.7 | Native bill sharing, PNG and PDF | §139.17.2 | — | DONE (2026-09-28 · Filesystem + Share; the PDF saves through the share sheet) |
 | R8.8 | Splash screen and adaptive icon | §139.17.3 | — | DONE (2026-09-28 · adaptive and themed icons, the system splash on cream; seen on a device with R8.12) |
 | R8.9 | The offline screen | IMP-08 | — | DONE (2026-09-28 · `server.errorPath`, built by `scripts/android-shell.mjs`) |
-| R8.10 | A Privacy Policy page and account deletion | §139.17.5 | Q10 | TODO |
+| R8.10 | A Privacy Policy page and account deletion | §139.17.5 | Q10 | DONE (2026-09-28 · `/privacy`, `/settings/delete-account`, `0030_account_deletion.sql`) |
 | R8.11 | Signing, versioning, the CI build, Play internal testing, data safety | §139.17.5 | — | DOING (2026-09-28: the version and the upload signing come from CI's environment; the CI build, Play and the data-safety form are to come) |
 | R8.12 | The device matrix | §139.17.5 | — | TODO |
 

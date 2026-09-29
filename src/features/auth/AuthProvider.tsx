@@ -3,11 +3,11 @@
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
 import { SWRConfig, useSWRConfig } from "swr";
 
-import { AUTH_ROUTES } from "@/constants/routes";
+import { accountDeletedPath, AUTH_ROUTES } from "@/constants/routes";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiQuery } from "@/lib/query/useApiQuery";
 import { clearUserItems } from "@/lib/storage/userStorage";
-import type { LoginInput } from "@/lib/validation";
+import type { DeleteAccountInput, LoginInput } from "@/lib/validation";
 import { loadPage } from "@/lib/navigation/url";
 
 import { AuthClient } from "./api.client";
@@ -33,6 +33,12 @@ interface AuthContextValue {
   requiresPasswordChange: boolean;
   signIn: (credentials: LoginInput) => Promise<AuthSessionView>;
   signOut: () => Promise<void>;
+  /**
+   * Deletes the account and everything of its business, for good (R8.10),
+   * then leaves as signing out does. A refusal — a mistyped password — is
+   * thrown to the caller, and nothing is forgotten.
+   */
+  deleteAccount: (confirmation: DeleteAccountInput) => Promise<void>;
   /** Re-reads the session — after a password change, or a confirmed email. */
   reload: () => Promise<void>;
   /** Adopts a session the caller has just been handed, without a second round trip. */
@@ -85,12 +91,11 @@ export function AuthProvider({
     [adopt],
   );
 
-  const signOut = useCallback(async () => {
-    try {
-      await AuthClient.signOut();
-    } finally {
-      // Whatever the server said, this browser is done: the cached rows belong
-      // to the account that just left and must not be shown to the next one.
+  /** This browser done with the account: nothing of it kept, and a new page at `url`. */
+  const leave = useCallback(
+    async (url: string) => {
+      // The cached rows belong to the account that just left and must not be
+      // shown to the next one.
       await mutateAll(() => true, undefined, { revalidate: false });
       // Nobody, said outright and last: an emptied session would fall back to
       // the one the page arrived with.
@@ -98,9 +103,27 @@ export function AuthProvider({
       // So is anything kept on the device for it — an order half built.
       clearUserItems();
       // And a new page, so nothing else of it stays in memory either.
-      loadPage(AUTH_ROUTES.signIn);
+      loadPage(url);
+    },
+    [mutate, mutateAll],
+  );
+
+  const signOut = useCallback(async () => {
+    try {
+      await AuthClient.signOut();
+    } finally {
+      // Whatever the server said, this browser is done.
+      await leave(AUTH_ROUTES.signIn);
     }
-  }, [mutate, mutateAll]);
+  }, [leave]);
+
+  const deleteAccount = useCallback(
+    async (confirmation: DeleteAccountInput) => {
+      await AuthClient.deleteAccount(confirmation);
+      await leave(accountDeletedPath());
+    },
+    [leave],
+  );
 
   const reload = useCallback(async () => {
     await mutate();
@@ -115,10 +138,11 @@ export function AuthProvider({
       requiresPasswordChange: data?.requiresPasswordChange ?? false,
       signIn,
       signOut,
+      deleteAccount,
       reload,
       adopt,
     };
-  }, [data, error, isLoading, signIn, signOut, reload, adopt]);
+  }, [data, error, isLoading, signIn, signOut, deleteAccount, reload, adopt]);
 
   return (
     <AuthContext.Provider value={value}>

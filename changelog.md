@@ -3051,3 +3051,46 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - None.
+
+## 2026-09-28 — Phase 8: the privacy policy and deleting an account
+
+### Added
+- **R8.10, the privacy policy** (the user: "write privacy policy yourself"), at `/privacy`:
+  - it is open to anyone, signed in or not, as Google Play needs; the proxy does not run for it;
+  - it is reached from Settings → About, under the version and Crafted by;
+  - its words are `PRIVACY_POLICY` (`src/constants/privacy.ts`). It covers:
+    - who is responsible (jaFFa), what is kept and why, and who else sees it (Supabase, the host, the mail provider);
+    - how long things are kept, the owner's choices, deleting, children and changes;
+    - the address to write to.
+- **`SUPPORT_EMAIL`** (optional, `.env.example`): the address the policy gives. Without it, the policy gives the address in `SMTP_FROM`, and no address when neither has one.
+- **R8.10, deleting an account** (the user: "fair warnings heavy … type in password twice along with email and phone number"), at Settings → Account → **Delete account**, under Change password:
+  - The screen says plainly, first, that the business goes with the account, straight away and for good, and lists everything that is deleted. "Before you go" says to keep any bill still needed, or to sign out instead.
+  - It asks for the account's sign-in number, its email, and the password twice. It then asks once more on a danger card naming the business.
+  - `DELETE /api/auth/account` checks the number and the email are this account's, and the password is its password. A refusal is shown beside its field.
+  - `delete_account` (`0030_account_deletion.sql`) deletes everything in one transaction:
+    - the queue's work that names the account or the business;
+    - the profile;
+    - the business, and with it every row it owns;
+    - the sign-in.
+    It is SECURITY DEFINER, and only the service role may call it. The logo's files are removed from Storage afterwards.
+  - Once the account is deleted, the cookies are cleared (only then) and the device's keys go. The owner lands on sign in, which says the account was deleted.
+  - A developer's account cannot be deleted this way.
+
+### Validation
+- **Unit tests** cover:
+  - the screen, at 100 %: its warnings, every field, the matching passwords, the confirm card and each refusal;
+  - the route's cookies, the server function, removing the logo, the schema and the client;
+  - the privacy page: its sections, its way back signed in and out, and the address or none;
+  - `supportEmail`, and the proxy leaving `/privacy` alone.
+- **A DB contract test** covers `0030`: SECURITY DEFINER, its grants, owners only, and the order of the deletes.
+- **In the browser:**
+  - a test account was deleted end to end, and the database kept no profile, business, customer, order, job, sign-in or logo file of it;
+  - the privacy page opened signed out, and signed in.
+- **Checks:** `tsc` and `eslint` pass, and the full suite passes (2,248 tests).
+
+### Migration notes
+- Apply **`0030_account_deletion.sql`** to the hosted database before the release that carries this screen.
+- Set **`SUPPORT_EMAIL`** where `SMTP_FROM` is a no-reply address.
+
+### Blockers
+- None. The Play developer account (Q10) is still to come.

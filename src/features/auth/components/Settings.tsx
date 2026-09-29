@@ -1,6 +1,19 @@
 "use client";
 
-import { Heart, Info, KeyRound, Mail, MailCheck, Palette, Pencil, Smartphone, Store, User } from "lucide-react";
+import {
+  Heart,
+  Info,
+  KeyRound,
+  Mail,
+  MailCheck,
+  Palette,
+  Pencil,
+  ShieldCheck,
+  Smartphone,
+  Store,
+  Trash2,
+  User,
+} from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -17,7 +30,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { ThemeSwitch } from "@/components/ui/theme-switch";
 import { UI_TEXT } from "@/constants/messages";
 import { ROLE_LABELS } from "@/constants/roles";
-import { AUTH_ROUTES } from "@/constants/routes";
+import { AUTH_ROUTES, DELETE_ACCOUNT_ROUTE, PRIVACY_ROUTE } from "@/constants/routes";
 import { useBusiness } from "@/features/business/hooks/useBusiness";
 import { dayKey } from "@/lib/dates/calendar";
 import { changeReopensAt } from "@/lib/dates/cooldown";
@@ -97,11 +110,11 @@ const ACCOUNT_ICONS = { name: User, phone: Smartphone, email: Mail } as const;
  * Business details, the account — where the password is changed from, and an
  * unconfirmed email's link is sent again (BUG-16), and where the name, the
  * sign-in number and the email are changed, each once in 30 days, a new email
- * waiting for its link (the user, 2026-09-26) — the theme, About with the
- * version and who made the app (the user, 2026-09-26, in place of Q16's
- * illustration credit), and Sign out. The profile
- * stays beside the rest on a desktop. Notifications joins with its screen
- * (R5.10), and the privacy policy with its page (R8.10).
+ * waiting for its link (the user, 2026-09-26), and deleting the account
+ * (R8.10) — the theme, About with the version, who made the app (the user,
+ * 2026-09-26, in place of Q16's illustration credit) and the privacy policy
+ * (R8.10), and Sign out. The profile stays beside the rest on a desktop.
+ * Notifications joins with its screen (R5.10).
  */
 export function Settings() {
   const { profile } = useAuth();
@@ -214,6 +227,12 @@ export function Settings() {
                 title={text.changePassword}
                 subtitle={text.changePasswordHint}
               />
+              <Row
+                href={DELETE_ACCOUNT_ROUTE}
+                leading={<Medallion icon={Trash2} tone="danger" size="sm" />}
+                title={<span className="text-danger">{text.deleteAccount}</span>}
+                subtitle={text.deleteAccountHint}
+              />
             </RowList>
           </section>
 
@@ -240,6 +259,12 @@ export function Settings() {
                 leading={<Medallion icon={Heart} tone="neutral" size="sm" />}
                 title={text.craftedBy}
                 trailing={text.maker}
+              />
+              <Row
+                href={PRIVACY_ROUTE}
+                leading={<Medallion icon={ShieldCheck} tone="neutral" size="sm" />}
+                title={text.privacyPolicy}
+                subtitle={text.privacyPolicyHint}
               />
             </RowList>
           </section>

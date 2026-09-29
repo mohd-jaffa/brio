@@ -34,6 +34,10 @@ const serverEnvSchema = z.object({
   SMTP_PASSWORD: optionalString,
   SMTP_FROM: optionalString,
   SMTP_SECURE: optionalBoolean,
+
+  // The address people write to about their account and their data; the
+  // privacy policy names it (R8.10).
+  SUPPORT_EMAIL: z.preprocess((value) => (value === "" ? undefined : value), z.string().trim().email().optional()),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -54,4 +58,15 @@ export function getServerEnv(source: NodeJS.ProcessEnv = process.env): ServerEnv
   }
 
   return parsed.data;
+}
+
+/**
+ * The address the privacy policy gives for questions about data (R8.10):
+ * `SUPPORT_EMAIL`, else the address Brio's emails are sent from, which is a
+ * mailbox that can be written back to. Null when neither is set.
+ */
+export function supportEmail(env: ServerEnv = getServerEnv()): string | null {
+  if (env.SUPPORT_EMAIL) return env.SUPPORT_EMAIL;
+  const from = env.SMTP_FROM?.match(/<([^>]+)>/)?.[1] ?? env.SMTP_FROM;
+  return from?.includes("@") ? from.trim() : null;
 }

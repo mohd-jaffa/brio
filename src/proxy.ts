@@ -41,9 +41,10 @@ export const config = {
    * Everything but the API (which answers 401 itself and is called by more
    * than browsers), Next's own assets, the fonts the bill is drawn in, the
    * metadata files, and what the installed app needs signed in or not: its
-   * icons, its service worker and its offline page (plan §139.19 R7).
+   * icons, its service worker and its offline page (plan §139.19 R7); and the
+   * privacy policy, which anyone may read (R8.10).
    */
   matcher: [
-    "/((?!api|_next/static|_next/image|fonts/|icons/|favicon.ico|apple-icon.png|manifest.webmanifest|sw.js|offline|robots.txt|sitemap.xml).*)",
+    "/((?!api|_next/static|_next/image|fonts/|icons/|favicon.ico|apple-icon.png|manifest.webmanifest|sw.js|offline|privacy|robots.txt|sitemap.xml).*)",
   ],
 };

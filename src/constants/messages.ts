@@ -35,6 +35,9 @@ export const ERROR_MESSAGES = {
   AUTH_NO_PENDING_EMAIL: "There is no new email address waiting to be confirmed.",
   PROFILE_CHANGE_TOO_SOON: "This can be changed once every 30 days.",
   PROFILE_VALUE_SAME: "That is what it is already.",
+  ACCOUNT_PHONE_MISMATCH: "That is not this account’s sign-in number.",
+  ACCOUNT_EMAIL_MISMATCH: "That is not this account’s email address.",
+  ACCOUNT_DELETE_FAILED: "Could not delete your account. Nothing was deleted. Please try again.",
 
   CONFIG_INVALID: "The server configuration is invalid.",
   MAIL_PROVIDER_NOT_CONFIGURED: "Email delivery is not configured.",
@@ -1118,10 +1121,73 @@ export const UI_TEXT = {
     version: "Version",
     craftedBy: "Crafted by",
     maker: "jaFFa",
+    // R8.10 (the user, 2026-09-28): the policy beside the version and the maker,
+    // and deleting the account beside changing the password.
+    privacyPolicy: "Privacy policy",
+    privacyPolicyHint: "What Brio keeps, and why",
+    deleteAccount: "Delete account",
+    deleteAccountHint: "Deletes everything, for good",
     // The owner's profile picture, an animal or a person (the user, 2026-09-27, 2026-09-28).
     changePicture: "Change profile picture",
     pictureTitle: "Choose a profile picture",
     pictureHint: "It shows on your account, beside your name.",
+  },
+
+  /**
+   * Deleting the account (plan §139.17.5, R8.10; the user, 2026-09-28: "fair
+   * warnings heavy, and confirmation like ask to type in password twice along
+   * with email and phone number").
+   */
+  deleteAccount: {
+    title: "Delete your account",
+    subtitle: "Read all of this first. It cannot be undone.",
+    warningTitle: "Everything goes, for good",
+    warning:
+      "Deleting your account deletes your business with it, straight away. Nothing can be brought back afterwards — not by you, and not by us.",
+    whatGoesTitle: "What is deleted",
+    whatGoes: [
+      "Your account: your name, sign-in number, email address, password and profile picture.",
+      "Your business: its name, catch phrase, address and logo.",
+      "Every order, with its items, charges, payments and bills.",
+      "Every customer, with their numbers and addresses.",
+      "Every product, and every stock record.",
+      "Every expense, and your expense categories.",
+      "Your notifications, and the history of every change.",
+    ],
+    beforeTitle: "Before you go",
+    before: [
+      "Bills you have already shared stay with whoever you sent them to. Share or download any you still need now.",
+      "Only need a break? Sign out instead. Everything stays as it is until you come back.",
+      "Your sign-in number and email address can make a new account afterwards, and it starts empty.",
+    ],
+    confirmTitle: "Confirm it is you",
+    confirmHint:
+      "Type this account’s sign-in number and email address, and your password twice. Nothing is deleted until you confirm once more.",
+    phone: "This account’s sign-in number",
+    email: "This account’s email address",
+    password: "Your password",
+    passwordAgain: "Your password, again",
+    submit: "Delete my account",
+    deleting: "Deleting your account…",
+    sureTitle: "Delete everything now?",
+    sureBody: (business: string) =>
+      `Your account and ${business}, with every order, customer, product and expense, will be deleted now. This cannot be undone.`,
+    yourBusiness: "your business",
+    sureConfirm: "Delete forever",
+    sureCancel: "Keep my account",
+    notDeleted: "Account not deleted",
+    deleted: "Your account and your business have been deleted. Thank you for using Brio.",
+  },
+
+  /** The privacy policy's page (R8.10); its words are in src/constants/privacy.ts. */
+  privacy: {
+    title: "Privacy policy",
+    updated: (date: string) => `Last updated ${date}`,
+    contents: "On this page",
+    backToSettings: "Back to Settings",
+    backToSignIn: "Back to sign in",
+    deleteAccount: "Delete my account",
+    writeTo: (email: string) => `Write to ${email}`,
   },
 
   /**

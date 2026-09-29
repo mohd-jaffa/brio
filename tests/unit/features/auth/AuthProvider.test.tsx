@@ -9,7 +9,7 @@ import { TEST_SESSION } from "@tests/support/auth";
 
 const { fetcher, client, router } = vi.hoisted(() => ({
   fetcher: vi.fn(),
-  client: { signIn: vi.fn(), signOut: vi.fn() },
+  client: { signIn: vi.fn(), signOut: vi.fn(), deleteAccount: vi.fn() },
   router: { replace: vi.fn(), push: vi.fn(), back: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() },
 }));
 
@@ -193,6 +193,37 @@ describe("signing in and out", () => {
     await expect(result.current.signOut()).rejects.toThrow();
 
     await waitFor(() => expect(loadPage).toHaveBeenCalledWith("/login"));
+  });
+
+  it("deletes the account, then forgets it as signing out does, and says so at sign-in", async () => {
+    fetcher.mockResolvedValue(TEST_SESSION);
+    client.deleteAccount.mockResolvedValue({ deleted: true });
+    localStorage.setItem("brio_user:u-1:order_draft", "{}");
+    const confirmation = { phone: "9876543210", email: "asha@example.com", password: "p", confirmPassword: "p" };
+
+    const { result } = session();
+    await waitFor(() => expect(result.current.status).toBe("authenticated"));
+    await result.current.deleteAccount(confirmation);
+
+    expect(client.deleteAccount).toHaveBeenCalledWith(confirmation);
+    await waitFor(() => expect(result.current.status).toBe("anonymous"));
+    expect(localStorage.getItem("brio_user:u-1:order_draft")).toBeNull();
+    expect(loadPage).toHaveBeenCalledWith("/login?deleted=1");
+    localStorage.clear();
+  });
+
+  it("forgets nothing when the deletion is refused, and hands the refusal back", async () => {
+    fetcher.mockResolvedValue(TEST_SESSION);
+    client.deleteAccount.mockRejectedValue(new Error("That is not your current password."));
+
+    const { result } = session();
+    await waitFor(() => expect(result.current.status).toBe("authenticated"));
+    await expect(
+      result.current.deleteAccount({ phone: "9876543210", email: "asha@example.com", password: "x", confirmPassword: "x" }),
+    ).rejects.toThrow("That is not your current password.");
+
+    expect(result.current.status).toBe("authenticated");
+    expect(loadPage).not.toHaveBeenCalled();
   });
 
   it("re-reads the session when asked", async () => {

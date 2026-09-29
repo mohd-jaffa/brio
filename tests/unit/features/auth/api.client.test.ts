@@ -160,6 +160,21 @@ describe("AuthClient", () => {
     );
   });
 
+  it("deletes the account with DELETE, sending what the owner typed", async () => {
+    const confirmation = {
+      phone: "9876543210",
+      email: "asha@example.com",
+      password: "Password123!",
+      confirmPassword: "Password123!",
+    };
+    answers({ deleted: true });
+    await expect(AuthClient.deleteAccount(confirmation)).resolves.toEqual({ deleted: true });
+    expect(mockFetch).toHaveBeenLastCalledWith(
+      apiRoutes.auth.account,
+      expect.objectContaining({ method: "DELETE", body: JSON.stringify(confirmation) }),
+    );
+  });
+
   it("surfaces the server's own wording when a sign-in is refused", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,

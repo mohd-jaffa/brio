@@ -106,4 +106,12 @@ describe("what the proxy runs on", () => {
     }
     expect(pattern.test("/settings")).toBe(true);
   });
+
+  it("leaves the privacy policy alone, for anyone to read, but not deleting an account", () => {
+    const [matcher] = config.matcher;
+    const pattern = new RegExp(`^${matcher}$`);
+
+    expect(pattern.test("/privacy")).toBe(false);
+    expect(pattern.test("/settings/delete-account")).toBe(true);
+  });
 });

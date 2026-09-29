@@ -8,9 +8,10 @@ import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { useResponse } from "@/components/ui/response-card";
+import { ScreenNotice } from "@/components/ui/screen-notice";
 import { TextField } from "@/components/ui/text-field";
 import { UI_TEXT } from "@/constants/messages";
-import { AUTH_ROUTES, RETURN_TO_PARAM, returnToPath } from "@/constants/routes";
+import { ACCOUNT_DELETED_PARAM, AUTH_ROUTES, RETURN_TO_PARAM, returnToPath } from "@/constants/routes";
 import { useApiMutation } from "@/lib/query/useApiMutation";
 import { loginSchema, type LoginInput, type LoginPayload } from "@/lib/validation";
 import { loadPage } from "@/lib/navigation/url";
@@ -27,12 +28,15 @@ import { PasswordField } from "./PasswordField";
  * Where it goes next depends on the account: a baker still holding a temporary
  * password is sent to change it and nowhere else (§95); anyone else returns to
  * the screen that sent them here.
+ *
+ * Arriving from a deleted account (R8.10), it says the account is gone.
  */
 export function SignInForm() {
   const searchParams = useSearchParams();
   const { signIn } = useAuth();
 
   const returnTo = returnToPath(searchParams.get(RETURN_TO_PARAM));
+  const deleted = searchParams.has(ACCOUNT_DELETED_PARAM);
 
   const {
     register,
@@ -53,6 +57,7 @@ export function SignInForm() {
 
   return (
     <form onSubmit={handleSubmit((values) => submit(values))} className="space-y-4" noValidate>
+      {deleted && <ScreenNotice tone="info">{UI_TEXT.deleteAccount.deleted}</ScreenNotice>}
 
       <TextField
         label={UI_TEXT.auth.phoneLabel}

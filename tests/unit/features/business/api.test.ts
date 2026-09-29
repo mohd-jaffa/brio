@@ -8,7 +8,7 @@ vi.mock("@/lib/audit/auditLog", () => ({ logActionSafe: (...args: unknown[]) => 
 const warn = vi.fn();
 vi.mock("@/lib/logger", () => ({ logger: { info: vi.fn(), warn: (...args: unknown[]) => warn(...args), error: vi.fn() } }));
 
-import { getBusiness, readLogo, replaceLogo, toBusinessProfile, updateBusiness } from "@/features/business/api";
+import { getBusiness, readLogo, removeBusinessFiles, replaceLogo, toBusinessProfile, updateBusiness } from "@/features/business/api";
 import { tenantOf } from "@tests/support/tenant";
 
 const BAKERY = "b1c2d3e4-f5a6-4890-abcd-ef1234567890";
@@ -240,5 +240,45 @@ describe("readLogo", () => {
       download: failed({ message: "Object not found" }),
     });
     await expect(readLogo(tenantOf(client, { bakeryId: BAKERY }))).rejects.toMatchObject({ code: "EXTERNAL_SERVICE_ERROR", kind: "EXTERNAL_SERVICE" });
+  });
+});
+
+describe("removeBusinessFiles", () => {
+  /** The server's storage, as removing a deleted business's files uses it. */
+  function storage({
+    files = [] as { name: string }[],
+    listError = null as { message: string } | null,
+    removeError = null as { message: string } | null,
+  } = {}) {
+    const list = vi.fn().mockResolvedValue({ data: listError ? null : files, error: listError });
+    const remove = vi.fn().mockResolvedValue({ data: [], error: removeError });
+    const from = vi.fn(() => ({ list, remove }));
+    return { admin: { storage: { from } } as unknown as SupabaseClient, from, list, remove };
+  }
+
+  beforeEach(() => warn.mockReset());
+
+  it("removes every file in the business's logo folder, an earlier one left behind as well", async () => {
+    const { admin, from, list, remove } = storage({ files: [{ name: "one" }, { name: "two" }] });
+    await removeBusinessFiles(admin, BAKERY);
+    expect(from).toHaveBeenCalledWith("business-logos");
+    expect(list).toHaveBeenCalledWith(`bakeries/${BAKERY}/logo`);
+    expect(remove).toHaveBeenCalledWith([`bakeries/${BAKERY}/logo/one`, `bakeries/${BAKERY}/logo/two`]);
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("asks to remove nothing when the business had no logo", async () => {
+    const { admin, remove } = storage();
+    await removeBusinessFiles(admin, BAKERY);
+    expect(remove).not.toHaveBeenCalled();
+  });
+
+  it("logs, and does not throw, when the folder cannot be read or its files removed", async () => {
+    await removeBusinessFiles(storage({ listError: { message: "down" } }).admin, BAKERY);
+    await removeBusinessFiles(storage({ files: [{ name: "one" }], removeError: { message: "denied" } }).admin, BAKERY);
+    expect(warn.mock.calls).toEqual([
+      ["Business files not removed", { bakeryId: BAKERY, reason: "down" }],
+      ["Business files not removed", { bakeryId: BAKERY, reason: "denied" }],
+    ]);
   });
 });

@@ -14,7 +14,7 @@ vi.mock("@/features/auth/api", () => ({
   }),
 }));
 
-const { withSessionRoute, withSignOutRoute } = await import("@/features/auth/route");
+const { endingSession, withSessionRoute, withSignOutRoute } = await import("@/features/auth/route");
 
 const session: AuthenticatedSession = {
   accessToken: "access-token",
@@ -84,5 +84,18 @@ describe("a route that ends a session", () => {
     });
 
     expect(response.headers.getSetCookie()).toHaveLength(2);
+  });
+});
+
+describe("endingSession", () => {
+  it("expires the session's cookies once the account is gone", () => {
+    const cookies = endingSession(Response.json({ success: true }, { status: 200 })).headers.getSetCookie();
+    expect(cookies).toHaveLength(2);
+    expect(cookies.every((cookie) => cookie.includes("Max-Age=0"))).toBe(true);
+  });
+
+  it("keeps them when it was refused, so the owner can try again signed in", () => {
+    const refused = Response.json({ success: false }, { status: 400 });
+    expect(endingSession(refused).headers.getSetCookie()).toEqual([]);
   });
 });

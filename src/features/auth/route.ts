@@ -42,3 +42,12 @@ export async function withSignOutRoute<TData>(
   const response = await withApiHandler(request, handler);
   return withSessionCookies(response, clearedSessionCookies());
 }
+
+/**
+ * The answer of a route that ends the account itself — deleting it (R8.10).
+ * The cookies are cleared once it is gone, and kept when it was refused, so a
+ * mistyped password leaves the owner signed in to try again.
+ */
+export function endingSession(response: Response): Response {
+  return response.ok ? withSessionCookies(response, clearedSessionCookies()) : response;
+}

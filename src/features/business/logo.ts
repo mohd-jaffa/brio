@@ -30,7 +30,12 @@ export function isLogoMimeType(type: string): type is LogoMimeType {
  * folder, and the bucket's policies refuse to read or write one.
  */
 export function logoPath(bakeryId: string, logoId: string): string {
-  return `bakeries/${bakeryId}/logo/${logoId}`;
+  return `${logoFolder(bakeryId)}/${logoId}`;
+}
+
+/** The folder every logo a business has had is kept in. */
+export function logoFolder(bakeryId: string): string {
+  return `bakeries/${bakeryId}/logo`;
 }
 
 /** The id at the end of a logo's path, which is also its version. */
