@@ -29,6 +29,7 @@ type Animate = (frames?: Keyframe[] | PropertyIndexedKeyframes, options?: Keyfra
 afterEach(() => {
   document.body.replaceChildren();
   Reflect.deleteProperty(document, "startViewTransition");
+  Reflect.deleteProperty(document, "elementFromPoint");
   Reflect.deleteProperty(HTMLElement.prototype, "animate");
   delete document.documentElement.dataset.orderTransition;
   delete document.documentElement.dataset.orderDirection;
@@ -127,6 +128,24 @@ describe("order add choreography", () => {
     const ticket = captureOrderAdd(origin, "cake")!;
     expect(playOrderAdd(ticket)).toEqual([]);
     expect(document.body.contains(ticket.token)).toBe(false);
+  });
+
+  it("does not fly into a desktop line covered by the sticky footer", () => {
+    window.matchMedia = vi.fn(() => ({ matches: false })) as unknown as typeof window.matchMedia;
+    const animate = vi.fn<Animate>(() => animation());
+    Object.defineProperty(HTMLElement.prototype, "animate", { configurable: true, value: animate });
+    const origin = document.createElement("button");
+    origin.getBoundingClientRect = () => bounds(20, 300);
+    const line = document.createElement("span");
+    line.dataset.orderAddTarget = "line";
+    line.dataset.orderProductId = "cake";
+    line.getBoundingClientRect = () => bounds(900, 700, 48, 48);
+    const footer = document.createElement("div");
+    document.body.append(line, footer);
+    Object.defineProperty(document, "elementFromPoint", { configurable: true, value: () => footer });
+
+    expect(playOrderAdd(captureOrderAdd(origin, "cake")!)).toEqual([]);
+    expect(animate).not.toHaveBeenCalled();
   });
 });
 

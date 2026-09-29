@@ -16,6 +16,7 @@ export function Illustration({
   fallback,
   size,
   labelled = false,
+  priority = false,
   className,
 }: {
   name: string | null | undefined;
@@ -23,6 +24,8 @@ export function Illustration({
   /** Drawn size in CSS pixels; the browser is sent a file sized to match. */
   size: number;
   labelled?: boolean;
+  /** Fetch immediately when this picture is expected to be the screen's largest paint. */
+  priority?: boolean;
   className?: string;
 }) {
   const key = illustrationOr(name, fallback);
@@ -33,6 +36,8 @@ export function Illustration({
       width={size}
       height={size}
       sizes={`${size}px`}
+      loading={priority ? "eager" : "lazy"}
+      fetchPriority={priority ? "high" : "auto"}
       className={cn("object-contain", className)}
     />
   );

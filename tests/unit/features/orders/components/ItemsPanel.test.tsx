@@ -38,6 +38,8 @@ describe("ItemsPanel", () => {
     const cards = screen.getAllByRole("listitem");
     expect(cards).toHaveLength(2);
     expect(within(cards[0]).getByText("₹1,250")).toBeInTheDocument();
+    expect(cards[0].querySelector("img")).toHaveAttribute("fetchpriority", "high");
+    expect(cards[1].querySelector("img")).toHaveAttribute("loading", "lazy");
     expect(within(cards[0]).getByText("2 in the order")).toBeInTheDocument();
     expect(within(cards[1]).queryByText(/in the order/)).not.toBeInTheDocument();
   });

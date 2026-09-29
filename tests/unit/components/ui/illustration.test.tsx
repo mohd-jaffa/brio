@@ -30,4 +30,11 @@ describe("Illustration", () => {
     expect(image).toHaveAttribute("width", "48");
     expect(image).toHaveAttribute("height", "48");
   });
+
+  it("fetches an expected largest paint immediately", () => {
+    const { container } = render(<Illustration name="donut" fallback="default-product" size={144} priority />);
+    const image = container.querySelector("img");
+    expect(image).toHaveAttribute("loading", "eager");
+    expect(image).toHaveAttribute("fetchpriority", "high");
+  });
 });

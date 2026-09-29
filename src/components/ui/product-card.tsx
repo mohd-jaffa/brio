@@ -30,6 +30,7 @@ export function ProductCard({
   removeLabel,
   onRemove,
   disabled = false,
+  priority = false,
 }: {
   name: string;
   /** Already formatted: "₹1,250". */
@@ -49,6 +50,8 @@ export function ProductCard({
   /** Without it the card only adds. */
   onRemove?: () => void;
   disabled?: boolean;
+  /** Fetches this card's illustration first when it is the grid's largest paint. */
+  priority?: boolean;
 }) {
   const inOrder = quantity > 0 && onRemove !== undefined;
   // The − and the count come in with the first one added, not when the screen opens with some.
@@ -63,7 +66,7 @@ export function ProductCard({
 
   return (
     <div className="@container flex min-w-0 flex-col rounded-2xl border border-border bg-surface p-2 shadow-card">
-      <ProductTile iconKey={iconKey} size="fill" />
+      <ProductTile iconKey={iconKey} size="fill" priority={priority} />
       <p className="mt-2 line-clamp-2 min-h-10 px-1 text-sm font-medium leading-5 text-text">{name}</p>
       {/* A card too narrow for the price and − count + on one line gives the
           price a line of its own — in the order or not, so adding one never

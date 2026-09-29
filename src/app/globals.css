@@ -849,24 +849,41 @@ main[data-navigating] > :not([data-screen-skeleton]) {
 }
 
 :root[data-order-transition="step"]::view-transition-group(order-stage) {
-  animation-duration: 420ms;
+  animation-duration: 450ms;
   animation-timing-function: var(--ease-out-expo);
 }
 
+/* The root snapshot would cross-fade the header and navigation as well as the
+   named order stage, making two readable screens overlap. They change at once;
+   only the stage carries the spatial transition. */
+:root[data-order-transition]::view-transition-old(root) {
+  animation: none;
+  opacity: 0;
+}
+
+:root[data-order-transition]::view-transition-new(root) {
+  animation: none;
+  opacity: 1;
+}
+
 :root[data-order-transition="step"][data-order-direction="forward"]::view-transition-old(order-stage) {
-  animation: order-stage-forward-out 180ms ease-in both;
+  animation: order-stage-forward-out 150ms ease-in both;
+  mix-blend-mode: normal;
 }
 
 :root[data-order-transition="step"][data-order-direction="forward"]::view-transition-new(order-stage) {
-  animation: order-stage-forward-in 420ms var(--ease-out-expo) both;
+  animation: order-stage-forward-in 360ms 90ms var(--ease-out-expo) both;
+  mix-blend-mode: normal;
 }
 
 :root[data-order-transition="step"][data-order-direction="back"]::view-transition-old(order-stage) {
-  animation: order-stage-back-out 180ms ease-in both;
+  animation: order-stage-back-out 150ms ease-in both;
+  mix-blend-mode: normal;
 }
 
 :root[data-order-transition="step"][data-order-direction="back"]::view-transition-new(order-stage) {
-  animation: order-stage-back-in 420ms var(--ease-out-expo) both;
+  animation: order-stage-back-in 360ms 90ms var(--ease-out-expo) both;
+  mix-blend-mode: normal;
 }
 
 :root[data-order-transition="placed"]::view-transition-group(order-confirm) {
@@ -876,10 +893,12 @@ main[data-navigating] > :not([data-screen-skeleton]) {
 
 :root[data-order-transition="placed"]::view-transition-old(order-confirm) {
   animation: order-confirm-out 240ms ease-in both;
+  mix-blend-mode: normal;
 }
 
 :root[data-order-transition="placed"]::view-transition-new(order-confirm) {
   animation: order-confirm-in 520ms 40ms var(--ease-out-expo) both;
+  mix-blend-mode: normal;
 }
 
 /* ============================================================

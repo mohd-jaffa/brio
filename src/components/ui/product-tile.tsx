@@ -19,11 +19,14 @@ export function ProductTile({
   iconKey,
   size = "sm",
   fallback = DEFAULT_PRODUCT_ILLUSTRATION,
+  priority = false,
   className,
 }: {
   iconKey?: string | null;
   size?: keyof typeof SIZES | "fill";
   fallback?: IllustrationKey;
+  /** The first large tile on a product grid can be the page's largest paint. */
+  priority?: boolean;
   className?: string;
 }) {
   if (size === "fill") {
@@ -34,7 +37,13 @@ export function ProductTile({
         // picture arriving cannot stretch it and move the name and price below.
         className={cn("flex h-36 w-full items-center justify-center rounded-xl bg-sunken", className)}
       >
-        <Illustration name={iconKey} fallback={fallback} size={FILL_IMAGE} className="h-4/5 w-auto" />
+        <Illustration
+          name={iconKey}
+          fallback={fallback}
+          size={FILL_IMAGE}
+          priority={priority}
+          className="h-4/5 w-auto"
+        />
       </span>
     );
   }
@@ -45,7 +54,7 @@ export function ProductTile({
       className={cn("inline-flex shrink-0 items-center justify-center rounded-xl bg-sunken", className)}
       style={{ width: box, height: box }}
     >
-      <Illustration name={iconKey} fallback={fallback} size={Math.round(box * 0.8)} />
+      <Illustration name={iconKey} fallback={fallback} size={Math.round(box * 0.8)} priority={priority} />
     </span>
   );
 }

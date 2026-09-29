@@ -205,7 +205,14 @@ export function NewOrder() {
   // A step is the same screen: the address changes, and the server is not asked again.
   const goTo = (next: Step) =>
     transitionOrderStep(
-      () => pushUrl(next === "items" ? ROUTE : `${ROUTE}?step=${next}`),
+      () => {
+        pushUrl(next === "items" ? ROUTE : `${ROUTE}?step=${next}`);
+        // A phone gives each step the whole page; do not leave the next one at
+        // the grid's old scroll position. The desktop keeps its working place.
+        if (window.matchMedia?.("(min-width: 1024px)").matches === false) {
+          window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+        }
+      },
       STEPS.indexOf(next) > STEPS.indexOf(step),
     );
 

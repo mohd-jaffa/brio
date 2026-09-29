@@ -3520,19 +3520,25 @@ The user: "complete phase 8 first then phase 6". Their answers: the device check
 - **Placing.** The Place order button turns into the success card's medallion.
 - Under reduced motion, nothing travels, and only the cart or line answers, with a short fade. From 1024 px, the steps stay still.
 
-### Fixed before committing
+### Fixed during browser review
 - **The screen froze for about four seconds on each step change and on Place order.** The transition waited for an animation frame, and Chrome runs none while it holds the screen for a transition. Timed in Chromium: 4,028 ms with the frame, 283 ms without.
   - The transition now waits for the order screen to say the change is drawn (`orderChangeDrawn`, from a layout effect), and 300 ms at most.
   - Measured on the built app at 390 px: each step is captured within 12–19 ms and done in about 0.46 s. Place order is captured with its card and done in 0.6 s.
 - **A step slid in twice.** The existing step travel (`useTravelMotion`) also ran inside the View Transition. It now keeps still while one is running (`orderTransitionRunning`). A step changed by the browser's Back, which runs no transition, still slides in once.
+- **Two readable screens briefly overlapped.** The browser's default root cross-fade was running around the named order stage. The root now changes at once; the old stage leaves in 150 ms, and its successor starts settling after 90 ms. The page header and navigation stay crisp throughout.
+- **A phone could open the next step partway down.** Items, details and payment now begin at the top of their own phone page. The desktop keeps its working scroll position because its order panel never leaves.
+- **A desktop token could fly behind the sticky action.** A line receives the token only when its centre is actually visible and uncovered. A line below the panel's fold still joins the order, without decorative travel to a hidden destination.
+- **The order grid's largest paint was lazy-loaded.** The first product illustration is now eager with high fetch priority; every other product remains lazy.
 
 ### Validation
-- Unit tests: 358 files, 2,404 tests, pass. `choreography.ts`, `useOrderAddMotion` and `useTravelMotion` are fully covered.
+- Unit tests: 361 files, 2,446 tests, pass. `choreography.ts`, `useOrderAddMotion` and `useTravelMotion` are fully covered.
 - A temporary browser check on the built app at 390 px, not committed, confirmed each of the following:
   - the + launches one flight;
   - each step runs one transition, which captures the new step, with no second slide;
   - Back slides once;
   - Place order's transition captures the card.
+- The final browser pass at 390 × 844 and 1280 × 900 confirmed the one-stage transition without text overlap, each phone step at the top, the visible desktop line as the add destination, and the Place order → success-medallion finish. The first product image reports `loading="eager"` and `fetchpriority="high"`; the earlier LCP warning did not recur.
+- The Impeccable detector reports zero anti-patterns in the changed interface files. Its ten advisory colour/type notes are on existing splash and mask rules in `globals.css`.
 - The browser journeys (2) pass. Lint, the type check and the format check pass.
 
 ### Blockers
@@ -3614,4 +3620,3 @@ The user: "complete phase 8 first then phase 6". Their answers: the device check
 
 ### Blockers
 - None.
-

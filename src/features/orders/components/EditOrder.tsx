@@ -196,7 +196,12 @@ function Editor({ order, customer }: { order: Order; customer: DraftCustomer }) 
   // A step is the same screen: the address changes, and the server is not asked again.
   const goTo = (next: Step) =>
     transitionOrderStep(
-      () => pushUrl(next === "items" ? route : `${route}?step=${next}`),
+      () => {
+        pushUrl(next === "items" ? route : `${route}?step=${next}`);
+        if (window.matchMedia?.("(min-width: 1024px)").matches === false) {
+          window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+        }
+      },
       EDIT_STEPS.indexOf(next) > EDIT_STEPS.indexOf(step),
     );
 

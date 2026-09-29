@@ -99,7 +99,7 @@ export function ItemsPanel({
         // into it and cut their names short.
         <div className="@container">
           <ul role="list" className="grid grid-cols-2 gap-3 @lg:grid-cols-3 @3xl:grid-cols-4">
-            {shown.map((product) => {
+            {shown.map((product, index) => {
               const quantity = quantityOf(product.id);
               return (
                 <li key={product.id}>
@@ -107,6 +107,7 @@ export function ItemsPanel({
                     name={product.name}
                     price={formatPaise(product.defaultPrice)}
                     iconKey={product.iconKey}
+                    priority={index === 0}
                     addLabel={text.add(product.name)}
                     onAdd={() => onAdd(product.id)}
                     onAddOrigin={(origin) => onAddOrigin?.(product.id, origin)}

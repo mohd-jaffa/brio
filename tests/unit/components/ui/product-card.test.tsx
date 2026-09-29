@@ -15,10 +15,13 @@ describe("ProductCard", () => {
   it("shows the illustration, the name and the price, and adds with its +", async () => {
     const onAdd = vi.fn();
     const onAddOrigin = vi.fn();
-    const { container } = render(<ProductCard {...labels} iconKey="donut" onAdd={onAdd} onAddOrigin={onAddOrigin} />);
+    const { container } = render(
+      <ProductCard {...labels} iconKey="donut" onAdd={onAdd} onAddOrigin={onAddOrigin} priority />,
+    );
     expect(screen.getByText("Chocolate truffle cake")).toHaveClass("line-clamp-2");
     expect(screen.getByText("₹1,250")).toBeInTheDocument();
     expect(container.querySelector("img")?.getAttribute("src")).toMatch(/donut/);
+    expect(container.querySelector("img")).toHaveAttribute("loading", "eager");
 
     const add = screen.getByRole("button", { name: "Add Chocolate truffle cake" });
     expect(add).toHaveClass("hit-area");

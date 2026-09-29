@@ -32,7 +32,26 @@ export function captureOrderAdd(origin: HTMLElement, productId: string): OrderAd
 const visible = (element: HTMLElement) => {
   const bounds = element.getBoundingClientRect();
   const style = window.getComputedStyle(element);
-  return bounds.width > 0 && bounds.height > 0 && style.display !== "none" && style.visibility !== "hidden";
+  if (
+    bounds.width <= 0 ||
+    bounds.height <= 0 ||
+    bounds.right <= 0 ||
+    bounds.bottom <= 0 ||
+    bounds.left >= window.innerWidth ||
+    bounds.top >= window.innerHeight ||
+    style.display === "none" ||
+    style.visibility === "hidden"
+  ) {
+    return false;
+  }
+
+  // A sticky footer can cover a line whose rectangle still intersects the
+  // viewport. Do not send a token behind it: it should land only where the
+  // owner can actually see the line receive it.
+  const x = Math.min(window.innerWidth - 1, Math.max(0, bounds.left + bounds.width / 2));
+  const y = Math.min(window.innerHeight - 1, Math.max(0, bounds.top + bounds.height / 2));
+  const hit = document.elementFromPoint?.(x, y);
+  return !hit || element.contains(hit) || hit.contains(element);
 };
 
 /** The new desktop line wins; on a phone the visible cart badge receives it. */

@@ -27,9 +27,10 @@ describe("ProductTile", () => {
   });
 
   it("fills a card's width, asking for a picture big enough", () => {
-    const { container } = render(<ProductTile iconKey="donut" size="fill" />);
+    const { container } = render(<ProductTile iconKey="donut" size="fill" priority />);
     expect(container.firstElementChild).toHaveClass("w-full", "h-36");
     expect(container.querySelector("img")).toHaveAttribute("width", "144");
+    expect(container.querySelector("img")).toHaveAttribute("fetchpriority", "high");
   });
 
   it("starts from the fallback it is given: an expense category's receipt", () => {

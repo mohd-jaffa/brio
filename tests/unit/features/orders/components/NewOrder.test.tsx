@@ -192,6 +192,16 @@ describe("NewOrder: items", () => {
     await screen.findByRole("button", { name: "Continue to order details" });
     expect(bar()).not.toHaveClass("animate-arrive");
   });
+
+  it("starts the next phone step at its top", async () => {
+    window.matchMedia = vi.fn(() => ({ matches: false })) as unknown as typeof window.matchMedia;
+    const scroll = vi.spyOn(window, "scrollTo").mockImplementation(() => undefined);
+    open();
+    await userEvent.click(await screen.findByRole("button", { name: "Add Chocolate truffle cake" }));
+    await userEvent.click(button("Continue to order details"));
+
+    expect(scroll).toHaveBeenCalledWith({ top: 0, left: 0, behavior: "instant" });
+  });
 });
 
 describe("NewOrder: details", () => {
