@@ -46,7 +46,7 @@ export function SearchField({
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
-          className="w-full rounded-2xl border border-border bg-surface py-3 pl-11 pr-4 text-sm text-text shadow-card transition-colors placeholder:text-text-muted focus:border-primary"
+          className="w-full rounded-2xl border border-field-edge bg-surface py-3 pl-11 pr-4 text-sm text-text shadow-card transition-colors placeholder:text-text-muted focus:border-primary"
         />
       </div>
       {filter && <FilterButton {...filter} />}

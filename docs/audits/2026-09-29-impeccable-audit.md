@@ -110,3 +110,25 @@ Not repeated: an axe sweep, screen-reader software testing, all authentication/d
 4. **`/impeccable polish`:** confirm the resulting changes in both themes and across target widths.
 
 These can be requested one at a time, together, or in another order. Re-run `/impeccable audit` after fixes to reassess the score.
+
+## Resolution (2026-09-29)
+
+All four findings were checked against the code, found valid, and fixed (`/impeccable harden`, `clarify`, `polish`).
+
+- **A1 · fixed.** A new token, `field-edge`, carries every editable boundary: Golden `#918070`, Peach `#9a7d70`, the developer console `#7d8a9c`. Each clears **3.1 : 1 or more** against the page, the card and the field's own well. It is applied through the kit: `FIELD_WELL` (text fields, textareas, the select and the date field), the search box and the quantity stepper. A read-only field keeps the hairline, since nothing is typed there. Decorative dividers and labelled filter buttons are unchanged.
+- **A2 · fixed.** Home's chart summary totals the days the chart draws, and the period's own total stays in its tile. In the local demo it now reads "₹4,500 in all", matching its table. A regression test covers a day's total that differs from the chart's.
+- **A3 · fixed.**
+  - The illustration picker, the customer picker and the profile-picture sheet share `useSheetChoice`, built on the kit's `useArrowSelection`. Each has one Tab stop, entering at the choice in use.
+  - The arrow keys, Home and End move the mark and focus together, wrapping round, without committing or closing. Enter, Space or a tap commits.
+  - Each opening starts again from the choice in use.
+  - `Modal` now begins at a control in the Tab order, so a sheet opens on the current choice rather than the group's first button.
+- **A4 · fixed.** While a custom period lacks a date, Analytics, Expenses (every tab) and Guest sales show one calm prompt, *"Choose both dates — Pick a From and a To date above, and the figures for those days appear here."* It is a polite status with no busy state (`RangePrompt`). Skeletons are kept for a request in flight.
+
+**Verified:**
+- The unit suites cover each fix, including the keyboard walk, wraparound, entry and reopening, and the prompt on every screen.
+- The full suite passes, and `tsc` and `eslint` are clean.
+- One batched browser round in Golden and Peach, at 390 and 1280 px:
+  - the fields' edges show at rest;
+  - the picker entered at the choice in use and stayed open under the arrows;
+  - the custom range showed the prompt with no busy region;
+  - Home's summary matched its bars.

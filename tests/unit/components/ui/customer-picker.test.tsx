@@ -121,6 +121,37 @@ describe("CustomerPicker", () => {
     expect(onPick).toHaveBeenLastCalledWith({ kind: "GUEST" });
   });
 
+  it("enters the list from the search at the current choice, and walks it with the arrow keys, choosing with Enter (audit A3)", async () => {
+    const onPick = vi.fn();
+    render(<Screen value={{ kind: "CUSTOMER", id: "c-1" }} onPick={onPick} />);
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByPlaceholderText(/search/i)).toHaveFocus();
+
+    await userEvent.tab();
+    expect(within(dialog).getByRole("radio", { name: /Meena Gupta/ })).toHaveFocus();
+    await userEvent.keyboard("{ArrowDown}");
+    const rahul = within(dialog).getByRole("radio", { name: /Rahul Nair/ });
+    expect(rahul).toHaveFocus();
+    expect(rahul).toHaveAttribute("aria-checked", "true");
+    expect(onPick).not.toHaveBeenCalled();
+
+    await userEvent.keyboard("{ArrowDown}");
+    expect(within(dialog).getByRole("radio", { name: /Guest/ })).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    expect(onPick).toHaveBeenCalledExactlyOnceWith({ kind: "GUEST" });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("with no one chosen yet, enters at Guest and marks nothing until an arrow moves", async () => {
+    render(<Screen />);
+    await userEvent.tab();
+    const guest = screen.getByRole("radio", { name: /Guest/ });
+    expect(guest).toHaveFocus();
+    expect(screen.queryAllByRole("radio", { checked: true })).toHaveLength(0);
+    await userEvent.keyboard("{End}");
+    expect(screen.getByRole("radio", { name: /Rahul Nair/ })).toHaveAttribute("aria-checked", "true");
+  });
+
   it("hands over to a new customer, forgetting the search", async () => {
     const onAddNew = vi.fn();
     render(<Screen onAddNew={onAddNew} />);

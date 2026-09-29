@@ -8,6 +8,7 @@ import { lazySheet } from "@/components/ui/lazy-sheet";
 import { LoadFailed } from "@/components/ui/list-screen";
 import { PageHeader } from "@/components/ui/page-header";
 import { RangePicker } from "@/components/ui/range-picker";
+import { RangePrompt } from "@/components/ui/range-prompt";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { TabPanel, Tabs } from "@/components/ui/tabs";
 import { UI_TEXT } from "@/constants/messages";
@@ -93,7 +94,9 @@ export function Expenses() {
       />
 
       <TabPanel id="expenses" value={tab}>
-        {tab === "TRANSACTIONS" ? (
+        {period === null ? (
+          <RangePrompt />
+        ) : tab === "TRANSACTIONS" ? (
           <ExpenseTransactions
             period={period}
             categories={names}
@@ -103,7 +106,7 @@ export function Expenses() {
             onOpen={form.open}
             onAdd={() => form.open()}
           />
-        ) : data && !waiting ? (
+        ) : data ? (
           tab === "OVERVIEW" ? (
             <ExpensesOverview
               summary={data}
@@ -115,7 +118,7 @@ export function Expenses() {
           ) : (
             <ExpenseCategories summary={data} iconOf={iconOf} onOpenCategory={transactions} />
           )
-        ) : summary.error && !waiting ? (
+        ) : summary.error ? (
           <LoadFailed query={summary} loadFailed="EXPENSES_LOAD_FAILED" />
         ) : (
           <div role="status" aria-busy="true" aria-label={text.loading}>

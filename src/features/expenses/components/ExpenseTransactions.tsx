@@ -50,8 +50,8 @@ export function ExpenseTransactions({
   onOpen,
   onAdd,
 }: {
-  /** The period's query, or null while a custom one still waits for its dates. */
-  period: { range: string; from?: string; to?: string } | null;
+  /** The period's query; a custom one is asked for only once it has both dates. */
+  period: { range: string; from?: string; to?: string };
   /** The business's categories, its own among them, to filter by. */
   categories: readonly ExpenseCategory[];
   category: ExpenseCategory | undefined;
@@ -60,7 +60,7 @@ export function ExpenseTransactions({
   onOpen: (expense: Expense) => void;
   onAdd: () => void;
 }) {
-  const pages = useApiPages<Expense>(period && withQuery(apiRoutes.expenses.list, { ...period, category }));
+  const pages = useApiPages<Expense>(withQuery(apiRoutes.expenses.list, { ...period, category }));
 
   return (
     <div className="space-y-4">
@@ -74,9 +74,9 @@ export function ExpenseTransactions({
         />
       </div>
       <ListScreen
-        query={{ ...pages, isLoading: pages.isLoading || period === null }}
+        query={pages}
         loadFailed="EXPENSES_LOAD_FAILED"
-        data={period ? pages.data : undefined}
+        data={pages.data}
         noMatches={category && text.noneInCategory(category)}
         empty={
           <EmptyState

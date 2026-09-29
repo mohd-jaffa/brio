@@ -8,6 +8,7 @@ import { LoadFailed } from "@/components/ui/list-screen";
 import { PageHeader } from "@/components/ui/page-header";
 import { QuoteBlock } from "@/components/ui/quote-block";
 import { RangePicker } from "@/components/ui/range-picker";
+import { RangePrompt } from "@/components/ui/range-prompt";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { StatTile } from "@/components/ui/stat-tile";
 import { TabPanel, Tabs } from "@/components/ui/tabs";
@@ -81,7 +82,9 @@ export function Analytics() {
         options={TABS.map((value) => ({ value, label: text.tabNames[value] }))}
       />
 
-      {data && !waiting ? (
+      {waiting ? (
+        <RangePrompt />
+      ) : data ? (
         <TabPanel id="analytics" value={tab}>
           <div className="space-y-6">
             {tab === "OVERVIEW" && (
@@ -126,7 +129,7 @@ export function Analytics() {
             {tab === "PRODUCTS" && <ProductsPanel report={data} />}
           </div>
         </TabPanel>
-      ) : report.error && !waiting ? (
+      ) : report.error ? (
         <LoadFailed query={report} loadFailed="ANALYTICS_LOAD_FAILED" />
       ) : (
         <div role="status" aria-busy="true" aria-label={text.loading}>

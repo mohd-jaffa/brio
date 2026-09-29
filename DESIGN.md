@@ -14,6 +14,7 @@ colors:
   oat-paper: "#fffcf8"
   flour-well: "#f1e8db"
   oat-hairline: "#e6dacb"
+  oat-field-edge: "#918070"
   crust-ink: "#2b1d14"
   cocoa-muted: "#6b5747"
   chart-rust: "#9c4a25"
@@ -34,6 +35,7 @@ colors:
   rose-paper: "#fffaf6"
   blush-well: "#f7e6da"
   blush-hairline: "#f0dbcd"
+  blush-field-edge: "#9a7d70"
   plum-ink: "#33201a"
   rosewood-muted: "#77574a"
   chart-terracotta: "#a8441f"
@@ -423,10 +425,10 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 - **Action row** (`ActionRow`): a card-width row that opens something rather than naming a record: a mark, a title and a line under it, and a chevron. Add custom item above the product grid, and the customer on an order, are both one.
 
 ### Inputs / Fields
-- **Style:** Flour Well fill, a hairline border, 12 px corners, 12 × 16 px padding, 14 px medium text.
+- **Style:** Flour Well fill, a Field Edge border (Oat Field Edge, Blush Field Edge), 12 px corners, 12 × 16 px padding, 14 px medium text. The edge clears 3 : 1 against the page, the card and the well itself, so an empty field can be found before it is focused (WCAG 1.4.11; audit A1, 2026-09-29). A hairline stays for cards and dividers, never for something typed into; the search box and the quantity stepper take the edge too.
 - **Focus:** the border turns caramel with a 1 px caramel ring, and the caret is caramel.
 - **Error:** a brick border and ring, with the message beside the field.
-- **Read-only:** muted text and no focus ring.
+- **Read-only:** muted text, a hairline in place of the edge (there is nothing to type), and no focus ring.
 
 ### Status Pill
 - A fully round tinted pill (12 % of its status colour on paper), 12 px medium words, and a 6 px dot in the same colour.

@@ -26,8 +26,9 @@ import { SelectMenu, type SelectOption } from "./select-menu";
  */
 const CONTROL_CLASSES =
   `${FIELD_WELL} placeholder:text-text-muted ` +
-  // A field shown but not edited — a name locked for now — reads as quieter.
-  "read-only:cursor-default read-only:text-text-muted read-only:focus:border-border read-only:focus:ring-0";
+  // A field shown but not edited — a name locked for now — reads as quieter,
+  // with a hairline: there is nothing to type there.
+  "read-only:cursor-default read-only:border-border read-only:text-text-muted read-only:focus:border-border read-only:focus:ring-0";
 
 /**
  * Labels are sentence case, as the references set them everywhere (plan

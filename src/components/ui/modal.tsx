@@ -5,7 +5,11 @@ import { useEffect, useRef, type ReactNode, type RefObject } from "react";
 import { cn } from "./cn";
 
 // What can take focus inside the modal, in the order Tab would reach it.
-const FOCUSABLE = "input, select, textarea, button, a[href], [tabindex]:not([tabindex='-1'])";
+// What Tab stops at: a control out of the Tab order — a radio group's other
+// choices — is not where a sheet begins.
+const FOCUSABLE = ["input", "select", "textarea", "button", "a[href]", "[tabindex]"]
+  .map((selector) => `${selector}:not([tabindex='-1'])`)
+  .join(", ");
 
 /**
  * A modal on the native `<dialog>` (BUG-25), placed as a bottom sheet on a

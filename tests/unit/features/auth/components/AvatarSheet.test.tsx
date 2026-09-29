@@ -60,6 +60,22 @@ describe("AvatarSheet", () => {
     expect(chooser()).toHaveTextContent("It shows on your account, beside your name.");
   });
 
+  it("enters at the picture in use, walks them with the arrow keys, and saves the one Enter lands on (audit A3)", async () => {
+    client.changeAvatar.mockResolvedValue({ ...TEST_PROFILE, avatar: "grandma" });
+    render(<AvatarSheet open onClose={vi.fn()} />);
+    const radios = within(chooser()).getAllByRole("radio");
+    const inUse = radios.findIndex((radio) => radio.getAttribute("aria-checked") === "true");
+    expect(radios[inUse]).toHaveFocus();
+
+    await userEvent.keyboard("{ArrowRight}");
+    expect(radios[inUse + 1]).toHaveFocus();
+    expect(radios[inUse + 1]).toHaveAttribute("aria-checked", "true");
+    expect(client.changeAvatar).not.toHaveBeenCalled();
+
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() => expect(client.changeAvatar).toHaveBeenCalledOnce());
+  });
+
   it("saves one of the people as it does an animal", async () => {
     client.changeAvatar.mockResolvedValue({ ...TEST_PROFILE, avatar: "grandma" });
     render(<AvatarSheet open onClose={vi.fn()} />);

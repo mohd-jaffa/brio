@@ -373,6 +373,9 @@ export const UI_TEXT = {
     label: "Period",
     from: "From",
     to: "To",
+    // A custom period with a day still to choose: nothing is loading (audit A4).
+    incompleteTitle: "Choose both dates",
+    incompleteHint: "Pick a From and a To date above, and the figures for those days appear here.",
   },
 
   /** The app's own calendar, in place of the browser's (the user, 2026-09-27). */

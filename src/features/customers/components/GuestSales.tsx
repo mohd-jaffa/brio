@@ -6,6 +6,7 @@ import { useState } from "react";
 import { ListScreen } from "@/components/ui/list-screen";
 import { PageHeader } from "@/components/ui/page-header";
 import { RangePicker } from "@/components/ui/range-picker";
+import { RangePrompt } from "@/components/ui/range-prompt";
 import { RowList } from "@/components/ui/row";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { StatTile } from "@/components/ui/stat-tile";
@@ -41,7 +42,7 @@ export function GuestSales() {
           to: range.preset === "CUSTOM" ? range.to : undefined,
         }),
   );
-  const summary = waiting ? undefined : sales.first;
+  const summary = sales.first;
 
   return (
     <div className="space-y-6">
@@ -49,7 +50,9 @@ export function GuestSales() {
         <RangePicker value={range} onChange={setRange} />
       </PageHeader>
 
-      {summary ? (
+      {waiting ? (
+        <RangePrompt />
+      ) : summary ? (
         <dl className="grid grid-cols-2 gap-3 lg:max-w-2xl lg:gap-4">
           <StatTile label={text.orders} value={String(summary.orders)} icon={ShoppingBag} />
           <StatTile label={text.sales} value={formatPaise(summary.sales)} icon={TrendingUp} tone="success" headline />
@@ -62,25 +65,27 @@ export function GuestSales() {
         )
       )}
 
-      <section aria-label={text.list}>
-        <ListScreen
-          query={{ ...sales, isLoading: sales.isLoading || waiting }}
-          loadFailed="ORDERS_LOAD_FAILED"
-          data={waiting ? undefined : sales.data}
-          empty={
-            <p className="rounded-2xl border border-border bg-surface px-4 py-6 text-center text-sm text-text-muted shadow-card">
-              {text.none}
-            </p>
-          }
-          renderList={(items) => (
-            <RowList label={text.list}>
-              {items.map((order) => (
-                <OrderRow key={order.id} order={order} now={now} />
-              ))}
-            </RowList>
-          )}
-        />
-      </section>
+      {!waiting && (
+        <section aria-label={text.list}>
+          <ListScreen
+            query={sales}
+            loadFailed="ORDERS_LOAD_FAILED"
+            data={sales.data}
+            empty={
+              <p className="rounded-2xl border border-border bg-surface px-4 py-6 text-center text-sm text-text-muted shadow-card">
+                {text.none}
+              </p>
+            }
+            renderList={(items) => (
+              <RowList label={text.list}>
+                {items.map((order) => (
+                  <OrderRow key={order.id} order={order} now={now} />
+                ))}
+              </RowList>
+            )}
+          />
+        </section>
+      )}
     </div>
   );
 }

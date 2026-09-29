@@ -73,12 +73,16 @@ describe("Analytics", () => {
     open();
     await screen.findByText("Total sales");
     await choose("Period", "Custom");
-    expect(screen.getByRole("status", { name: "Loading analytics" })).toBeInTheDocument();
+    // Nothing is loading: it asks for the dates, and shows nothing busy (audit A4).
+    expect(screen.getByText("Choose both dates").closest("[role='status']")).not.toBeNull();
+    expect(document.querySelector("[aria-busy='true']")).toBeNull();
+    expect(screen.queryByText("Total sales")).not.toBeInTheDocument();
 
     answers["/api/analytics/overview?range=CUSTOM&from=2026-09-01&to=2026-09-02"] = aReport();
     await pickDate("From", "2026-09-01");
-    // Half a period is not asked for.
+    // Half a period is not asked for, and still asks for the other date.
     expect(fetcher).not.toHaveBeenCalledWith(expect.stringMatching(/range=CUSTOM(&from=2026-09-01)?$/));
+    expect(screen.getByText("Choose both dates").closest("[role='status']")).not.toBeNull();
     await pickDate("To", "2026-09-02");
     expect(await screen.findByText("Total sales")).toBeInTheDocument();
   });

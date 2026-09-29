@@ -183,6 +183,20 @@ describe("Home: how the period is going (desktop)", () => {
     expect(within(customers).getByText("3 orders")).toBeInTheDocument();
   });
 
+  it("totals the chart's summary over the days it draws, not the shorter period's (audit A2)", async () => {
+    answers["/api/dashboard"] = aDashboard({
+      sales: 0,
+      salesByDay: [
+        { day: "2026-09-24", total: 146000 },
+        { day: "2026-09-25", total: 304000 },
+        { day: "2026-09-26", total: 0 },
+      ],
+    });
+    open();
+    expect(await screen.findByRole("img", { name: "Sales per day from 24 Sep to 26 Sep: ₹4,500 in all." })).toBeInTheDocument();
+    expect(screen.getByText("Sales today").closest("div")).toHaveTextContent("₹0");
+  });
+
   it("says so when the period has no sales, no best sellers and no customers yet", async () => {
     answers["/api/dashboard"] = aDashboard({
       salesByDay: [],

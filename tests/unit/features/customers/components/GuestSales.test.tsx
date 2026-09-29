@@ -70,7 +70,10 @@ describe("GuestSales", () => {
     fetcher.mockClear();
     await choose("Period", "Custom");
     expect(fetcher).not.toHaveBeenCalled();
-    expect(screen.getByRole("status", { name: "Loading Guest sales" })).toBeInTheDocument();
+    // Nothing is loading: it asks for the dates, and shows nothing busy (audit A4).
+    expect(screen.getByText("Choose both dates").closest("[role='status']")).not.toBeNull();
+    expect(document.querySelector("[aria-busy='true']")).toBeNull();
+    expect(screen.queryByRole("region", { name: /Guest orders/ })).not.toBeInTheDocument();
 
     answers["/api/guest-sales?range=CUSTOM&from=2026-09-01&to=2026-09-10"] = sales({ orders: 5, sales: 250000 });
     await pickDate("From", "2026-09-01");

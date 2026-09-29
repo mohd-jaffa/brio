@@ -4,6 +4,7 @@ import { Check, UserPlus } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { UI_TEXT } from "@/constants/messages";
+import { useSheetChoice } from "@/hooks/useSheetChoice";
 import { formatPhoneDigits } from "@/lib/phone";
 
 import { Avatar } from "./avatar";
@@ -37,8 +38,14 @@ export type PickedCustomer<T> = { kind: "GUEST" } | { kind: "CUSTOMER"; customer
  * **Show more** while another page follows.
  *
  * The choices are a radio group: the current one is checked, and each is a
- * control a screen reader names by the customer's name and number.
+ * control a screen reader names by the customer's name and number. The
+ * search box takes the first focus; from it, Tab enters the list at the
+ * current choice, and the arrow keys walk the list, choosing with Enter
+ * (`useSheetChoice`).
  */
+
+// Guest's place among the choices: no customer's id looks like it.
+const GUEST = "guest";
 export function CustomerPicker<T extends PickableCustomer>({
   open,
   onClose,
@@ -63,6 +70,8 @@ export function CustomerPicker<T extends PickableCustomer>({
   onAddNew: () => void;
 }) {
   const text = UI_TEXT.customerPicker;
+  const inUse = value === null ? null : value.kind === "GUEST" ? GUEST : value.id;
+  const choice = useSheetChoice([GUEST, ...(customers ?? []).map((customer) => customer.id)], inUse, open);
 
   // Each opening starts from the whole list.
   const close = () => {
@@ -71,14 +80,16 @@ export function CustomerPicker<T extends PickableCustomer>({
   };
 
   const option = (picked: PickedCustomer<T>, leading: ReactNode, title: string, subtitle: string) => {
-    const id = picked.kind === "GUEST" ? null : picked.customer.id;
-    const checked = value !== null && (value.kind === "GUEST" ? id === null : value.id === id);
+    const id = picked.kind === "GUEST" ? GUEST : picked.customer.id;
+    const checked = choice.checked(id);
     return (
-      <li key={id ?? "guest"} role="none">
+      <li key={id} role="none">
         <button
+          ref={choice.register(id)}
           type="button"
           role="radio"
           aria-checked={checked}
+          tabIndex={choice.tabIndex(id)}
           onClick={() => {
             onPick(picked);
             close();
@@ -127,7 +138,7 @@ export function CustomerPicker<T extends PickableCustomer>({
     >
       <div className="space-y-3 pb-2">
         <SearchField value={search} onChange={onSearch} placeholder={text.search} />
-        <ul role="radiogroup" aria-label={text.title} className="space-y-1">
+        <ul role="radiogroup" aria-label={text.title} onKeyDown={choice.onKeyDown} className="space-y-1">
           {option({ kind: "GUEST" }, <GuestMark />, text.guest, text.guestHint)}
           {customers?.map((customer) =>
             option(

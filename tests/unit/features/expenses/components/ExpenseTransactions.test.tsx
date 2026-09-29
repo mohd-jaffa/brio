@@ -100,12 +100,6 @@ describe("ExpenseTransactions", () => {
     expect(props.onAdd).toHaveBeenCalledOnce();
   });
 
-  it("waits while a custom period has no dates", () => {
-    open({ period: null });
-    expect(fetcher).not.toHaveBeenCalled();
-    expect(document.querySelector("[aria-busy='true']")).not.toBeNull();
-  });
-
   it("says when the expenses could not be loaded", async () => {
     answers["/api/expenses?range=LAST_30_DAYS"] = new ApiError(500, "INTERNAL_ERROR", "Something went wrong.");
     open();

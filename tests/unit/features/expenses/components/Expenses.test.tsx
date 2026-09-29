@@ -82,7 +82,13 @@ describe("Expenses", () => {
     open();
     await screen.findByText("Daily average");
     await choose("Period", "Custom");
-    expect(screen.getByRole("status", { name: "Loading expenses" })).toBeInTheDocument();
+    // Nothing is loading: it asks for the dates, and shows nothing busy (audit A4).
+    expect(screen.getByText("Choose both dates").closest("[role='status']")).not.toBeNull();
+    expect(document.querySelector("[aria-busy='true']")).toBeNull();
+    // On every tab: the expenses' list waits for the same two dates.
+    await userEvent.click(screen.getByRole("tab", { name: "Transactions" }));
+    expect(screen.getByText("Choose both dates").closest("[role='status']")).not.toBeNull();
+    await userEvent.click(screen.getByRole("tab", { name: "Overview" }));
 
     answers["/api/expenses/summary?range=CUSTOM&from=2026-09-01&to=2026-09-02"] = aSummary();
     await pickDate("From", "2026-09-01");

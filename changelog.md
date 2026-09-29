@@ -3222,3 +3222,34 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - **Seen on phones:** an Android phone's Chrome, and an iPhone with Brio on its Home Screen, are still to be tried.
+
+## 2026-09-29 — The interface audit's four findings, fixed
+
+### Fixed (docs/audits/2026-09-29-impeccable-audit.md; the user: "if valid fix this with help of /impeccable harden clarify polish")
+- **A1 (P1), field boundaries you could not see.** A new token, **`field-edge`** (Golden `#918070`, Peach `#9a7d70`, the console `#7d8a9c`), clears 3 : 1 on the page, the card and the field's own well (WCAG 1.4.11). The hairline measured 1.35 : 1 at most.
+  - It is applied through the kit: `FIELD_WELL` (text fields, textareas, the select and the date field), the search box and the quantity stepper.
+  - A read-only field keeps the hairline.
+  - DESIGN.md and its sidecar name the token.
+- **A2 (P2), Home's spoken chart total.** The chart's summary totalled the selected period, not the days it draws. It now sums its own points (`sumPaise`), while the period's total stays in its tile.
+- **A3 (P2), pickers that said "radio" but had no arrow keys.** The customer picker, the illustration picker and the profile-picture sheet use **`useSheetChoice`** (on `useArrowSelection`):
+  - Each has one Tab stop, at the choice in use.
+  - The arrow keys, Home and End move the choice and focus together, wrapping round, without committing or closing the sheet. Enter, Space or a tap commits.
+  - **`Modal`** now begins at a control in the Tab order, so a sheet opens on the current choice. A filter sheet's segmented control also now starts on its chosen segment.
+- **A4 (P2), custom ranges that looked like loading forever.** While a custom period lacks a date, Analytics, Expenses (every tab) and Guest sales show **`RangePrompt`**: "Choose both dates — Pick a From and a To date above, and the figures for those days appear here." It is a polite status with no busy state. The Transactions tab no longer takes an incomplete period at all.
+
+### Validation
+- **Unit tests:**
+  - the keyboard walk, wraparound, entry at the choice in use, committing with Enter, and reopening, for all three pickers and the hook;
+  - the modal's first focus;
+  - the prompt on every report screen, with nothing busy;
+  - Home's summary where today's total differs from the chart's.
+  - The old tests that pinned "Loading analytics" for an incomplete range now expect the prompt.
+- **One browser round (polish)** in Golden and Peach, at 390 and 1280 px:
+  - the fields' edges show at rest;
+  - the picker entered at the picture in use and stayed open under the arrows;
+  - the custom range showed the prompt with no busy region;
+  - Home said "₹4,500 in all", matching its bars.
+- **Checks:** `tsc` and `eslint` pass, and the full suite passes (2,365 tests).
+
+### Blockers
+- None.

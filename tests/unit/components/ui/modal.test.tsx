@@ -21,6 +21,23 @@ describe("Modal", () => {
     expect(dialog).toHaveAttribute("open");
   });
 
+  it("begins at a control Tab stops at, not one a radio group keeps out of the Tab order (audit A3)", () => {
+    render(
+      <Modal open labelledBy="title">
+        <h2 id="title">Choose</h2>
+        <div role="radiogroup" aria-label="Pictures">
+          <button type="button" role="radio" aria-checked="false" tabIndex={-1}>
+            Price tag
+          </button>
+          <button type="button" role="radio" aria-checked="true" tabIndex={0}>
+            Teddy bear
+          </button>
+        </div>
+      </Modal>,
+    );
+    expect(screen.getByRole("radio", { name: "Teddy bear" })).toHaveFocus();
+  });
+
   it("takes a dialog the browser already opened, or already closed, as it finds it", () => {
     const { rerender } = render(
       <Modal open={false} labelledBy="t">

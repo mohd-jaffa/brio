@@ -27,6 +27,7 @@ import { bakeryHour, DUE_BUCKET_LABELS, todayKey } from "@/lib/dates/calendar";
 import { formatPaise } from "@/lib/format/currency";
 import { formatDayMonth, formatLongDate } from "@/lib/format/date";
 import { formatQuantity } from "@/lib/format/quantity";
+import { sumPaise } from "@/lib/money";
 import { apiRoutes, withQuery } from "@/lib/query/keys";
 import { useApiQuery } from "@/lib/query/useApiQuery";
 
@@ -174,10 +175,12 @@ export function Home() {
             <div className="hidden lg:block">
               <BarTrend
                 title={text.salesOverview}
+                // Said of the days drawn, which start earlier than a short period
+                // does: the period's own total is the tile above (audit A2).
                 summary={text.salesSummary(
                   formatDayMonth(data.salesByDay[0]?.day),
                   formatDayMonth(data.salesByDay.at(-1)?.day),
-                  formatPaise(data.sales),
+                  formatPaise(sumPaise(data.salesByDay.map((day) => day.total))),
                 )}
                 points={data.salesByDay.map((day) => ({ label: formatDayMonth(day.day), value: day.total }))}
                 emptyMessage={text.noSales}

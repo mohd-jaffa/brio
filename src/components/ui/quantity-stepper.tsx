@@ -123,7 +123,7 @@ export function QuantityStepper({
   };
 
   return (
-    <div className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface p-1">
+    <div className="inline-flex items-center gap-1.5 rounded-xl border border-field-edge bg-surface p-1">
       {button(-1)}
       <input
         type="text"
