@@ -3354,3 +3354,52 @@ The user: "complete phase 8 first then phase 6". Their answers: the device check
 
 ### Blockers
 - None.
+
+## 2026-09-29 — Phase 6: integration tests against the database (R6.6)
+
+### Added
+- **`tests/db/integration`**, run with `npm run test:integration` (`vitest.integration.config.mts`), against the local Supabase with every migration applied.
+  - The tests go through the app's own data functions, as a route would: `register` and `login`, then the customer, product, stock, order, status, notification and queue functions. Each file registers businesses of its own and deletes them after (`@tests/support/integration`, `delete_account`).
+  - The config refuses any address but a local one, and leaves mail unset, so no test sends an email. `npm test` leaves these tests out.
+- **Authentication** (5 tests):
+  - registering makes the sign-in, the profile and the business, joined up;
+  - a number or an email is refused a second account;
+  - sign-in is by mobile number, with one answer for a wrong password and for an unknown number;
+  - an owner cannot change their own role or business.
+- **Tenant isolation** (7 tests). Baker B, through the app and then straight at the database's API with B's token:
+  - finds none of Baker A's customers, products, orders or stock, and changes none of them;
+  - cannot sell A's product;
+  - reads none of A's rows in nine tables;
+  - writes nothing into A's business, and cannot move A's order;
+  - neither reads nor adds to the job queue, nor reads the push browsers;
+  - a visitor with no session sees nothing.
+- **Orders and stock** (12 tests):
+  - the server's totals, with a custom line, a charge and a discount;
+  - the reservation, and the audit row naming who placed the order;
+  - a double tap with one key makes one order;
+  - the oversell guard takes nothing when it refuses;
+  - a payment taken with the order;
+  - delivering turns the reservation into consumption, and a delivered order stays delivered;
+  - cancelling gives the stock back;
+  - a stale move is refused;
+  - an edit moves the reservation and is checked against stock, may not bring the total under what was paid, and may not touch a delivered order;
+  - the database refuses a negative price.
+- **Notifications and the queue** (5 tests):
+  - due notices: none before the morning, told once, only to the order's business, and only for the server to take;
+  - the inbox: each business's own, marked read by its owner alone, and written by no user;
+  - the queue: takes work from the server, and cleans away completed work older than 30 days while keeping the rest.
+
+### Fixed
+- **`0033_ledger_signs.sql`.** A stock line's sign was checked only by the app. With an owner's token, a request made straight to the database's API could write a stock-in of −5, and the balance believed it (found by these tests).
+  - The database now checks the app's rule (`signIsRight`): stock in and returns add; consumption and wastage take away; reservations and adjustments go either way but never by nothing. A test keeps the two rules equal.
+  - It is `not valid`, so lines already written are left alone and no database fails to migrate.
+
+### Validation
+- `npm run test:integration`: 4 files, 29 tests, pass. None of the test accounts is left behind afterwards.
+- `tsc`, `eslint`, `prettier --check` and `npm test` (2,386 tests) pass.
+
+### Migration notes
+- Apply **`0033_ledger_signs.sql`** to the hosted database.
+
+### Blockers
+- None.

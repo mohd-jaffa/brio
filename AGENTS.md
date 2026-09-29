@@ -889,7 +889,8 @@ Every test lives under **`tests/`**, and `src/` holds only code that ships (plan
 ```text
 tests/
 ├── unit/       mirrors src/ exactly — src/lib/money.ts → tests/unit/lib/money.test.ts
-├── db/         database contracts; later, integration tests against local Supabase
+├── db/         database contracts (a migration's SQL, read as text), and
+│   └── integration/   the app's data functions against the local Supabase
 ├── contract/   route-shape contracts
 ├── e2e/        Playwright browser journeys
 └── support/    setup, auth stubs (`@tests/support/auth`), fixtures
@@ -898,6 +899,10 @@ tests/
 - **One test file, one subject.** A unit test's path is its subject's path with `src/` replaced by `tests/unit/` and `.test` before the extension. A test that covers several modules is split, one file per module.
 - **Imports and mocks use `@/` paths**, never `./` or `../`: they survive moves, and `vi.mock("@/features/x/api.client")` still intercepts a component that imports `../api.client`.
 - **`scripts/check-test-paths.mjs` runs before every `npm test`** and fails on a unit test whose subject no longer exists, or a test left inside `src/`.
+- **Integration tests** (`tests/db/integration`, R6.6) run on their own with `npm run test:integration`, against the local Supabase with every migration applied (`npm run db:start`). They refuse a hosted address.
+  - Each file registers businesses of its own through the app's `register` and `login` (`@tests/support/integration`), acts through the feature functions as a route would, and deletes the accounts after.
+  - `npm test` leaves them out.
+  - A new table owned by a business gets a row in the tenant-isolation test.
 
 ## Frontend UI
 - 100% test case coverage is mandatory for all frontend UI components, custom hooks, and client services.

@@ -6688,7 +6688,7 @@ The queue table and the claim/complete/fail helpers exist. Nothing runs them.
 | K2 | No BugSnag (§123). *Kept for later (2026-09-28): R6.7.* |
 | K3 | No SonarQube and no CI pipeline — there is no `.github/` directory, so none of §125 runs anywhere (§124–§125). *SonarQube kept for later (2026-09-28); the pipeline stays in Phase 6 (R6.4).* |
 | K4 | The "E2E" suite is a Vitest test that reads route files and checks their shape. There is no browser journey and no Playwright (§121). |
-| K5 | There are no integration tests against a real database. `tests/db` reads the migration SQL as text; it proves the file says the right thing, not that the database does. |
+| K5 | **Closed 2026-09-29 by R6.6:** `tests/db/integration` runs the app's data functions against the local Supabase. There are no integration tests against a real database. `tests/db` reads the migration SQL as text; it proves the file says the right thing, not that the database does. |
 | K6 | No rate limiting on authentication or on any mutation. *Decided 2026-09-29 (the user): no limiter in the app. Supabase Auth limits its own sign-ins, and Cloudflare's rate-limiting rule guards the sign-in routes at the edge (R6.2).* |
 
 ---
@@ -9274,7 +9274,7 @@ Phase 5 closed on 2026-09-26 with R5.10.
 | R6.3 | OpenAPI and Swagger | §133.11 K1 | — | LATER (2026-09-28, the user: not needed for now; §119 – §120 kept) |
 | R6.4 | CI pipeline ~~with SonarQube~~ — SonarQube kept for later (2026-09-28) | §133.11 K3 | — | TODO |
 | R6.5 | Playwright journeys, tenant isolation included | §133.11 K4 | — | TODO |
-| R6.6 | Database integration tests against local Supabase | §133.11 K5 | — | TODO |
+| R6.6 | Database integration tests against local Supabase | §133.11 K5 | — | DONE (2026-09-29 · `tests/db/integration`, `npm run test:integration`: authentication, tenant isolation, orders and stock, notifications and the queue; found the ledger's unchecked signs, now `0033_ledger_signs`) |
 | R6.7 | BugSnag | §133.11 K2 | — | LATER (2026-09-28, the user: not for now; §123 kept) |
 | R6.8 | An accessibility and responsive pass across every screen | §139.8, §139.9 | — | DONE (2026-09-28 · §139.9, the pass) |
 
