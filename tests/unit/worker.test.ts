@@ -1,14 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { registerNotificationWorker, registerAnalyticsWorker, runWorker, client, logger, mode } = vi.hoisted(() => ({
-  registerNotificationWorker: vi.fn(),
-  registerAnalyticsWorker: vi.fn(),
-  runWorker: vi.fn(),
-  client: { service: true },
-  logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
-  // Whether a worker runs (WORKER_ENABLED): none for now, and each path is kept.
-  mode: { worker: true },
-}));
+const { registerNotificationWorker, registerAnalyticsWorker, registerCleanupWorker, runWorker, client, logger, mode } =
+  vi.hoisted(() => ({
+    registerNotificationWorker: vi.fn(),
+    registerAnalyticsWorker: vi.fn(),
+    registerCleanupWorker: vi.fn(),
+    runWorker: vi.fn(),
+    client: { service: true },
+    logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+    // Whether a worker runs (WORKER_ENABLED): none for now, and each path is kept.
+    mode: { worker: true },
+  }));
 vi.mock("@/constants/jobs", async (original) => ({
   ...(await original<typeof import("@/constants/jobs")>()),
   get WORKER_ENABLED() {
@@ -17,6 +19,7 @@ vi.mock("@/constants/jobs", async (original) => ({
 }));
 vi.mock("@/features/notifications/worker", () => ({ registerNotificationWorker }));
 vi.mock("@/features/analytics/worker", () => ({ registerAnalyticsWorker }));
+vi.mock("@/lib/jobs/cleanup", () => ({ registerCleanupWorker }));
 vi.mock("@/lib/jobs/runner", () => ({ runWorker }));
 vi.mock("@/lib/supabase/server", () => ({ createSupabaseServiceRoleClient: () => client }));
 vi.mock("@/lib/logger", () => ({ logger }));
@@ -34,6 +37,7 @@ describe("the worker process", () => {
     registerWorkers();
     expect(registerNotificationWorker).toHaveBeenCalledOnce();
     expect(registerAnalyticsWorker).toHaveBeenCalledOnce();
+    expect(registerCleanupWorker).toHaveBeenCalledOnce();
   });
 
   it("runs the queue as the service role, named for its host and process, until SIGTERM", async () => {

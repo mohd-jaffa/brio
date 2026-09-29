@@ -190,7 +190,7 @@ describe("processPayment", () => {
     mode.worker = true;
     const { client } = fakeClient();
     await processPayment(tenantOf(client), payment, KEY);
-    expect(createJob).toHaveBeenCalledWith(client, {
+    expect(createJob).toHaveBeenCalledWith({
       type: "SEND_PUSH_NOTIFICATION",
       payload: {
         bakeryId: "b-1",

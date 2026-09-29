@@ -34,13 +34,30 @@ export const JOB_TYPES = {
 export type JobType = (typeof JOB_TYPES)[keyof typeof JOB_TYPES];
 
 /** Tries before a job is set aside as failed, where it stays visible (the dead-letter state). */
-export const MAX_JOB_ATTEMPTS = 3;
+export const MAX_JOB_ATTEMPTS = 5;
 
 /** How long a worker may hold a job before it is taken to have died with it. */
 export const JOB_LEASE_MS = 10 * 60_000;
 
-/** How long a failed job waits before it is tried again. Fixed for now; exponential with R6.1. */
-export const JOB_RETRY_DELAY_MS = 5 * 60_000;
+/**
+ * How long a failed job waits before it is tried again: a minute after the
+ * first failure, doubling with each after it — 1, 2, 4, 8 minutes — and never
+ * more than an hour (§133.6 F6).
+ */
+export const JOB_RETRY_BASE_MS = 60_000;
+export const JOB_RETRY_MAX_MS = 60 * 60_000;
+
+/**
+ * How long a finished job is kept before the CleanupWorker drops it (§133.6
+ * F7): a completed one, from when it completed; a failed one — kept longer,
+ * so a failure can still be looked into — from when it was queued. The same
+ * as `clean_up_queue()` (0032_queue_hardening.sql); a test keeps them equal.
+ */
+export const JOB_KEEP_COMPLETED_DAYS = 30;
+export const JOB_KEEP_FAILED_DAYS = 90;
+
+/** How often a worker cleans the queue. */
+export const QUEUE_CLEANUP_INTERVAL_MS = 24 * 60 * 60_000;
 
 /** How long an idle worker waits before looking again. */
 export const WORKER_IDLE_MS = 5_000;

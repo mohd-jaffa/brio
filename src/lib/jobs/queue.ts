@@ -1,29 +1,32 @@
 import { type SupabaseClient } from "@supabase/supabase-js";
 
-import { JOB_LEASE_MS, JOB_RETRY_DELAY_MS, MAX_JOB_ATTEMPTS } from "@/constants/jobs";
+import { JOB_LEASE_MS, JOB_RETRY_BASE_MS, JOB_RETRY_MAX_MS, MAX_JOB_ATTEMPTS } from "@/constants/jobs";
 import { internalError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
+import { createSupabaseServiceRoleClient } from "@/lib/supabase/server";
 
 import { type CreateJobDTO, type Job } from "./types";
 
 /**
  * The PostgreSQL job queue (AGENTS.md §17, plan §26). Work is put on it while
  * a request is served, and a separate worker process takes it off
- * (src/worker.ts). The worker's calls run as the service role: a job carries
- * no bakery_id, so nobody else may read one.
+ * (src/worker.ts). Both run as the service role: a job carries no bakery_id,
+ * so nobody else may read one, or queue one (§133.6 F8, 0032).
  */
 
 /**
- * Puts work on the queue. The row is deliberately not read back: a signed-in
- * user may insert a job and nothing else — and no caller wants the row
- * anyway, they want the work to happen later.
+ * Puts work on the queue, as the service role whoever asked: a signed-in user
+ * may not queue work, since a job names no business to check (0032). No
+ * caller wants the row back; they want the work to happen later.
  */
-export async function createJob(client: SupabaseClient, payload: CreateJobDTO): Promise<void> {
-  const { error } = await client.from("jobs").insert({
-    type: payload.type,
-    payload: payload.payload ?? {},
-    run_at: payload.run_at ?? new Date().toISOString(),
-  });
+export async function createJob(payload: CreateJobDTO): Promise<void> {
+  const { error } = await createSupabaseServiceRoleClient()
+    .from("jobs")
+    .insert({
+      type: payload.type,
+      payload: payload.payload ?? {},
+      run_at: payload.run_at ?? new Date().toISOString(),
+    });
 
   // The driver's error is the cause, which is logged, never the details, which
   // reach the response (AGENTS.md §10).
@@ -76,10 +79,16 @@ export function markCompleted(client: SupabaseClient, job: Job, workerId: string
   return settle(client, job, workerId, { status: "completed", completed_at: new Date().toISOString() });
 }
 
+/** How long a job waits after its `attempt`th try failed: doubling each time, up to the most (§133.6 F6). */
+export function retryDelayMs(attempt: number): number {
+  return Math.min(JOB_RETRY_BASE_MS * 2 ** Math.max(attempt - 1, 0), JOB_RETRY_MAX_MS);
+}
+
 /**
- * A failed attempt. With attempts left the job waits and goes back on the
- * queue; without, it is set aside as failed, with the reason, where it stays
- * visible rather than being retried for ever (§133.6 F4).
+ * A failed attempt. With attempts left the job waits, longer each time
+ * (`retryDelayMs`), and goes back on the queue; without, it is set aside as
+ * failed, with the reason, where it stays visible rather than being retried
+ * for ever (§133.6 F4).
  */
 export function markFailed(client: SupabaseClient, job: Job, workerId: string, reason: string): Promise<void> {
   const lastError = reason.slice(0, 1000);
@@ -89,7 +98,7 @@ export function markFailed(client: SupabaseClient, job: Job, workerId: string, r
   return settle(client, job, workerId, {
     status: "pending",
     last_error: lastError,
-    run_at: new Date(Date.now() + JOB_RETRY_DELAY_MS).toISOString(),
+    run_at: new Date(Date.now() + retryDelayMs(job.attempts)).toISOString(),
   });
 }
 

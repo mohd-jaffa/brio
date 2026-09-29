@@ -556,6 +556,14 @@ through `claim_next_job` (FOR UPDATE SKIP LOCKED) and `recover_stale_jobs`
 (`0012_job_claiming.sql`). A job type is named in `JOB_TYPES`
 (`src/constants/jobs.ts`), never as a string at the call site.
 
+**Only the server queues work** (R6.1, `0032_queue_hardening.sql`). A job
+names no business to check, so a signed-in user may not insert one:
+`createJob` always uses the service role, and a database function that
+queues, a trigger, runs as its owner (security definer), from the row the
+user was allowed to write. A failed job waits longer after each failure
+(`retryDelayMs`: 1, 2, 4, 8 minutes, at most an hour), and is set aside as
+failed after `MAX_JOB_ATTEMPTS`.
+
 Workers must support:
 
 - atomic job claiming
@@ -569,8 +577,11 @@ Approved workers include:
 
 - NotificationWorker
 - AnalyticsWorker
-- MenuBuildWorker
-- CleanupWorker
+- MenuBuildWorker — waits with the menu builder (§45 – §49), a later product
+  phase outside the roadmap (plan §139.18)
+- CleanupWorker — `registerCleanupWorker` (`src/lib/jobs/cleanup.ts`): once a
+  day, `clean_up_queue()` drops completed jobs after 30 days and failed ones
+  after 90 (`JOB_KEEP_*`). While no worker runs, pg_cron runs it daily.
 
 Use the queue for email delivery and other operations where the plan specifies asynchronous processing.
 

@@ -199,7 +199,7 @@ describe("register", () => {
     await register(client, registration);
 
     expect(sendAccountConfirmationMail).not.toHaveBeenCalled();
-    expect(createJob).toHaveBeenCalledWith(client, { type: "SEND_ACCOUNT_CONFIRMATION", payload: { userId: "u-1" } });
+    expect(createJob).toHaveBeenCalledWith({ type: "SEND_ACCOUNT_CONFIRMATION", payload: { userId: "u-1" } });
   });
 
   it("keeps the account when even the queue cannot take the email, and logs it", async () => {
@@ -296,7 +296,7 @@ describe("resendConfirmation", () => {
     mode.worker = true;
     const { client } = fakeAdmin();
     await expect(resendConfirmation(client, profile)).resolves.toEqual({ queued: true });
-    expect(createJob).toHaveBeenCalledWith(client, { type: "SEND_ACCOUNT_CONFIRMATION", payload: { userId: "u-1" } });
+    expect(createJob).toHaveBeenCalledWith({ type: "SEND_ACCOUNT_CONFIRMATION", payload: { userId: "u-1" } });
   });
 
   it("refuses when the address is already confirmed", async () => {

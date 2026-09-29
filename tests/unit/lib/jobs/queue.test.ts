@@ -5,6 +5,8 @@ import type { Job } from "@/lib/jobs/types";
 
 const logger = vi.hoisted(() => ({ info: vi.fn(), warn: vi.fn(), error: vi.fn() }));
 vi.mock("@/lib/logger", () => ({ logger }));
+const service = vi.hoisted(() => ({ client: undefined as unknown }));
+vi.mock("@/lib/supabase/server", () => ({ createSupabaseServiceRoleClient: () => service.client }));
 
 import {
   claimNextJob,
@@ -17,6 +19,7 @@ import {
   recoverStaleJobs,
   registerJobHandler,
   registerSweep,
+  retryDelayMs,
   runSweeps,
 } from "@/lib/jobs/queue";
 
@@ -80,9 +83,10 @@ beforeEach(() => {
 });
 
 describe("createJob", () => {
-  it("puts the work on the queue, due now unless told otherwise", async () => {
+  it("puts the work on the queue as the service role, due now unless told otherwise", async () => {
     const { client, inserts } = fakeClient();
-    await createJob(client, { type: "REFRESH_ANALYTICS", payload: { bakeryId: "b-1" } });
+    service.client = client;
+    await createJob({ type: "REFRESH_ANALYTICS", payload: { bakeryId: "b-1" } });
     expect(inserts[0]).toMatchObject({
       type: "REFRESH_ANALYTICS",
       payload: { bakeryId: "b-1" },
@@ -91,8 +95,8 @@ describe("createJob", () => {
   });
 
   it("keeps the driver's error out of what a caller could be shown", async () => {
-    const { client } = fakeClient({ insertError: { message: 'relation "jobs" does not exist' } });
-    const failure = await createJob(client, { type: "X" }).catch((error: unknown) => error);
+    service.client = fakeClient({ insertError: { message: 'relation "jobs" does not exist' } }).client;
+    const failure = await createJob({ type: "X" }).catch((error: unknown) => error);
     expect(failure).toMatchObject({ code: "INTERNAL_ERROR", details: undefined });
   });
 });
@@ -109,10 +113,10 @@ describe("claimNextJob and recoverStaleJobs", () => {
     await expect(claimNextJob(client, "w-1")).resolves.toBeNull();
   });
 
-  it("hands back jobs held past the ten-minute lease, within three attempts", async () => {
+  it("hands back jobs held past the ten-minute lease, within five attempts", async () => {
     const { client, rpc } = fakeClient({ recovered: 2 });
     await expect(recoverStaleJobs(client)).resolves.toBe(2);
-    expect(rpc).toHaveBeenCalledWith("recover_stale_jobs", { p_lease: "600 seconds", p_max_attempts: 3 });
+    expect(rpc).toHaveBeenCalledWith("recover_stale_jobs", { p_lease: "600 seconds", p_max_attempts: 5 });
   });
 
   it("reports a queue it cannot reach as internal", async () => {
@@ -142,24 +146,32 @@ describe("settling a job", () => {
     });
   });
 
-  it("puts a failed job back to wait five minutes while it has attempts left", async () => {
+  it("puts a failed job back to wait, longer after each failure, while it has attempts left", async () => {
     const { client, updates } = fakeClient();
     const before = Date.now();
-    await markFailed(client, job({ attempts: 2 }), "w-1", "SMTP refused");
+    await markFailed(client, job({ attempts: 3 }), "w-1", "SMTP refused");
 
     const { changes } = updates[0];
     expect(changes).toMatchObject({ status: "pending", last_error: "SMTP refused" });
     const wait = new Date(changes.run_at as string).getTime() - before;
-    expect(wait).toBeGreaterThanOrEqual(5 * 60_000 - 50);
-    expect(wait).toBeLessThan(5 * 60_000 + 1_000);
+    expect(wait).toBeGreaterThanOrEqual(4 * 60_000 - 50);
+    expect(wait).toBeLessThan(4 * 60_000 + 1_000);
   });
 
   it("sets a job aside as failed, and visible, once its attempts are used up", async () => {
     const { client, updates } = fakeClient();
-    await markFailed(client, job({ attempts: 3 }), "w-1", "x".repeat(5_000));
+    await markFailed(client, job({ attempts: 5 }), "w-1", "x".repeat(5_000));
     expect(updates[0].changes).toMatchObject({ status: "failed" });
     expect(updates[0].changes).not.toHaveProperty("run_at");
     expect((updates[0].changes.last_error as string).length).toBe(1_000);
+  });
+});
+
+describe("retryDelayMs", () => {
+  it("waits a minute after the first failure, doubling after each, and never more than an hour", () => {
+    expect([1, 2, 3, 4].map(retryDelayMs)).toEqual([60_000, 120_000, 240_000, 480_000]);
+    expect(retryDelayMs(8)).toBe(60 * 60_000);
+    expect(retryDelayMs(0)).toBe(60_000);
   });
 });
 

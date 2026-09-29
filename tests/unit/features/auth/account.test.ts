@@ -353,7 +353,7 @@ describe("requestEmailChange", () => {
     mode.worker = true;
     const { admin } = fakeAdmin(ordinary({ pending_email: input.email }));
     await requestEmailChange(admin, tenant, profile(), input);
-    expect(createJob).toHaveBeenCalledWith(admin, {
+    expect(createJob).toHaveBeenCalledWith({
       type: "SEND_EMAIL_CHANGE_CONFIRMATION",
       payload: { userId: "u-1" },
     });

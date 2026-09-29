@@ -6636,9 +6636,9 @@ The queue table and the claim/complete/fail helpers exist. Nothing runs them.
 | F3 | `claimNextJob` is **not atomic**: it updates `status = 'pending'` with a limit and no `FOR UPDATE SKIP LOCKED`, so two workers can claim the same job. AGENTS.md §17 requires atomic claiming. |
 | F4 | `claimNextJob` **sets** `attempts: 1` instead of incrementing it, so `processNextJob`'s `attempts < maxAttempts` check never trips and a failing job retries forever. Nothing reaches the dead-letter state. |
 | F5 | No stale-job recovery: `locked_at` is written and cleared but never reclaimed, so a job whose worker died stays `processing` for good. |
-| F6 | Backoff is a fixed five minutes, not exponential. |
-| F7 | `MenuBuildWorker` and `CleanupWorker` (§27) do not exist. |
-| F8 | Jobs are enqueued with the **caller's** Supabase client, so the insert arrives as `authenticated`, but `jobs` has no `bakery_id` and so no row can be scoped to a tenant. `0004_api_role_grants.sql` therefore grants INSERT and withholds SELECT, and `createJob` no longer reads the row back — a baker must not be able to read another bakery's queued work. The queue is infrastructure, not tenant data: enqueuing belongs on the service-role client, which is the same threading change as the audit actor in §133.7. |
+| F6 | **Closed 2026-09-29 by R6.1:** a failed job waits 1, 2, 4, then 8 minutes (`retryDelayMs`, at most an hour), over five tries. Backoff is a fixed five minutes, not exponential. |
+| F7 | **Closed 2026-09-29 by R6.1 for the CleanupWorker** (`registerCleanupWorker`, `clean_up_queue()`; pg_cron runs it while no worker does). The MenuBuildWorker waits with the menu builder, a later product phase (§139.18). `MenuBuildWorker` and `CleanupWorker` (§27) do not exist. |
+| F8 | **Closed 2026-09-29 by R6.1** (`0032_queue_hardening.sql`): `authenticated` may not insert a job; `createJob` uses the service role, and the database's triggers queue as their owner. Jobs are enqueued with the **caller's** Supabase client, so the insert arrives as `authenticated`, but `jobs` has no `bakery_id` and so no row can be scoped to a tenant. `0004_api_role_grants.sql` therefore grants INSERT and withholds SELECT, and `createJob` no longer reads the row back — a baker must not be able to read another bakery's queued work. The queue is infrastructure, not tenant data: enqueuing belongs on the service-role client, which is the same threading change as the audit actor in §133.7. |
 
 ---
 
@@ -6689,7 +6689,7 @@ The queue table and the claim/complete/fail helpers exist. Nothing runs them.
 | K3 | No SonarQube and no CI pipeline — there is no `.github/` directory, so none of §125 runs anywhere (§124–§125). *SonarQube kept for later (2026-09-28); the pipeline stays in Phase 6 (R6.4).* |
 | K4 | The "E2E" suite is a Vitest test that reads route files and checks their shape. There is no browser journey and no Playwright (§121). |
 | K5 | There are no integration tests against a real database. `tests/db` reads the migration SQL as text; it proves the file says the right thing, not that the database does. |
-| K6 | No rate limiting on authentication or on any mutation. |
+| K6 | No rate limiting on authentication or on any mutation. *Decided 2026-09-29 (the user): no limiter in the app. Supabase Auth limits its own sign-ins, and Cloudflare's rate-limiting rule guards the sign-in routes at the edge (R6.2).* |
 
 ---
 
@@ -9269,8 +9269,8 @@ Phase 5 closed on 2026-09-26 with R5.10.
 
 | ID | Work | Source | Waits on | Status |
 |---|---|---|---|---|
-| R6.1 | Jobs enqueued with the service role; exponential backoff; the Menu and Cleanup workers | §133.6 F6–F8 | — | TODO |
-| R6.2 | Rate limiting | §133.11 K6 | — | BLOCKED (the counter store needs a decision — changelog, 2026-09-23) |
+| R6.1 | Jobs enqueued with the service role; exponential backoff; the Menu and Cleanup workers | §133.6 F6–F8 | — | DONE (2026-09-29 · `0032_queue_hardening`: only the server queues; 1, 2, 4, 8 minutes between tries; the CleanupWorker, with pg_cron standing in while no worker runs. The MenuBuildWorker waits with the menu builder, outside the roadmap) |
+| R6.2 | Rate limiting | §133.11 K6 | — | NOT BUILT (2026-09-29, the user's decision: no limiter in the app; Supabase Auth's own limits and Cloudflare's rules stand in — changelog) |
 | R6.3 | OpenAPI and Swagger | §133.11 K1 | — | LATER (2026-09-28, the user: not needed for now; §119 – §120 kept) |
 | R6.4 | CI pipeline ~~with SonarQube~~ — SonarQube kept for later (2026-09-28) | §133.11 K3 | — | TODO |
 | R6.5 | Playwright journeys, tenant isolation included | §133.11 K4 | — | TODO |

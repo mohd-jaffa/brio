@@ -3313,3 +3313,44 @@ The user: "complete phase 8 first then phase 6". Their answers: the device check
   - `ANDROID_CERT_FINGERPRINTS` on the server;
   - the device checks.
   - Phase 8 is done when a signed build on the internal track passes them (plan §139.18).
+
+## 2026-09-29 — Phase 6: the queue hardened (R6.1), and rate limiting decided (R6.2)
+
+### Fixed (R6.1; §133.6 F8)
+- **A signed-in user could put any job on the queue.** `authenticated` held INSERT on `jobs` (0004), and a job names no business to check. So a direct call to the database's API could:
+  - queue a notice for another business's inbox;
+  - queue an account-confirmation email for someone else's account.
+  
+  Nothing ran either, since no worker runs, but a worker would have. **`0032_queue_hardening.sql`** fixes it:
+  - `authenticated` loses INSERT and its policy.
+  - The three notice triggers (order placed, customer added, stock low) run as their owner (security definer), from the row the user was allowed to write.
+  - An order's move is told by a new trigger on its status (`orders_notify_status`), not from inside `change_order_status`, which runs as the user. That function is redefined without the insert; a test proves it is otherwise 0016's.
+  - `createJob` always uses the service role (the payment notice used the caller's client).
+
+### Added
+- **Exponential backoff (F6).** A failed job waits 1, 2, 4, then 8 minutes (`retryDelayMs`, at most an hour) and is set aside as failed after five tries (`MAX_JOB_ATTEMPTS`, was three at a fixed five minutes).
+- **The CleanupWorker (F7).** `clean_up_queue()` drops completed jobs after 30 days, and failed ones 90 days after they were queued (`JOB_KEEP_*`, which a test keeps equal to the SQL).
+  - A worker runs it once a day (`registerCleanupWorker`, `src/lib/jobs/cleanup.ts`).
+  - While none runs, pg_cron does (`queue-cleanup`, 03:41 UTC).
+- **The MenuBuildWorker is not built.** The menu builder it would serve is a later product phase outside the roadmap (plan §139.18), so it waits with it.
+
+### Decided (R6.2, the user: "No app limiter")
+- There is no rate limiter in the app. Supabase Auth limits its own sign-ins and emails, and Cloudflare's rate-limiting rule can guard the sign-in routes at the edge. R6.2 reads NOT BUILT, and §133.11 K6 records the decision.
+
+### Blocker resolved
+- **Rate limiting on authentication endpoints** (opened 2026-09-23): resolved by the user's decision above. No table and no in-memory limiter is added.
+
+### Validation
+- **Unit tests:** the service-role enqueue, the backoff curve and its cap, the retry wait after a third failure, the cleanup (once a day, not every sweep; its count; its error kept inside), and the worker registering it.
+- **The migration's contract test:** the grants and the triggers; `change_order_status` equal to 0016's without the insert; the retention equal to the constants; the schedule.
+- **On the local database, in a rolled-back transaction, as a signed-in owner:**
+  - moving an order worked;
+  - a direct `insert into jobs` was refused ("permission denied for table jobs");
+  - with a worker switched on, the move queued its `ORDER_STATUS` notice through the trigger.
+- **Checks:** `tsc`, `eslint`, `prettier --check` and the full suite pass.
+
+### Migration notes
+- Apply **`0032_queue_hardening.sql`** to the hosted database. It needs pg_cron, as 0031 does.
+
+### Blockers
+- None.

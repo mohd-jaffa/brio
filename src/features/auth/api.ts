@@ -346,7 +346,7 @@ export async function queueAccountConfirmation(adminClient: SupabaseClient, user
   if (error) throw internalError("INTERNAL_ERROR", undefined, error);
   if (data && data.length > 0) return;
 
-  await createJob(adminClient, { type: JOB_TYPES.accountConfirmation, payload: { userId } });
+  await createJob({ type: JOB_TYPES.accountConfirmation, payload: { userId } });
 }
 
 /**

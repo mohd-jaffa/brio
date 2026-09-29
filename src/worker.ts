@@ -3,6 +3,7 @@ import { hostname } from "node:os";
 import { WORKER_ENABLED } from "@/constants/jobs";
 import { registerAnalyticsWorker } from "@/features/analytics/worker";
 import { registerNotificationWorker } from "@/features/notifications/worker";
+import { registerCleanupWorker } from "@/lib/jobs/cleanup";
 import { runWorker } from "@/lib/jobs/runner";
 import { logger } from "@/lib/logger";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server";
@@ -23,6 +24,7 @@ import { createSupabaseServiceRoleClient } from "@/lib/supabase/server";
 export function registerWorkers() {
   registerNotificationWorker();
   registerAnalyticsWorker();
+  registerCleanupWorker();
 }
 
 export async function main() {

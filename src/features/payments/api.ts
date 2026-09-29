@@ -111,7 +111,7 @@ export async function processPayment(
 async function notifyPayment(tenant: Tenant, orderId: string, orderNumber: string, amount: number) {
   if (!WORKER_ENABLED) return;
   try {
-    await createJob(tenant.supabase, {
+    await createJob({
       type: JOB_TYPES.pushNotification,
       payload: { bakeryId: tenant.bakeryId, message: { kind: "PAYMENT_RECEIVED", orderId, orderNumber, amount } },
     });
