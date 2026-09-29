@@ -16,6 +16,15 @@ vi.mock("@/lib/native/reminders", () => ({
     return reminders.stop;
   },
 }));
+const links = vi.hoisted(() => ({ open: undefined as ((path: string) => void) | undefined, stop: vi.fn() }));
+vi.mock("@/lib/native/links", () => ({
+  onAppLinkOpened: (open: (path: string) => void) => {
+    links.open = open;
+    return links.stop;
+  },
+}));
+const navigation = vi.hoisted(() => ({ loadPage: vi.fn() }));
+vi.mock("@/lib/navigation/url", () => navigation);
 const router = vi.hoisted(() => ({ push: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
 vi.mock("@capacitor/app", () => ({
@@ -40,6 +49,9 @@ beforeEach(() => {
   reminders.open = undefined;
   reminders.stop.mockClear();
   router.push.mockClear();
+  links.open = undefined;
+  links.stop.mockClear();
+  navigation.loadPage.mockClear();
 });
 
 describe("NativeSetup", () => {
@@ -71,6 +83,14 @@ describe("NativeSetup", () => {
     expect(router.push).toHaveBeenCalledWith("/orders/o-1");
     unmount();
     expect(reminders.stop).toHaveBeenCalledOnce();
+  });
+
+  it("loads a link Android opened in the app as a new page, as confirming an email does", () => {
+    const { unmount } = render(<NativeSetup />);
+    links.open!("/confirm-email#access_token=t-1");
+    expect(navigation.loadPage).toHaveBeenCalledWith("/confirm-email#access_token=t-1");
+    unmount();
+    expect(links.stop).toHaveBeenCalledOnce();
   });
 
   it("does nothing in a browser", () => {

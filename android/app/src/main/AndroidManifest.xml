@@ -23,6 +23,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- App Links (R8.5): the email confirmation opens here, not in a
+                 browser, once the site's /.well-known/assetlinks.json vouches
+                 for this app. The host is the one the app loads (build.gradle). -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="${appLinkHost}" android:path="/confirm-email" />
+            </intent-filter>
+
         </activity>
 
         <provider

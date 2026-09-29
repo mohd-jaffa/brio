@@ -112,4 +112,12 @@ describe("what the proxy runs on", () => {
     expect(pattern.test("/privacy")).toBe(false);
     expect(pattern.test("/settings/delete-account")).toBe(true);
   });
+
+  it("leaves /.well-known/ alone, so Android reads the App Links statement without a redirect", () => {
+    const [matcher] = config.matcher;
+    const pattern = new RegExp(`^${matcher}$`);
+
+    expect(pattern.test("/.well-known/assetlinks.json")).toBe(false);
+    expect(pattern.test("/well-known")).toBe(true);
+  });
 });

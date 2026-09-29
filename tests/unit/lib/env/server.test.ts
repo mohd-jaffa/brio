@@ -37,6 +37,18 @@ describe("getServerEnv", () => {
     expect(() => env({ VAPID_SUBJECT: "http://brio.app" })).toThrow(AppError);
     expect(() => env({ CRON_SECRET: "too short" })).toThrow(AppError);
     expect(() => env({ SMTP_SECURE: "maybe" })).toThrow(AppError);
+    expect(() => env({ ANDROID_CERT_FINGERPRINTS: "AB:CD" })).toThrow(AppError);
+  });
+
+  it("reads the Android app's signing fingerprints as a list, in capitals, and none as none", () => {
+    const play = `${"ab:".repeat(31)}ab`;
+    const upload = `${"0C:".repeat(31)}0C`;
+    expect(env({ ANDROID_CERT_FINGERPRINTS: ` ${play} , ${upload},` }).ANDROID_CERT_FINGERPRINTS).toEqual([
+      play.toUpperCase(),
+      upload,
+    ]);
+    expect(env({ ANDROID_CERT_FINGERPRINTS: "" }).ANDROID_CERT_FINGERPRINTS).toEqual([]);
+    expect(env().ANDROID_CERT_FINGERPRINTS).toEqual([]);
   });
 });
 

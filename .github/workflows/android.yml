@@ -1,0 +1,100 @@
+# The Android app's release build (plan §139.17.5, R8.11). Run by hand from
+# the Actions tab: it builds the app for the hosted address, signs it with the
+# upload key, and keeps two files for 30 days —
+#
+#   brio-<n>.aab   the bundle to upload to Play (internal testing first)
+#   brio-<n>.apk   the same build, to install straight onto a test phone
+#
+# <n> is this workflow's run number, which is the build's versionCode: Play
+# needs it to rise with every upload. docs/ANDROID.md sets up what it reads:
+#
+#   vars.ANDROID_APP_URL                  the hosted app, https
+#   secrets.BRIO_UPLOAD_KEYSTORE_BASE64   the upload keystore, base64
+#   secrets.BRIO_UPLOAD_KEYSTORE_PASSWORD
+#   secrets.BRIO_UPLOAD_KEY_ALIAS
+#   secrets.BRIO_UPLOAD_KEY_PASSWORD
+name: Android release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-release
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Signed bundle and APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # Capacitor 8 builds with Java 21.
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - run: npm ci
+
+      - name: Check the address and the upload key are set
+        env:
+          ANDROID_APP_URL: ${{ vars.ANDROID_APP_URL }}
+          KEYSTORE: ${{ secrets.BRIO_UPLOAD_KEYSTORE_BASE64 }}
+        run: |
+          case "$ANDROID_APP_URL" in
+            https://*) ;;
+            *) echo "::error::Set the repository variable ANDROID_APP_URL to the hosted app's https address."; exit 1 ;;
+          esac
+          if [ -z "$KEYSTORE" ]; then
+            echo "::error::Set the BRIO_UPLOAD_KEYSTORE_BASE64 secret (docs/ANDROID.md)."
+            exit 1
+          fi
+
+      # The offline page, the start page and Capacitor's config, for the hosted address.
+      - name: Sync the Android project
+        env:
+          ANDROID_APP_URL: ${{ vars.ANDROID_APP_URL }}
+        run: npm run android:sync
+
+      - name: Write the upload key
+        env:
+          KEYSTORE: ${{ secrets.BRIO_UPLOAD_KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE" | base64 --decode > "$RUNNER_TEMP/upload.jks"
+
+      - name: Build and sign
+        working-directory: android
+        env:
+          BRIO_UPLOAD_KEYSTORE: ${{ runner.temp }}/upload.jks
+          BRIO_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.BRIO_UPLOAD_KEYSTORE_PASSWORD }}
+          BRIO_UPLOAD_KEY_ALIAS: ${{ secrets.BRIO_UPLOAD_KEY_ALIAS }}
+          BRIO_UPLOAD_KEY_PASSWORD: ${{ secrets.BRIO_UPLOAD_KEY_PASSWORD }}
+          BRIO_VERSION_CODE: ${{ github.run_number }}
+        run: ./gradlew --no-daemon bundleRelease assembleRelease
+
+      - name: Name the files after the build
+        run: |
+          mkdir -p dist
+          cp android/app/build/outputs/bundle/release/app-release.aab "dist/brio-${{ github.run_number }}.aab"
+          cp android/app/build/outputs/apk/release/app-release.apk "dist/brio-${{ github.run_number }}.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: brio-android-${{ github.run_number }}
+          path: dist/
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Remove the upload key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/upload.jks"

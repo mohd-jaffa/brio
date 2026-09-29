@@ -3268,3 +3268,48 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - None.
+
+## 2026-09-29 — Phase 8: App Links, the release build, and the device checks
+
+The user: "complete phase 8 first then phase 6". Their answers: the device checks are theirs, with CI doing the build ("CI build only, you test"), and FCM waits for the worker ("Keep local reminders").
+
+### Added
+- **App Links (R8.5).** On a phone with Brio, the email confirmation link now opens the app, which is then confirmed and signed in, instead of a browser. The password reset sends no link, so this is the only link there is.
+  - `android/app/src/main/AndroidManifest.xml`: a verified (`autoVerify`) filter for `https://<host>/confirm-email`. The host is the one the app loads, which `build.gradle` reads from the config `npm run android:sync` writes.
+  - `GET /.well-known/assetlinks.json` (`src/app/.well-known/assetlinks.json/route.ts`) names `in.brio.app` (`ANDROID_APP_ID`, `src/constants/android.ts`) and the signing keys' fingerprints (`ANDROID_CERT_FINGERPRINTS`, a new optional server setting). With none set it answers 404, and the link opens in the browser as before.
+  - The proxy leaves `/.well-known/` alone, since Android refuses a redirect.
+  - `onAppLinkOpened` (`src/lib/native/links.ts`) loads a link of this site as a new page (`loadPage`), from `NativeSetup`. A link that started the app is held until the page listens. Links to other sites are ignored.
+- **The release build (R8.11).** `.github/workflows/android.yml` is run by hand from the Actions tab.
+  - It syncs for `vars.ANDROID_APP_URL`, signs with the upload key held in the repository's secrets, and builds with Java 21.
+  - It keeps two files for 30 days: the bundle for Play and the same build as an APK for test phones.
+  - The run number is the `versionCode`. It stops early, saying what is missing, when the address or the key is not set.
+- **`docs/ANDROID.md`**, the release guide:
+  - making the upload key, and the GitHub secrets and variable;
+  - each release;
+  - App Links' fingerprints, and how to check a phone verified them;
+  - Play Console's App content answers, the data-safety form (matched to the privacy policy) and the testing tracks;
+  - **the device checks (R8.4, R8.12):** the matrix, ten checks and a results table.
+
+### Changed
+- `capacitor.config.ts` takes the app id from `ANDROID_APP_ID`.
+- **R8.6 is closed** for as long as no worker runs. The Android app sets its own reminders, and the web app is pushed them on the database's schedule. FCM to Android waits for the worker, by the user's choice.
+- Plan §139.17.2, §139.17.3 and §139.17.5, the tracker, AGENTS §19 and `.env.example` are updated.
+
+### Validation
+- **Unit tests:**
+  - the statement, and its 404 with no key;
+  - the setting read as a list, in capitals, and refused when malformed;
+  - the proxy passing `/.well-known/` through;
+  - `onAppLinkOpened`: this site's page with its query and fragment; nothing from another site or for a malformed address; letting go; nothing in a browser;
+  - `NativeSetup` loading the page.
+- **The built app** served `/.well-known/assetlinks.json` with a fingerprint set: 200, `application/json`, no redirect. Any other `/.well-known/` path answers 404.
+- **Not run here:** Gradle and the workflow need the Android SDK and GitHub, and no SDK is installed on this machine (the user's choice). The workflow's first run is its test.
+- **Checks:** `tsc`, `eslint`, `prettier --check`, the full suite and `next build` pass.
+
+### Blockers
+- **Waiting on the owner, not blocked:**
+  - the Play developer account, the upload key and GitHub's secrets;
+  - the first run of the workflow, and the upload to internal testing;
+  - `ANDROID_CERT_FINGERPRINTS` on the server;
+  - the device checks.
+  - Phase 8 is done when a signed build on the internal track passes them (plan §139.18).

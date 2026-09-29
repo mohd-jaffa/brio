@@ -9005,9 +9005,9 @@ add native capabilities when they support existing product requirements"):
 - **`network`** needs none either: the WebView's `online` and `offline`
   events drive the offline banner as in a browser.
 - **Waiting for their first caller:** `haptic` (the milestones, R9.8),
-  `keyboard` (if the device check, R8.4, finds the page covered), deep links
-  (R8.5's App Links) and `push` (FCM, which waits on the worker). Order
-  reminders the phone sets itself are built (R8.6, §139.17.4).
+  `keyboard` (if the device check, R8.4, finds the page covered) and `push`
+  (FCM, which waits on the worker). Order reminders the phone sets itself are
+  built (R8.6, §139.17.4), and so are deep links (R8.5, §139.17.3).
 ### 139.17.3 Behaviour on the device
 
 - **Edge to edge:** the safe-area system (§139.8). **Verify on real devices that the WebView reports the insets;** if one does not, the native layer writes them into `--safe-*`.
@@ -9015,6 +9015,11 @@ add native capabilities when they support existing product requirements"):
 - **The back button** closes the response card, then any sheet, then goes back a screen; on Home it leaves the app.
 - **Links:** map links, `tel:` and `wa.me` open **outside** the app (only the app's own domain is navigable inside the WebView).
 - **Deep links:** Android App Links (`/.well-known/assetlinks.json`) open the confirmation and password-reset links **in the app**; the Supabase redirect URLs are updated to match.
+  - **Built 2026-09-29 (R8.5).** The password reset sends a temporary password and no link, so the email confirmation (`/confirm-email`, for a new account or a new address) is the one link there is.
+  - **The manifest** claims `https://<host>/confirm-email` with `autoVerify`, for the host the app loads: `build.gradle` reads it from the config `npm run android:sync` writes from `ANDROID_APP_URL`.
+  - **The site** vouches for the app at `/.well-known/assetlinks.json`, naming `in.brio.app` (`ANDROID_APP_ID`) and the signing keys' SHA-256 fingerprints (`ANDROID_CERT_FINGERPRINTS`: Play's app signing key and the upload key). Until they are set it answers 404, and the link opens in the browser as before. The proxy leaves `/.well-known/` alone, since Android refuses a redirect.
+  - **In the app** (`onAppLinkOpened`, `src/lib/native/links.ts`), a link of this site is loaded as a new page, as confirming an email always is (`loadPage`). A link that started the app is held by the App plugin until the page listens.
+  - The redirect allow list needs nothing new: the link is the web app's own page.
 - **Splash screen and adaptive icon** are drawn from the Brio icon (`scripts/brand.mjs`; §139.11.18), the system splash on the launch splash's cream (§139.11.19).
 - **Offline:** a bundled screen with Retry.
 
@@ -9094,6 +9099,9 @@ project or table is added.
 - **Target SDK:** whatever Play requires at the time.
 - **Play Console:** the data-safety form — the app stores the business's customers' names, phone numbers and addresses, and sells nothing. Release to internal testing → closed testing → production.
 - **Device matrix:** Android 10–15; a small 360 dp phone, a large phone and a tablet; gesture and three-button navigation; a display cutout; both themes.
+- **Built 2026-09-29 (R8.11, R8.12; the user: "CI build only, you test").** No Android SDK is installed on the development machine.
+  - **The build** is `.github/workflows/android.yml`, run by hand. It syncs for `vars.ANDROID_APP_URL`, signs with the upload key from the repository's secrets, and keeps the bundle for Play and the same build as an APK for test phones. The run number is the `versionCode`.
+  - **`docs/ANDROID.md`** is the release guide: making the upload key, the secrets, App Links' fingerprints, Play Console's forms (App content, the data-safety answers, the testing tracks), and the device checks with a results table. The owner runs those checks on their own phones.
 
 ---
 
@@ -9285,15 +9293,15 @@ Phase 5 closed on 2026-09-26 with R5.10.
 | R8.1 | Record the delivery-model decision | §139.17.1 | Q9 | DONE (2026-09-28 · §139.17.1, the decision) |
 | R8.2 | Capacitor project, application id, config | §139.17 | Q10 | DONE (2026-09-28 · Capacitor 8, `in.brio.app`, `android/`; not yet built: no Android SDK on the machine, the user's choice) |
 | R8.3 | The native capability layer | §139.17.2; IMP-09 | — | DONE (2026-09-28 · share, save, the back button, platform checks; the rest waits for its caller — §139.17.2) |
-| R8.4 | Insets and edge-to-edge verified on devices | §139.17.3 | — | TODO |
-| R8.5 | The back button and App Links | §139.17.3 | — | DOING (2026-09-28: the back button is done; App Links wait for the domain and the signing key's fingerprint) |
-| R8.6 | Push: device tokens, FCM, the worker | §133.5 E2, E3 | — | DOING (2026-09-29 · while no worker runs, the Android app sets its own reminders of orders due soon and overdue, and the web app is pushed them on the database's schedule — `0031_web_push`, §139.17.4; FCM push to Android waits on the worker) |
+| R8.4 | Insets and edge-to-edge verified on devices | §139.17.3 | — | DOING (2026-09-29 · the check is written, `docs/ANDROID.md` §6; the user runs it on their phones, with no Android SDK here — the user's choice) |
+| R8.5 | The back button and App Links | §139.17.3 | — | DONE (2026-09-29 · App Links for the email confirmation: `/.well-known/assetlinks.json`, the manifest's verified filter, `onAppLinkOpened`; the fingerprints are set on the server, and a phone checks it with R8.12) |
+| R8.6 | Push: device tokens, FCM, the worker | §133.5 E2, E3 | — | DONE (2026-09-29 · while no worker runs, the Android app sets its own reminders of orders due soon and overdue, and the web app is pushed them on the database's schedule — `0031_web_push`, §139.17.4. FCM push to Android waits on the worker, the user's choice: no Firebase for now) |
 | R8.7 | Native bill sharing, PNG and PDF | §139.17.2 | — | DONE (2026-09-28 · Filesystem + Share; the PDF saves through the share sheet) |
 | R8.8 | Splash screen and adaptive icon | §139.17.3 | — | DONE (2026-09-28 · adaptive and themed icons, the system splash on cream; seen on a device with R8.12) |
 | R8.9 | The offline screen | IMP-08 | — | DONE (2026-09-28 · `server.errorPath`, built by `scripts/android-shell.mjs`) |
 | R8.10 | A Privacy Policy page and account deletion | §139.17.5 | Q10 | DONE (2026-09-28 · `/privacy`, `/settings/delete-account`, `0030_account_deletion.sql`) |
-| R8.11 | Signing, versioning, the CI build, Play internal testing, data safety | §139.17.5 | — | DOING (2026-09-28: the version and the upload signing come from CI's environment; the CI build, Play and the data-safety form are to come) |
-| R8.12 | The device matrix | §139.17.5 | — | TODO |
+| R8.11 | Signing, versioning, the CI build, Play internal testing, data safety | §139.17.5 | — | DOING (2026-09-29 · the signed build is `.github/workflows/android.yml`, and the key, the secrets, Play's forms and the data-safety answers are `docs/ANDROID.md`; the Play account, the first upload and internal testing are the user's) |
+| R8.12 | The device matrix | §139.17.5 | — | DOING (2026-09-29 · the matrix and ten checks, with a results table, are `docs/ANDROID.md` §6; the user runs them on the internal-testing build) |
 
 ### Phase 9 — Delight
 

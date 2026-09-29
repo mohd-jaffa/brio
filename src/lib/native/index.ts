@@ -2,6 +2,7 @@
 // whether the app is the Android app. Screens import from here and nothing
 // else; ESLint refuses @capacitor/* anywhere outside this folder.
 export { goBack, type BackStep } from "./back";
+export { onAppLinkOpened } from "./links";
 export { NativeSetup } from "./NativeSetup";
 export { hasPlugins, isAndroidApp } from "./platform";
 export {

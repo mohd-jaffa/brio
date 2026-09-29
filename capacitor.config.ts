@@ -1,5 +1,6 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
+import { ANDROID_APP_ID } from "./src/constants/android";
 import { shellServer } from "./src/lib/native/shell";
 
 /**
@@ -18,7 +19,7 @@ import { shellServer } from "./src/lib/native/shell";
 const server = shellServer(process.env.ANDROID_APP_URL);
 
 const config: CapacitorConfig = {
-  appId: "in.brio.app",
+  appId: ANDROID_APP_ID,
   appName: "Brio",
   // The pages bundled into the app: built by scripts/android-shell.mjs, never committed.
   webDir: ".capacitor/shell",

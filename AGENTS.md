@@ -679,14 +679,19 @@ capacitor.config.ts    the app id, name, hosted address (ANDROID_APP_URL) and pl
 
 The native layer holds only capabilities something calls (plan §139.17.2):
 `share` and `saveFile` (the bill), the back button (`NativeSetup`), order
-reminders (`reminders.ts`, `useReminderPermission`), and `isAndroidApp` /
-`hasPlugins`. Every Android half checks its plugin is in the
+reminders (`reminders.ts`, `useReminderPermission`), App Links
+(`onAppLinkOpened`: the email confirmation opens in the app, R8.5), and
+`isAndroidApp` / `hasPlugins`. Every Android half checks its plugin is in the
 installed build and falls back to the web half: the app loads the hosted web
 app, so a deploy can be newer than the install.
 
 `npm run android:sync` builds the bundled pages and syncs; `npm run
 android:open` opens Android Studio. The upload key and the build number come
-from CI (`BRIO_UPLOAD_KEYSTORE*`, `BRIO_VERSION_CODE`), never the repository.
+from CI (`BRIO_UPLOAD_KEYSTORE*`, `BRIO_VERSION_CODE`), never the repository:
+the release build is `.github/workflows/android.yml`, run by hand, and
+`docs/ANDROID.md` is the release guide (the key, Play's forms, the device
+checks). A site's App Links statement is `/.well-known/assetlinks.json`, from
+`ANDROID_CERT_FINGERPRINTS`.
 
 **The PWA** (Phase 7, plan §139.11.17) is the manifest (`src/app/manifest.ts`),
 the icons (`scripts/app-icons.mjs`), and a service worker (`public/sw.js`). The

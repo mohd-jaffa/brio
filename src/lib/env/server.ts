@@ -47,6 +47,20 @@ const serverEnvSchema = z.object({
   ),
   // What the database's scheduler sends to `POST /api/cron/due-orders`.
   CRON_SECRET: z.preprocess((value) => (value === "" ? undefined : value), z.string().trim().min(32).optional()),
+
+  // App Links (R8.5): the SHA-256 fingerprints of the keys the Android app is
+  // signed with, comma-separated — Play's app signing key, and the upload key
+  // for a build installed by hand. None, and the site vouches for no app.
+  ANDROID_CERT_FINGERPRINTS: z.preprocess(
+    (value) =>
+      typeof value === "string"
+        ? value
+            .split(",")
+            .map((part) => part.trim().toUpperCase())
+            .filter(Boolean)
+        : value,
+    z.array(z.string().regex(/^([0-9A-F]{2}:){31}[0-9A-F]{2}$/)).default([]),
+  ),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
