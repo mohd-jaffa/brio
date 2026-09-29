@@ -32,7 +32,8 @@ function answers(overrides: Partial<Record<string, unknown>> = {}) {
       return pick("products", [{ id: "p-1", name: "Cake", icon_key: null, unit: "piece" }]);
     if (selects(query, ORDER_LIST_COLUMNS))
       return pick("due", [listRow("a", "2026-09-25T05:00:00Z"), listRow("b", "2026-09-27T05:00:00Z")]);
-    if (selects(query, "id")) return { count: 3 };
+    // Due today reads from today's start; late, only up to it.
+    if (selects(query, "id")) return { count: query.calls.some(([name]) => name === "gte") ? 3 : 6 };
     if (selects(query, "id, total, payments(amount)"))
       return pick("owing", [
         { id: "owing", total: 1000, payments: [{ amount: 400 }] },
@@ -59,6 +60,7 @@ describe("getDashboard", () => {
     expect(dashboard).toMatchObject({
       period: "WEEK",
       dueToday: 3,
+      late: 6,
       sales: 1000,
       toCollect: 850,
       lowStockCount: 1,
@@ -90,6 +92,10 @@ describe("getDashboard", () => {
     expect(fake.argsOf(due, "lt")).toEqual([["delivery_date", "2026-09-27T18:30:00.000Z"]]);
     expect(fake.argsOf(due, "in")).toEqual([["status", ["PENDING", "IN_PROGRESS", "READY", "IN_TRANSIT"]]]);
     expect(fake.argsOf(due, "limit")).toEqual([[HOME_LIST_LIMITS.due + 1]]);
+    // Late is an open order due before today began.
+    const late = fake.queries.find((query) => selects(query, "id") && fake.argsOf(query, "gte").length === 0)!;
+    expect(fake.argsOf(late, "in")).toEqual([["status", ["PENDING", "IN_PROGRESS", "READY", "IN_TRANSIT"]]]);
+    expect(fake.argsOf(late, "lt")).toEqual([["delivery_date", "2026-09-25T18:30:00.000Z"]]);
     // The period's orders and what is owed are read a window at a time, past the API's row limit.
     expect(fake.argsOf(period!, "range")).toEqual([[0, API_MAX_ROWS - 1]]);
     const owing = fake.queries.find((query) => selects(query, "id, total, payments(amount)"))!;
@@ -130,7 +136,7 @@ describe("getDashboard", () => {
   it("reads an empty answer as none", async () => {
     const fake = fakeSupabase((query) => (selects(query, "id") ? { count: null } : { data: null }));
     const dashboard = await getDashboard(tenantOf(fake.client), { period: "TODAY" }, now);
-    expect(dashboard).toMatchObject({ dueToday: 0, sales: 0, toCollect: 0, due: [], lowStock: [] });
+    expect(dashboard).toMatchObject({ dueToday: 0, late: 0, sales: 0, toCollect: 0, due: [], lowStock: [] });
   });
 
   it("turns a database failure into the app's own error", async () => {
@@ -141,5 +147,14 @@ describe("getDashboard", () => {
       selects(query, "id") ? { error: { message: "boom", code: "XX000" } } : { data: [] },
     );
     await expect(getDashboard(tenantOf(countFails.client), { period: "TODAY" }, now)).rejects.toBeInstanceOf(AppError);
+
+    const lateFails = fakeSupabase((query) =>
+      selects(query, "id") && !query.calls.some(([name]) => name === "gte")
+        ? { error: { message: "boom", code: "XX000" } }
+        : selects(query, "id")
+          ? { count: 1 }
+          : { data: [] },
+    );
+    await expect(getDashboard(tenantOf(lateFails.client), { period: "TODAY" }, now)).rejects.toBeInstanceOf(AppError);
   });
 });

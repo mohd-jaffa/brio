@@ -46,6 +46,17 @@ describe("RowList and Row", () => {
     expect(screen.getAllByRole("listitem")[1].querySelector("svg")).toBeNull();
   });
 
+  it("cuts a long meta line short, or lets it take a second line where none of it may be lost", () => {
+    render(
+      <RowList>
+        <Row title="#1" meta="Today · 4:00 PM · ₹2,530 to pay" />
+        <Row title="#2" meta="Tomorrow · 9:30 AM · ₹750 to pay" wrapMeta />
+      </RowList>,
+    );
+    expect(screen.getByText("Today · 4:00 PM · ₹2,530 to pay")).toHaveClass("truncate");
+    expect(screen.getByText("Tomorrow · 9:30 AM · ₹750 to pay")).toHaveClass("line-clamp-2");
+  });
+
   it("drops the chevron when asked", () => {
     render(
       <RowList>

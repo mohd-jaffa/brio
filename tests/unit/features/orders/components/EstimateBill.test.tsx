@@ -79,7 +79,10 @@ describe("EstimateBill (§139.11.5)", () => {
     });
     expect(await screen.findByRole("alert")).toHaveTextContent("Only 2 left of Red Velvet Cake.");
     await screen.findByRole("article");
-    expect(screen.getByRole("button", { name: "Place order" })).toBeDisabled();
+    const place = screen.getByRole("button", { name: "Place order" });
+    expect(place).toBeDisabled();
+    // Why, beside the button it holds back.
+    expect(place).toHaveAccessibleDescription("Not enough stock to place this. Change the quantities first.");
   });
 
   it("says so when the business could not be read, and draws nothing while it is closed", async () => {

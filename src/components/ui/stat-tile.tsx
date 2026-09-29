@@ -1,4 +1,6 @@
-import { ArrowDown, ArrowUp, type LucideIcon } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronRight, type LucideIcon } from "lucide-react";
+import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { UI_TEXT } from "@/constants/messages";
 
@@ -56,6 +58,12 @@ function DeltaLine({ delta }: { delta: StatDelta }) {
  * width, so a long amount is not cut short. From 1024 px the label drops
  * under the figure, and the sparkline takes the medallion's row — so a tile
  * with one is exactly as tall as a tile without.
+ *
+ * A tile with `href` opens where its figure is looked into: the whole tile is
+ * the target, named by its label, with a chevron as a row has one. `note` and
+ * `control` take the line under the figure that `delta` would — a tile has one
+ * of the three: what needs seeing ("6 late"), or what chooses what the figure
+ * covers (the period).
  */
 export function StatTile({
   label,
@@ -66,6 +74,9 @@ export function StatTile({
   delta,
   trend,
   motionValue,
+  href,
+  note,
+  control,
 }: {
   label: string;
   /** Already formatted — "₹1,240" or "7" — so the tile never decides how money reads. */
@@ -80,9 +91,20 @@ export function StatTile({
   trend?: number[];
   /** The unformatted figure, used only to give a changed value its direction. */
   motionValue?: number;
+  /** Where the figure is looked into. */
+  href?: string;
+  /** What needs seeing beside the figure — "6 late" — in the danger tone. */
+  note?: string;
+  /** Chooses what the figure covers; it names itself. */
+  control?: ReactNode;
 }) {
   return (
-    <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] content-start gap-x-3 rounded-2xl border border-border bg-surface p-4 shadow-card">
+    <div
+      className={cn(
+        "grid min-w-0 grid-cols-[auto_minmax(0,1fr)] content-start gap-x-3 rounded-2xl border border-border bg-surface p-4 shadow-card",
+        href && "relative transition-colors has-[a:hover]:bg-surface-hover",
+      )}
+    >
       {icon && <Medallion icon={icon} tone={tone} size="sm" className="col-start-1 row-start-1" />}
       <dt
         className={cn(
@@ -90,7 +112,18 @@ export function StatTile({
           icon ? "col-start-2" : "col-span-2 col-start-1",
         )}
       >
-        {label}
+        {href ? (
+          // The whole tile is the link: its ::after covers it, and wears the focus ring.
+          <Link
+            href={href}
+            className="flex items-center justify-between gap-1 after:absolute after:inset-0 after:rounded-2xl focus-visible:shadow-none focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-primary"
+          >
+            {label}
+            <ChevronRight size={16} strokeWidth={1.75} className="shrink-0" aria-hidden="true" />
+          </Link>
+        ) : (
+          label
+        )}
       </dt>
       <dd
         className={cn(
@@ -101,6 +134,11 @@ export function StatTile({
         {motionValue === undefined ? value : <RollingNumber value={motionValue}>{value}</RollingNumber>}
       </dd>
       {delta && <DeltaLine delta={delta} />}
+      {(note || control) && (
+        <dd className={cn("col-span-2 row-start-3 mt-2 lg:row-start-4", note && "text-xs font-semibold text-danger")}>
+          {note ?? control}
+        </dd>
+      )}
       {trend && (
         <Sparkline
           values={trend}

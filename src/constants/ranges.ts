@@ -24,14 +24,15 @@ export interface DateRange {
 }
 
 /**
- * The Home switch (plan §139.10): today, this week from its Monday, and this
- * month from its first — each in the business's calendar.
+ * Home's period (plan §139.10), chosen on its Sales tile: today, this week
+ * from its Monday, and this month from its first — each in the business's
+ * calendar.
  */
 export const HOME_PERIODS = ["TODAY", "WEEK", "MONTH"] as const;
 export type HomePeriod = (typeof HOME_PERIODS)[number];
 
 export const HOME_PERIOD_LABELS: Record<HomePeriod, string> = {
   TODAY: "Today",
-  WEEK: "Week",
-  MONTH: "Month",
+  WEEK: "This week",
+  MONTH: "This month",
 };

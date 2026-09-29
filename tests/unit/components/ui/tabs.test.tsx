@@ -74,11 +74,12 @@ describe("Tabs' underline", () => {
   it("sits under the chosen tab, then glides to the next one chosen", async () => {
     layTabsOut();
     render(<Screen />);
-    expect(underline()).toHaveStyle({ width: "64px", transform: "translateX(8px)" });
+    // 64 px long, drawn by scaling rather than by width (no layout while it glides).
+    expect(underline()).toHaveStyle({ width: "100px", transform: "translateX(8px) scaleX(0.64)" });
     expect(underline().style.transition).toBe("");
 
     await userEvent.click(screen.getByRole("tab", { name: "Orders" }));
-    expect(underline()).toHaveStyle({ transform: "translateX(208px)" });
+    expect(underline()).toHaveStyle({ transform: "translateX(208px) scaleX(0.64)" });
     expect(underline().style.transition).toBe("");
   });
 
@@ -109,7 +110,7 @@ describe("Tabs' underline", () => {
 
     vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(120);
     act(() => resized());
-    expect(underline()).toHaveStyle({ width: "104px" });
+    expect(underline().style.transform).toMatch(/scaleX\(1\.04\)$/);
 
     unmount();
     expect(disconnect).toHaveBeenCalled();

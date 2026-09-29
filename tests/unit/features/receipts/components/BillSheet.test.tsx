@@ -24,6 +24,21 @@ describe("BillSheet", () => {
     expect(within(dialog).queryByRole("button", { name: /print/i })).not.toBeInTheDocument();
   });
 
+  it("opens at its top, with focus there, not on the link in the bill's foot", () => {
+    render(
+      <BillSheet
+        open
+        onClose={vi.fn()}
+        title="Estimate"
+        bill={aBill()}
+        notice={<p>Only 2 left of Red Velvet Cake.</p>}
+      />,
+    );
+    const focused = document.activeElement as HTMLElement;
+    expect(focused).toHaveAttribute("tabindex", "-1");
+    expect(focused.firstElementChild).toHaveTextContent("Only 2 left of Red Velvet Cake.");
+  });
+
   it("holds its place while the bill is built, and closes", () => {
     const onClose = vi.fn();
     render(<BillSheet open onClose={onClose} title="Estimate" />);

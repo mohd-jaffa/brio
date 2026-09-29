@@ -1,19 +1,19 @@
+import { cn } from "@/components/ui/cn";
 import { ProductTile } from "@/components/ui/product-tile";
 import { Row } from "@/components/ui/row";
 import { StatusPill } from "@/components/ui/status-pill";
 import { UI_TEXT } from "@/constants/messages";
-import { dayKey } from "@/lib/dates/calendar";
 import { formatPaise } from "@/lib/format/currency";
-import { formatDayMonth } from "@/lib/format/date";
 
 import type { OrderListItem } from "../types";
-import { itemsLine, listStatusPill } from "../view";
+import { dueWhen, itemsLine, listStatusPill } from "../view";
 
 /**
  * An order as a phone lists it (plan §139.10): the first item's illustration;
  * the number and who it is for — or Guest; the first item and how many more;
- * when it is due, with what is still to pay (IMP-07); the amount and the
- * status pill at the end. The whole row opens the order. On a customer's own
+ * when it is due — the day and the time, or how late it is, in the danger
+ * tone — with what is still to pay (IMP-07); the amount and the status pill
+ * at the end. The whole row opens the order. On a customer's own
  * screen the name is left off.
  */
 export function OrderRow({
@@ -27,11 +27,22 @@ export function OrderRow({
   showCustomer?: boolean;
 }) {
   const text = UI_TEXT.orderList;
-  const pill = listStatusPill(order, now);
-  const meta = [
-    text.due(formatDayMonth(dayKey(order.dueAt))),
-    ...(order.balanceDue > 0 ? [text.toPay(formatPaise(order.balanceDue))] : []),
-  ].join(" · ");
+  const pill = listStatusPill(order);
+  const when = dueWhen(order, now);
+  // Two facts, each kept whole: where the line is too short for both, it
+  // breaks between them rather than cut what is owed.
+  const meta = (
+    <>
+      <span className={cn("whitespace-nowrap", when.late && "font-semibold text-danger")}>{when.text}</span>
+      {order.balanceDue > 0 && (
+        <>
+          {/* The "·" holds to the fact before it, so a second line never starts with it. */}
+          {"\u00a0· "}
+          <span className="whitespace-nowrap">{text.toPay(formatPaise(order.balanceDue))}</span>
+        </>
+      )}
+    </>
+  );
 
   return (
     <Row
@@ -42,6 +53,7 @@ export function OrderRow({
       }
       subtitle={itemsLine(order)}
       meta={meta}
+      wrapMeta
       trailing={
         <>
           <span className="tabular-nums">{formatPaise(order.total)}</span>

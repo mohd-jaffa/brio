@@ -58,8 +58,8 @@ export async function getDashboard(tenant: Tenant, query: DashboardQuery, now: D
 
   // The period's orders and what is still owed are read a window at a time,
   // since either can pass the API's row limit; the rest are bounded.
-  const [periodOrders, dueResult, dueTodayResult, owing, stockResult, productsResult, recentResult] = await Promise.all(
-    [
+  const [periodOrders, dueResult, dueTodayResult, lateResult, owing, stockResult, productsResult, recentResult] =
+    await Promise.all([
       readAll<PeriodOrder>((from, to) =>
         client
           .from("orders")
@@ -83,6 +83,13 @@ export async function getDashboard(tenant: Tenant, query: DashboardQuery, now: D
         .in("status", [...OPEN_STATUSES])
         .gte("delivery_date", dayStart(today))
         .lt("delivery_date", dayStart(tomorrow)),
+      // Late: still open, and due on a day already gone (IMP-05).
+      client
+        .from("orders")
+        .select("id", { count: "exact", head: true })
+        .eq("bakery_id", bakeryId)
+        .in("status", [...OPEN_STATUSES])
+        .lt("delivery_date", dayStart(today)),
       readAll<{ id: string; total: number; payments: { amount: number }[] }>((from, to) =>
         client
           .from("orders")
@@ -102,11 +109,11 @@ export async function getDashboard(tenant: Tenant, query: DashboardQuery, now: D
         .not("customer_id", "is", null)
         .order("created_at", { ascending: false })
         .limit(HOME_LIST_LIMITS.recentCustomers * 10),
-    ],
-  );
+    ]);
 
   const dueRows = rows<OrderListRow>(dueResult);
   if (dueTodayResult.error) throw fromPostgrestError(dueTodayResult.error);
+  if (lateResult.error) throw fromPostgrestError(lateResult.error);
   const levels = rows<{ product_id: string; balance: number; stocked: boolean }>(stockResult);
   const products = rows<{ id: string; name: string; icon_key: string | null; unit: string }>(productsResult);
   const recent = rows<{ created_at: string; customers: { id: string; name: string } | null }>(recentResult);
@@ -134,6 +141,7 @@ export async function getDashboard(tenant: Tenant, query: DashboardQuery, now: D
   return {
     period: query.period,
     dueToday: dueTodayResult.count ?? 0,
+    late: lateResult.count ?? 0,
     sales: periodSales(periodOrders, start),
     toCollect: sumPaise(
       owing.map((order) => Math.max(0, order.total - sumPaise(order.payments.map((payment) => payment.amount)))),

@@ -22,6 +22,7 @@ function aDashboard(changes: Partial<Dashboard> = {}): Dashboard {
   return {
     period: "TODAY",
     dueToday: 2,
+    late: 1,
     sales: 450000,
     toCollect: 191000,
     lowStockCount: 1,
@@ -95,23 +96,47 @@ describe("Home: the greeting", () => {
 });
 
 describe("Home: the tiles", () => {
-  it("shows due today, the period's sales, what is owed and what is low", async () => {
+  it("shows due today with how many are late, the period's sales, what is owed and what is low", async () => {
     open();
-    const tiles = await screen.findByRole("region", { name: "Period" });
+    const tiles = await screen.findByRole("region", { name: "At a glance" });
     await waitFor(() => expect(within(tiles).getByText("₹4,500")).toBeInTheDocument());
-    expect(within(tiles).getByText("Due today").nextSibling).toHaveTextContent("2");
-    expect(within(tiles).getByText("Sales today")).toBeInTheDocument();
+    const due = within(tiles).getByRole("link", { name: "Due today" });
+    expect(due.closest("dt")!.nextSibling).toHaveTextContent("2");
+    expect(within(tiles).getByText("1 late")).toHaveClass("text-danger");
+    expect(within(tiles).getByText("Sales")).toBeInTheDocument();
     expect(within(tiles).getByText("₹1,910")).toBeInTheDocument();
     expect(within(tiles).getByText("Low stock")).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "New order" })[0]).toHaveAttribute("href", "/orders/new");
   });
 
+  it("opens each figure's screen from its tile; sales chooses its period instead", async () => {
+    open();
+    const tiles = await screen.findByRole("region", { name: "At a glance" });
+    await within(tiles).findByText("₹4,500");
+    expect(within(tiles).getByRole("link", { name: "Due today" })).toHaveAttribute("href", "/orders");
+    expect(within(tiles).getByRole("link", { name: "To collect" })).toHaveAttribute("href", "/customers");
+    expect(within(tiles).getByRole("link", { name: "Low stock" })).toHaveAttribute("href", "/inventory");
+    expect(within(tiles).queryByRole("link", { name: "Sales" })).not.toBeInTheDocument();
+    expect(within(tiles).getByRole("combobox", { name: "Sales period" })).toHaveTextContent("Today");
+  });
+
+  it("says nothing of late orders when there are none", async () => {
+    answers["/api/dashboard"] = aDashboard({ late: 0 });
+    open();
+    const tiles = await screen.findByRole("region", { name: "At a glance" });
+    await within(tiles).findByText("₹4,500");
+    expect(within(tiles).queryByText(/late/)).not.toBeInTheDocument();
+  });
+
   it("reads another period when it is chosen", async () => {
     open();
-    await screen.findByText("Sales today");
+    await screen.findByRole("combobox", { name: "Sales period" });
     answers["/api/dashboard?period=WEEK"] = aDashboard({ period: "WEEK", sales: 900000 });
-    await userEvent.click(screen.getByRole("radio", { name: "Week" }));
-    expect(await screen.findByText("Sales this week")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("combobox", { name: "Sales period" }));
+    await userEvent.click(screen.getByRole("option", { name: "This week" }));
+    const tiles = screen.getByRole("region", { name: "At a glance" });
+    expect(await within(tiles).findByText("₹9,000")).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Sales period" })).toHaveTextContent("This week");
     expect(fetcher).toHaveBeenCalledWith("/api/dashboard?period=WEEK");
   });
 
@@ -127,7 +152,7 @@ describe("Home: the tiles", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Could not load your dashboard");
     answers["/api/dashboard"] = aDashboard();
     await userEvent.click(screen.getByRole("button", { name: "Try again" }));
-    expect(await screen.findByText("Sales today")).toBeInTheDocument();
+    expect(await screen.findByRole("combobox", { name: "Sales period" })).toBeInTheDocument();
   });
 });
 
@@ -170,7 +195,8 @@ describe("Home: what needs doing", () => {
     expect(within(low).getByRole("link", { name: /Blueberry cheesecake/ })).toHaveTextContent("3 pieces left");
 
     answers["/api/dashboard"] = aDashboard({ lowStock: [], lowStockCount: 0 });
-    await userEvent.click(screen.getByRole("radio", { name: "Month" }));
+    await userEvent.click(screen.getByRole("combobox", { name: "Sales period" }));
+    await userEvent.click(screen.getByRole("option", { name: "This month" }));
     answers["/api/dashboard?period=MONTH"] = aDashboard({ period: "MONTH", lowStock: [] });
     expect(await screen.findByText("Nothing is running low.")).toBeInTheDocument();
   });
@@ -202,7 +228,7 @@ describe("Home: how the period is going (desktop)", () => {
     expect(
       await screen.findByRole("img", { name: "Sales per day from 24 Sep to 26 Sep: ₹4,500 in all." }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Sales today").closest("div")).toHaveTextContent("₹0");
+    expect(screen.getByText("Sales").closest("div")).toHaveTextContent("₹0");
   });
 
   it("says so when the period has no sales, no best sellers and no customers yet", async () => {

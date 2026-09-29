@@ -7,18 +7,22 @@ import { cn } from "./cn";
 /**
  * Filters as a row of pills — All, Cakes, Cupcakes (plan §139.5). One is
  * chosen at a time, so it is a radiogroup with the arrow-key movement, and
- * the row scrolls sideways rather than wrapping when there are many.
+ * the row scrolls sideways rather than wrapping when there are many. `wrap`
+ * lays a short set out over lines instead, where every choice must be seen —
+ * a payment's method, in a panel too narrow for the row.
  */
 export function ChoiceChips<T extends string>({
   label,
   value,
   options,
   onChange,
+  wrap = false,
 }: {
   label: string;
   value: T;
   options: readonly { value: T; label: string }[];
   onChange: (value: T) => void;
+  wrap?: boolean;
 }) {
   const keys = useArrowSelection(
     options.map((option) => option.value),
@@ -30,7 +34,10 @@ export function ChoiceChips<T extends string>({
       role="radiogroup"
       aria-label={label}
       onKeyDown={keys.onKeyDown}
-      className="-mx-4 flex gap-2 overflow-x-auto px-4 py-1 [scrollbar-width:none] sm:mx-0 sm:px-0"
+      className={cn(
+        "flex gap-2 py-1",
+        wrap ? "flex-wrap" : "-mx-4 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0",
+      )}
     >
       {options.map((option) => {
         const selected = option.value === value;

@@ -43,6 +43,8 @@ describe("Hero", () => {
     );
     expect(screen.queryByRole("heading")).not.toBeInTheDocument();
     expect(screen.getByText("Grow · Bake · Repeat")).toHaveClass("uppercase");
+    // Each "·" holds to the word before it, so a wrapped line never begins with one.
+    expect(screen.getByText("Grow · Bake · Repeat").textContent).toBe("Grow\u00a0· Bake\u00a0· Repeat");
     expect(container.firstElementChild).toHaveClass("min-h-36");
     expect(container.querySelector("img")?.parentElement).toHaveClass("max-w-md");
     // Not the largest paint: it waits to be needed.

@@ -11,7 +11,7 @@ import { formatDayMonth, formatTime } from "@/lib/format/date";
 import { useOpenScreen } from "@/hooks/useOpenScreen";
 
 import type { OrderListItem } from "../types";
-import { itemsLine, listStatusPill } from "../view";
+import { dueWhen, itemsLine, listStatusPill } from "../view";
 
 const CELL = "px-4 py-3";
 
@@ -63,7 +63,8 @@ export function OrdersTable({ orders, now }: { orders: readonly OrderListItem[];
         <tbody className="divide-y divide-border">
           {orders.map((order) => {
             const href = `/orders/${order.id}`;
-            const pill = listStatusPill(order, now);
+            const pill = listStatusPill(order);
+            const when = dueWhen(order, now);
             return (
               <tr
                 key={order.id}
@@ -77,7 +78,12 @@ export function OrdersTable({ orders, now }: { orders: readonly OrderListItem[];
                 </td>
                 <td className={CELL}>
                   <span className="block text-text">{formatDayMonth(dayKey(order.dueAt))}</span>
-                  <span className="block text-xs text-text-muted">{formatTime(order.dueAt)}</span>
+                  {/* The time, or — for an order still open from a day gone by — how late it is. */}
+                  <span
+                    className={when.late ? "block text-xs font-semibold text-danger" : "block text-xs text-text-muted"}
+                  >
+                    {when.late ? when.text : formatTime(order.dueAt)}
+                  </span>
                 </td>
                 <td className={`${CELL} truncate text-text`}>{order.customer?.name ?? UI_TEXT.orders.guest}</td>
                 <td className={CELL}>

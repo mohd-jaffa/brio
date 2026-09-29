@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 
 import { Sheet } from "@/components/ui/sheet";
 import { SkeletonRows } from "@/components/ui/skeleton";
@@ -15,6 +15,11 @@ import { BillView } from "./BillView";
  * bill itself, and its actions at the foot — Share first; there is no print
  * (the user, 2026-09-26). While the bill is being built the dialog holds its
  * place and says so.
+ *
+ * It opens at its top, with focus there: a bill is read from its head, and
+ * what stops an estimate being placed is said above it. Left to find the
+ * first control, the sheet would start at the link in the bill's foot,
+ * scrolled past both.
  */
 export function BillSheet({
   open,
@@ -33,14 +38,16 @@ export function BillSheet({
   notice?: ReactNode;
   actions?: ReactNode;
 }) {
+  const top = useRef<HTMLDivElement>(null);
   return (
     <Sheet
       open={open}
       onClose={onClose}
       title={title}
+      initialFocus={top}
       footer={actions && <div className="flex flex-wrap gap-3 [&>*]:min-w-[8rem] [&>*]:flex-1">{actions}</div>}
     >
-      <div className="space-y-4 pb-2">
+      <div ref={top} tabIndex={-1} className="space-y-4 pb-2 focus-visible:shadow-none focus-visible:outline-none">
         {notice}
         {bill ? (
           <BillView document={billDocument(bill)} />

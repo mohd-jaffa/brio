@@ -12,6 +12,26 @@ const tile = (props: Parameters<typeof StatTile>[0]) =>
   );
 
 describe("StatTile", () => {
+  it("opens where its figure is looked into: the whole tile, named by its label", () => {
+    tile({ label: "Low stock", value: "3", href: "/inventory" });
+    const link = screen.getByRole("link", { name: "Low stock" });
+    expect(link).toHaveAttribute("href", "/inventory");
+    // Its ::after is what covers the tile, and wears the focus ring.
+    expect(link).toHaveClass("after:absolute", "after:inset-0");
+    expect(link.closest("dl > div")).toHaveClass("relative");
+  });
+
+  it("says what needs seeing under the figure in the danger tone, or holds a control there", () => {
+    const { unmount } = tile({ label: "Due today", value: "0", note: "6 late" });
+    expect(screen.getAllByRole("definition")[1]).toHaveTextContent("6 late");
+    expect(screen.getByText("6 late")).toHaveClass("text-danger");
+    unmount();
+
+    tile({ label: "Sales", value: "₹2,530", control: <button type="button">Today</button> });
+    expect(screen.getAllByRole("definition")[1]).toContainElement(screen.getByRole("button", { name: "Today" }));
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
+
   it("is a term and its value — it never decides how money reads", () => {
     tile({ label: "Total sales", value: "₹45,280" });
     expect(screen.getByRole("term")).toHaveTextContent("Total sales");

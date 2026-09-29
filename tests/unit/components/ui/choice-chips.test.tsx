@@ -23,6 +23,15 @@ describe("ChoiceChips", () => {
     expect(onChange).toHaveBeenCalledWith("COOKIES");
   });
 
+  it("scrolls sideways by default, or lays a short set out over lines where each must be seen", () => {
+    const { unmount } = render(<ChoiceChips label="Category" value="ALL" options={OPTIONS} onChange={vi.fn()} />);
+    expect(screen.getByRole("radiogroup")).toHaveClass("overflow-x-auto");
+    unmount();
+    render(<ChoiceChips label="Method" value="ALL" options={OPTIONS} onChange={vi.fn()} wrap />);
+    expect(screen.getByRole("radiogroup")).toHaveClass("flex-wrap");
+    expect(screen.getByRole("radiogroup")).not.toHaveClass("overflow-x-auto");
+  });
+
   it("moves the choice with the arrow keys", async () => {
     const onChange = vi.fn();
     render(<ChoiceChips label="Category" value="ALL" options={OPTIONS} onChange={onChange} />);

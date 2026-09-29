@@ -128,11 +128,29 @@ describe("DetailsPanel: the items", () => {
     expect(latest().lines[0].quantity).toBe(2);
     expect(within(items()[0]).getByText("₹2,500")).toBeInTheDocument();
 
-    await userEvent.type(within(items()[0]).getByLabelText(/Note on the bill/), "Happy birthday");
+    // The note for the bill is a tap away, and takes the typing at once.
+    expect(within(items()[0]).queryByRole("textbox")).not.toBeInTheDocument();
+    await userEvent.click(within(items()[0]).getByRole("button", { name: /^Note on the bill for / }));
+    const note = within(items()[0]).getByRole("textbox", { name: /Note on the bill/ });
+    expect(note).toHaveFocus();
+    await userEvent.type(note, "Happy birthday");
     expect(latest().lines[0].notes).toBe("Happy birthday");
 
     await userEvent.click(screen.getByRole("button", { name: "Remove Name topper" }));
     expect(latest().lines).toHaveLength(1);
+  });
+
+  it("keeps a line's note open when it has words, or a problem to show", () => {
+    const [first, second] = withItems().lines;
+    render(
+      <Screen
+        start={{ ...withItems(), lines: [{ ...first, notes: "Happy birthday" }, second] }}
+        errors={{ "items.1.notes": "Too long." }}
+      />,
+    );
+    expect(within(items()[0]).getByRole("textbox", { name: /Note on the bill/ })).toHaveValue("Happy birthday");
+    expect(within(items()[1]).getByRole("textbox", { name: /Note on the bill/ })).toBeInTheDocument();
+    expect(within(items()[1]).getByText("Too long.")).toBeInTheDocument();
   });
 
   it("shows a line already on an order being changed at the name and price it was ordered at (§139.11.13)", () => {
@@ -194,7 +212,17 @@ describe("DetailsPanel: the items", () => {
   });
 });
 
-describe("DetailsPanel: the delivery", () => {
+describe("DetailsPanel: the handover", () => {
+  it("comes straight after the customer, so the day it is due is seen before the items", () => {
+    render(<Screen start={withItems()} />);
+    expect(screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent)).toEqual([
+      "Customer",
+      "Handover",
+      "Order items",
+      "Discounts and charges",
+    ]);
+  });
+
   it("asks for a place only for a delivery, filled from the customer", async () => {
     render(<Screen start={chooseCustomer(newDraft(), anu)} />);
     expect(screen.getByRole("radio", { name: "Pickup" })).toHaveAttribute("aria-checked", "true");
@@ -244,15 +272,16 @@ describe("DetailsPanel: discounts, charges and notes", () => {
     ]);
     expect(screen.getByText("Enter an amount.")).toBeInTheDocument();
 
-    const [first] = screen.getAllByRole("combobox", { name: "Kind" });
-    await userEvent.click(first);
-    await userEvent.click(screen.getByRole("option", { name: "Charge (+)" }));
+    // Each amount is named by what it does: no second choice of kind.
+    const adjustments = screen.getByRole("heading", { name: "Discounts and charges" }).closest("section")!;
+    expect(within(adjustments).queryByRole("combobox")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Charge (₹)")).toBeInTheDocument();
     const [name] = screen.getAllByLabelText("Name");
     await userEvent.clear(name);
     await userEvent.type(name, "Packing");
-    expect(screen.getAllByLabelText("Amount (₹)")[0]).toHaveAttribute("inputmode", "decimal");
-    await userEvent.type(screen.getAllByLabelText("Amount (₹)")[0], "40");
-    expect(latest().adjustments[0]).toMatchObject({ type: "CHARGE", name: "Packing", amount: "40" });
+    expect(screen.getByLabelText("Discount (₹)")).toHaveAttribute("inputmode", "decimal");
+    await userEvent.type(screen.getByLabelText("Discount (₹)"), "40");
+    expect(latest().adjustments[0]).toMatchObject({ type: "DISCOUNT", name: "Packing", amount: "40" });
 
     await userEvent.click(screen.getByRole("button", { name: "Remove Packing" }));
     expect(latest().adjustments).toHaveLength(1);
@@ -270,7 +299,9 @@ describe("DetailsPanel: discounts, charges and notes", () => {
   it("drops a discount added here into place, but not one the draft already had", async () => {
     render(<Screen start={addAdjustment(newDraft(), "DISCOUNT", "Festive")} />);
     await userEvent.click(screen.getByRole("button", { name: "Add charge" }));
-    const [kept, added] = screen.getAllByLabelText("Kind").map((select) => select.closest("li"));
+    const [kept, added] = [screen.getByLabelText("Discount (₹)"), screen.getByLabelText("Charge (₹)")].map((field) =>
+      field.closest("li"),
+    );
     expect(kept).not.toHaveClass("animate-drop-in");
     expect(added).toHaveClass("animate-drop-in");
   });

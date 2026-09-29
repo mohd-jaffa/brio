@@ -4,9 +4,11 @@ import type { Order, OrderStatus, PaymentStatus } from "@/features/orders/types"
 import {
   balanceDue,
   deliveryLabel,
+  dueWhen,
   isOpen,
   isOverdue,
   itemsLine,
+  listStatusPill,
   paymentPill,
   statusPill,
 } from "@/features/orders/view";
@@ -78,6 +80,42 @@ describe("statusPill", () => {
     const delivered = order("3", "DELIVERED", "2026-09-21T10:00:00Z");
     delivered.delivery.type = "DELIVERY";
     expect(statusPill(delivered, now).label).toBe("Delivered");
+  });
+});
+
+describe("listStatusPill", () => {
+  it("keeps the status in a list, late or not: how late goes beside it (dueWhen)", () => {
+    const late = anOrderListItem({ status: "READY", dueAt: "2026-09-20T10:00:00Z" });
+    expect(listStatusPill(late)).toEqual({ label: "Ready", tone: "ready" });
+  });
+});
+
+describe("dueWhen", () => {
+  // 22 Sep, 11:30 in India.
+  it("says the day and the time an open order is due, today and tomorrow by name", () => {
+    expect(dueWhen(anOrderListItem({ dueAt: "2026-09-22T10:30:00Z" }), now)).toEqual({
+      text: "Today · 4:00 PM",
+      late: false,
+    });
+    expect(dueWhen(anOrderListItem({ dueAt: "2026-09-23T03:30:00Z" }), now).text).toBe("Tomorrow · 9:00 AM");
+    expect(dueWhen(anOrderListItem({ dueAt: "2026-09-30T12:00:00Z" }), now).text).toBe("30 Sep · 5:30 PM");
+  });
+
+  it("says how many of the business's days an open order is late (IMP-05)", () => {
+    expect(dueWhen(anOrderListItem({ dueAt: "2026-09-21T17:00:00Z" }), now)).toEqual({
+      text: "1 day late",
+      late: true,
+    });
+    // 11:00 PM on the 18th in India is still the 18th, however late in UTC.
+    expect(dueWhen(anOrderListItem({ dueAt: "2026-09-18T17:30:00Z" }), now).text).toBe("4 days late");
+  });
+
+  it("keeps a delivered or cancelled order to the day it was due, never late", () => {
+    expect(dueWhen(anOrderListItem({ status: "DELIVERED", dueAt: "2026-09-18T05:00:00Z" }), now)).toEqual({
+      text: "Due 18 Sep",
+      late: false,
+    });
+    expect(dueWhen(anOrderListItem({ status: "CANCELLED", dueAt: "2026-09-30T05:00:00Z" }), now).late).toBe(false);
   });
 });
 

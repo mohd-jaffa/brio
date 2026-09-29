@@ -43,6 +43,8 @@ export interface Dashboard {
   period: HomePeriod;
   /** Open orders due today. */
   dueToday: number;
+  /** Open orders due on a day already gone: late (IMP-05). */
+  late: number;
   /** What the orders placed in the period come to, cancelled ones left out. */
   sales: number;
   /** What every order still owes, whenever it was placed. */

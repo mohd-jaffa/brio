@@ -69,6 +69,7 @@ export function PaymentPanel({
                 label: PAYMENT_METHOD_LABELS[method],
               }))}
               onChange={(method) => change({ method })}
+              wrap
             />
           </div>
           <TextField

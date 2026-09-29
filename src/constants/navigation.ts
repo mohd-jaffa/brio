@@ -1,12 +1,12 @@
 import {
   BarChart3,
   Bell,
-  CircleDollarSign,
   ClipboardList,
   Cookie,
   Home,
   Menu,
   Package,
+  ReceiptIndianRupee,
   Settings,
   Store,
   Users,
@@ -40,7 +40,7 @@ const ANALYTICS: NavItem = {
 const EXPENSES: NavItem = {
   id: "expenses",
   label: UI_TEXT.nav.places.expenses,
-  icon: CircleDollarSign,
+  icon: ReceiptIndianRupee,
   href: "/expenses",
 };
 const INVENTORY: NavItem = { id: "inventory", label: UI_TEXT.nav.places.inventory, icon: Package, href: "/inventory" };

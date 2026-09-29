@@ -295,7 +295,7 @@ A warm, low-chroma kitchen palette. One caramel (or terracotta) voice does the p
 
 - **Operate mode throughout:** predictable structure, steady density, and one clear reading order. What is due and what is owed comes first.
 - **Phone (under 768 px):**
-  - a top bar with the business's mark, name and catch phrase, the bell and the owner's profile picture;
+  - a top bar with the business's mark, name and catch phrase, the bell and the owner's profile picture; a long name takes a second line rather than lose its end;
   - a five-item bottom bar (Home, Orders, Products, Customers, More) with a tinted pill on the current place;
   - 16 px gutters.
 - **Tablet (768 – 1023 px):** a 72 px icon rail whose labels appear as tooltips, a top bar with the bell and the account, and 24 px gutters. On a screen shorter than the rail (a phone on its side) the rail scrolls, and its tooltips give way.
@@ -421,6 +421,7 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 ### Rows
 - One line of a list: a tile, an avatar or a medallion; a title (14 px semibold) with one or two lines under it; what it amounts to at the right edge (an amount, a pill, a time); and a chevron when it goes somewhere.
 - The whole row is the target. On a desktop the right edge carries a scannable figure.
+- **An order row** says when it is due as a maker plans by it — "Today · 4:00 PM", "Tomorrow · 9:30 AM", "30 Sep · 5:30 PM" — and an open order from a day gone by says how late it is, "3 days late", in brick. Its pill keeps the real status, so a late order still shows how far it has got. Where the line is too short for both when and what is owed, it breaks between them, after the "·", and cuts neither.
 - **Product card:** its picture sits in a 144 px Flour Well tile, 80 % of its height, whatever the card's width; the tile never grows as the picture arrives, so nothing below it moves.
 - **Action row** (`ActionRow`): a card-width row that opens something rather than naming a record: a mark, a title and a line under it, and a chevron. Add custom item above the product grid, and the customer on an order, are both one.
 
@@ -441,11 +442,13 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 ### Stat Tile
 - A medallion, the figure (the serif for money), and its label.
 - On a phone the label sits beside the medallion. From 1024 px the label drops under the figure and a sparkline takes the medallion's row, so every tile is the same height.
+- **A tile that goes somewhere** is a target as a row is: the whole tile, named by its label, with a chevron beside it. Home's Due today, To collect and Low stock open their screens.
+- **Under the figure**, one of: how it moved, what needs seeing in brick ("6 late" under Due today, so a zero today never hides late orders), or a compact choice of what it covers (Sales' own Today · This week · This month; the other figures are now, whatever the period).
 
 ### Navigation
 - **Bottom bar:** five places in equal columns, the current one on a Caramel Cream pill with a semibold caramel label. It is measured in px, like a native tab bar, so a larger text size cannot push the last place off the edge.
 - **Sidebar and rail:** the same active pill; a sidebar place is at least 44 px tall, a rail place 48 px square.
-- **Tabs:** underlined for the views of a screen, each 44 px tall; a single 2 px caramel underline glides to the chosen tab over 300 ms.
+- **Tabs:** underlined for the views of a screen, each 44 px tall; a single 2 px caramel underline glides to the chosen tab over 300 ms, stretched by a transform, never by its width.
 - **Section heading:** a serif title with **View all** and an arrow at its end, which goes to another screen or shows another view of this one (Recent expenses → Transactions).
 - **Bell:** a bell with the unread count in a small brick (danger) circle ringed in paper, 1 to 9 then "9+".
 - **Arriving at a screen:** a screen arrives drawn, with its data; there is no full-screen loader. A navigation still on its way after 150 ms puts the next screen's skeleton in the page's place (a title bar, a line under it, four rows, in Flour Well), with the header and the navigation kept.

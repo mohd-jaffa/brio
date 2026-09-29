@@ -14,6 +14,13 @@ const panelId = (id: string, value: string) => `${id}-panel-${value}`;
 const UNDERLINE_INSET = 8;
 
 /**
+ * The underline's drawn length, stretched to each tab's by `scaleX`: it glides
+ * on the compositor, never laying the page out again as a changing width
+ * would. Near a tab's own width, so its round ends stay round.
+ */
+const UNDERLINE_BASE = 100;
+
+/**
  * The underline under the chosen tab, or none when no tab is chosen. Its first
  * placing is where it starts; after that, each new place is a glide.
  */
@@ -22,8 +29,8 @@ function placeUnderline(tabs: HTMLElement, underline: HTMLElement, placed: { cur
   underline.hidden = !chosen;
   if (!chosen) return;
   if (!placed.current) underline.style.transition = "none";
-  underline.style.width = `${chosen.offsetWidth - 2 * UNDERLINE_INSET}px`;
-  underline.style.transform = `translateX(${chosen.offsetLeft + UNDERLINE_INSET}px)`;
+  const length = chosen.offsetWidth - 2 * UNDERLINE_INSET;
+  underline.style.transform = `translateX(${chosen.offsetLeft + UNDERLINE_INSET}px) scaleX(${length / UNDERLINE_BASE})`;
   if (!placed.current) {
     // Drawn where it starts before its glide is switched back on.
     underline.getBoundingClientRect();
@@ -95,7 +102,8 @@ export function Tabs<T extends string>({
       <span
         ref={bar}
         aria-hidden="true"
-        className="absolute bottom-0 left-0 h-0.5 rounded-full bg-primary transition-[transform,width] duration-300 ease-[var(--ease-out-expo)] motion-reduce:transition-none"
+        style={{ width: UNDERLINE_BASE }}
+        className="absolute bottom-0 left-0 h-0.5 origin-left rounded-full bg-primary transition-transform duration-300 ease-[var(--ease-out-expo)] motion-reduce:transition-none"
       />
       {options.map((option) => {
         const selected = option.value === value;

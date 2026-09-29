@@ -3620,3 +3620,63 @@ The user: "complete phase 8 first then phase 6". Their answers: the device check
 
 ### Blockers
 - None.
+
+## 2026-09-29 — Critique, optimize and polish
+
+A whole-app `/impeccable critique` (two independent reviews: design, and the detector with the browser) scored 27/40, with three P1 issues and two P2 issues. `/impeccable optimize` and `/impeccable polish` then fixed what it found, in the order the user chose. The other session's files (the order grid, `NewOrder`, `EditOrder`, the product card and tile, the illustration, the modal) were left alone.
+
+### Changed
+- **Home says what is late** (plan §139.10, §20). Due today counts only today, so it read "0" above six late orders.
+  - Its tile now says "6 late" in brick beneath the figure (`late`, a new count in `GET /api/dashboard`: open orders due before today).
+  - Today / This week / This month moved from a switch over all four tiles onto the Sales tile, since only sales has a period.
+  - Due today, To collect and Low stock open Orders, Customers and Stock (`StatTile` `href`, `note`, `control`).
+- **Order rows say when, and how late** (`dueWhen`, `OrderRow`, `OrdersTable`).
+  - An order due today or tomorrow reads "Today · 4:00 PM" or "Tomorrow · 9:30 AM"; a later one reads "30 Sep · 5:30 PM".
+  - An open order from a day gone by reads "3 days late" in brick, in whole business days (IMP-05).
+  - Its pill keeps the real status, so a late order still shows Preparing or Ready. Order detail keeps its Overdue pill.
+  - Where the line is too short for both when and what is owed, it breaks between them, after the "·", and cuts neither (`Row` `wrapMeta`). Before, "₹2,530 to pay" lost its end at 390 px.
+- **The Order details step** (`DetailsPanel`):
+  - The handover, now titled Handover, comes straight after the customer, so the date it defaulted to is seen first.
+  - Each line's note for the bill is a tap away, and opens focused. It stays open once it has words or a problem to show.
+  - A discount or charge no longer asks for its kind a second time: its amount is labelled Discount (₹) or Charge (₹).
+  - The payment methods wrap rather than scroll, so Other is no longer cut off (`ChoiceChips` `wrap`).
+- **The stock guard is seen** (`BillSheet`, `EstimateBill`).
+  - The bill sheets open at their top, with focus there. They used to start on the link at the bill's foot, 179 px past the shortfall notice.
+  - A Place order held back by stock says why beside it, and is described by it.
+- **Words and marks:**
+  - Expenses has a rupee receipt for its icon, not a dollar coin.
+  - Guest is no longer "a walk-in", which is shop-counter language: the picker says "The bill reads “Guest”", and the customer card says "A saved customer, or Guest".
+  - The business's name takes a second line in the top bar and the sidebar rather than lose its end (§139.11.2).
+  - A band's slogan breaks evenly and only after a "·", so "GROW" no longer sits alone.
+- **The tab underline** glides by transform alone (`scaleX`), never by animating its width.
+
+### Performance
+- Measured cold on a throttled phone (Fast 4G, 4× CPU slowdown, median of 3 runs):
+  - first paint is 0.7 to 0.8 s and no layout shifts;
+  - main-thread blocking is under 65 ms;
+  - taps respond in 16 to 48 ms.
+- The two slow screens lazy-loaded their largest paint:
+  - Expenses' band now fetches eagerly with high priority, as Home's and Analytics' already did;
+  - so does the plate at the top of Settings.
+  - Largest paint on Expenses went from 1,608 to 816 ms, and on Settings from 1,616 to 836 ms. First paint rose by about 80 ms, since the picture now starts at once.
+- Nothing else measured slow, so nothing else was changed.
+
+### Validation
+- Unit tests: 362 files, 2,466 tests, pass. Every changed file is fully covered; the one uncovered line in `dashboard/api.ts` is an existing guard.
+- Lint, the type check and the format check pass.
+- Both browser journeys pass, against a build of this tree.
+- A browser check of the built app at 360, 390 and 1280 px (Chromium, not committed) confirmed each change:
+  - Home: "0" and "6 late"; Sales has its own period; the figures link to Orders, Customers and Stock.
+  - Orders: rows and the table say "2 days late" and keep "Pending"; no fact is cut at 360 or 390 px, and nothing scrolls sideways.
+  - Order details: the order is Customer, Handover, Order items.
+  - Note on the bill: it opens focused.
+  - The estimate opens at scroll 0, with focus on the shortfall, and Place order is described by its reason.
+  - The Expenses slogan breaks as "TRACK ·" and "CONTROL · GROW".
+  - The tab underline moves by `scaleX` alone.
+
+### Not changed
+- **The default product picture is a price tag with a "$".** It is the user's own supplied art, and the plan pins it (`default-product`, §139.11.10). Replacing it, or redrawing it with "₹", needs the user's decision.
+- **Showing stock on the product cards, and capping + at it**, belongs to the order grid, which the other session was editing.
+
+### Blockers
+- None.

@@ -10,7 +10,8 @@ import {
   type OrderStatus,
   type StatusTone,
 } from "@/constants/statuses";
-import { dueBucket } from "@/lib/dates/calendar";
+import { dayKey, dueBucket, todayKey } from "@/lib/dates/calendar";
+import { formatDayMonth, formatTime } from "@/lib/format/date";
 
 import type { Order, OrderListItem } from "./types";
 
@@ -43,9 +44,36 @@ export function statusPill(order: Order, now?: Date): { label: string; tone: Sta
   return pill(order.status, order.delivery.type, order.delivery.date, now);
 }
 
-/** The same pill for an order in a list (./types `OrderListItem`). */
-export function listStatusPill(order: OrderListItem, now?: Date): { label: string; tone: StatusTone } {
-  return pill(order.status, order.deliveryType, order.dueAt, now);
+/**
+ * The pill beside an order in a list (./types `OrderListItem`): its status as
+ * it is. How late it is goes beside it (`dueWhen`), so a late order still
+ * shows how far it has got — Preparing, Ready — where "Overdue" hid it.
+ */
+export function listStatusPill(order: OrderListItem): { label: string; tone: StatusTone } {
+  return { label: orderStatusLabel(order.status, order.deliveryType), tone: ORDER_STATUS_TONES[order.status] };
+}
+
+const DAY_MS = 86_400_000;
+
+/**
+ * When a listed order is due, as a maker plans by it: "Today · 4:00 PM",
+ * "Tomorrow · 9:30 AM", "30 Sep · 4:00 PM". An open order due on a day
+ * already gone says how late it is instead — "3 days late", in the business's
+ * whole days (IMP-05) — and is marked `late`; a delivered or cancelled one
+ * keeps the day it was due.
+ */
+export function dueWhen(order: OrderListItem, now: Date = new Date()): { text: string; late: boolean } {
+  const text = UI_TEXT.orderList;
+  const day = dayKey(order.dueAt);
+  if (FINAL_STATUSES.includes(order.status)) return { text: text.due(formatDayMonth(day)), late: false };
+  const bucket = dueBucket(order.dueAt, now);
+  if (bucket === "overdue") {
+    return { text: text.late(Math.round((Date.parse(todayKey(now)) - Date.parse(day)) / DAY_MS)), late: true };
+  }
+  const time = formatTime(order.dueAt);
+  if (bucket === "today") return { text: text.today(time), late: false };
+  if (bucket === "tomorrow") return { text: text.tomorrow(time), late: false };
+  return { text: text.on(formatDayMonth(day), time), late: false };
 }
 
 export function paymentPill(order: Order): { label: string; tone: StatusTone } {

@@ -24,7 +24,10 @@ describe("OrderRow", () => {
     expect(row).toHaveAttribute("href", "/orders/o-1");
     expect(row).toHaveTextContent("ORD-1006 · Meena Gupta");
     expect(row).toHaveTextContent("Chocolate truffle cake");
-    expect(row).toHaveTextContent("Due 27 Sep · ₹750 to pay");
+    expect(row).toHaveTextContent("Tomorrow · 10:30 AM · ₹750 to pay");
+    // Where the line is short, it breaks between the two facts, never inside one.
+    expect(screen.getByText("Tomorrow · 10:30 AM")).toHaveClass("whitespace-nowrap");
+    expect(screen.getByText("₹750 to pay")).toHaveClass("whitespace-nowrap");
     expect(row).toHaveTextContent("₹1,250");
     expect(row).toHaveTextContent("Pending");
   });
@@ -36,9 +39,13 @@ describe("OrderRow", () => {
     expect(row).not.toHaveTextContent("to pay");
   });
 
-  it("says Overdue for an open order due on a day gone, and No items for an empty one", () => {
-    const row = show(anOrderListItem({ dueAt: "2026-09-24T05:00:00Z", firstItem: null, lineCount: 0 }));
-    expect(row).toHaveTextContent("Overdue");
+  it("says how late an open order from a day gone is, in the danger tone, and keeps its status", () => {
+    const row = show(
+      anOrderListItem({ status: "READY", dueAt: "2026-09-24T05:00:00Z", firstItem: null, lineCount: 0 }),
+    );
+    expect(screen.getByText("2 days late")).toHaveClass("text-danger");
+    expect(row).toHaveTextContent("Ready");
+    expect(row).not.toHaveTextContent("Overdue");
     expect(row).toHaveTextContent("No items");
   });
 });

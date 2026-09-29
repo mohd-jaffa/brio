@@ -39,10 +39,14 @@ export function BusinessMark({
           </span>
         ) : (
           <>
-            {/* A long name is cut short to fit; hovering shows all of it. */}
+            {/* The business leads (§139.11.2): a long name takes a second line
+                rather than lose its end; past two, hovering shows all of it. */}
             <span
               title={business?.name}
-              className="block truncate font-heading text-lg font-medium leading-tight text-text"
+              className={cn(
+                "line-clamp-2 font-heading font-medium leading-tight text-balance break-words text-text",
+                compact ? "text-base" : "text-lg",
+              )}
             >
               {business?.name ?? UI_TEXT.appName}
             </span>

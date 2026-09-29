@@ -1,7 +1,7 @@
 "use client";
 
 import { Share2 } from "lucide-react";
-import { useMemo } from "react";
+import { useId, useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ScreenNotice } from "@/components/ui/screen-notice";
@@ -20,7 +20,7 @@ import type { OrderEstimate } from "../estimate";
  * of the draft — no number, dated now, payment as chosen so far — with
  * **Share** and **Place order**. Nothing about it is stored. Stock that is
  * short is said above it, and the order cannot be placed from here until the
- * draft changes.
+ * draft changes — which the foot says too, beside the button it holds back.
  */
 export function EstimateBill({
   open,
@@ -46,6 +46,7 @@ export function EstimateBill({
   );
   const sharing = useBillShare(bill);
   const short = estimate?.shortfalls ?? [];
+  const whyNot = useId();
 
   const notice = business.error ? (
     <ScreenNotice>{errorMessage(business.error, "BUSINESS_LOAD_FAILED")}</ScreenNotice>
@@ -64,6 +65,11 @@ export function EstimateBill({
       notice={notice}
       actions={
         <>
+          {short.length > 0 && (
+            <p id={whyNot} className="basis-full! text-xs font-medium text-danger">
+              {UI_TEXT.newOrder.shortStock}
+            </p>
+          )}
           <Button
             label={UI_TEXT.bill.share}
             icon={Share2}
@@ -76,6 +82,7 @@ export function EstimateBill({
             label={UI_TEXT.newOrder.placeOrder}
             variant="action"
             disabled={!bill || short.length > 0}
+            aria-describedby={short.length > 0 ? whyNot : undefined}
             loading={placing}
             onClick={onPlace}
           />

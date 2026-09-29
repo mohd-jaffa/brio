@@ -1,7 +1,8 @@
 "use client";
 
 import { MapPin, Plus, Trash2, UserPlus, UserRound } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
+import { flushSync } from "react-dom";
 
 import { ActionRow } from "@/components/ui/action-row";
 import { Avatar } from "@/components/ui/avatar";
@@ -11,9 +12,9 @@ import { FieldError } from "@/components/ui/field-error";
 import { ProductTile } from "@/components/ui/product-tile";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { SegmentedControl } from "@/components/ui/segmented-control";
-import { DateTimeField, SelectField, TextAreaField, TextField } from "@/components/ui/text-field";
+import { DateTimeField, TextAreaField, TextField } from "@/components/ui/text-field";
 import { UI_TEXT } from "@/constants/messages";
-import { ADJUSTMENT_TYPES, DELIVERY_TYPE_LABELS, DELIVERY_TYPES, type AdjustmentType } from "@/constants/statuses";
+import { DELIVERY_TYPE_LABELS, DELIVERY_TYPES, type AdjustmentType } from "@/constants/statuses";
 import type { Product } from "@/features/products/types";
 import { useArrived } from "@/hooks/useArrived";
 import { formatPaise } from "@/lib/format/currency";
@@ -49,10 +50,12 @@ function Block({ title, action, children }: { title: string; action?: ReactNode;
 }
 
 /**
- * The second step (plan §139.10): who the order is for, the items with their
- * steppers and the note each prints on the bill, how it is handed over — the
- * address filled from the customer (§139.11.4) — the discounts and charges,
- * and the notes only the owner sees.
+ * The second step (plan §139.10): who the order is for; how it is handed over
+ * and when it is due — second, so the day it defaulted to is seen, not
+ * passed — with the address filled from the customer (§139.11.4); the items
+ * with their steppers, each with a note for the bill a tap away; the
+ * discounts and charges, each named by what it does; and the notes only the
+ * owner sees.
  */
 export function DetailsPanel({
   draft,
@@ -84,6 +87,14 @@ export function DetailsPanel({
   // only the wide screen, with both in view, sees it land.
   const addedLine = (key: string) => !opened.has(key) && "lg:animate-drop-in";
   const deliveryArrived = useArrived(delivery.type === "DELIVERY");
+  // A line's note for the bill is asked for, not laid out on every line: one
+  // with words, or with a problem to show, is always open.
+  const [noting, setNoting] = useState<ReadonlySet<string>>(() => new Set());
+  const noteFields = useRef(new Map<string, HTMLInputElement>());
+  const openNote = (key: string) => {
+    flushSync(() => setNoting((open) => new Set(open).add(key)));
+    noteFields.current.get(key)?.focus();
+  };
 
   const customerCard =
     customer === null
@@ -128,76 +139,6 @@ export function DetailsPanel({
           }
         />
         <FieldError id="order-customer-error" message={errors.customer} />
-      </Block>
-
-      <Block
-        title={text.orderItems}
-        action={
-          onAddMore && <Button size="sm" variant="ghost" icon={Plus} label={text.addMoreItems} onClick={onAddMore} />
-        }
-      >
-        <FieldError message={errors.items} />
-        <ul role="list" className="space-y-3">
-          {draft.lines.map((line, index) => {
-            const product = line.productId ? products.get(line.productId) : undefined;
-            const name = line.custom?.name ?? line.agreed?.name ?? product?.name ?? text.unavailable;
-            const price = linePrice(line, (id) => products.get(id)?.defaultPrice);
-            return (
-              <li
-                key={line.key}
-                className={cn("rounded-2xl border border-border bg-surface p-3 shadow-card", addedLine(line.key))}
-              >
-                <div className="flex items-center gap-3">
-                  <span
-                    data-order-add-target={line.productId ? "line" : undefined}
-                    data-order-product-id={line.productId ?? undefined}
-                  >
-                    <ProductTile iconKey={line.custom ? null : product?.iconKey} size="md" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-text">{name}</p>
-                    <p className="flex items-center gap-2 text-sm text-text-muted">
-                      {line.custom && (
-                        <span className="rounded-full bg-sunken px-2 py-0.5 text-xs font-medium text-text">
-                          {text.customMark}
-                        </span>
-                      )}
-                      {price !== undefined && <span className="tabular-nums">{formatPaise(price)}</span>}
-                    </p>
-                  </div>
-                  <IconButton
-                    icon={Trash2}
-                    tone="danger"
-                    label={text.remove(name)}
-                    onClick={() => update((current) => removeLine(current, line.key))}
-                  />
-                </div>
-                <div className="mt-3 flex items-center justify-between gap-3">
-                  <QuantityStepper
-                    value={line.quantity}
-                    label={text.quantityOf(name)}
-                    onChange={(quantity) => update((current) => setQuantity(current, line.key, quantity))}
-                  />
-                  {price !== undefined && (
-                    <span className="text-sm font-semibold tabular-nums text-text">
-                      {formatPaise(price * line.quantity)}
-                    </span>
-                  )}
-                </div>
-                <div className="mt-3">
-                  <TextField
-                    label={text.itemNote}
-                    optional
-                    placeholder={text.itemNotePlaceholder}
-                    value={line.notes}
-                    error={errors[`items.${index}.notes`] ?? errors[`items.${index}.productId`]}
-                    onChange={(event) => update((current) => setLineNote(current, line.key, event.target.value))}
-                  />
-                </div>
-              </li>
-            );
-          })}
-        </ul>
       </Block>
 
       <Block title={text.delivery}>
@@ -249,6 +190,94 @@ export function DetailsPanel({
         )}
       </Block>
 
+      <Block
+        title={text.orderItems}
+        action={
+          onAddMore && <Button size="sm" variant="ghost" icon={Plus} label={text.addMoreItems} onClick={onAddMore} />
+        }
+      >
+        <FieldError message={errors.items} />
+        <ul role="list" className="space-y-3">
+          {draft.lines.map((line, index) => {
+            const product = line.productId ? products.get(line.productId) : undefined;
+            const name = line.custom?.name ?? line.agreed?.name ?? product?.name ?? text.unavailable;
+            const price = linePrice(line, (id) => products.get(id)?.defaultPrice);
+            const lineError = errors[`items.${index}.notes`] ?? errors[`items.${index}.productId`];
+            return (
+              <li
+                key={line.key}
+                className={cn("rounded-2xl border border-border bg-surface p-3 shadow-card", addedLine(line.key))}
+              >
+                <div className="flex items-center gap-3">
+                  <span
+                    data-order-add-target={line.productId ? "line" : undefined}
+                    data-order-product-id={line.productId ?? undefined}
+                  >
+                    <ProductTile iconKey={line.custom ? null : product?.iconKey} size="md" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-text">{name}</p>
+                    <p className="flex items-center gap-2 text-sm text-text-muted">
+                      {line.custom && (
+                        <span className="rounded-full bg-sunken px-2 py-0.5 text-xs font-medium text-text">
+                          {text.customMark}
+                        </span>
+                      )}
+                      {price !== undefined && <span className="tabular-nums">{formatPaise(price)}</span>}
+                    </p>
+                  </div>
+                  <IconButton
+                    icon={Trash2}
+                    tone="danger"
+                    label={text.remove(name)}
+                    onClick={() => update((current) => removeLine(current, line.key))}
+                  />
+                </div>
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <QuantityStepper
+                    value={line.quantity}
+                    label={text.quantityOf(name)}
+                    onChange={(quantity) => update((current) => setQuantity(current, line.key, quantity))}
+                  />
+                  {price !== undefined && (
+                    <span className="text-sm font-semibold tabular-nums text-text">
+                      {formatPaise(price * line.quantity)}
+                    </span>
+                  )}
+                </div>
+                {line.notes !== "" || noting.has(line.key) || lineError !== undefined ? (
+                  <div className="mt-3">
+                    <TextField
+                      ref={(field) => {
+                        if (field) noteFields.current.set(line.key, field);
+                        else noteFields.current.delete(line.key);
+                      }}
+                      label={text.itemNote}
+                      optional
+                      placeholder={text.itemNotePlaceholder}
+                      value={line.notes}
+                      error={lineError}
+                      onChange={(event) => update((current) => setLineNote(current, line.key, event.target.value))}
+                    />
+                  </div>
+                ) : (
+                  <div className="mt-2 -mb-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      icon={Plus}
+                      label={text.itemNote}
+                      aria-label={text.addItemNote(name)}
+                      onClick={() => openNote(line.key)}
+                    />
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </Block>
+
       <Block title={text.discounts}>
         {draft.adjustments.length > 0 && (
           // One row where the panel is wide enough, whatever the screen: on a
@@ -258,27 +287,10 @@ export function DetailsPanel({
               <li
                 key={entry.key}
                 className={cn(
-                  "grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 @lg:grid-cols-[9rem_minmax(0,1fr)_8rem_auto]",
+                  "grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 @lg:grid-cols-[minmax(0,1fr)_8rem_auto]",
                   added(entry.key),
                 )}
               >
-                <div className="col-span-2 @lg:col-span-1">
-                  <SelectField
-                    label={text.adjustmentKind}
-                    value={entry.type}
-                    options={ADJUSTMENT_TYPES.map((type) => ({
-                      value: type,
-                      label: text.adjustmentKinds[type],
-                    }))}
-                    onChange={(type) =>
-                      update((current) =>
-                        setAdjustment(current, entry.key, {
-                          type: type as AdjustmentType,
-                        }),
-                      )
-                    }
-                  />
-                </div>
                 <div className="col-span-2 @lg:col-span-1">
                   <TextField
                     label={text.adjustmentName}
@@ -294,7 +306,8 @@ export function DetailsPanel({
                   />
                 </div>
                 <TextField
-                  label={text.adjustmentAmount}
+                  // Which it is was chosen by Add discount or Add charge; the amount says so.
+                  label={text.adjustmentAmounts[entry.type]}
                   inputMode="decimal"
                   value={entry.amount}
                   error={errors[`adjustments.${index}.amount`]}

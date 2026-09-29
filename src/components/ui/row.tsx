@@ -40,6 +40,8 @@ export function RowList({ label, children, className }: { label?: string; childr
  *
  * `wrap` lets the line under the title run to a second line rather than be
  * cut short, where that line is the point — a notification's message.
+ * `wrapMeta` does the same for the small line under it, where it holds facts
+ * none of which may be lost — when an order is due, and what is still owed.
  *
  * `leadingControl` is a control of its own at the start — an expense
  * category's picture, tapped to change it — kept beside the row's target
@@ -57,6 +59,7 @@ export function Row({
   chevron = href !== undefined || onClick !== undefined,
   arriving = false,
   wrap = false,
+  wrapMeta = false,
 }: {
   leading?: ReactNode;
   leadingControl?: ReactNode;
@@ -71,6 +74,8 @@ export function Row({
   arriving?: boolean;
   /** The subtitle may take two lines. */
   wrap?: boolean;
+  /** The meta line may take two lines. */
+  wrapMeta?: boolean;
 }) {
   const body = (
     <>
@@ -82,7 +87,11 @@ export function Row({
             {subtitle}
           </span>
         )}
-        {meta && <span className="mt-0.5 block truncate text-xs text-text-muted">{meta}</span>}
+        {meta && (
+          <span className={cn("mt-0.5 block text-xs text-text-muted", wrapMeta ? "line-clamp-2" : "truncate")}>
+            {meta}
+          </span>
+        )}
       </span>
       {trailing && (
         <span className="flex shrink-0 flex-col items-end gap-1.5 text-sm font-semibold text-text">{trailing}</span>

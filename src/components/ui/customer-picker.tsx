@@ -29,7 +29,7 @@ export type PickedCustomer<T> = { kind: "GUEST" } | { kind: "CUSTOMER"; customer
 
 /**
  * Who an order is for (plan §139.5, §139.11.3, §139.11.4): **Guest** pinned
- * first, one tap for a walk-in; then the business's customers, searched by
+ * first, one tap for a Guest; then the business's customers, searched by
  * name or by phone in any format; and **Add new customer** at the foot. A
  * bottom sheet on a phone and a dialog from 768 px. Choosing closes it.
  *

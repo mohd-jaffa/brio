@@ -51,6 +51,15 @@ describe("OrdersTable", () => {
     expect(second).toHaveTextContent("Delivered");
   });
 
+  it("says how late an open order from a day gone is, where its time would be, and keeps its status", () => {
+    render(<OrdersTable now={now} orders={[anOrderListItem({ status: "READY", dueAt: "2026-09-20T05:00:00Z" })]} />);
+    const [, row] = within(screen.getByRole("table", { name: "Orders" })).getAllByRole("row");
+    const [, due] = within(row).getAllByRole("cell");
+    expect(due).toHaveTextContent("20 Sep");
+    expect(within(due).getByText(/days late$/)).toHaveClass("text-danger");
+    expect(row).toHaveTextContent("Ready");
+  });
+
   it("opens an order from a click anywhere on its row", async () => {
     render(<OrdersTable orders={[anOrderListItem()]} />);
     await userEvent.click(screen.getByRole("cell", { name: "Meena Gupta" }));
