@@ -3486,3 +3486,17 @@ The user: "complete phase 8 first then phase 6". Their answers: the device check
 
 ### Blockers
 - None for this change.
+
+## 2026-09-29 — Prettier installed with the project
+
+### Fixed
+- **`npm run format:check` could not start on a fresh install.** The Prettier setup (`5ef73d3`) added the scripts and the config, but not the package. It had run from npx's cache, so CI's format check would have failed at "prettier: command not found". `prettier` is now a dev dependency, pinned to 3.9.9, the version that formatted the code.
+
+### Validation
+- On a clean checkout of `f6ab221` with this change, CI's steps were replayed locally against the local Supabase:
+  - `npm ci`, then lint, format check, type check and unit tests (2,390) pass;
+  - with `.env.local` written as CI writes it, the integration tests (29), the build and the browser journeys (2, with `CI=true`) pass.
+- actionlint finds nothing in either workflow.
+
+### Blockers
+- None.
