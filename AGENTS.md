@@ -589,6 +589,12 @@ Use the queue for email delivery and other operations where the plan specifies a
 - **Every other notification is held back** at the queue
   (`jobs_hold_notifications`), and the app queues none.
 - **`npm run worker` refuses to start.**
+- **The database's scheduler stands in for the sweep** where pushes are wanted
+  (R8.6, `0031_web_push.sql`). pg_cron calls `POST /api/cron/due-orders`
+  through pg_net every five minutes, with `CRON_SECRET` as a bearer token.
+  Where it calls and the secret live in Supabase Vault, never in a migration.
+  It calls nothing while no browser wants pushes, or while a worker runs. It
+  is not a worker and no Edge Function: the app does the work, in the request.
 
 Nothing of the worker is removed. New work that belongs on the queue is still
 written for it, with its inline path beside it under the same switch.
@@ -606,9 +612,15 @@ soon and overdue are told of (§17, plan §139.11.15).
 worker to send a push, the phone schedules its own notifications: the signed-in
 frame (`OrderReminders`) reads `GET /api/notifications/reminders` (worded by the
 server, by the inbox's rule) and hands the phone the whole set through
-`scheduleReminders`. Signing out clears them (`clearReminders`). Settings →
-Notifications asks Android's permission, in the Android app only. The web app
-has no reminders: waking a closed one needs a push.
+`scheduleReminders`. Signing out clears them (`clearReminders`).
+
+**The web app is pushed them** (R8.6, `webPush.ts`). The browser subscribes
+and hands the server its subscription (`POST /api/notifications/devices`,
+kept in `device_tokens`, the server's alone). Every due notice taken — by the
+bell or by the scheduler (§17) — goes to the inbox and is pushed
+(`pushToBusiness`, VAPID keys from the environment); `public/sw.js` shows it.
+Settings → Notifications asks the device's permission, Android's or the
+browser's, wherever reminders can work.
 
 Android uses Capacitor native capabilities where appropriate.
 
@@ -679,7 +691,7 @@ from CI (`BRIO_UPLOAD_KEYSTORE*`, `BRIO_VERSION_CODE`), never the repository.
 **The PWA** (Phase 7, plan §139.11.17) is the manifest (`src/app/manifest.ts`),
 the icons (`scripts/app-icons.mjs`), and a service worker (`public/sw.js`). The
 worker keeps only the app's own hashed static files and an offline page fetched
-without cookies. **It never caches a screen or an API answer**: nothing of one
+without cookies, and shows the order reminders the server pushes (R8.6). **It never caches a screen or an API answer**: nothing of one
 account may be kept for the next. It is set up in a built app only.
 **Install app** lives with the other menus (More, the sidebar) and is hidden
 inside the installed app (`useInstallApp`).

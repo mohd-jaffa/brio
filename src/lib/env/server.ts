@@ -38,6 +38,17 @@ const serverEnvSchema = z.object({
   // The address people write to about their account and their data; the
   // privacy policy names it (R8.10).
   SUPPORT_EMAIL: z.preprocess((value) => (value === "" ? undefined : value), z.string().trim().email().optional()),
+
+  // Web push (R8.6): the app's VAPID key pair, and who the push services may
+  // write to about it (a mailto: or https: address; SUPPORT_EMAIL otherwise).
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: optionalString,
+  VAPID_PRIVATE_KEY: optionalString,
+  VAPID_SUBJECT: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().trim().regex(/^(mailto:|https:\/\/)\S+$/).optional(),
+  ),
+  // What the database's scheduler sends to `POST /api/cron/due-orders`.
+  CRON_SECRET: z.preprocess((value) => (value === "" ? undefined : value), z.string().trim().min(32).optional()),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -58,6 +69,13 @@ export function getServerEnv(source: NodeJS.ProcessEnv = process.env): ServerEnv
   }
 
   return parsed.data;
+}
+
+/** The app's web push keys and subject (R8.6), or null while any is missing: web push is then off. */
+export function webPushKeys(env: ServerEnv = getServerEnv()): { publicKey: string; privateKey: string; subject: string } | null {
+  const subject = env.VAPID_SUBJECT ?? (supportEmail(env) ? `mailto:${supportEmail(env)}` : undefined);
+  if (!env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY || !subject) return null;
+  return { publicKey: env.NEXT_PUBLIC_VAPID_PUBLIC_KEY, privateKey: env.VAPID_PRIVATE_KEY, subject };
 }
 
 /**

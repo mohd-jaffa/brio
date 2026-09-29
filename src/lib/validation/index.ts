@@ -186,7 +186,10 @@ export {
 export {
   notificationIdSchema,
   notificationListQuerySchema,
+  pushSubscriptionSchema,
   type NotificationListQuery,
+  type PushSubscriptionInput,
+  type PushSubscriptionPayload,
 } from "./schemas/notification";
 
 export { adminListQuerySchema, type AdminListQuery } from "./schemas/admin";

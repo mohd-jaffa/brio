@@ -5,12 +5,16 @@ import type { Reminder, ReminderPermission } from "@/lib/native";
 import { Providers } from "@tests/support/providers";
 
 const native = vi.hoisted(() => ({
+  android: true,
   permission: undefined as ReminderPermission | undefined,
   scheduleReminders: vi.fn(),
+  renewReminders: vi.fn(),
 }));
 vi.mock("@/lib/native", () => ({
+  isAndroidApp: () => native.android,
   useReminderPermission: () => ({ permission: native.permission, ask: vi.fn() }),
   scheduleReminders: native.scheduleReminders,
+  renewReminders: native.renewReminders,
 }));
 const { fetcher } = vi.hoisted(() => ({ fetcher: vi.fn() }));
 vi.mock("@/lib/api/client", () => ({ fetcher }));
@@ -26,8 +30,10 @@ const reminder: Reminder = {
 };
 
 beforeEach(() => {
+  native.android = true;
   native.permission = "ON";
   native.scheduleReminders.mockReset().mockResolvedValue(undefined);
+  native.renewReminders.mockReset().mockResolvedValue(undefined);
   fetcher.mockReset().mockResolvedValue([reminder]);
 });
 
@@ -44,6 +50,30 @@ describe("OrderReminders", () => {
     await new Promise((settle) => setTimeout(settle, 20));
     expect(fetcher).not.toHaveBeenCalled();
     expect(native.scheduleReminders).not.toHaveBeenCalled();
+  });
+
+  it("in a browser, reads nothing and tells the server it still wants them pushed, once as the app opens", async () => {
+    native.android = false;
+    const { rerender } = render(<OrderReminders />, { wrapper: Providers });
+    rerender(<OrderReminders />);
+    await waitFor(() => expect(native.renewReminders).toHaveBeenCalledOnce());
+    expect(fetcher).not.toHaveBeenCalled();
+    expect(native.scheduleReminders).not.toHaveBeenCalled();
+  });
+
+  it("in a browser with reminders off, tells the server nothing", async () => {
+    native.android = false;
+    native.permission = "OFF";
+    render(<OrderReminders />, { wrapper: Providers });
+    await new Promise((settle) => setTimeout(settle, 20));
+    expect(native.renewReminders).not.toHaveBeenCalled();
+  });
+
+  it("lets a browser that could not be renewed try again next time, quietly", async () => {
+    native.android = false;
+    native.renewReminders.mockRejectedValue(new Error("offline"));
+    render(<OrderReminders />, { wrapper: Providers });
+    await waitFor(() => expect(native.renewReminders).toHaveBeenCalledOnce());
   });
 
   it("lets a reminder that could not be set wait for the next read, quietly", async () => {

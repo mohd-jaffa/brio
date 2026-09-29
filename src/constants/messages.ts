@@ -39,6 +39,10 @@ export const ERROR_MESSAGES = {
   ACCOUNT_EMAIL_MISMATCH: "That is not this account’s email address.",
   ACCOUNT_DELETE_FAILED: "Could not delete your account. Nothing was deleted. Please try again.",
 
+  // Web push (R8.6).
+  PUSH_UNAVAILABLE: "Reminders cannot be turned on here yet.",
+  CRON_UNAUTHORIZED: "This request is not from the app’s scheduler.",
+
   CONFIG_INVALID: "The server configuration is invalid.",
   MAIL_PROVIDER_NOT_CONFIGURED: "Email delivery is not configured.",
   EXTERNAL_SERVICE_ERROR: "A connected service could not complete the request.",
@@ -1137,11 +1141,19 @@ export const UI_TEXT = {
     remindersHint: {
       ON: "Orders due soon, and overdue, each morning",
       OFF: "Tap to be reminded of orders due soon and overdue",
-      BLOCKED: "Turned off in Android’s settings for Brio",
-    } as Record<"ON" | "OFF" | "BLOCKED", string>,
-    remindersNote: "Set on this phone for the orders it has seen. An order added elsewhere joins them when you next open the app.",
+    } as Record<"ON" | "OFF", string>,
+    // Where a refused permission is given back: the phone's settings, or the browser's (R8.6, web push).
+    remindersBlocked: {
+      android: "Turned off in Android’s settings for Brio",
+      web: "Turned off in this browser’s settings for Brio",
+    },
+    remindersNote: {
+      android: "Set on this phone for the orders it has seen. An order added elsewhere joins them when you next open the app.",
+      web: "Sent to this device, even when Brio is closed. Each device you use asks for its own.",
+    },
     remindersOn: "Reminders on",
     remindersOnBody: "You will be reminded of orders due soon, and overdue, each morning.",
+    remindersNotOn: "Reminders not turned on",
     // The owner's profile picture, an animal or a person (the user, 2026-09-27, 2026-09-28).
     changePicture: "Change profile picture",
     pictureTitle: "Choose a profile picture",

@@ -1,16 +1,20 @@
 import { UI_TEXT } from "@/constants/messages";
 
-import { hasPlugins } from "./platform";
+import { hasPlugins, isAndroidApp } from "./platform";
+import { renewWebPush, stopWebPush, turnOnWebPush, webPushPermission } from "./webPush";
 
 /**
- * Reminders the Android app sets for itself (R8.6; the user, 2026-09-29).
- * Push from a server needs something awake to send it — the worker — and none
- * runs (plan §139.11.15). So the phone schedules its own notifications for the
- * orders it has read, by the inbox's rule (0023): due soon and overdue, each
- * once, in the business's morning. Nothing leaves the phone and no token is
- * kept; the app replaces the whole set each time it reads the orders again.
+ * Order reminders (R8.6; the user, 2026-09-29): orders due soon and overdue,
+ * told on the device with the app closed. Each platform has its own half, and
+ * the calls below choose:
  *
- * In a browser there is nothing to set, and every call here does nothing.
+ * - **The Android app sets them itself.** A WebView cannot receive a push, and
+ *   no worker runs to send one (plan §139.11.15). So the phone schedules its
+ *   own notifications for the orders it has read, by the inbox's rule (0023),
+ *   and replaces the whole set each time it reads them again. Nothing leaves
+ *   the phone and no token is kept.
+ * - **The web app is pushed to** (`webPush.ts`): the database's scheduler asks
+ *   the server to look every five minutes, and it pushes what it finds.
  */
 
 /** One reminder, as the server words it (`GET /api/notifications/reminders`). */
@@ -36,9 +40,7 @@ const SMALL_ICON = "ic_stat_brio";
 const ICON_COLOR = "#1d4932";
 
 /** Whether this is the Android app, and its build carries the plugin (§139.17.1). */
-export function remindersSupported(): boolean {
-  return hasPlugins(PLUGIN);
-}
+const onAndroid = () => hasPlugins(PLUGIN);
 
 const plugin = async () => (await import("@capacitor/local-notifications")).LocalNotifications;
 
@@ -46,14 +48,21 @@ const PERMISSIONS: Record<string, ReminderPermission> = { granted: "ON", denied:
 const toPermission = (state: string): ReminderPermission => PERMISSIONS[state] ?? "OFF";
 
 export async function reminderPermission(): Promise<ReminderPermission> {
-  if (!remindersSupported()) return "UNSUPPORTED";
+  if (!isAndroidApp()) return webPushPermission();
+  if (!onAndroid()) return "UNSUPPORTED";
   return toPermission((await (await plugin()).checkPermissions()).display);
 }
 
-/** Asks Android for the permission; once refused, Android answers without asking. */
+/** Asks Android, or the browser, for the permission; once refused, either answers without asking. */
 export async function askForReminders(): Promise<ReminderPermission> {
-  if (!remindersSupported()) return "UNSUPPORTED";
+  if (!isAndroidApp()) return turnOnWebPush();
+  if (!onAndroid()) return "UNSUPPORTED";
   return toPermission((await (await plugin()).requestPermissions()).display);
+}
+
+/** As the app opens, with reminders on: a browser tells the server it still wants them. The Android app reads its set instead (`scheduleReminders`). */
+export async function renewReminders(): Promise<void> {
+  if (!isAndroidApp()) await renewWebPush();
 }
 
 /** The number Android keys a reminder by: the same for the same key, positive and within Java's int. */
@@ -76,7 +85,7 @@ let scheduled: string | null = null;
  * minutes to save the battery. Without the permission it sets nothing.
  */
 export async function scheduleReminders(reminders: readonly Reminder[]): Promise<void> {
-  if (!remindersSupported()) return;
+  if (!onAndroid()) return;
   const signature = JSON.stringify(reminders);
   if (signature === scheduled) return;
   const notifications = await plugin();
@@ -116,12 +125,14 @@ async function cancelPending() {
 }
 
 /**
- * Nothing of this account left on the phone: those waiting cancelled, those
- * shown taken down. Called as the account leaves (signing out, deleting it).
+ * Nothing of this account left on the device, as it leaves (signing out,
+ * deleting it): on the phone, those waiting cancelled and those shown taken
+ * down; in a browser, its pushes stopped.
  */
 export async function clearReminders(): Promise<void> {
   scheduled = null;
-  if (!remindersSupported()) return;
+  if (!isAndroidApp()) return stopWebPush();
+  if (!onAndroid()) return;
   await cancelPending();
   await (await plugin()).removeAllDeliveredNotifications();
 }
@@ -129,10 +140,10 @@ export async function clearReminders(): Promise<void> {
 /**
  * Calls `open` with the screen a tapped reminder leads to — also for the tap
  * that started the app, which Android holds until this listens. Answers how to
- * stop listening.
+ * stop listening. In a browser the service worker opens the screen itself.
  */
 export function onReminderTapped(open: (url: string) => void): () => void {
-  if (!remindersSupported()) return () => undefined;
+  if (!onAndroid()) return () => undefined;
   let stop: (() => void) | undefined;
   let gone = false;
   void plugin().then(async (notifications) => {

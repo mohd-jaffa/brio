@@ -28,7 +28,7 @@ export interface PrivacySection {
 
 export const PRIVACY_POLICY = {
   /** The day this text last changed, as a day key. */
-  updated: "2026-09-28",
+  updated: "2026-09-29",
   intro: [
     `${app} helps you run a home business: your orders, customers, products, stock, expenses and bills. This policy says what ${app} keeps, why it keeps it, who can see it, and how you delete it.`,
     `It covers ${app} on the web, installed from the browser, and the Android app.`,
@@ -51,6 +51,7 @@ export const PRIVACY_POLICY = {
         "What you record: customers (names, phone numbers, addresses and notes), products and stock, orders with their items, charges and discounts, payments (the amount, the method and any reference you type), and expenses.",
         "A history of the changes made in your business — who changed what, and when — and notifications about orders that are due.",
         "Records our server makes as it runs: when a request came, its reference number, and what went wrong, so faults can be found and fixed. They never hold your password.",
+        "If you turn on order reminders in a browser: the address that browser’s push service gives us to reach it, and the keys that lock what we send, kept until you sign out there or the address stops working. The Android app keeps its reminders on the phone itself.",
       ],
       after: [
         `On your device, ${app} keeps a cookie that keeps you signed in, and a few things in the browser’s storage: your theme, the date ranges you last looked at, and an order you are part way through.`,
@@ -76,6 +77,7 @@ export const PRIVACY_POLICY = {
         "You, when you are signed in. Each business is kept apart from every other: no one signed in to another business can see yours.",
         `The people who run ${app}, only when it is needed to keep it working or to answer you. Our developer console shows accounts and the history of changes, to us and no one else.`,
         `The services that run ${app} for us: Supabase, which holds the database, the sign-in and the logo; Cloudflare, which carries the app to you; and Google’s Gmail, which sends ${app}’s emails. They handle your data only to provide their service to us.`,
+        "If you turn on order reminders in a browser, that browser’s own push service — Google’s for Chrome, Apple’s for Safari, Mozilla’s for Firefox — carries each one to you. What it carries is locked so that only your browser can read it.",
         "Anyone the law requires us to tell, and only what it requires.",
       ],
       after: [`A bill you share or download goes wherever you send it. ${app} does not keep a copy.`],
@@ -94,6 +96,7 @@ export const PRIVACY_POLICY = {
       heading: "Your choices and rights",
       points: [
         "See and correct: your name, number and email are in Settings, your business’s details in Business details, and everything you record on its own screen.",
+        "Reminders: turn them off at any time in your phone’s or your browser’s settings for the app.",
         "Delete: delete your account and everything in it, at any time (below).",
         "Ask: write to us to ask what we hold about you, to correct it, to delete it, or to complain. We reply within 30 days.",
       ],

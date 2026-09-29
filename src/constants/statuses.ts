@@ -215,6 +215,10 @@ export type CustomerFilter = (typeof CUSTOMER_FILTERS)[number];
 export const NOTIFICATION_KINDS = ["ORDER", "PAYMENT", "STOCK", "CUSTOMER", "SYSTEM"] as const;
 export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];
 
+/** Where a device that wants pushes is (`device_tokens.platform`, 0031_web_push.sql): the web app, for now. */
+export const DEVICE_PLATFORMS = ["WEB"] as const;
+export type DevicePlatform = (typeof DEVICE_PLATFORMS)[number];
+
 /**
  * The inbox's tabs (plan §139.10: All · Orders · Customers · System; Unread
  * and Read, the user, 2026-09-28) and what each shows: the unread or the

@@ -35,4 +35,16 @@ describe("useReminderPermission", () => {
     expect(result.current.reading.permission).toBe("ON");
     expect(native.reminderPermission).toHaveBeenCalledOnce();
   });
+
+  it("reads it afresh when asking fails, and hands the failure back", async () => {
+    const { result } = renderHook(() => useReminderPermission(), { wrapper: Providers });
+    await waitFor(() => expect(result.current.permission).toBe("OFF"));
+    native.askForReminders.mockRejectedValueOnce(new Error("offline"));
+    native.reminderPermission.mockResolvedValue("BLOCKED");
+
+    await act(async () => {
+      await expect(result.current.ask()).rejects.toThrow("offline");
+    });
+    await waitFor(() => expect(result.current.permission).toBe("BLOCKED"));
+  });
 });

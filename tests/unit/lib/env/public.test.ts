@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { publicAppUrl, publicAppVersion } from "@/lib/env/public";
+import { publicAppUrl, publicAppVersion, publicVapidKey } from "@/lib/env/public";
 
 afterEach(() => vi.unstubAllEnvs());
 
@@ -19,5 +19,14 @@ describe("publicAppVersion", () => {
     expect(publicAppVersion()).toBe("0.1.0");
     vi.stubEnv("NEXT_PUBLIC_APP_VERSION", undefined);
     expect(publicAppVersion()).toBe("");
+  });
+});
+
+describe("publicVapidKey", () => {
+  it("is the public web push key the build wrote, or nothing: web push is then off", () => {
+    vi.stubEnv("NEXT_PUBLIC_VAPID_PUBLIC_KEY", "BPublic");
+    expect(publicVapidKey()).toBe("BPublic");
+    vi.stubEnv("NEXT_PUBLIC_VAPID_PUBLIC_KEY", undefined);
+    expect(publicVapidKey()).toBe("");
   });
 });

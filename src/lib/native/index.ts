@@ -7,7 +7,7 @@ export { hasPlugins, isAndroidApp } from "./platform";
 export {
   clearReminders,
   onReminderTapped,
-  remindersSupported,
+  renewReminders,
   scheduleReminders,
   type Reminder,
   type ReminderPermission,

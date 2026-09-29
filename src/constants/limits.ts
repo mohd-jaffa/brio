@@ -48,6 +48,12 @@ export const DUE_NOTICE_FROM_HOUR = 8;
  */
 export const REMINDER_ORDERS_MAX = 100;
 
+/**
+ * How long a push service keeps a reminder for a browser that is offline
+ * (R8.6): half a day, after which "due today" is no longer news.
+ */
+export const PUSH_TTL_SECONDS = 12 * 60 * 60;
+
 /** An expense category's name: a tile's label, not a sentence (`0020_expense_categories`). */
 export const MAX_EXPENSE_CATEGORY_NAME = 40;
 

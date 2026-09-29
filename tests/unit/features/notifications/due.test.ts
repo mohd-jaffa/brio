@@ -3,10 +3,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SWEEP_INTERVAL_MS } from "@/constants/jobs";
 import { DUE_NOTICE_FROM_HOUR } from "@/constants/limits";
 import { UI_TEXT } from "@/constants/messages";
+import { fakeSupabase } from "@tests/support/supabase";
 import { tenantOf } from "@tests/support/tenant";
 
-const { rpc, countUnread, listNotifications, recordNotification, logger, mode } = vi.hoisted(() => ({
+const { rpc, devices, pushToBusiness, countUnread, listNotifications, recordNotification, logger, mode } = vi.hoisted(() => ({
   rpc: vi.fn(),
+  devices: { rows: [] as { id: string; bakery_id: string }[], from: undefined as unknown },
+  pushToBusiness: vi.fn(),
   countUnread: vi.fn(),
   listNotifications: vi.fn(),
   recordNotification: vi.fn(),
@@ -20,11 +23,14 @@ vi.mock("@/constants/jobs", async (original) => ({
     return mode.worker;
   },
 }));
-vi.mock("@/lib/supabase/server", () => ({ createSupabaseServiceRoleClient: () => ({ rpc }) }));
+vi.mock("@/lib/supabase/server", () => ({ createSupabaseServiceRoleClient: () => ({ rpc, from: devices.from }) }));
 vi.mock("@/features/notifications/api", () => ({ countUnread, listNotifications, recordNotification }));
+vi.mock("@/features/notifications/push", () => ({ pushToBusiness }));
 vi.mock("@/lib/logger", () => ({ logger }));
 
-const { checkDueOrders, countUnreadAfterDue, listNotificationsAfterDue } = await import("@/features/notifications/due");
+const { checkDueOrders, countUnreadAfterDue, listNotificationsAfterDue, sweepDueOrders } = await import(
+  "@/features/notifications/due"
+);
 
 const ORDER = "7c1f3a52-9d7e-4b1a-8a51-0f1d2c3b4a5e";
 const LATE = "7c1f3a52-9d7e-4b1a-8a51-0f1d2c3b4a5f";
@@ -43,6 +49,10 @@ beforeEach(() => {
   mode.worker = false;
   rpc.mockResolvedValue({ data: dueRows, error: null });
   recordNotification.mockResolvedValue(undefined);
+  pushToBusiness.mockResolvedValue({ sent: 0, gone: 0 });
+  devices.rows = [];
+  const fake = fakeSupabase(() => ({ data: devices.rows }));
+  devices.from = fake.client.from.bind(fake.client);
   countUnread.mockResolvedValue({ unread: 2 });
   listNotifications.mockResolvedValue({ items: [], nextCursor: null });
 });
@@ -76,6 +86,18 @@ describe("checkDueOrders", () => {
       },
       actionUrl: `/orders/${LATE}`,
     });
+  });
+
+  it("pushes what it wrote to the business's browsers that want it, after the inbox has it (R8.6)", async () => {
+    const tenant = nextTenant();
+    await checkDueOrders(tenant);
+
+    expect(pushToBusiness).toHaveBeenCalledOnce();
+    expect(pushToBusiness).toHaveBeenCalledWith(expect.anything(), tenant.bakeryId, [
+      { kind: "ORDER_DUE", orderId: ORDER, orderNumber: "ORD-1028", customerName: "Priya Menon", day: "TODAY" },
+      { kind: "ORDER_OVERDUE", orderId: LATE, orderNumber: "ORD-1020", customerName: null, dueDate: "2026-09-26" },
+    ]);
+    expect(recordNotification.mock.invocationCallOrder[1]).toBeLessThan(pushToBusiness.mock.invocationCallOrder[0]);
   });
 
   it("leaves out a row it cannot put into words, and writes nothing when nothing is due", async () => {
@@ -129,6 +151,27 @@ describe("checkDueOrders", () => {
   it("looks for nothing when a worker runs: its own sweep tells of them", async () => {
     mode.worker = true;
     await checkDueOrders(nextTenant());
+    expect(rpc).not.toHaveBeenCalled();
+  });
+});
+
+describe("sweepDueOrders (the database's scheduler, R8.6)", () => {
+  it("looks at each business with a browser that wants pushes, once however many browsers it has", async () => {
+    devices.rows = [
+      { id: "d-1", bakery_id: "b-sweep-1" },
+      { id: "d-2", bakery_id: "b-sweep-1" },
+      { id: "d-3", bakery_id: "b-sweep-2" },
+    ];
+    await expect(sweepDueOrders()).resolves.toEqual({ businesses: 2 });
+    expect(rpc.mock.calls.map(([, args]) => args.p_bakery_id)).toEqual(["b-sweep-1", "b-sweep-2"]);
+    expect(pushToBusiness).toHaveBeenCalledTimes(2);
+  });
+
+  it("looks at nothing when no browser wants pushes, or when a worker runs", async () => {
+    await expect(sweepDueOrders()).resolves.toEqual({ businesses: 0 });
+    mode.worker = true;
+    devices.rows = [{ id: "d-1", bakery_id: "b-sweep-3" }];
+    await expect(sweepDueOrders()).resolves.toEqual({ businesses: 0 });
     expect(rpc).not.toHaveBeenCalled();
   });
 });

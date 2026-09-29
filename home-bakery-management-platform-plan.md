@@ -8600,6 +8600,9 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
   "cant push notification without workers … if it will work implement it for
   the android app"). A push needs a sender awake at the time, and none is; so
   the phone schedules its own notifications — §139.17.4.
+- **The web app is pushed them** (R8.6; the user, 2026-09-29: "build the pwa
+  push with pg_cron"). The database's own scheduler asks the app to look
+  every five minutes, and the app pushes what it finds — §139.17.4.
 - **Paused**: an order placed, an order moved, a payment, a customer added,
   stock running low. The database holds them back at the queue, so nothing
   piles up there, and the app queues none. The inbox's tabs stay as they are.
@@ -8753,7 +8756,7 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `…_developer_accounts` | *Added 2026-09-27 as `0028_developer_accounts` (the user).* `profiles.bakery_id` may be null, for a developer only (`profiles_owner_has_business`). Nothing else. | 5 |
 | `…_people_avatars` | *Added 2026-09-28 as `0029_people_avatars` (the user).* `avatar_keys()` takes the 24 people's keys after the nine animals'. Nothing else: the draw, the column and its check are 0026's. | 5 |
 | `…_audit_writes` | Revoke `INSERT` on `audit_logs` from `authenticated`; audit is written by the server with the acting user (§133.7 G1, BUG-20). | 2 |
-| `…_device_tokens` | The push-token registry (§133.5 E2). | 8 |
+| `…_device_tokens` | The push-token registry (§133.5 E2). Built as `0031_web_push` for web push, with the scheduler's call (2026-09-29). | 8 |
 | `…_profile_theme` *(if Q14)* | `profiles.theme`. | 1 |
 
 ---
@@ -8790,6 +8793,9 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | ~~`GET, POST, PATCH /api/categories`~~ | **Dropped 2026-09-25:** products need no categories. |
 | `GET /api/notifications`, `POST /api/notifications/read-all` | New (§133.5 E1). GET `?tab=ALL\|UNREAD\|READ\|ORDERS\|CUSTOMERS\|SYSTEM&cursor=` pages the inbox, newest first (Unread and Read added 2026-09-28, R5.19); read-all answers how many it marked. Done 2026-09-26 (R5.10). |
 | `GET /api/notifications/unread`, `POST /api/notifications/{id}/read` | New (R5.10): the bell's count, and one notification marked read as it is opened — one of another business's is not found. |
+| `GET /api/notifications/reminders` | New (R8.6, 2026-09-29): the reminders the Android app sets itself, worded by the inbox's rule (§139.17.4). |
+| `POST /api/notifications/devices` | New (R8.6, 2026-09-29): a browser's push subscription (`pushSubscriptionSchema`: an https address and its keys), kept for the signed-in owner's business. Answers `{ registered: true }`, or `PUSH_UNAVAILABLE` while web push has no keys. |
+| `POST /api/cron/due-orders` | New (R8.6, 2026-09-29): the database's scheduler only, with `Authorization: Bearer <CRON_SECRET>` (`CRON_UNAUTHORIZED` otherwise, and always while none is set). Looks for orders due in each business with a browser that wants pushes, and pushes them. Answers how many businesses it looked at. |
 
 ~~**OpenAPI** is updated with every change (§133.11 K1).~~ OpenAPI is kept for
 later (the user, 2026-09-28): this table and the route schemas in
@@ -9049,8 +9055,35 @@ project or table is added.
   them on in Android's settings. Nothing is set without it.
 - **Signing out, or deleting the account,** cancels those waiting and takes
   down those shown.
-- **The installable web app** gets none: a closed web app can only be woken by
-  a push, which needs a sender. It keeps the inbox and the bell.
+- **The web app is pushed to** (built 2026-09-29, the user: "build the pwa
+  push with pg_cron"). A closed web app can be woken only by a push, and a
+  push needs a sender on a schedule. With no worker, the database's own
+  scheduler is that schedule (`0031_web_push`): pg_cron, every five minutes,
+  calls `POST /api/cron/due-orders` through pg_net, with a secret. Where it
+  calls and the secret are kept in Supabase Vault, set once per database
+  (`.env.example`), never in the repository. It calls nothing while no browser
+  wants pushes, or while a worker runs. No Edge Function is used.
+  - **The app** then looks at each business that has such a browser, as the
+    bell does (`take_due_order_notices`): each notice goes to the inbox and is
+    pushed (`pushToBusiness`, the `web-push` library, VAPID keys from the
+    environment). A notice the bell finds first is pushed too. A browser its
+    push service has forgotten (404, 410) is let go.
+  - **The browsers** are `device_tokens` (platform `WEB`): the push service's
+    address and the keys that encrypt what is sent. They are the server's
+    alone, and go with the business or the owner.
+  - **In the browser** (`src/lib/native/webPush.ts`), Settings → Notifications
+    asks the browser's permission, subscribes and tells the server. The app
+    tells it again each time it opens. Signing out unsubscribes the browser.
+  - **The service worker** shows a push with the app's icon and a white badge
+    (`public/icons/badge-96.png`), replacing a repeat of the same reminder, and
+    a tap opens its order.
+  - **Where it works:** a browser with push, in the built app. On an iPhone
+    that means Brio added to the Home Screen (iOS 16.4 or later); Safari offers
+    push only to an installed web app. Elsewhere the row is not shown, and the
+    inbox and the bell remain.
+  - **The rule is the inbox's:** from 8 AM in the business's day, an order due
+    today or tomorrow, or overdue, is told once. An order placed later in the
+    day for tomorrow is told within five minutes.
 
 ### 139.17.5 Release
 
@@ -9254,7 +9287,7 @@ Phase 5 closed on 2026-09-26 with R5.10.
 | R8.3 | The native capability layer | §139.17.2; IMP-09 | — | DONE (2026-09-28 · share, save, the back button, platform checks; the rest waits for its caller — §139.17.2) |
 | R8.4 | Insets and edge-to-edge verified on devices | §139.17.3 | — | TODO |
 | R8.5 | The back button and App Links | §139.17.3 | — | DOING (2026-09-28: the back button is done; App Links wait for the domain and the signing key's fingerprint) |
-| R8.6 | Push: device tokens, FCM, the worker | §133.5 E2, E3 | — | DOING (2026-09-29 · while no worker runs, the Android app sets its own reminders of orders due soon and overdue — §139.17.4; FCM push waits on the worker) |
+| R8.6 | Push: device tokens, FCM, the worker | §133.5 E2, E3 | — | DOING (2026-09-29 · while no worker runs, the Android app sets its own reminders of orders due soon and overdue, and the web app is pushed them on the database's schedule — `0031_web_push`, §139.17.4; FCM push to Android waits on the worker) |
 | R8.7 | Native bill sharing, PNG and PDF | §139.17.2 | — | DONE (2026-09-28 · Filesystem + Share; the PDF saves through the share sheet) |
 | R8.8 | Splash screen and adaptive icon | §139.17.3 | — | DONE (2026-09-28 · adaptive and themed icons, the system splash on cream; seen on a device with R8.12) |
 | R8.9 | The offline screen | IMP-08 | — | DONE (2026-09-28 · `server.errorPath`, built by `scripts/android-shell.mjs`) |

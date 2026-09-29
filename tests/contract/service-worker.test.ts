@@ -51,7 +51,12 @@ function worker(version = "0.1.0") {
     location: { href: `${ORIGIN}/sw.js?v=${version}`, origin: ORIGIN },
     addEventListener: (type: string, handler: Handler) => void (handlers[type] = handler),
     skipWaiting: vi.fn(async () => {}),
-    clients: { claim: vi.fn(async () => {}) },
+    clients: {
+      claim: vi.fn(async () => {}),
+      matchAll: vi.fn(async (): Promise<unknown[]> => []),
+      openWindow: vi.fn(async () => null),
+    },
+    registration: { showNotification: vi.fn<(title: string, options: NotificationOptions) => Promise<void>>(async () => {}) },
   };
   // A worker's Request reads a path against the worker's own address, as the browser's does.
   class WorkerRequest extends Request {
@@ -82,7 +87,7 @@ function worker(version = "0.1.0") {
     return answered;
   }
 
-  return { dispatch, network, stores };
+  return { dispatch, network, stores, self };
 }
 
 const get = (path: string, mode = "cors") => {
@@ -194,5 +199,80 @@ describe("the service worker", () => {
     const unnamed = worker("");
     await unnamed.dispatch("install");
     expect([...unnamed.stores.keys()]).toEqual(["brio-static-0"]);
+  });
+});
+
+describe("order reminders pushed by the server (R8.6)", () => {
+  const pushed = (message: unknown) => ({ data: { json: () => (typeof message === "string" ? JSON.parse(message) : message) } });
+
+  it("shows one, with the app's icons, a tag so a repeat replaces it, and where a tap leads", async () => {
+    await sw.dispatch("push", pushed({ title: "Due soon", body: "ORD-1028 is due tomorrow.", url: "/orders/o-1", tag: "ORDER_DUE:o-1" }));
+    expect(sw.self.registration.showNotification).toHaveBeenCalledWith("Due soon", {
+      body: "ORD-1028 is due tomorrow.",
+      icon: "/icons/icon-192.png",
+      badge: "/icons/badge-96.png",
+      tag: "ORDER_DUE:o-1",
+      data: { url: `${ORIGIN}/orders/o-1` },
+    });
+  });
+
+  it("leads only to a screen of this app, and Home otherwise", async () => {
+    for (const url of ["https://elsewhere.example/x", "//elsewhere.example/x", null]) {
+      await sw.dispatch("push", pushed({ title: "Due soon", url }));
+    }
+    const leads = sw.self.registration.showNotification.mock.calls.map(([, options]) => options.data.url);
+    expect(leads).toEqual([`${ORIGIN}/`, `${ORIGIN}/`, `${ORIGIN}/`]);
+    const [, bare] = sw.self.registration.showNotification.mock.calls[2];
+    expect(bare.body).toBe("");
+    expect(bare.tag).toBeUndefined();
+  });
+
+  it("shows nothing for a push it cannot read", async () => {
+    await sw.dispatch("push", {});
+    await sw.dispatch("push", { data: { json: () => JSON.parse("not json") } });
+    await sw.dispatch("push", pushed({ body: "no title" }));
+    expect(sw.self.registration.showNotification).not.toHaveBeenCalled();
+  });
+
+  const tapped = (url?: unknown) => {
+    const notification = { close: vi.fn(), data: url === undefined ? undefined : { url } };
+    return { notification };
+  };
+
+  it("opens the screen in a window of the app already open, and brings it forward", async () => {
+    const moved = { focus: vi.fn() };
+    const open = { url: `${ORIGIN}/orders`, navigate: vi.fn(async () => moved), focus: vi.fn() };
+    sw.self.clients.matchAll.mockResolvedValue([{ url: "https://elsewhere.example/" }, open]);
+    const event = tapped(`${ORIGIN}/orders/o-1`);
+
+    await sw.dispatch("notificationclick", event);
+    expect(event.notification.close).toHaveBeenCalledOnce();
+    expect(open.navigate).toHaveBeenCalledWith(`${ORIGIN}/orders/o-1`);
+    expect(moved.focus).toHaveBeenCalledOnce();
+    expect(sw.self.clients.openWindow).not.toHaveBeenCalled();
+  });
+
+  it("brings the window forward itself when moving it answers nothing", async () => {
+    const open = { url: `${ORIGIN}/`, navigate: vi.fn(async () => null), focus: vi.fn() };
+    sw.self.clients.matchAll.mockResolvedValue([open]);
+    await sw.dispatch("notificationclick", tapped(`${ORIGIN}/orders/o-1`));
+    expect(open.focus).toHaveBeenCalledOnce();
+  });
+
+  it("opens a new window when none is open, or the open one cannot be moved", async () => {
+    await sw.dispatch("notificationclick", tapped(`${ORIGIN}/orders/o-1`));
+    expect(sw.self.clients.openWindow).toHaveBeenLastCalledWith(`${ORIGIN}/orders/o-1`);
+
+    const stuck = { url: `${ORIGIN}/`, navigate: vi.fn(async () => Promise.reject(new TypeError("not controlled"))), focus: vi.fn() };
+    sw.self.clients.matchAll.mockResolvedValue([stuck]);
+    await sw.dispatch("notificationclick", tapped(`${ORIGIN}/orders/o-2`));
+    expect(sw.self.clients.openWindow).toHaveBeenLastCalledWith(`${ORIGIN}/orders/o-2`);
+  });
+
+  it("opens Home for a tap that leads nowhere, or somewhere else", async () => {
+    await sw.dispatch("notificationclick", tapped());
+    await sw.dispatch("notificationclick", tapped("https://elsewhere.example/x"));
+    await sw.dispatch("notificationclick", tapped(42));
+    expect(sw.self.clients.openWindow.mock.calls).toEqual([[`${ORIGIN}/`], [`${ORIGIN}/`], [`${ORIGIN}/`]]);
   });
 });

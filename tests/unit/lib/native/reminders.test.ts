@@ -1,9 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const android = vi.hoisted(() => ({ on: true }));
+const android = vi.hoisted(() => ({ on: true, plugin: true }));
 vi.mock("@/lib/native/platform", () => ({
-  hasPlugins: (...names: string[]) => android.on && names.every((name) => name === "LocalNotifications"),
+  isAndroidApp: () => android.on,
+  hasPlugins: (...names: string[]) => android.on && android.plugin && names.every((name) => name === "LocalNotifications"),
 }));
+const web = vi.hoisted(() => ({
+  webPushPermission: vi.fn(async () => "OFF"),
+  turnOnWebPush: vi.fn(async () => "ON"),
+  renewWebPush: vi.fn(async () => undefined),
+  stopWebPush: vi.fn(async () => undefined),
+}));
+vi.mock("@/lib/native/webPush", () => web);
 
 type Tapped = (event: { notification: { extra?: { url?: unknown } } }) => void;
 const plugin = vi.hoisted(() => ({
@@ -28,7 +36,7 @@ import {
   onReminderTapped,
   reminderId,
   reminderPermission,
-  remindersSupported,
+  renewReminders,
   scheduleReminders,
   type Reminder,
 } from "@/lib/native/reminders";
@@ -44,6 +52,7 @@ const late: Reminder = { ...tomorrow, key: "ORDER_OVERDUE:o-1", at: "2026-10-02T
 
 beforeEach(async () => {
   android.on = true;
+  android.plugin = true;
   plugin.display = "granted";
   plugin.pending = [];
   plugin.tapped = undefined;
@@ -65,17 +74,39 @@ beforeEach(async () => {
 });
 
 describe("in a browser", () => {
-  it("has nothing to set, and does nothing", async () => {
+  it("is pushed to instead: the permission, asking, renewing and leaving are the web half's", async () => {
     android.on = false;
-    expect(remindersSupported()).toBe(false);
-    expect(await reminderPermission()).toBe("UNSUPPORTED");
-    expect(await askForReminders()).toBe("UNSUPPORTED");
-    await scheduleReminders([tomorrow]);
+    expect(await reminderPermission()).toBe("OFF");
+    expect(await askForReminders()).toBe("ON");
+    await renewReminders();
     await clearReminders();
+    expect(web.webPushPermission).toHaveBeenCalledOnce();
+    expect(web.turnOnWebPush).toHaveBeenCalledOnce();
+    expect(web.renewWebPush).toHaveBeenCalledOnce();
+    expect(web.stopWebPush).toHaveBeenCalledOnce();
+  });
+
+  it("sets nothing on the device, and listens for no tap: the service worker opens the screen", async () => {
+    android.on = false;
+    await scheduleReminders([tomorrow]);
     onReminderTapped(vi.fn())();
     expect(plugin.checkPermissions).not.toHaveBeenCalled();
     expect(plugin.schedule).not.toHaveBeenCalled();
     expect(plugin.addListener).not.toHaveBeenCalled();
+  });
+});
+
+describe("in an Android app built before the plugin", () => {
+  it("has nothing to set, and does nothing", async () => {
+    android.plugin = false;
+    expect(await reminderPermission()).toBe("UNSUPPORTED");
+    expect(await askForReminders()).toBe("UNSUPPORTED");
+    await scheduleReminders([tomorrow]);
+    await clearReminders();
+    await renewReminders();
+    expect(plugin.checkPermissions).not.toHaveBeenCalled();
+    expect(plugin.getPending).not.toHaveBeenCalled();
+    expect(web.renewWebPush).not.toHaveBeenCalled();
   });
 });
 

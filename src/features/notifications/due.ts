@@ -4,12 +4,20 @@ import { SWEEP_INTERVAL_MS, WORKER_ENABLED } from "@/constants/jobs";
 import { DUE_NOTICE_FROM_HOUR } from "@/constants/limits";
 import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
 import { logger } from "@/lib/logger";
+import { readAll } from "@/lib/supabase/readAll";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server";
 import type { Tenant } from "@/lib/supabase/tenant";
 import type { NotificationListQuery } from "@/lib/validation";
 
 import { countUnread, listNotifications, recordNotification } from "./api";
-import { notificationKind, notificationLink, notificationText, readNotificationMessage } from "./text";
+import { pushToBusiness } from "./push";
+import {
+  notificationKind,
+  notificationLink,
+  notificationText,
+  readNotificationMessage,
+  type NotificationMessage,
+} from "./text";
 
 interface DueNoticeRow {
   kind: string;
@@ -35,21 +43,44 @@ const looks = new Map<string, { at: number; run: Promise<void> }>();
  *
  * `take_due_order_notices` (0027) marks what is due and hands back the facts;
  * the words are written here, from messages.ts, as the worker writes them
- * (BUG-26). A look that fails is logged, and the bell still answers.
+ * (BUG-26). Each is then pushed to the business's browsers that want them
+ * (R8.6). A look that fails is logged, and the bell still answers.
  */
 export function checkDueOrders(tenant: Tenant): Promise<void> {
+  return lookForDueOrders(tenant.bakeryId);
+}
+
+function lookForDueOrders(bakeryId: string): Promise<void> {
   if (WORKER_ENABLED) return Promise.resolve();
-  const last = looks.get(tenant.bakeryId);
+  const last = looks.get(bakeryId);
   if (last && Date.now() - last.at < SWEEP_INTERVAL_MS) return last.run;
 
-  const run = tellDueOrders(tenant.bakeryId).catch((error: unknown) => {
+  const run = tellDueOrders(bakeryId).catch((error: unknown) => {
     logger.error("Could not look for orders due", {
-      bakeryId: tenant.bakeryId,
+      bakeryId,
       reason: error instanceof Error ? error.message : String(error),
     });
   });
-  looks.set(tenant.bakeryId, { at: Date.now(), run });
+  looks.set(bakeryId, { at: Date.now(), run });
   return run;
+}
+
+/**
+ * `POST /api/cron/due-orders` (R8.6): the database's scheduler asks every
+ * five minutes (0031), so a business whose browsers want pushes is looked at
+ * with nobody in the app — at 8 AM, not when the owner next opens it. Each
+ * such business is looked at as the bell would look. Businesses with none are
+ * left to their bell.
+ */
+export async function sweepDueOrders(): Promise<{ businesses: number }> {
+  if (WORKER_ENABLED) return { businesses: 0 };
+  const client = createSupabaseServiceRoleClient();
+  const rows = await readAll<{ id: string; bakery_id: string }>((from, to) =>
+    client.from("device_tokens").select("id, bakery_id").order("id", { ascending: true }).range(from, to),
+  );
+  const businesses = [...new Set(rows.map((row) => row.bakery_id))];
+  for (const bakeryId of businesses) await lookForDueOrders(bakeryId);
+  return { businesses: businesses.length };
 }
 
 async function tellDueOrders(bakeryId: string): Promise<void> {
@@ -62,6 +93,7 @@ async function tellDueOrders(bakeryId: string): Promise<void> {
   });
   if (error) throw fromPostgrestError(error);
 
+  const told: NotificationMessage[] = [];
   for (const row of (data ?? []) as DueNoticeRow[]) {
     const message = readNotificationMessage({
       kind: row.kind,
@@ -79,7 +111,9 @@ async function tellDueOrders(bakeryId: string): Promise<void> {
       text: notificationText(message),
       actionUrl: notificationLink(message),
     });
+    told.push(message);
   }
+  await pushToBusiness(client, bakeryId, told);
 }
 
 /** The bell's count (`GET /api/notifications/unread`), once the orders due have been looked at. */

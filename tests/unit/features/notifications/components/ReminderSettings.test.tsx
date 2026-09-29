@@ -1,15 +1,18 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { ApiError } from "@/lib/api/client";
 import type { ReminderPermission } from "@/lib/native";
 import { Providers } from "@tests/support/providers";
 
 const native = vi.hoisted(() => ({
+  android: true,
   permission: undefined as ReminderPermission | undefined,
   ask: vi.fn(),
 }));
 vi.mock("@/lib/native", () => ({
+  isAndroidApp: () => native.android,
   useReminderPermission: () => ({ permission: native.permission, ask: native.ask }),
 }));
 
@@ -19,6 +22,7 @@ const show = () => render(<ReminderSettings />, { wrapper: Providers });
 const section = () => screen.getByRole("region", { name: "Notifications" });
 
 beforeEach(() => {
+  native.android = true;
   native.permission = "OFF";
   native.ask.mockReset().mockResolvedValue("ON");
 });
@@ -41,6 +45,25 @@ describe("ReminderSettings", () => {
     await userEvent.click(row);
     expect(native.ask).toHaveBeenCalledOnce();
     expect(await screen.findByRole("status")).toHaveTextContent("Reminders on");
+  });
+
+  it("says on a card when reminders could not be turned on, with its reference", async () => {
+    native.ask.mockRejectedValue(new ApiError(422, "PUSH_UNAVAILABLE", "Reminders cannot be turned on here yet.", "req_7"));
+    show();
+    await userEvent.click(within(section()).getByRole("button", { name: /Order reminders/ }));
+    const card = await screen.findByRole("alertdialog", { name: "Reminders not turned on" });
+    expect(card).toHaveTextContent("Reminders cannot be turned on here yet.");
+    expect(card).toHaveTextContent("req_7");
+  });
+
+  it("in a browser, says where it is sent, and where a refusal is undone", () => {
+    native.android = false;
+    show();
+    expect(section()).toHaveTextContent("Sent to this device, even when Brio is closed.");
+    native.permission = "BLOCKED";
+    cleanup();
+    show();
+    expect(section()).toHaveTextContent("Turned off in this browser’s settings for Brio");
   });
 
   it("says nothing more when Android was not allowed to", async () => {

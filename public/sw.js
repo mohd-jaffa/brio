@@ -103,3 +103,55 @@ self.addEventListener("message", (event) => {
     ),
   );
 });
+
+// ── Order reminders pushed by the server (R8.6) ─────────────────────────────
+// What arrives is the server's `PushMessage`: the words, where a tap leads,
+// and a tag, so a repeat of the same reminder replaces it rather than stacks.
+// Shown even when the app is closed: that is what they are for.
+
+/** Only a screen of this app: a pushed address that leads anywhere else opens Home. */
+function appAddress(url) {
+  const target = new URL(typeof url === "string" && url.startsWith("/") && !url.startsWith("//") ? url : "/", self.location.origin);
+  return target.origin === self.location.origin ? target.href : self.location.origin + "/";
+}
+
+self.addEventListener("push", (event) => {
+  let message = {};
+  try {
+    message = event.data ? event.data.json() : {};
+  } catch {
+    message = {};
+  }
+  if (typeof message.title !== "string" || message.title === "") return;
+  event.waitUntil(
+    self.registration.showNotification(message.title, {
+      body: typeof message.body === "string" ? message.body : "",
+      icon: "/icons/icon-192.png",
+      badge: "/icons/badge-96.png",
+      tag: typeof message.tag === "string" ? message.tag : undefined,
+      data: { url: appAddress(message.url) },
+    }),
+  );
+});
+
+// A tap opens its screen: in a window of the app already open, or a new one.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const kept = event.notification.data?.url;
+  const target = typeof kept === "string" ? new URL(kept, self.location.origin) : null;
+  const url = target && target.origin === self.location.origin ? target.href : appAddress("/");
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(async (windows) => {
+      const open = windows.find((client) => new URL(client.url).origin === self.location.origin);
+      if (open) {
+        try {
+          const moved = await open.navigate(url);
+          return (moved ?? open).focus();
+        } catch {
+          // A window this worker does not control cannot be moved: open a new one.
+        }
+      }
+      return self.clients.openWindow(url);
+    }),
+  );
+});

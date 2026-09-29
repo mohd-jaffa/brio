@@ -11,3 +11,8 @@ export function publicAppUrl(): string {
 export function publicAppVersion(): string {
   return process.env.NEXT_PUBLIC_APP_VERSION ?? "";
 }
+
+/** The app's public web push key (R8.6), which a browser subscribes with; empty while web push is off. */
+export function publicVapidKey(): string {
+  return process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
+}

@@ -3168,3 +3168,57 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - None.
+
+## 2026-09-29 — Order reminders pushed to the web app, on the database's schedule
+
+### Added
+- **R8.6, web push without a worker** (the user: "build the pwa push with pg_cron"). A closed web app can be woken only by a push, and a push needs a sender on a schedule. The database's own scheduler now stands in. No Edge Function and no separate process are involved.
+  - **`0031_web_push.sql`:**
+    - **`device_tokens`** (the plan's registry): each browser that wants pushes, with its push service's address and the keys that encrypt what is sent to it. It is the server's alone (RLS on, nothing granted), and goes with the business or the owner.
+    - **pg_cron** calls `request_due_order_sweep()` every five minutes. Through **pg_net**, that posts to `POST /api/cron/due-orders` with `CRON_SECRET` as a bearer token.
+    - Where it calls and the secret are read from **Supabase Vault**, so the migration holds neither. Until both are set, while no browser wants pushes, or while a worker runs, it calls nothing.
+    - A daily job keeps a week of the scheduler's history.
+  - **`POST /api/cron/due-orders`** is refused without the secret (compared in constant time), and always while none is set. It looks at each business that has such a browser, as the bell does (`sweepDueOrders`).
+  - **Every due notice taken**, by the scheduler or by the bell, goes to the inbox and is **pushed** to the business's browsers (`pushToBusiness`, the `web-push` library, VAPID keys from the environment). A browser its push service has forgotten (404, 410) is let go. Any other failure is logged, without the browser's address.
+  - **`POST /api/notifications/devices`** keeps a browser's subscription for the signed-in owner (`pushSubscriptionSchema`: https only, keys bounded). It answers `PUSH_UNAVAILABLE` while web push has no keys.
+  - **In the browser** (`src/lib/native/webPush.ts`, behind the same reminders calls as Android):
+    - Settings → Notifications → Order reminders now shows wherever push can work: the built web app in a browser with push, or on an iPhone once Brio is on the Home Screen.
+    - When off, the row asks the browser, subscribes and tells the server. If the server cannot be told, the subscription is dropped and a card says so.
+    - The app tells the server again each time it opens. Signing out unsubscribes the browser.
+  - **The service worker** shows a push with the app's icon and a white badge (`public/icons/badge-96.png`, built by `scripts/brand.mjs`), and a repeat of the same reminder replaces it. A tap opens its order in an open window, or a new one, and only ever a screen of this app.
+  - **The environment** (`.env.example`, "Web push"): `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (else `mailto:` the support address) and `CRON_SECRET`. All are optional: without them web push is off, and Settings does not offer it.
+  - **The privacy policy** (updated 2026-09-29) says what is kept for a browser's reminders, that the browser's own push service carries them (and cannot read them), and how to turn them off.
+
+### Decided
+- **Cost on the free plans:** no Edge Function is used. pg_cron and pg_net run inside the database on every Supabase plan. Each call is one small request to the app: 288 a day at most, and none while no browser wants pushes. Browsers' push services are free.
+- **The rule is the inbox's:** from 8 AM in the business's day, an order due today or tomorrow, or overdue, is told once. An order placed later in the day for tomorrow is told within five minutes.
+- **FCM push to the Android app** still waits for a worker. The Android app keeps setting its own reminders.
+
+### Validation
+- **Unit tests:**
+  - the sender: fan-out, letting a forgotten browser go, and logs without addresses;
+  - registration, the scheduled sweep, and the secret check;
+  - the environment, the schema, and the browser half (permission states, subscribing, a failed registration dropped, renewing, leaving);
+  - the platform switch, `OrderReminders` and the Settings row on the web;
+  - the service worker's push and tap handling;
+  - a contract test for `0031`.
+  - The new code is at 100 %.
+- **On the local stack:**
+  - `0031` applied, with both jobs in `cron.job`. A signed-in user can read neither the table nor the function.
+  - The route refused no secret and a wrong one, and answered with the right one.
+- **End to end, in Google Chrome (headless), against the production build, after 8 AM:**
+  - Settings turned reminders on, and the server kept the subscription (`fcm.googleapis.com`).
+  - `request_due_order_sweep()` called the app, which answered `200` having looked at one business.
+  - Chrome's service worker showed "Due soon · ORD-1003 for Guest is due tomorrow.", tagged and leading to the order, and the inbox had it too.
+  - Before 8 AM the same call told nothing, as the rule says.
+  - The order, the inbox row and the test browser were restored or removed afterwards.
+- **Checks:** `tsc` and `eslint` pass, and the full suite passes (2,352 tests).
+
+### Migration notes
+- Apply **`0031_web_push.sql`** to the hosted database.
+- Make the VAPID keys and `CRON_SECRET` once, put them in the server's environment, and rebuild, since the public key is built into the app.
+- In Supabase's SQL editor, store the app's `/api/cron/due-orders` address and `CRON_SECRET` in Vault (`.env.example` has the two lines).
+- Keep Cloudflare's Bot Fight Mode off, or it would challenge the scheduler's call.
+
+### Blockers
+- **Seen on phones:** an Android phone's Chrome, and an iPhone with Brio on its Home Screen, are still to be tried.

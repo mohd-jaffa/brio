@@ -18,6 +18,8 @@
 //   src/assets/brand/icon.webp               the rounded square, for the app itself
 //   src/assets/brand/wordmark.webp           the wordmark, its ground see-through
 //   src/assets/brand/leaf.webp               the leaf alone, the smallest mark
+//   public/icons/badge-96.png                the mark in white, which Android's
+//                                            status bar shows for a web push (R8.6)
 //
 // And, once the Android project exists (npx cap add android), its launcher
 // icons and splash in android/app/src/main/res/:
@@ -263,6 +265,8 @@ async function statusIcon(size, { mark }) {
     .toBuffer({ resolveWithObject: true });
   return markOnly(size, STATUS_SHARE, { mark: shape }, true);
 }
+
+written[`${ICONS}/badge-96.png`] = await statusIcon(96, lifted);
 
 if (fs.existsSync(RES)) {
   const circle = (size) =>

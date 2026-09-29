@@ -44,6 +44,7 @@
     "react-hook-form": "^7.88.0",
     "sharp": "0.35.4",
     "swr": "^2.5.1",
+    "web-push": "^3.6.7",
     "zod": "^4.6.5"
   },
   "devDependencies": {
@@ -58,6 +59,7 @@
     "@types/pdfkit": "^0.17.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/web-push": "^3.6.4",
     "@vitest/coverage-v8": "^4.1.10",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
