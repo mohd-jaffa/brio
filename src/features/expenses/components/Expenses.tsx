@@ -83,7 +83,7 @@ export function Expenses() {
         <RangePicker value={range} onChange={choose} />
         <Fab label={text.add} onClick={() => form.open()} />
       </PageHeader>
-      <Hero variant="band" lines={text.bandLines} tagline={text.bandTagline} plate="brownies" />
+      <Hero variant="band" lines={text.bandLines} tagline={text.bandTagline} plate="brownies" priority />
 
       <Tabs
         id="expenses"

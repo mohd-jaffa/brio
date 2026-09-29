@@ -153,6 +153,9 @@ export function Settings() {
               quality={PLATE_QUALITY}
               alt=""
               fill
+              // The top of the first card: the screen's largest paint, so fetched at once.
+              loading="eager"
+              fetchPriority="high"
               sizes="(min-width: 1024px) 20rem, 100vw"
               className="object-cover"
               style={{ objectPosition: PLATE_FOCUS[PLATE] }}
