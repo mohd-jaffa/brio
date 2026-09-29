@@ -83,10 +83,7 @@ export interface Respond {
   warning: (card: OutcomeCard) => void;
   error: (card: ErrorCard) => void;
   /** An error card for a caught failure: its message and request id come from the API's envelope. */
-  failure: (
-    failure: unknown,
-    card: Omit<ErrorCard, "message" | "requestId"> & { fallback?: ErrorMessageCode },
-  ) => void;
+  failure: (failure: unknown, card: Omit<ErrorCard, "message" | "requestId"> & { fallback?: ErrorMessageCode }) => void;
   /** Resolves `true` for the confirm button, `false` for anything else. */
   confirm: (card: ConfirmCard) => Promise<boolean>;
 }
@@ -197,7 +194,11 @@ export function ResponseProvider({ children }: { children: ReactNode }) {
       {/* Announces a card that closes itself, which never takes focus. */}
       <p role="status" aria-live="polite" className="sr-only">
         {current && closesItself(current)
-          ? [current.title, current.message, ...(current.facts ?? []).slice(0, 3).map((fact) => `${fact.label} ${fact.value}`)]
+          ? [
+              current.title,
+              current.message,
+              ...(current.facts ?? []).slice(0, 3).map((fact) => `${fact.label} ${fact.value}`),
+            ]
               .filter(Boolean)
               .join(". ")
           : ""}
@@ -314,9 +315,7 @@ function ResponseCard({ card, onClose }: { card: Card; onClose: (answer?: boolea
             ))}
           </dl>
         )}
-        {card.requestId && (
-          <p className="mt-3 text-xs text-text-muted">{UI_TEXT.response.reference(card.requestId)}</p>
-        )}
+        {card.requestId && <p className="mt-3 text-xs text-text-muted">{UI_TEXT.response.reference(card.requestId)}</p>}
         <div className={cn("mt-6 grid w-full gap-3", (confirming || card.secondary) && "grid-cols-2")}>
           {confirming && (
             <ActionButton
@@ -326,9 +325,7 @@ function ResponseCard({ card, onClose }: { card: Card; onClose: (answer?: boolea
               buttonRef={safe}
             />
           )}
-          {card.secondary && (
-            <ActionButton action={card.secondary} variant="secondary" onDone={() => onClose(false)} />
-          )}
+          {card.secondary && <ActionButton action={card.secondary} variant="secondary" onDone={() => onClose(false)} />}
           {card.primary && (
             <ActionButton
               action={card.primary}

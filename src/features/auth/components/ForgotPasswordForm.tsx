@@ -52,7 +52,6 @@ export function ForgotPasswordForm() {
 
   return (
     <form method="post" onSubmit={handleSubmit((values) => submit(values))} className="space-y-5" noValidate>
-
       <TextField
         label={UI_TEXT.auth.emailLabel}
         type="email"

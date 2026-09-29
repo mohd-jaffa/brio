@@ -7,7 +7,14 @@ import { cn } from "@/components/ui/cn";
 import { ProfileAvatar } from "@/components/ui/profile-avatar";
 import { useResponse } from "@/components/ui/response-card";
 import { Sheet } from "@/components/ui/sheet";
-import { AVATAR_GROUP_LABELS, AVATAR_GROUPS, AVATAR_KEYS, AVATARS, avatarOr, type AvatarKey } from "@/constants/avatars";
+import {
+  AVATAR_GROUP_LABELS,
+  AVATAR_GROUPS,
+  AVATAR_KEYS,
+  AVATARS,
+  avatarOr,
+  type AvatarKey,
+} from "@/constants/avatars";
 import { UI_TEXT } from "@/constants/messages";
 import { useSheetChoice } from "@/hooks/useSheetChoice";
 import { useApiMutation } from "@/lib/query/useApiMutation";
@@ -70,7 +77,9 @@ export function AvatarSheet({ open, onClose }: { open: boolean; onClose: () => v
       >
         {AVATAR_GROUPS.map((group) => (
           <section key={group} aria-label={AVATAR_GROUP_LABELS[group]} className="space-y-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">{AVATAR_GROUP_LABELS[group]}</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+              {AVATAR_GROUP_LABELS[group]}
+            </h3>
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3">
               {AVATAR_KEYS.filter((key) => AVATARS[key].group === group).map((key) => (
                 <Choice
@@ -132,7 +141,10 @@ function Choice({
           </span>
         )}
         {busy && (
-          <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center rounded-full bg-surface/60">
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 flex items-center justify-center rounded-full bg-surface/60"
+          >
             <Loader2 size={24} className="animate-spin text-primary" />
           </span>
         )}

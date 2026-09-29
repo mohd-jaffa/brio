@@ -72,7 +72,9 @@ describe("estimateOrder (§139.11.5)", () => {
   });
 
   it("checks stock for catalogue lines only, and says what is short", async () => {
-    const { client, calls } = readOnlyClient([{ product_id: "p-1", product_name: "Red Velvet Cake", available: 2, requested: 4 }]);
+    const { client, calls } = readOnlyClient([
+      { product_id: "p-1", product_name: "Red Velvet Cake", available: 2, requested: 4 },
+    ]);
     const estimate = await estimateOrder(tenantOf(client), draft);
 
     expect(calls).toEqual([["stock_shortfalls", { p_lines: [{ product_id: "p-1", quantity: 4 }] }]]);
@@ -80,7 +82,12 @@ describe("estimateOrder (§139.11.5)", () => {
   });
 
   it("asks nothing about stock when every line is custom", async () => {
-    priceDraft.mockResolvedValue({ customer: { kind: "GUEST" }, lines: [lines[1]], totals, payment: { status: "UNPAID" } });
+    priceDraft.mockResolvedValue({
+      customer: { kind: "GUEST" },
+      lines: [lines[1]],
+      totals,
+      payment: { status: "UNPAID" },
+    });
     const { client, calls } = readOnlyClient();
     const estimate = await estimateOrder(tenantOf(client), draft);
 
@@ -90,7 +97,9 @@ describe("estimateOrder (§139.11.5)", () => {
   });
 
   it("passes on a stock check that failed, in the app's words", async () => {
-    const client = { rpc: () => Promise.resolve({ data: null, error: { code: "42501", message: "permission denied" } }) };
+    const client = {
+      rpc: () => Promise.resolve({ data: null, error: { code: "42501", message: "permission denied" } }),
+    };
     await expect(estimateOrder(tenantOf(client), draft)).rejects.toMatchObject({ code: "AUTH_ROLE_FORBIDDEN" });
   });
 });

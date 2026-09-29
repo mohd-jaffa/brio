@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { VALIDATION_MESSAGES } from "@/constants/messages";
 import { createCustomerSchema, customerListQuerySchema } from "@/lib/validation/index";
 
-
 describe("customer", () => {
   it("normalises the phone number so one customer is one row", () => {
     const parsed = createCustomerSchema.parse({ name: "Meena", phone: "+91 98765-43210" });
@@ -31,6 +30,8 @@ describe("customer list query", () => {
   });
 
   it("refuses a segment it does not know, in its own words", () => {
-    expect(customerListQuerySchema.safeParse({ segment: "WHOLESALE" }).error?.issues[0].message).toBe(VALIDATION_MESSAGES.invalid);
+    expect(customerListQuerySchema.safeParse({ segment: "WHOLESALE" }).error?.issues[0].message).toBe(
+      VALIDATION_MESSAGES.invalid,
+    );
   });
 });

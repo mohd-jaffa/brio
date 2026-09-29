@@ -54,7 +54,10 @@ export async function runWorker({
 
       if (await processNextJob(client, workerId)) continue;
     } catch (error) {
-      logger.error("Worker could not reach the queue", { workerId, reason: error instanceof Error ? error.message : String(error) });
+      logger.error("Worker could not reach the queue", {
+        workerId,
+        reason: error instanceof Error ? error.message : String(error),
+      });
     }
     await pause(idleMs, signal);
   }

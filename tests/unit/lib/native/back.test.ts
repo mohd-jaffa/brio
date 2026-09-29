@@ -35,7 +35,9 @@ describe("goBack", () => {
   it("then the card or sheet on top, as Escape would", () => {
     document.body.innerHTML = '<dialog open id="form"></dialog><dialog open id="picker"></dialog>';
     const cancelled: string[] = [];
-    document.querySelectorAll("dialog").forEach((dialog) => dialog.addEventListener("cancel", () => cancelled.push(dialog.id)));
+    document
+      .querySelectorAll("dialog")
+      .forEach((dialog) => dialog.addEventListener("cancel", () => cancelled.push(dialog.id)));
     expect(goBack(true)).toBe("CLOSED_LAYER");
     expect(cancelled).toEqual(["picker"]);
   });

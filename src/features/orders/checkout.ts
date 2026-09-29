@@ -21,11 +21,7 @@ import type { Order } from "./types";
  * `idempotencyKey` makes a repeat harmless: the same key returns the order the
  * first request made, and nothing is created, audited or reserved again (C2).
  */
-export async function createOrder(
-  tenant: Tenant,
-  input: CreateOrderPayload,
-  idempotencyKey: string,
-): Promise<Order> {
+export async function createOrder(tenant: Tenant, input: CreateOrderPayload, idempotencyKey: string): Promise<Order> {
   const draft = await priceDraft(tenant, input);
 
   const { data, error } = await tenant.supabase
@@ -73,7 +69,10 @@ function toOrderPayload(input: CreateOrderPayload, { customer, lines, totals, pa
  * (R2.10); a failure is logged and never undoes the order.
  */
 async function auditCreation(tenant: Tenant, orderId: string) {
-  const [{ order }, payments] = await Promise.all([findOrderById(tenant, orderId), findPaymentsByOrderId(tenant, orderId)]);
+  const [{ order }, payments] = await Promise.all([
+    findOrderById(tenant, orderId),
+    findPaymentsByOrderId(tenant, orderId),
+  ]);
   await logActionSafe(tenant, {
     action: "CREATE",
     entity_type: "orders",

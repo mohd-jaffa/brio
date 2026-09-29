@@ -15,7 +15,9 @@ describe("audit writes migration", () => {
   });
 
   it("leaves a signed-in user SELECT and nothing else", () => {
-    expect(migration).toMatch(/revoke insert, update, delete, truncate, references, trigger on public\.audit_logs from authenticated;/);
+    expect(migration).toMatch(
+      /revoke insert, update, delete, truncate, references, trigger on public\.audit_logs from authenticated;/,
+    );
     expect(migration).not.toMatch(/revoke[^;]*select[^;]*audit_logs/i);
   });
 });

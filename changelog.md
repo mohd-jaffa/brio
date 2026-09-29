@@ -3253,3 +3253,18 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - None.
+
+## 2026-09-29 — Prettier
+
+### Added (the user: "setup prettier in the project")
+- **Prettier 3** (`prettier`, pinned), with `.prettierrc.json` (120 columns, its defaults otherwise) and `.prettierignore`. Markdown is left as written, since the plan and the changelog are wrapped by hand, and so is the generated Android project.
+- `npm run format` writes it, and `npm run format:check` is the gate CI will run (AGENTS §27, plan §125).
+
+### Changed
+- The codebase formatted once: 327 files, layout only. 120 columns was the width that changed the fewest (100 would have touched 566).
+
+### Validation
+- `prettier --check .` passes, as do `tsc`, `eslint` and the full suite (2,365 tests).
+
+### Blockers
+- None.

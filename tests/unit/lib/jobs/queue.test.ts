@@ -83,7 +83,11 @@ describe("createJob", () => {
   it("puts the work on the queue, due now unless told otherwise", async () => {
     const { client, inserts } = fakeClient();
     await createJob(client, { type: "REFRESH_ANALYTICS", payload: { bakeryId: "b-1" } });
-    expect(inserts[0]).toMatchObject({ type: "REFRESH_ANALYTICS", payload: { bakeryId: "b-1" }, run_at: expect.any(String) });
+    expect(inserts[0]).toMatchObject({
+      type: "REFRESH_ANALYTICS",
+      payload: { bakeryId: "b-1" },
+      run_at: expect.any(String),
+    });
   });
 
   it("keeps the driver's error out of what a caller could be shown", async () => {
@@ -123,13 +127,19 @@ describe("settling a job", () => {
     const { client, updates } = fakeClient();
     await markCompleted(client, job(), "w-1");
     expect(updates[0].changes).toMatchObject({ status: "completed", locked_by: null, locked_at: null });
-    expect(updates[0].filters).toEqual([["id", "j-1"], ["locked_by", "w-1"]]);
+    expect(updates[0].filters).toEqual([
+      ["id", "j-1"],
+      ["locked_by", "w-1"],
+    ]);
   });
 
   it("leaves alone a job whose lease ran out and says so", async () => {
     const { client } = fakeClient({ held: false });
     await markCompleted(client, job(), "w-1");
-    expect(logger.warn).toHaveBeenCalledWith("Job was no longer held when it finished", { jobId: "j-1", type: "REFRESH_ANALYTICS" });
+    expect(logger.warn).toHaveBeenCalledWith("Job was no longer held when it finished", {
+      jobId: "j-1",
+      type: "REFRESH_ANALYTICS",
+    });
   });
 
   it("puts a failed job back to wait five minutes while it has attempts left", async () => {
@@ -175,7 +185,12 @@ describe("processNextJob", () => {
 
     await expect(processNextJob(client, "w-1")).resolves.toBe(true);
     expect(updates[0].changes).toMatchObject({ status: "pending", last_error: "provider down" });
-    expect(logger.error).toHaveBeenCalledWith("Job failed", { jobId: "j-1", type: "REFRESH_ANALYTICS", attempt: 1, reason: "provider down" });
+    expect(logger.error).toHaveBeenCalledWith("Job failed", {
+      jobId: "j-1",
+      type: "REFRESH_ANALYTICS",
+      attempt: 1,
+      reason: "provider down",
+    });
   });
 
   it("fails a job nobody handles, with a reason that says so", async () => {

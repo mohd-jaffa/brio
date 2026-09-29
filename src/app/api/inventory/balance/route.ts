@@ -5,7 +5,5 @@ import { listParam } from "@/lib/api/params";
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  return withBakeryRoute(request, (tenant) =>
-    getInventoryBalances(tenant, listParam(request, "products")),
-  );
+  return withBakeryRoute(request, (tenant) => getInventoryBalances(tenant, listParam(request, "products")));
 }

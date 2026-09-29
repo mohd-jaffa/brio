@@ -7,8 +7,14 @@ import { anOverview, answering, devAuth } from "@tests/support/admin";
 import { authStub } from "@tests/support/auth";
 import { Providers } from "@tests/support/providers";
 
-const { fetcher, auth } = vi.hoisted(() => ({ fetcher: vi.fn(), auth: { current: {} as ReturnType<typeof authStub> } }));
-vi.mock("@/lib/api/client", async (original) => ({ ...(await original<typeof import("@/lib/api/client")>()), fetcher }));
+const { fetcher, auth } = vi.hoisted(() => ({
+  fetcher: vi.fn(),
+  auth: { current: {} as ReturnType<typeof authStub> },
+}));
+vi.mock("@/lib/api/client", async (original) => ({
+  ...(await original<typeof import("@/lib/api/client")>()),
+  fetcher,
+}));
 vi.mock("@/features/auth/AuthProvider", () => ({ useAuth: () => auth.current }));
 
 const { Overview } = await import("@/features/admin/components/Overview");
@@ -46,7 +52,9 @@ describe("the console's overview", () => {
   });
 
   it("says when the counts could not be read, and tries again", async () => {
-    answering(fetcher, { "/api/admin/overview": new ApiError(500, "INTERNAL_ERROR", "Something went wrong.", "req_1") });
+    answering(fetcher, {
+      "/api/admin/overview": new ApiError(500, "INTERNAL_ERROR", "Something went wrong.", "req_1"),
+    });
     open();
     expect(await screen.findByText("Something went wrong.")).toBeInTheDocument();
     answering(fetcher, { "/api/admin/overview": anOverview() });

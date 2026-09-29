@@ -62,12 +62,20 @@ describe("listStockMovements", () => {
     ]);
     expect(fake.argsOf(query, "range")).toEqual([[20, 20 + PAGE_SIZE]]);
     expect(page.items).toHaveLength(PAGE_SIZE);
-    expect(page.items[0]).toEqual({ id: "t-0", productId: PRODUCT, type: "STOCK_IN", quantity: 1, createdAt: "2026-09-26T05:00:00Z" });
+    expect(page.items[0]).toEqual({
+      id: "t-0",
+      productId: PRODUCT,
+      type: "STOCK_IN",
+      quantity: 1,
+      createdAt: "2026-09-26T05:00:00Z",
+    });
     expect(page.nextCursor).toBe(String(20 + PAGE_SIZE));
   });
 
   it("reads a product with no movements, and passes on a refusal", async () => {
-    expect((await listStockMovements(tenantOf(fakeSupabase(() => ({ data: null })).client), { product: PRODUCT })).items).toEqual([]);
+    expect(
+      (await listStockMovements(tenantOf(fakeSupabase(() => ({ data: null })).client), { product: PRODUCT })).items,
+    ).toEqual([]);
     const refused = fakeSupabase(() => ({ error: { code: "PGRST000", message: "down" } }));
     await expect(listStockMovements(tenantOf(refused.client), { product: PRODUCT })).rejects.toBeInstanceOf(AppError);
   });

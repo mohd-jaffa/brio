@@ -8,7 +8,12 @@ import {
   type NotificationMessage,
 } from "@/features/notifications/text";
 
-const placed: NotificationMessage = { kind: "ORDER_PLACED", orderId: "o-1", orderNumber: "ORD-1028", customerName: "Priya Menon" };
+const placed: NotificationMessage = {
+  kind: "ORDER_PLACED",
+  orderId: "o-1",
+  orderNumber: "ORD-1028",
+  customerName: "Priya Menon",
+};
 const status: NotificationMessage = {
   kind: "ORDER_STATUS",
   orderId: "o-1",
@@ -16,10 +21,27 @@ const status: NotificationMessage = {
   status: "IN_PROGRESS",
   deliveryType: "DELIVERY",
 };
-const payment: NotificationMessage = { kind: "PAYMENT_RECEIVED", orderId: "o-1", orderNumber: "ORD-1028", amount: 50000 };
+const payment: NotificationMessage = {
+  kind: "PAYMENT_RECEIVED",
+  orderId: "o-1",
+  orderNumber: "ORD-1028",
+  amount: 50000,
+};
 const customer: NotificationMessage = { kind: "CUSTOMER_ADDED", customerId: "c-1", name: "Neha Suresh" };
-const stock: NotificationMessage = { kind: "STOCK_LOW", productId: "p-1", productName: "Brownies", balance: 3, unit: "box" };
-const due: NotificationMessage = { kind: "ORDER_DUE", orderId: "o-1", orderNumber: "ORD-1028", customerName: "Priya Menon", day: "TOMORROW" };
+const stock: NotificationMessage = {
+  kind: "STOCK_LOW",
+  productId: "p-1",
+  productName: "Brownies",
+  balance: 3,
+  unit: "box",
+};
+const due: NotificationMessage = {
+  kind: "ORDER_DUE",
+  orderId: "o-1",
+  orderNumber: "ORD-1028",
+  customerName: "Priya Menon",
+  day: "TOMORROW",
+};
 const overdue: NotificationMessage = {
   kind: "ORDER_OVERDUE",
   orderId: "o-1",
@@ -31,7 +53,9 @@ const overdue: NotificationMessage = {
 describe("notificationText (BUG-26)", () => {
   it("names a status in words, and a finished pickup Completed", () => {
     expect(notificationText(status)).toEqual({ title: "Order updated", body: "ORD-1028 is now Preparing." });
-    expect(notificationText({ ...status, status: "DELIVERED", deliveryType: "PICKUP" }).body).toBe("ORD-1028 is now Completed.");
+    expect(notificationText({ ...status, status: "DELIVERED", deliveryType: "PICKUP" }).body).toBe(
+      "ORD-1028 is now Completed.",
+    );
   });
 
   it("writes an amount in rupees, never paise", () => {
@@ -99,12 +123,18 @@ describe("readNotificationMessage", () => {
     expect(readNotificationMessage(customer)).toEqual(customer);
     expect(readNotificationMessage(stock)).toEqual(stock);
     expect(readNotificationMessage(due)).toEqual(due);
-    expect(readNotificationMessage({ ...due, customerName: null, day: "TODAY" })).toEqual({ ...due, customerName: null, day: "TODAY" });
+    expect(readNotificationMessage({ ...due, customerName: null, day: "TODAY" })).toEqual({
+      ...due,
+      customerName: null,
+      day: "TODAY",
+    });
     expect(readNotificationMessage(overdue)).toEqual(overdue);
   });
 
   it("reads a status or payment queued before the order's id was carried", () => {
-    expect(readNotificationMessage({ kind: "ORDER_STATUS", orderNumber: "ORD-1", status: "READY", deliveryType: "PICKUP" })).toEqual({
+    expect(
+      readNotificationMessage({ kind: "ORDER_STATUS", orderNumber: "ORD-1", status: "READY", deliveryType: "PICKUP" }),
+    ).toEqual({
       kind: "ORDER_STATUS",
       orderNumber: "ORD-1",
       status: "READY",

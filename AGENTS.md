@@ -955,6 +955,11 @@ Push / PR
 §139.18). The pipeline runs without them, and errors go to the server's own
 structured logs (§11).
 
+**Formatting is Prettier's** (`.prettierrc.json`: 120 columns, otherwise its
+defaults). `npm run format` writes it and `npm run format:check` is the gate.
+Markdown is left as written (`.prettierignore`), as is the generated Android
+project.
+
 ---
 
 # 28. Impeccable

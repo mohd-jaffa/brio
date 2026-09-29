@@ -10,6 +10,9 @@ export interface RouteParams<K extends string> {
 export function listParam(request: Request, name: string): string[] | undefined {
   const raw = new URL(request.url).searchParams.get(name);
   if (!raw) return undefined;
-  const values = raw.split(",").map((value) => value.trim()).filter(Boolean);
+  const values = raw
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
   return values.length > 0 ? values : undefined;
 }

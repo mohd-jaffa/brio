@@ -44,7 +44,9 @@ describe("the worker process", () => {
 
     await main();
 
-    expect(runWorker).toHaveBeenCalledWith(expect.objectContaining({ client, workerId: expect.stringMatching(new RegExp(`-${process.pid}$`)) }));
+    expect(runWorker).toHaveBeenCalledWith(
+      expect.objectContaining({ client, workerId: expect.stringMatching(new RegExp(`-${process.pid}$`)) }),
+    );
     expect(stopSignal?.aborted).toBe(false);
     process.emit("SIGTERM");
     expect(stopSignal?.aborted).toBe(true);

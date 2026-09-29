@@ -35,7 +35,8 @@ function Nothing({ children }: { children: string }) {
 
 function salesSummary(report: AnalyticsReport): string {
   const change = percentChange(report.kpis.sales);
-  const moved = change === undefined ? null : change > 0 ? text.rose(change) : change < 0 ? text.fell(-change) : text.level;
+  const moved =
+    change === undefined ? null : change > 0 ? text.rose(change) : change < 0 ? text.fell(-change) : text.level;
   return text.salesSummary(formatPaise(report.kpis.sales.value), moved);
 }
 
@@ -73,7 +74,9 @@ function ProductRows({ products, detail }: { products: readonly ProductSales[]; 
           key={product.productId ?? "custom"}
           leading={<ProductTile iconKey={product.iconKey} />}
           title={product.name}
-          subtitle={detail === "orders" ? text.orderCount(product.orders) : text.productLine(product.orders, product.quantity)}
+          subtitle={
+            detail === "orders" ? text.orderCount(product.orders) : text.productLine(product.orders, product.quantity)
+          }
           trailing={<span className="tabular-nums">{formatPaise(product.sales)}</span>}
         />
       ))}
@@ -92,9 +95,7 @@ function SalesByProduct({ products }: { products: readonly ProductSales[] }) {
   return (
     <Donut
       title={text.salesByProduct}
-      summary={
-        best ? text.salesByProductSummary(best.name, formatPaise(best.sales), formatPaise(total)) : text.noSales
-      }
+      summary={best ? text.salesByProductSummary(best.name, formatPaise(best.sales), formatPaise(total)) : text.noSales}
       slices={products.map((product) => ({ label: product.name, value: product.sales }))}
       totalLabel={text.itemSales}
       labelHeading={UI_TEXT.charts.product}
@@ -196,7 +197,10 @@ export function OrdersPanel({ report }: { report: AnalyticsReport }) {
       <Donut
         title={text.byStatus}
         summary={text.ordersSummary(report.ordersByStatus.reduce((sum, entry) => sum + entry.count, 0))}
-        slices={report.ordersByStatus.map((entry) => ({ label: ORDER_STATUS_LABELS[entry.status], value: entry.count }))}
+        slices={report.ordersByStatus.map((entry) => ({
+          label: ORDER_STATUS_LABELS[entry.status],
+          value: entry.count,
+        }))}
         totalLabel={text.totalOrders}
         unit="count"
         labelHeading={UI_TEXT.charts.status}
@@ -267,7 +271,9 @@ export function ProductsPanel({ report }: { report: AnalyticsReport }) {
   const ranked =
     ranking === "SALES"
       ? report.products
-      : [...report.products].sort((a, b) => b.quantity - a.quantity || b.sales - a.sales || a.name.localeCompare(b.name));
+      : [...report.products].sort(
+          (a, b) => b.quantity - a.quantity || b.sales - a.sales || a.name.localeCompare(b.name),
+        );
   return (
     <section aria-label={text.tabNames.PRODUCTS} className="space-y-4">
       <div className="max-w-xs">

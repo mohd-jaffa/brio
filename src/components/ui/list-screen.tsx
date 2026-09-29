@@ -130,7 +130,11 @@ export function ListScreen<T>({
   if (failed) return <LoadFailed query={query} loadFailed={loadFailed} />;
 
   if (!data || data.length === 0) {
-    return <section>{noMatches ? <p className="py-10 text-center text-sm font-medium text-text-muted">{noMatches}</p> : empty}</section>;
+    return (
+      <section>
+        {noMatches ? <p className="py-10 text-center text-sm font-medium text-text-muted">{noMatches}</p> : empty}
+      </section>
+    );
   }
 
   return (

@@ -10,7 +10,9 @@ const { readScreen, getBusiness, countUnread } = vi.hoisted(() => ({
 vi.mock("@/features/auth/session.server", () => ({ readScreen }));
 vi.mock("@/features/business/api", () => ({ getBusiness }));
 vi.mock("@/features/notifications/due", () => ({ countUnreadAfterDue: countUnread }));
-vi.mock("@/components/nav/AppShell", () => ({ AppShell: ({ children }: { children: ReactNode }) => <main>{children}</main> }));
+vi.mock("@/components/nav/AppShell", () => ({
+  AppShell: ({ children }: { children: ReactNode }) => <main>{children}</main>,
+}));
 vi.mock("@/lib/query/ServerData", () => ({
   ServerData: ({ queries, children }: { queries: Record<string, unknown>; children: ReactNode }) => (
     <div data-keys={Object.keys(queries).join(",")}>{children}</div>
@@ -24,7 +26,13 @@ describe("AppScreen", () => {
     const products = vi.fn();
     const orders = vi.fn();
 
-    render(await AppScreen({ queries: { "/api/products": products }, pages: { "/api/orders": orders }, children: <p>The screen</p> }));
+    render(
+      await AppScreen({
+        queries: { "/api/products": products },
+        pages: { "/api/orders": orders },
+        children: <p>The screen</p>,
+      }),
+    );
 
     expect(readScreen).toHaveBeenCalledWith({
       queries: { "/api/business": getBusiness, "/api/notifications/unread": countUnread, "/api/products": products },

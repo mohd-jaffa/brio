@@ -20,7 +20,13 @@ beforeEach(() => vi.clearAllMocks());
  */
 describe("ExpensesClient", () => {
   it("reads, writes and removes on the expenses routes", async () => {
-    await ExpensesClient.createExpense({ category: "Rent", description: "Kitchen", amount: 100, expenseDate: "2026-09-26", paymentMethod: "UPI" });
+    await ExpensesClient.createExpense({
+      category: "Rent",
+      description: "Kitchen",
+      amount: 100,
+      expenseDate: "2026-09-26",
+      paymentMethod: "UPI",
+    });
     expect(postJson).toHaveBeenCalledWith("/api/expenses", expect.objectContaining({ category: "Rent" }));
 
     await ExpensesClient.updateExpense("e-1", { amount: 200 });

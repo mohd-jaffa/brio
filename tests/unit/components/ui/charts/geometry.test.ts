@@ -92,11 +92,20 @@ describe("monotonePath", () => {
   it("draws nothing, a point, or a straight segment for short series", () => {
     expect(monotonePath([])).toBe("");
     expect(monotonePath([{ x: 1, y: 2 }])).toBe("M1,2");
-    expect(monotonePath([{ x: 0, y: 5 }, { x: 10, y: 15 }])).toBe("M0,5L10,15");
+    expect(
+      monotonePath([
+        { x: 0, y: 5 },
+        { x: 10, y: 15 },
+      ]),
+    ).toBe("M0,5L10,15");
   });
 
   it("flattens at a peak, so the curve never rises above it", () => {
-    const path = monotonePath([{ x: 0, y: 10 }, { x: 10, y: 0 }, { x: 20, y: 10 }]);
+    const path = monotonePath([
+      { x: 0, y: 10 },
+      { x: 10, y: 0 },
+      { x: 20, y: 10 },
+    ]);
     const values = numbers(path);
     const ys = values.filter((_, index) => index % 2 === 1);
     expect(Math.min(...ys)).toBe(0);
@@ -105,14 +114,25 @@ describe("monotonePath", () => {
   });
 
   it("keeps a flat run flat", () => {
-    const path = monotonePath([{ x: 0, y: 4 }, { x: 10, y: 4 }, { x: 20, y: 4 }, { x: 30, y: 0 }]);
+    const path = monotonePath([
+      { x: 0, y: 4 },
+      { x: 10, y: 4 },
+      { x: 20, y: 4 },
+      { x: 30, y: 0 },
+    ]);
     expect(path.startsWith("M0,4C3.33,4 6.67,4 10,4")).toBe(true);
   });
 });
 
 describe("areaPath", () => {
   it("closes the line down to the baseline", () => {
-    const path = areaPath([{ x: 0, y: 10 }, { x: 10, y: 0 }], 50);
+    const path = areaPath(
+      [
+        { x: 0, y: 10 },
+        { x: 10, y: 0 },
+      ],
+      50,
+    );
     expect(path).toBe("M0,10L10,0L10,50L0,50Z");
   });
 

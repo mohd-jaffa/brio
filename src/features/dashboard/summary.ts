@@ -116,7 +116,15 @@ export function lowStock(
     .flatMap((product) => {
       const level = stock.get(product.id);
       return level?.stocked
-        ? [{ productId: product.id, name: product.name, iconKey: product.icon_key, unit: product.unit, balance: level.balance }]
+        ? [
+            {
+              productId: product.id,
+              name: product.name,
+              iconKey: product.icon_key,
+              unit: product.unit,
+              balance: level.balance,
+            },
+          ]
         : [];
     })
     .filter((line) => line.balance <= LOW_STOCK_THRESHOLD)
@@ -145,4 +153,3 @@ export function recentCustomers(
   }
   return [...seen.values()];
 }
-

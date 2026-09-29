@@ -160,7 +160,11 @@ export function ExpenseCategories({
               }
               {...line}
               onClick={() =>
-                setActing({ category: category.category, iconKey: iconOf(category.category) as IllustrationKey | null, custom: true })
+                setActing({
+                  category: category.category,
+                  iconKey: iconOf(category.category) as IllustrationKey | null,
+                  custom: true,
+                })
               }
             />
           );

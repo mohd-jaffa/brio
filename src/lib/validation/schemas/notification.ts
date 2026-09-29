@@ -30,9 +30,7 @@ const pushKey = (max: number) =>
  * https, and the keys that encrypt what is sent to it. Bounded as 0031 is.
  */
 export const pushSubscriptionSchema = z.object({
-  endpoint: z
-    .url({ protocol: /^https$/, error: VALIDATION_MESSAGES.invalid })
-    .max(1024, VALIDATION_MESSAGES.invalid),
+  endpoint: z.url({ protocol: /^https$/, error: VALIDATION_MESSAGES.invalid }).max(1024, VALIDATION_MESSAGES.invalid),
   keys: z.object({
     p256dh: pushKey(200),
     auth: pushKey(100),

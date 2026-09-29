@@ -19,7 +19,9 @@ describe("LogoField", () => {
   it("offers an upload when there is no logo, and says there is none", () => {
     render(<LogoField logoUrl={null} />, { wrapper: Providers });
     expect(screen.getByText("No logo yet")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Upload logo" })).toHaveAccessibleDescription(/PNG, JPG or WebP, up to 500 KB/);
+    expect(screen.getByRole("button", { name: "Upload logo" })).toHaveAccessibleDescription(
+      /PNG, JPG or WebP, up to 500 KB/,
+    );
   });
 
   it("shows the current logo, and offers to replace it", () => {

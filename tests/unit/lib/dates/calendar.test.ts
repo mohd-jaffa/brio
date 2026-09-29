@@ -113,7 +113,15 @@ describe("monthWeeks", () => {
   it("lays a month out in weeks from Monday, empty before its first day and after its last", () => {
     const weeks = monthWeeks("2026-09-20");
     expect(weeks).toHaveLength(5);
-    expect(weeks[0]).toEqual([null, "2026-09-01", "2026-09-02", "2026-09-03", "2026-09-04", "2026-09-05", "2026-09-06"]);
+    expect(weeks[0]).toEqual([
+      null,
+      "2026-09-01",
+      "2026-09-02",
+      "2026-09-03",
+      "2026-09-04",
+      "2026-09-05",
+      "2026-09-06",
+    ]);
     expect(weeks[4]).toEqual(["2026-09-28", "2026-09-29", "2026-09-30", null, null, null, null]);
   });
 

@@ -31,7 +31,7 @@ export function mapToOrderModel(
       googleMapsLink: order.delivery_google_maps_link ?? undefined,
     },
     notes: order.notes ?? undefined,
-    items: items.map(i => ({
+    items: items.map((i) => ({
       id: i.id,
       productId: i.product_id ?? undefined,
       custom: i.product_id === null,
@@ -41,7 +41,7 @@ export function mapToOrderModel(
       subtotal: i.subtotal,
       notes: i.notes ?? undefined,
     })),
-    adjustments: adjustments.map(a => ({
+    adjustments: adjustments.map((a) => ({
       id: a.id,
       type: a.type,
       name: a.name,

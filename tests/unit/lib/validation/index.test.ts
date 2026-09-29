@@ -13,7 +13,8 @@ import * as validation from "@/lib/validation/index";
 
 // The shapes of Zod's built-in messages ("Invalid input: expected string…",
 // "Too big: expected string to have <=100 characters", "Invalid option…").
-const ZODS_OWN_WORDING = /^(Invalid (input|option|string|email|url|uuid|date|datetime|ISO|element|key|union)|Too (big|small)|Unrecognized|Expected|Required$)|expected [a-z]/i;
+const ZODS_OWN_WORDING =
+  /^(Invalid (input|option|string|email|url|uuid|date|datetime|ISO|element|key|union)|Too (big|small)|Unrecognized|Expected|Required$)|expected [a-z]/i;
 
 const HOSTILE: unknown[] = [
   undefined,
@@ -57,8 +58,7 @@ function fill(schema: z.ZodType, leaf: unknown, depth = 0): unknown {
 }
 
 const schemas = Object.entries(validation as Record<string, unknown>).filter(
-  (entry): entry is [string, z.ZodType] =>
-    typeof entry[1] === "object" && entry[1] !== null && "safeParse" in entry[1],
+  (entry): entry is [string, z.ZodType] => typeof entry[1] === "object" && entry[1] !== null && "safeParse" in entry[1],
 );
 
 describe("every message comes from the catalogue", () => {

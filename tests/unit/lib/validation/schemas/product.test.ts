@@ -4,7 +4,6 @@ import { VALIDATION_MESSAGES } from "@/constants/messages";
 
 import { createProductSchema, PRODUCT_UNITS, productFormSchema } from "@/lib/validation/index";
 
-
 describe("product", () => {
   it("takes its price as whole paise", () => {
     const parsed = createProductSchema.parse({ name: "Brownie", defaultPrice: 8000 });

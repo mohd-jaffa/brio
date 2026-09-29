@@ -7,17 +7,18 @@ import type { AuthProfile } from "@/features/auth/types";
 import { AppError } from "@/lib/errors";
 import type { Tenant } from "@/lib/supabase/tenant";
 
-const { sendMail, createJob, logActionSafe, logger, signInWithPassword, signOut, removeBusinessFiles, mode } = vi.hoisted(() => ({
-  sendMail: vi.fn(),
-  createJob: vi.fn(),
-  logActionSafe: vi.fn(),
-  logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
-  signInWithPassword: vi.fn(),
-  signOut: vi.fn(),
-  removeBusinessFiles: vi.fn(),
-  // Whether a worker runs (WORKER_ENABLED): none for now, and each path is kept.
-  mode: { worker: false },
-}));
+const { sendMail, createJob, logActionSafe, logger, signInWithPassword, signOut, removeBusinessFiles, mode } =
+  vi.hoisted(() => ({
+    sendMail: vi.fn(),
+    createJob: vi.fn(),
+    logActionSafe: vi.fn(),
+    logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+    signInWithPassword: vi.fn(),
+    signOut: vi.fn(),
+    removeBusinessFiles: vi.fn(),
+    // Whether a worker runs (WORKER_ENABLED): none for now, and each path is kept.
+    mode: { worker: false },
+  }));
 vi.mock("@/constants/jobs", async (original) => ({
   ...(await original<typeof import("@/constants/jobs")>()),
   get WORKER_ENABLED() {
@@ -166,16 +167,22 @@ describe("changeName", () => {
     const saved = await changeName(admin, tenant, profile(), { name: "Asha B" });
     expect(saved).toMatchObject({ name: "Asha B", nameChangedAt: "2026-09-26T00:00:00Z" });
     expect(updateOf(queries)).toEqual([{ name: "Asha B" }]);
-    expect(logActionSafe).toHaveBeenCalledWith(tenant, expect.objectContaining({
-      entity_type: "profiles",
-      previous_data: { name: "Asha Baker" },
-      new_data: { name: "Asha B" },
-    }));
+    expect(logActionSafe).toHaveBeenCalledWith(
+      tenant,
+      expect.objectContaining({
+        entity_type: "profiles",
+        previous_data: { name: "Asha Baker" },
+        new_data: { name: "Asha B" },
+      }),
+    );
   });
 
   it("refuses the same name, and one changed within 30 days, before writing", async () => {
     const { admin, queries } = fakeAdmin(ordinary());
-    expect(await refusal(changeName(admin, tenant, profile(), { name: "Asha Baker" }))).toEqual({ code: "PROFILE_VALUE_SAME", status: 400 });
+    expect(await refusal(changeName(admin, tenant, profile(), { name: "Asha Baker" }))).toEqual({
+      code: "PROFILE_VALUE_SAME",
+      status: 400,
+    });
     expect(await refusal(changeName(admin, tenant, profile({ nameChangedAt: RECENT }), { name: "Asha B" }))).toEqual({
       code: "PROFILE_CHANGE_TOO_SOON",
       status: 422,
@@ -184,10 +191,16 @@ describe("changeName", () => {
   });
 
   it("says the database's refusal in the app's words, and any other failure as a clash or an outage", async () => {
-    const tooSoon = fakeAdmin(() => ({ error: { code: "P0001", hint: "PROFILE_CHANGE_TOO_SOON", message: "changed too recently" } }));
-    expect((await refusal(changeName(tooSoon.admin, tenant, profile(), { name: "Asha B" }))).code).toBe("PROFILE_CHANGE_TOO_SOON");
+    const tooSoon = fakeAdmin(() => ({
+      error: { code: "P0001", hint: "PROFILE_CHANGE_TOO_SOON", message: "changed too recently" },
+    }));
+    expect((await refusal(changeName(tooSoon.admin, tenant, profile(), { name: "Asha B" }))).code).toBe(
+      "PROFILE_CHANGE_TOO_SOON",
+    );
     const broken = fakeAdmin(() => ({ error: { code: "08006", message: "connection lost" } }));
-    expect((await refusal(changeName(broken.admin, tenant, profile(), { name: "Asha B" }))).code).toBe("EXTERNAL_SERVICE_ERROR");
+    expect((await refusal(changeName(broken.admin, tenant, profile(), { name: "Asha B" }))).code).toBe(
+      "EXTERNAL_SERVICE_ERROR",
+    );
   });
 });
 
@@ -216,7 +229,9 @@ describe("changeAvatar", () => {
 
   it("says a failed write as an outage, and audits nothing", async () => {
     const broken = fakeAdmin(() => ({ error: { code: "08006", message: "connection lost" } }));
-    expect((await refusal(changeAvatar(broken.admin, tenant, profile(), { avatar: "tiger" }))).code).toBe("EXTERNAL_SERVICE_ERROR");
+    expect((await refusal(changeAvatar(broken.admin, tenant, profile(), { avatar: "tiger" }))).code).toBe(
+      "EXTERNAL_SERVICE_ERROR",
+    );
     expect(logActionSafe).not.toHaveBeenCalled();
   });
 });
@@ -237,20 +252,32 @@ describe("changePhone", () => {
 
   it("refuses the same number, one changed within 30 days, one another account holds, and a wrong password", async () => {
     const { admin, updateUserById } = fakeAdmin(ordinary({}, { free: false }));
-    expect((await refusal(changePhone(admin, tenant, profile(), { ...input, phone: "+919876543210" }))).code).toBe("PROFILE_VALUE_SAME");
-    expect((await refusal(changePhone(admin, tenant, profile({ phoneChangedAt: RECENT }), input))).code).toBe("PROFILE_CHANGE_TOO_SOON");
-    expect(await refusal(changePhone(admin, tenant, profile(), input))).toEqual({ code: "AUTH_PHONE_ALREADY_EXISTS", status: 409 });
+    expect((await refusal(changePhone(admin, tenant, profile(), { ...input, phone: "+919876543210" }))).code).toBe(
+      "PROFILE_VALUE_SAME",
+    );
+    expect((await refusal(changePhone(admin, tenant, profile({ phoneChangedAt: RECENT }), input))).code).toBe(
+      "PROFILE_CHANGE_TOO_SOON",
+    );
+    expect(await refusal(changePhone(admin, tenant, profile(), input))).toEqual({
+      code: "AUTH_PHONE_ALREADY_EXISTS",
+      status: 409,
+    });
 
     signInWithPassword.mockResolvedValue({ data: { session: null }, error: { message: "Invalid login credentials" } });
     const free = fakeAdmin(ordinary());
     // A 400, not a 401: the caller's own session is fine.
-    expect(await refusal(changePhone(free.admin, tenant, profile(), input))).toEqual({ code: "AUTH_PASSWORD_INCORRECT", status: 400 });
+    expect(await refusal(changePhone(free.admin, tenant, profile(), input))).toEqual({
+      code: "AUTH_PASSWORD_INCORRECT",
+      status: 400,
+    });
     expect(updateUserById).not.toHaveBeenCalled();
     expect(free.updateUserById).not.toHaveBeenCalled();
   });
 
   it("stops when the check for a taken number cannot be made", async () => {
-    const { admin } = fakeAdmin((table, ops) => (has(ops, "neq") ? { error: { message: "timeout" } } : { data: row() }));
+    const { admin } = fakeAdmin((table, ops) =>
+      has(ops, "neq") ? { error: { message: "timeout" } } : { data: row() },
+    );
     expect((await refusal(changePhone(admin, tenant, profile(), input))).code).toBe("INTERNAL_ERROR");
   });
 
@@ -261,7 +288,9 @@ describe("changePhone", () => {
 
   it("puts Auth's number back when the profile cannot follow, and logs when even that fails", async () => {
     const failing = (table: string, ops: Op[]): Answer =>
-      has(ops, "update") ? { error: { code: "P0001", hint: "PROFILE_CHANGE_TOO_SOON", message: "too soon" } } : ordinary()(table, ops);
+      has(ops, "update")
+        ? { error: { code: "P0001", hint: "PROFILE_CHANGE_TOO_SOON", message: "too soon" } }
+        : ordinary()(table, ops);
     const { admin, updateUserById } = fakeAdmin(failing);
     expect((await refusal(changePhone(admin, tenant, profile(), input))).code).toBe("PROFILE_CHANGE_TOO_SOON");
     expect(updateUserById).toHaveBeenLastCalledWith("u-1", { phone: "+919876543210", phone_confirm: true });
@@ -277,54 +306,97 @@ describe("requestEmailChange", () => {
   const input = { email: "asha.new@example.com", password: "Password123!" };
 
   it("keeps the new address waiting, the current one in use, and sends its link there and then", async () => {
-    const { admin, queries } = fakeAdmin(ordinary({ pending_email: input.email }, { read: { pending_email: input.email } }));
+    const { admin, queries } = fakeAdmin(
+      ordinary({ pending_email: input.email }, { read: { pending_email: input.email } }),
+    );
     const saved = await requestEmailChange(admin, tenant, profile(), input);
     expect(saved).toMatchObject({ email: "asha@example.com", pendingEmail: input.email });
-    expect(updateOf(queries)[0]).toEqual({ pending_email: input.email, pending_email_token_hash: null, pending_email_expires_at: null });
+    expect(updateOf(queries)[0]).toEqual({
+      pending_email: input.email,
+      pending_email_token_hash: null,
+      pending_email_expires_at: null,
+    });
     expect(sendMail).toHaveBeenCalledWith(expect.objectContaining({ to: input.email }));
     expect(createJob).not.toHaveBeenCalled();
-    expect(logActionSafe).toHaveBeenCalledWith(tenant, expect.objectContaining({ new_data: { pending_email: input.email } }));
+    expect(logActionSafe).toHaveBeenCalledWith(
+      tenant,
+      expect.objectContaining({ new_data: { pending_email: input.email } }),
+    );
   });
 
   it("keeps the address waiting when its link cannot go, and logs it, so Settings can send it again", async () => {
     sendMail.mockRejectedValueOnce(new Error("SMTP refused"));
     const { admin } = fakeAdmin(ordinary({ pending_email: input.email }, { read: { pending_email: input.email } }));
-    await expect(requestEmailChange(admin, tenant, profile(), input)).resolves.toMatchObject({ pendingEmail: input.email });
-    expect(logger.error).toHaveBeenCalledWith("Could not send the new email's link", { userId: "u-1", reason: "SMTP refused" });
+    await expect(requestEmailChange(admin, tenant, profile(), input)).resolves.toMatchObject({
+      pendingEmail: input.email,
+    });
+    expect(logger.error).toHaveBeenCalledWith("Could not send the new email's link", {
+      userId: "u-1",
+      reason: "SMTP refused",
+    });
     expect(logActionSafe).toHaveBeenCalled();
 
     sendMail.mockRejectedValueOnce("offline");
-    await requestEmailChange(fakeAdmin(ordinary({}, { read: { pending_email: input.email } })).admin, tenant, profile(), input);
-    expect(logger.error).toHaveBeenLastCalledWith("Could not send the new email's link", { userId: "u-1", reason: "offline" });
+    await requestEmailChange(
+      fakeAdmin(ordinary({}, { read: { pending_email: input.email } })).admin,
+      tenant,
+      profile(),
+      input,
+    );
+    expect(logger.error).toHaveBeenLastCalledWith("Could not send the new email's link", {
+      userId: "u-1",
+      reason: "offline",
+    });
   });
 
   it("queues its link when a worker runs, and nothing more while one is already on its way", async () => {
     mode.worker = true;
     const { admin } = fakeAdmin(ordinary({ pending_email: input.email }));
     await requestEmailChange(admin, tenant, profile(), input);
-    expect(createJob).toHaveBeenCalledWith(admin, { type: "SEND_EMAIL_CHANGE_CONFIRMATION", payload: { userId: "u-1" } });
+    expect(createJob).toHaveBeenCalledWith(admin, {
+      type: "SEND_EMAIL_CHANGE_CONFIRMATION",
+      payload: { userId: "u-1" },
+    });
     expect(sendMail).not.toHaveBeenCalled();
 
     createJob.mockClear();
-    await requestEmailChange(fakeAdmin(ordinary({ pending_email: input.email }, { waiting: [{ id: "j-1" }] })).admin, tenant, profile(), input);
+    await requestEmailChange(
+      fakeAdmin(ordinary({ pending_email: input.email }, { waiting: [{ id: "j-1" }] })).admin,
+      tenant,
+      profile(),
+      input,
+    );
     expect(createJob).not.toHaveBeenCalled();
   });
 
   it("refuses the same address in any case, one changed within 30 days, one taken, and a wrong password", async () => {
     const { admin } = fakeAdmin(ordinary({}, { free: false }));
     const current = profile({ email: "Asha@Example.com" });
-    expect((await refusal(requestEmailChange(admin, tenant, current, { ...input, email: "asha@example.com" }))).code).toBe("PROFILE_VALUE_SAME");
-    expect((await refusal(requestEmailChange(admin, tenant, profile({ emailChangedAt: RECENT }), input))).code).toBe("PROFILE_CHANGE_TOO_SOON");
+    expect(
+      (await refusal(requestEmailChange(admin, tenant, current, { ...input, email: "asha@example.com" }))).code,
+    ).toBe("PROFILE_VALUE_SAME");
+    expect((await refusal(requestEmailChange(admin, tenant, profile({ emailChangedAt: RECENT }), input))).code).toBe(
+      "PROFILE_CHANGE_TOO_SOON",
+    );
     expect((await refusal(requestEmailChange(admin, tenant, profile(), input))).code).toBe("AUTH_EMAIL_ALREADY_EXISTS");
     signInWithPassword.mockResolvedValue({ data: { session: null }, error: { message: "no" } });
-    expect((await refusal(requestEmailChange(fakeAdmin(ordinary()).admin, tenant, profile(), input))).code).toBe("AUTH_PASSWORD_INCORRECT");
+    expect((await refusal(requestEmailChange(fakeAdmin(ordinary()).admin, tenant, profile(), input))).code).toBe(
+      "AUTH_PASSWORD_INCORRECT",
+    );
   });
 
   it("keeps the address waiting when a worker runs and the queue cannot be read, and logs it", async () => {
     mode.worker = true;
-    const { admin } = fakeAdmin((table, ops) => (table === "jobs" ? { error: { message: "down" } } : ordinary({ pending_email: input.email })(table, ops)));
-    await expect(requestEmailChange(admin, tenant, profile(), input)).resolves.toMatchObject({ pendingEmail: input.email });
-    expect(logger.error).toHaveBeenCalledWith("Could not send the new email's link", expect.objectContaining({ userId: "u-1" }));
+    const { admin } = fakeAdmin((table, ops) =>
+      table === "jobs" ? { error: { message: "down" } } : ordinary({ pending_email: input.email })(table, ops),
+    );
+    await expect(requestEmailChange(admin, tenant, profile(), input)).resolves.toMatchObject({
+      pendingEmail: input.email,
+    });
+    expect(logger.error).toHaveBeenCalledWith(
+      "Could not send the new email's link",
+      expect.objectContaining({ userId: "u-1" }),
+    );
   });
 });
 
@@ -399,7 +471,11 @@ describe("confirmEmailChange", () => {
       has(ops, "update") ? { data: row({ email: "asha.new@example.com" }) } : { data: waiting() },
     );
     await expect(confirmEmailChange(admin, { token: TOKEN })).resolves.toEqual({ email: "asha.new@example.com" });
-    expect(has(queries[0].ops, "eq")).toEqual(["eq", "pending_email_token_hash", createHash("sha256").update(TOKEN).digest("hex")]);
+    expect(has(queries[0].ops, "eq")).toEqual([
+      "eq",
+      "pending_email_token_hash",
+      createHash("sha256").update(TOKEN).digest("hex"),
+    ]);
     expect(updateUserById).toHaveBeenCalledWith("u-1", { email: "asha.new@example.com", email_confirm: true });
     expect(updateOf(queries)).toEqual([
       expect.objectContaining({
@@ -411,20 +487,30 @@ describe("confirmEmailChange", () => {
     ]);
     expect(logActionSafe).toHaveBeenCalledWith(
       { supabase: admin, bakeryId: "b-1", actorId: "u-1" },
-      expect.objectContaining({ previous_data: { email: "asha@example.com" }, new_data: { email: "asha.new@example.com" } }),
+      expect.objectContaining({
+        previous_data: { email: "asha@example.com" },
+        new_data: { email: "asha.new@example.com" },
+      }),
     );
   });
 
   it("records nothing in a business's trail for an account with no business", async () => {
     const { admin } = fakeAdmin((table, ops) =>
-      has(ops, "update") ? { data: row({ email: "dev.new@example.com", bakery_id: null }) } : { data: waiting({ bakery_id: null }) },
+      has(ops, "update")
+        ? { data: row({ email: "dev.new@example.com", bakery_id: null }) }
+        : { data: waiting({ bakery_id: null }) },
     );
     await expect(confirmEmailChange(admin, { token: TOKEN })).resolves.toEqual({ email: "dev.new@example.com" });
     expect(logActionSafe).not.toHaveBeenCalled();
   });
 
   it("refuses a token it does not know, one that lapsed, and one with nothing waiting", async () => {
-    for (const data of [null, waiting({ pending_email_expires_at: new Date(Date.now() - 1_000).toISOString() }), waiting({ pending_email: null }), waiting({ pending_email_expires_at: null })]) {
+    for (const data of [
+      null,
+      waiting({ pending_email_expires_at: new Date(Date.now() - 1_000).toISOString() }),
+      waiting({ pending_email: null }),
+      waiting({ pending_email_expires_at: null }),
+    ]) {
       expect((await refusal(confirmEmailChange(fakeAdmin(() => ({ data })).admin, { token: TOKEN }))).code).toBe(
         "AUTH_EMAIL_CONFIRM_FAILED",
       );
@@ -432,16 +518,22 @@ describe("confirmEmailChange", () => {
   });
 
   it("stops when the token cannot be looked up, and says an address Auth already knows as taken", async () => {
-    expect((await refusal(confirmEmailChange(fakeAdmin(() => ({ error: { message: "down" } })).admin, { token: TOKEN }))).code).toBe(
-      "INTERNAL_ERROR",
+    expect(
+      (await refusal(confirmEmailChange(fakeAdmin(() => ({ error: { message: "down" } })).admin, { token: TOKEN })))
+        .code,
+    ).toBe("INTERNAL_ERROR");
+    const taken = fakeAdmin(
+      () => ({ data: waiting() }),
+      [{ message: "A user with this email address has already been registered" }],
     );
-    const taken = fakeAdmin(() => ({ data: waiting() }), [{ message: "A user with this email address has already been registered" }]);
     expect((await refusal(confirmEmailChange(taken.admin, { token: TOKEN }))).code).toBe("AUTH_EMAIL_ALREADY_EXISTS");
   });
 
   it("puts Auth's email back when the profile cannot follow, and logs when even that fails", async () => {
     const failing = (table: string, ops: Op[]): Answer =>
-      has(ops, "update") ? { error: { code: "23505", message: "duplicate key value violates unique constraint profiles_email_key" } } : { data: waiting() };
+      has(ops, "update")
+        ? { error: { code: "23505", message: "duplicate key value violates unique constraint profiles_email_key" } }
+        : { data: waiting() };
     const { admin, updateUserById } = fakeAdmin(failing);
     expect((await refusal(confirmEmailChange(admin, { token: TOKEN }))).code).toBe("AUTH_EMAIL_ALREADY_EXISTS");
     expect(updateUserById).toHaveBeenLastCalledWith("u-1", { email: "asha@example.com", email_confirm: true });
@@ -498,7 +590,10 @@ describe("deleteAccount", () => {
 
     signInWithPassword.mockResolvedValue({ data: { session: null }, error: { message: "Invalid login credentials" } });
     // A 400, not a 401: the caller's own session is fine, and stays.
-    expect(await refusal(deleteAccount(admin, profile(), input))).toEqual({ code: "AUTH_PASSWORD_INCORRECT", status: 400 });
+    expect(await refusal(deleteAccount(admin, profile(), input))).toEqual({
+      code: "AUTH_PASSWORD_INCORRECT",
+      status: 400,
+    });
     expect(rpc).not.toHaveBeenCalled();
     expect(removeBusinessFiles).not.toHaveBeenCalled();
   });

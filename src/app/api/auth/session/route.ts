@@ -11,8 +11,6 @@ export const runtime = "nodejs";
  */
 export async function GET(request: Request) {
   return withApiHandler(request, async () =>
-    toSessionView(
-      await getSession(createSupabaseServiceRoleClient(), readAccessToken(request)),
-    ),
+    toSessionView(await getSession(createSupabaseServiceRoleClient(), readAccessToken(request))),
   );
 }

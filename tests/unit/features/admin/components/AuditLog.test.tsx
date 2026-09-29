@@ -7,7 +7,10 @@ import { anAuditEntry, answering } from "@tests/support/admin";
 import { Providers } from "@tests/support/providers";
 
 const fetcher = vi.hoisted(() => vi.fn());
-vi.mock("@/lib/api/client", async (original) => ({ ...(await original<typeof import("@/lib/api/client")>()), fetcher }));
+vi.mock("@/lib/api/client", async (original) => ({
+  ...(await original<typeof import("@/lib/api/client")>()),
+  fetcher,
+}));
 
 const { AuditLog } = await import("@/features/admin/components/AuditLog");
 

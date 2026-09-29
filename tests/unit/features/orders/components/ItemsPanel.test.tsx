@@ -93,7 +93,13 @@ describe("ItemsPanel", () => {
   });
 
   it("ticks the count on the card as it changes", () => {
-    const props = { products: [cake, brownie], loading: false, onAdd: vi.fn(), onRemove: vi.fn(), onAddCustom: vi.fn() };
+    const props = {
+      products: [cake, brownie],
+      loading: false,
+      onAdd: vi.fn(),
+      onRemove: vi.fn(),
+      onAddCustom: vi.fn(),
+    };
     const { rerender } = render(<ItemsPanel {...props} quantityOf={(id) => (id === "p-cake" ? 2 : 0)} />);
     const count = () => within(screen.getByText("Chocolate truffle cake").closest("li")!).getByText(/^\d+$/);
     expect(count()).toHaveTextContent("2");

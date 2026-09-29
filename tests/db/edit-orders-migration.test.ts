@@ -15,7 +15,10 @@ function databaseNext(status: string, deliveryType: string): string[] {
   const branch = body.split(/\n\s+when '/).find((part) => part.startsWith(`${status}'`));
   if (!branch) return [];
   const arrays = [...branch.matchAll(/array\[([^\]]*)\]/g)].map((match) =>
-    match[1].split(",").map((value) => value.trim().replace(/'/g, "")).filter(Boolean),
+    match[1]
+      .split(",")
+      .map((value) => value.trim().replace(/'/g, ""))
+      .filter(Boolean),
   );
   // With two arrays, the first is for a delivery and the second for a pickup.
   return arrays.length === 2 ? arrays[deliveryType === "DELIVERY" ? 0 : 1] : arrays[0];
@@ -48,8 +51,12 @@ describe("edit orders migration", () => {
   );
 
   it("gives every line its place, numbered in the order it was inserted", () => {
-    expect(migration).toMatch(/alter table public\.order_items add column position bigint generated always as identity;/);
-    expect(migration).toMatch(/create index order_items_order_position_idx on public\.order_items \(order_id, position\);/);
+    expect(migration).toMatch(
+      /alter table public\.order_items add column position bigint generated always as identity;/,
+    );
+    expect(migration).toMatch(
+      /create index order_items_order_position_idx on public\.order_items \(order_id, position\);/,
+    );
   });
 
   it("locks the order, and changes only an open one", () => {
@@ -69,7 +76,9 @@ describe("edit orders migration", () => {
 
   it("never lets the total fall below what has been paid, and derives the payment status again", () => {
     expect(updateOrder).toMatch(/if paid > order_total then[\s\S]*?hint = 'ORDER_TOTAL_BELOW_PAID'/);
-    expect(updateOrder).toMatch(/when paid >= order_total then 'PAID'\s+when paid > 0 then 'PARTIALLY_PAID'\s+else 'UNPAID'/);
+    expect(updateOrder).toMatch(
+      /when paid >= order_total then 'PAID'\s+when paid > 0 then 'PARTIALLY_PAID'\s+else 'UNPAID'/,
+    );
   });
 
   it("moves the reservation by each product's change, after locking the products and checking stock for the growth", () => {
@@ -83,7 +92,9 @@ describe("edit orders migration", () => {
   });
 
   it("tells a moved due date's day afresh", () => {
-    expect(updateOrder).toMatch(/due_notified_at = case[\s\S]*?\(new_date at time zone zone\)::date = \(o\.delivery_date at time zone zone\)::date/);
+    expect(updateOrder).toMatch(
+      /due_notified_at = case[\s\S]*?\(new_date at time zone zone\)::date = \(o\.delivery_date at time zone zone\)::date/,
+    );
     expect(updateOrder).toMatch(/overdue_notified_at = case/);
   });
 

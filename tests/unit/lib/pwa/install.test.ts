@@ -29,7 +29,8 @@ function standalone(matches: boolean | "unsupported") {
     value:
       matches === "unsupported"
         ? undefined
-        : (query: string) => ({ matches: matches && query === "(display-mode: standalone)", media: query }) as MediaQueryList,
+        : (query: string) =>
+            ({ matches: matches && query === "(display-mode: standalone)", media: query }) as MediaQueryList,
   });
 }
 
@@ -116,7 +117,8 @@ describe("asking the browser to install", () => {
 });
 
 describe("whose steps to show", () => {
-  const IPHONE = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 Version/17.5 Mobile/15E148 Safari/604.1";
+  const IPHONE =
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 Version/17.5 Mobile/15E148 Safari/604.1";
   const IPAD = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Version/17.5 Safari/605.1.15";
   const ANDROID = "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 Chrome/128.0 Mobile Safari/537.36";
   const CHROME = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128.0 Safari/537.36";

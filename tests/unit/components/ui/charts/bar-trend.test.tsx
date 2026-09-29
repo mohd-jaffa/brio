@@ -50,13 +50,17 @@ describe("BarTrend", () => {
 
   it("labels every bar when each has room for its date", () => {
     const { container } = bars();
-    const dates = [...container.querySelectorAll("text")].map((text) => text.textContent).filter((t) => t?.includes("Sep"));
+    const dates = [...container.querySelectorAll("text")]
+      .map((text) => text.textContent)
+      .filter((t) => t?.includes("Sep"));
     expect(dates).toEqual(["1 Sep", "2 Sep", "3 Sep", "4 Sep", "5 Sep"]);
   });
 
   it("labels a few, evenly, when the bars are narrow", () => {
     const { container } = bars({ points: days(Array.from({ length: 30 }, (_, index) => 100 + index)) });
-    const dates = [...container.querySelectorAll("text")].map((text) => text.textContent).filter((t) => t?.includes("Sep"));
+    const dates = [...container.querySelectorAll("text")]
+      .map((text) => text.textContent)
+      .filter((t) => t?.includes("Sep"));
     expect(dates.length).toBeLessThan(7);
     expect(dates[0]).toBe("1 Sep");
     expect(dates.at(-1)).toBe("30 Sep");
@@ -65,7 +69,11 @@ describe("BarTrend", () => {
   it("carries the same numbers in a table, and counts things when asked", () => {
     bars({ unit: "count", points: [{ label: "Mon", value: 3 }], labelHeading: "Day" });
     const table = screen.getByRole("table", { name: "Expense trend" });
-    expect(within(table).getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual(["Day", "Count"]);
+    expect(
+      within(table)
+        .getAllByRole("columnheader")
+        .map((cell) => cell.textContent),
+    ).toEqual(["Day", "Count"]);
     expect(within(table).getByRole("row", { name: "Mon 3" })).toBeInTheDocument();
   });
 

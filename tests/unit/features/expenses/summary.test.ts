@@ -23,7 +23,12 @@ const categories = [...DEFAULT_EXPENSE_CATEGORIES, "Flowers"];
 
 describe("within", () => {
   it("keeps the expenses dated in the period, both ends included", () => {
-    const expenses = [anExpense("a", "2026-09-19", 1), anExpense("b", "2026-09-20", 1), anExpense("c", "2026-09-26", 1), anExpense("d", "2026-09-27", 1)];
+    const expenses = [
+      anExpense("a", "2026-09-19", 1),
+      anExpense("b", "2026-09-20", 1),
+      anExpense("c", "2026-09-26", 1),
+      anExpense("d", "2026-09-27", 1),
+    ];
     expect(within(expenses, period).map((expense) => expense.id)).toEqual(["b", "c"]);
   });
 });

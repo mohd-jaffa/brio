@@ -331,10 +331,17 @@ describe("an open order as the edit screen holds it (§139.11.13)", () => {
   });
 
   it("reads an order with no address, link or notes as empty fields", () => {
-    const draft = editDraft(anOrder({ delivery: { type: "PICKUP", date: "2099-09-27T08:30:00.000Z" }, notes: undefined }), {
-      kind: "GUEST",
+    const draft = editDraft(
+      anOrder({ delivery: { type: "PICKUP", date: "2099-09-27T08:30:00.000Z" }, notes: undefined }),
+      {
+        kind: "GUEST",
+      },
+    );
+    expect(draft.delivery).toMatchObject({
+      address: "",
+      googleMapsLink: "",
+      filled: { address: "", googleMapsLink: "" },
     });
-    expect(draft.delivery).toMatchObject({ address: "", googleMapsLink: "", filled: { address: "", googleMapsLink: "" } });
     expect(draft.notes).toBe("");
   });
 
@@ -353,7 +360,11 @@ describe("an open order as the edit screen holds it (§139.11.13)", () => {
     const real = editDraft(
       {
         ...order,
-        items: order.items.map((item, index) => ({ ...item, id: ids[index], productId: item.productId && "3f2504e0-4f89-11d3-9a0c-0305e82c3312" })),
+        items: order.items.map((item, index) => ({
+          ...item,
+          id: ids[index],
+          productId: item.productId && "3f2504e0-4f89-11d3-9a0c-0305e82c3312",
+        })),
       },
       { ...meena, id: "3f2504e0-4f89-11d3-9a0c-0305e82c3313" },
     );
@@ -366,9 +377,14 @@ describe("an open order as the edit screen holds it (§139.11.13)", () => {
 describe("linePrice", () => {
   it("is a custom line's own, a kept line's as ordered, or the product's now", () => {
     const priceOf = (id: string) => (id === "p-1" ? 60000 : undefined);
-    expect(linePrice({ key: "a", custom: { name: "Topper", unitPrice: 15000 }, quantity: 1, notes: "" }, priceOf)).toBe(15000);
+    expect(linePrice({ key: "a", custom: { name: "Topper", unitPrice: 15000 }, quantity: 1, notes: "" }, priceOf)).toBe(
+      15000,
+    );
     expect(
-      linePrice({ key: "b", productId: "p-1", agreed: { name: "Cake", unitPrice: 57500 }, quantity: 1, notes: "" }, priceOf),
+      linePrice(
+        { key: "b", productId: "p-1", agreed: { name: "Cake", unitPrice: 57500 }, quantity: 1, notes: "" },
+        priceOf,
+      ),
     ).toBe(57500);
     expect(linePrice({ key: "c", productId: "p-1", quantity: 1, notes: "" }, priceOf)).toBe(60000);
     expect(linePrice({ key: "d", productId: "gone", quantity: 1, notes: "" }, priceOf)).toBeUndefined();

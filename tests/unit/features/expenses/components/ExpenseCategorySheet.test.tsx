@@ -9,7 +9,9 @@ import { ApiError } from "@/lib/api/client";
 
 import { Providers } from "@tests/support/providers";
 
-vi.mock("@/features/expenses/api.client", () => ({ ExpensesClient: { createCategory: vi.fn(), updateCategory: vi.fn() } }));
+vi.mock("@/features/expenses/api.client", () => ({
+  ExpensesClient: { createCategory: vi.fn(), updateCategory: vi.fn() },
+}));
 
 beforeEach(() => vi.clearAllMocks());
 
@@ -30,7 +32,9 @@ describe("ExpenseCategorySheet: a new category", () => {
     expect(screen.getByText("It sits beside the eight every business has, and only you see it.")).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "Picture: Receipt. Change" }));
-    await userEvent.click(within(screen.getByRole("dialog", { name: "Choose a picture" })).getByRole("radio", { name: "Bunch of roses" }));
+    await userEvent.click(
+      within(screen.getByRole("dialog", { name: "Choose a picture" })).getByRole("radio", { name: "Bunch of roses" }),
+    );
     await userEvent.type(nameField(), "  Flowers ");
     await userEvent.click(screen.getByRole("button", { name: "Add category" }));
 

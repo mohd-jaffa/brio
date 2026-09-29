@@ -54,8 +54,13 @@ export function deliveryAddresses(orders: readonly SummaryOrder[]): CustomerAddr
 /** A customer's orders summed: cancelled ones count for nothing, and a payment never owes less than nothing. */
 export function summarise(orders: readonly SummaryOrder[], createdAt: string, now: Date = new Date()): CustomerSummary {
   const kept = orders.filter((order) => order.status !== "CANCELLED");
-  const owed = kept.map((order) => Math.max(0, order.total - sumPaise(order.payments.map((payment) => payment.amount))));
-  const last = kept.reduce<string | null>((latest, order) => (latest && latest > order.created_at ? latest : order.created_at), null);
+  const owed = kept.map((order) =>
+    Math.max(0, order.total - sumPaise(order.payments.map((payment) => payment.amount))),
+  );
+  const last = kept.reduce<string | null>(
+    (latest, order) => (latest && latest > order.created_at ? latest : order.created_at),
+    null,
+  );
   return {
     orders: kept.length,
     spent: sumPaise(kept.map((order) => order.total)),

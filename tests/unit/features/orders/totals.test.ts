@@ -10,7 +10,13 @@ describe("lineSubtotal", () => {
 
 describe("orderTotals", () => {
   it("adds the lines up", () => {
-    const totals = orderTotals([{ unitPrice: 8000, quantity: 2 }, { unitPrice: 15000, quantity: 1 }], []);
+    const totals = orderTotals(
+      [
+        { unitPrice: 8000, quantity: 2 },
+        { unitPrice: 15000, quantity: 1 },
+      ],
+      [],
+    );
     expect(totals.subtotal).toBe(31000);
     expect(totals.total).toBe(31000);
   });
@@ -40,9 +46,7 @@ describe("orderTotals", () => {
   });
 
   it("can go below zero, so the caller can refuse it rather than storing it", () => {
-    expect(orderTotals([{ unitPrice: 1000, quantity: 1 }], [{ type: "DISCOUNT", amount: 5000 }]).total).toBe(
-      -4000,
-    );
+    expect(orderTotals([{ unitPrice: 1000, quantity: 1 }], [{ type: "DISCOUNT", amount: 5000 }]).total).toBe(-4000);
   });
 
   it("stays exact across many lines — everything is integers", () => {

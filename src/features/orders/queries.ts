@@ -4,10 +4,7 @@ import { findOrderById, findPaidByOrder } from "./api";
 import { mapToOrderModel } from "./mappers";
 import type { Order } from "./types";
 
-export async function getOrderById(
-  tenant: Tenant,
-  id: string,
-): Promise<Order> {
+export async function getOrderById(tenant: Tenant, id: string): Promise<Order> {
   const [{ order, items, adjustments }, paid] = await Promise.all([
     findOrderById(tenant, id),
     findPaidByOrder(tenant, [id]),

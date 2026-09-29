@@ -19,11 +19,7 @@ import type { Order, OrderRow } from "./types";
  * The payment status is not set here, or anywhere by hand: the payments decide
  * it (BUG-06, §139.11.9).
  */
-export async function updateOrderStatus(
-  tenant: Tenant,
-  id: string,
-  input: UpdateOrderStatusPayload,
-): Promise<Order> {
+export async function updateOrderStatus(tenant: Tenant, id: string, input: UpdateOrderStatusPayload): Promise<Order> {
   const { order: before } = await findOrderById(tenant, id);
 
   if (input.status !== before.status) {

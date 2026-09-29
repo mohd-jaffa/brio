@@ -33,7 +33,16 @@ let answers: Record<string, unknown>;
 beforeEach(() => {
   answers = {
     "/api/notifications": {
-      items: [aNotification("ORD-2"), aNotification("n-stock", { kind: "STOCK", title: "Low stock", body: "Brownies is down to 3 pieces.", actionUrl: "/inventory", read: true })],
+      items: [
+        aNotification("ORD-2"),
+        aNotification("n-stock", {
+          kind: "STOCK",
+          title: "Low stock",
+          body: "Brownies is down to 3 pieces.",
+          actionUrl: "/inventory",
+          read: true,
+        }),
+      ],
       nextCursor: "20",
     },
     "/api/notifications?cursor=20": { items: [aNotification("ORD-1")], nextCursor: null },
@@ -70,7 +79,9 @@ describe("Notifications", () => {
     row.addEventListener("click", (event) => event.preventDefault());
     await userEvent.click(row);
     await waitFor(() => expect(client.markRead).toHaveBeenCalledWith("ORD-2"));
-    await waitFor(() => expect(fetcher.mock.calls.filter(([key]) => key === "/api/notifications/unread").length).toBeGreaterThan(1));
+    await waitFor(() =>
+      expect(fetcher.mock.calls.filter(([key]) => key === "/api/notifications/unread").length).toBeGreaterThan(1),
+    );
   });
 
   it("marks them all read", async () => {
@@ -116,7 +127,14 @@ describe("Notifications", () => {
     answers["/api/notifications?tab=READ"] = { items: [], nextCursor: null };
     open();
     await list();
-    expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual(["All", "Unread", "Read", "Orders", "Customers", "System"]);
+    expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+      "All",
+      "Unread",
+      "Read",
+      "Orders",
+      "Customers",
+      "System",
+    ]);
 
     await userEvent.click(screen.getByRole("tab", { name: "Unread" }));
     const unread = await screen.findByRole("list", { name: "Unread" });

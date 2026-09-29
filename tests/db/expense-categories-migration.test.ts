@@ -75,7 +75,9 @@ describe("expense categories migration", () => {
 
   it("moves a renamed category's expenses and picture with it, and refuses a name taken", () => {
     const update = body("update_expense_category");
-    expect(update).toContain("update public.expenses set category = wanted where bakery_id = business and category = own.name;");
+    expect(update).toContain(
+      "update public.expenses set category = wanted where bakery_id = business and category = own.name;",
+    );
     expect(update).toContain("perform public.put_expense_category_icon(business, own.name, null);");
     expect(update).toContain("hint = 'EXPENSE_CATEGORY_ALREADY_EXISTS'");
     expect(body("create_expense_category")).toContain("hint = 'EXPENSE_CATEGORY_ALREADY_EXISTS'");
@@ -88,11 +90,19 @@ describe("expense categories migration", () => {
   });
 
   it("is for a signed-in user only, and keeps its helpers to itself", () => {
-    for (const signature of ["create_expense_category(text, text)", "update_expense_category(text, text, text)", "delete_expense_category(text)"]) {
+    for (const signature of [
+      "create_expense_category(text, text)",
+      "update_expense_category(text, text, text)",
+      "delete_expense_category(text)",
+    ]) {
       expect(migration).toContain(`revoke all on function public.${signature} from public, anon;`);
       expect(migration).toContain(`grant execute on function public.${signature} to authenticated;`);
     }
-    for (const helper of ["expense_category_known()", "owned_business_for_categories(text)", "put_expense_category_icon(uuid, text, text)"]) {
+    for (const helper of [
+      "expense_category_known()",
+      "owned_business_for_categories(text)",
+      "put_expense_category_icon(uuid, text, text)",
+    ]) {
       expect(migration).toContain(`revoke all on function public.${helper} from public, anon, authenticated;`);
     }
   });

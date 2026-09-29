@@ -47,7 +47,11 @@ describe("findPaidByOrder", () => {
   });
 
   it("asks nothing for an empty list", async () => {
-    const client = { from: () => { throw new Error("should not query"); } } as unknown as SupabaseClient;
+    const client = {
+      from: () => {
+        throw new Error("should not query");
+      },
+    } as unknown as SupabaseClient;
     await expect(findPaidByOrder(tenantOf(client), [])).resolves.toEqual(new Map());
   });
 });

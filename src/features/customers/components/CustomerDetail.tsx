@@ -127,7 +127,12 @@ export function CustomerDetail({ id }: { id: string }) {
                 )}
                 {person.address && (
                   <p className="flex items-start gap-2 text-text">
-                    <MapPin size={15} strokeWidth={1.75} className="mt-0.5 shrink-0 text-text-muted" aria-hidden="true" />
+                    <MapPin
+                      size={15}
+                      strokeWidth={1.75}
+                      className="mt-0.5 shrink-0 text-text-muted"
+                      aria-hidden="true"
+                    />
                     <span className="min-w-0 whitespace-pre-line break-words">{person.address}</span>
                   </p>
                 )}
@@ -218,7 +223,13 @@ export function CustomerDetail({ id }: { id: string }) {
               <section className={`${CARD} space-y-3`}>
                 <p className="text-xs text-text-muted">{text.notesHint}</p>
                 <p className="whitespace-pre-line break-words text-sm text-text">{person.notes ?? text.noNotes}</p>
-                <Button label={text.editNotes} icon={Pencil} variant="ghost" size="sm" onClick={() => form.open(person)} />
+                <Button
+                  label={text.editNotes}
+                  icon={Pencil}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => form.open(person)}
+                />
               </section>
             )}
             {tab === "ADDRESSES" &&
@@ -231,8 +242,16 @@ export function CustomerDetail({ id }: { id: string }) {
                   <p className="text-xs text-text-muted">{text.addressesHint}</p>
                   <RowList label={text.tabNames.ADDRESSES}>
                     {stats.addresses.map((place) => (
-                      <li key={`${place.address}|${place.googleMapsLink ?? ""}`} className="flex items-start gap-3 px-4 py-3">
-                        <MapPin size={18} strokeWidth={1.75} className="mt-0.5 shrink-0 text-text-muted" aria-hidden="true" />
+                      <li
+                        key={`${place.address}|${place.googleMapsLink ?? ""}`}
+                        className="flex items-start gap-3 px-4 py-3"
+                      >
+                        <MapPin
+                          size={18}
+                          strokeWidth={1.75}
+                          className="mt-0.5 shrink-0 text-text-muted"
+                          aria-hidden="true"
+                        />
                         <div className="min-w-0 flex-1">
                           <p className="whitespace-pre-line break-words text-sm font-medium text-text">
                             {place.address || text.mapOnly}

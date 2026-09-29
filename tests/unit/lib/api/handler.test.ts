@@ -54,7 +54,9 @@ describe("readQuery", () => {
   });
 
   it("lets a schema failure through as a ZodError", () => {
-    expect(() => readQuery(new Request("http://x/?period=1"), z.object({ period: z.enum(["WEEK"]) }))).toThrow(z.ZodError);
+    expect(() => readQuery(new Request("http://x/?period=1"), z.object({ period: z.enum(["WEEK"]) }))).toThrow(
+      z.ZodError,
+    );
   });
 });
 
@@ -106,7 +108,9 @@ describe("readBody", () => {
   });
 
   it("reads no body as empty", async () => {
-    await expect(readBody(new Request("https://x.test/api/upload", { method: "POST" }), limit)).resolves.toHaveLength(0);
+    await expect(readBody(new Request("https://x.test/api/upload", { method: "POST" }), limit)).resolves.toHaveLength(
+      0,
+    );
   });
 });
 

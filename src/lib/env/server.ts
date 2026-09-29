@@ -1,25 +1,19 @@
 import * as z from "zod";
 import { internalError } from "@/lib/errors";
 
-const optionalString = z.preprocess(
-  (value) => (value === "" ? undefined : value),
-  z.string().trim().min(1).optional(),
-);
+const optionalString = z.preprocess((value) => (value === "" ? undefined : value), z.string().trim().min(1).optional());
 
 const optionalPort = z.preprocess(
   (value) => (value === "" || value === undefined ? undefined : Number(value)),
   z.number().int().min(1).max(65535).optional(),
 );
 
-const optionalBoolean = z.preprocess(
-  (value) => {
-    if (value === "" || value === undefined) return undefined;
-    if (value === "true" || value === true) return true;
-    if (value === "false" || value === false) return false;
-    return value;
-  },
-  z.boolean().optional(),
-);
+const optionalBoolean = z.preprocess((value) => {
+  if (value === "" || value === undefined) return undefined;
+  if (value === "true" || value === true) return true;
+  if (value === "false" || value === false) return false;
+  return value;
+}, z.boolean().optional());
 
 const serverEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
@@ -45,7 +39,11 @@ const serverEnvSchema = z.object({
   VAPID_PRIVATE_KEY: optionalString,
   VAPID_SUBJECT: z.preprocess(
     (value) => (value === "" ? undefined : value),
-    z.string().trim().regex(/^(mailto:|https:\/\/)\S+$/).optional(),
+    z
+      .string()
+      .trim()
+      .regex(/^(mailto:|https:\/\/)\S+$/)
+      .optional(),
   ),
   // What the database's scheduler sends to `POST /api/cron/due-orders`.
   CRON_SECRET: z.preprocess((value) => (value === "" ? undefined : value), z.string().trim().min(32).optional()),
@@ -72,7 +70,9 @@ export function getServerEnv(source: NodeJS.ProcessEnv = process.env): ServerEnv
 }
 
 /** The app's web push keys and subject (R8.6), or null while any is missing: web push is then off. */
-export function webPushKeys(env: ServerEnv = getServerEnv()): { publicKey: string; privateKey: string; subject: string } | null {
+export function webPushKeys(
+  env: ServerEnv = getServerEnv(),
+): { publicKey: string; privateKey: string; subject: string } | null {
   const subject = env.VAPID_SUBJECT ?? (supportEmail(env) ? `mailto:${supportEmail(env)}` : undefined);
   if (!env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY || !subject) return null;
   return { publicKey: env.NEXT_PUBLIC_VAPID_PUBLIC_KEY, privateKey: env.VAPID_PRIVATE_KEY, subject };

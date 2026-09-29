@@ -31,9 +31,7 @@ function destinationOf(response: Response): string | null {
 
 describe("a signed-out visitor", () => {
   it("is sent to sign in, and told where they were going", async () => {
-    expect(destinationOf(await visit("/orders?status=PENDING"))).toBe(
-      "/login?next=%2Forders%3Fstatus%3DPENDING",
-    );
+    expect(destinationOf(await visit("/orders?status=PENDING"))).toBe("/login?next=%2Forders%3Fstatus%3DPENDING");
   });
 
   it("reaches the screens that exist before a session does", async () => {

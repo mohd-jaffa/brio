@@ -7,9 +7,6 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   return withApiHandler(request, async () =>
-    requestPasswordReset(
-      createSupabaseServiceRoleClient(),
-      await readJson(request, passwordResetRequestSchema),
-    ),
+    requestPasswordReset(createSupabaseServiceRoleClient(), await readJson(request, passwordResetRequestSchema)),
   );
 }

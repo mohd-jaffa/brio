@@ -19,7 +19,8 @@ export interface ShellServer {
 }
 
 // Addresses only a development machine answers on.
-const PRIVATE_HOST = /^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/;
+const PRIVATE_HOST =
+  /^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/;
 
 export function shellServer(address: string | undefined): ShellServer {
   if (!address) {
@@ -38,7 +39,9 @@ export function shellServer(address: string | undefined): ShellServer {
     throw new Error(`ANDROID_APP_URL must be https (or http for a development server): ${address}`);
   }
   if (cleartext && !PRIVATE_HOST.test(parsed.hostname)) {
-    throw new Error(`ANDROID_APP_URL may use plain http only for a development server on a private address: ${address}`);
+    throw new Error(
+      `ANDROID_APP_URL may use plain http only for a development server on a private address: ${address}`,
+    );
   }
   return { url: parsed.origin, host: parsed.hostname, cleartext };
 }

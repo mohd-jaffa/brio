@@ -26,7 +26,13 @@ describe("getGuestSales", () => {
   it("counts and totals the period's Guest orders, cancelled ones left out, and reads the first page", async () => {
     const fake = fakeSupabase((query) => {
       if (query.table === "payments") return { data: [{ order_id: "1", amount: 38000 }] };
-      if (selects(query, "id, total")) return { data: [{ id: "1", total: 38000 }, { id: "2", total: 76000 }] };
+      if (selects(query, "id, total"))
+        return {
+          data: [
+            { id: "1", total: 38000 },
+            { id: "2", total: 76000 },
+          ],
+        };
       return { data: [listRow("1")] };
     });
     const sales = await getGuestSales(tenantOf(fake.client), { range: "LAST_7_DAYS" }, now);
@@ -61,13 +67,21 @@ describe("getGuestSales", () => {
       { range: "CUSTOM", from: "2026-09-01", to: "2026-09-10", cursor: 20 },
       now,
     );
-    expect(sales).toEqual({ period: { from: "2026-09-01", to: "2026-09-10" }, orders: 0, sales: 0, items: [], nextCursor: null });
+    expect(sales).toEqual({
+      period: { from: "2026-09-01", to: "2026-09-10" },
+      orders: 0,
+      sales: 0,
+      items: [],
+      nextCursor: null,
+    });
     const page = fake.queries.find((query) => selects(query, ORDER_LIST_COLUMNS))!;
     expect(fake.argsOf(page, "range")).toEqual([[20, 20 + PAGE_SIZE]]);
   });
 
   it("passes on a refusal in the app's own words", async () => {
     const fake = fakeSupabase(() => ({ error: { code: "PGRST000", message: "down" } }));
-    await expect(getGuestSales(tenantOf(fake.client), { range: "LAST_30_DAYS" }, now)).rejects.toMatchObject({ kind: expect.any(String) });
+    await expect(getGuestSales(tenantOf(fake.client), { range: "LAST_30_DAYS" }, now)).rejects.toMatchObject({
+      kind: expect.any(String),
+    });
   });
 });

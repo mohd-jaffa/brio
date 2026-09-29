@@ -104,7 +104,9 @@ export const orderCustomerSchema = z.discriminatedUnion(
     z.object({ kind: z.literal("GUEST") }),
     z.object({
       kind: z.literal("CUSTOMER"),
-      id: z.string({ error: VALIDATION_MESSAGES.chooseOne("customer") }).uuid(VALIDATION_MESSAGES.chooseOne("customer")),
+      id: z
+        .string({ error: VALIDATION_MESSAGES.chooseOne("customer") })
+        .uuid(VALIDATION_MESSAGES.chooseOne("customer")),
     }),
   ],
   { error: VALIDATION_MESSAGES.chooseOne("customer") },
@@ -192,7 +194,10 @@ const orderFilterFields = z.object({
   search: searchParam,
 });
 
-function datesInOrder(query: { from?: string; to?: string }, ctx: z.core.$RefinementCtx<{ from?: string; to?: string }>) {
+function datesInOrder(
+  query: { from?: string; to?: string },
+  ctx: z.core.$RefinementCtx<{ from?: string; to?: string }>,
+) {
   if (query.from && query.to && query.from > query.to) {
     ctx.addIssue({ code: "custom", path: ["to"], message: VALIDATION_MESSAGES.invalid });
   }

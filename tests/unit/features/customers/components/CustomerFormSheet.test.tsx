@@ -39,10 +39,9 @@ beforeEach(() => vi.clearAllMocks());
 
 describe("CustomerFormSheet", () => {
   it("is out of sight while it is closed", () => {
-    const { container } = render(
-      <CustomerFormSheet isOpen={false} onClose={vi.fn()} onSuccess={vi.fn()} />,
-      { wrapper },
-    );
+    const { container } = render(<CustomerFormSheet isOpen={false} onClose={vi.fn()} onSuccess={vi.fn()} />, {
+      wrapper,
+    });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(container.querySelector("dialog")).not.toHaveAttribute("open");
   });
@@ -149,10 +148,7 @@ describe("CustomerFormSheet", () => {
     await userEvent.click(screen.getByRole("button", { name: "Save customer" }));
 
     await waitFor(() =>
-      expect(CustomersClient.updateCustomer).toHaveBeenCalledWith(
-        "c-1",
-        expect.objectContaining({ name: "Meena G" }),
-      ),
+      expect(CustomersClient.updateCustomer).toHaveBeenCalledWith("c-1", expect.objectContaining({ name: "Meena G" })),
     );
   });
 
@@ -166,9 +162,7 @@ describe("CustomerFormSheet", () => {
     await userEvent.type(screen.getByLabelText(/Phone number/), "9876543210");
     await userEvent.click(screen.getByRole("button", { name: "Save customer" }));
 
-    await waitFor(() =>
-      expect(screen.getByText("That phone number is already taken.")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText("That phone number is already taken.")).toBeInTheDocument());
     expect(props.onClose).not.toHaveBeenCalled();
   });
 
@@ -214,9 +208,12 @@ describe("CustomerFormSheet", () => {
 
       for (const details of [undefined, { customerId: 7, name: "Meena" }, { customerId: "c-1" }]) {
         vi.mocked(CustomersClient.createCustomer).mockRejectedValue(taken(details));
-        const view = render(<CustomerFormSheet isOpen onClose={vi.fn()} onSuccess={vi.fn()} onUseExisting={vi.fn()} />, {
-          wrapper,
-        });
+        const view = render(
+          <CustomerFormSheet isOpen onClose={vi.fn()} onSuccess={vi.fn()} onUseExisting={vi.fn()} />,
+          {
+            wrapper,
+          },
+        );
         const card = await saveMeena();
         expect(card).toHaveTextContent("That phone number is already taken.");
         expect(within(card).queryByRole("button", { name: "Use that customer" })).not.toBeInTheDocument();

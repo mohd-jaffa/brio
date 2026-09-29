@@ -12,12 +12,7 @@ import {
 } from "@/features/orders/view";
 import { anOrderListItem } from "@tests/support/orders";
 
-function order(
-  id: string,
-  status: OrderStatus,
-  due: string,
-  paymentStatus: PaymentStatus = "UNPAID",
-): Order {
+function order(id: string, status: OrderStatus, due: string, paymentStatus: PaymentStatus = "UNPAID"): Order {
   return {
     id,
     customerId: "c-1",

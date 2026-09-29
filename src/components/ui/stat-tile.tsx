@@ -18,7 +18,7 @@ export interface StatDelta {
 
 function DeltaLine({ delta }: { delta: StatDelta }) {
   const { change, up = "good", since } = delta;
-  const good = change === 0 ? undefined : (change > 0) === (up === "good");
+  const good = change === 0 ? undefined : change > 0 === (up === "good");
   const Arrow = change > 0 ? ArrowUp : ArrowDown;
   return (
     <dd className="col-span-2 row-start-3 mt-2 text-xs lg:row-start-4">
@@ -98,7 +98,10 @@ export function StatTile({
       </dd>
       {delta && <DeltaLine delta={delta} />}
       {trend && (
-        <Sparkline values={trend} className="col-start-2 row-start-1 hidden w-24 self-center justify-self-end lg:block" />
+        <Sparkline
+          values={trend}
+          className="col-start-2 row-start-1 hidden w-24 self-center justify-self-end lg:block"
+        />
       )}
     </div>
   );

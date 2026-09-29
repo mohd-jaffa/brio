@@ -9,8 +9,7 @@ import type { CreateProductPayload, UpdateProductPayload } from "@/lib/validatio
 import type { Product, ProductRow } from "./types";
 
 /** A bakery's products — the menu orders are built from (AGENTS.md §6). */
-const products = (tenant: Tenant) =>
-  tenantRecords<ProductRow>(tenant, "products");
+const products = (tenant: Tenant) => tenantRecords<ProductRow>(tenant, "products");
 
 export function toProduct(row: ProductRow): Product {
   return {
@@ -42,10 +41,7 @@ export async function getAllProducts(tenant: Tenant): Promise<Product[]> {
   return rows.map(toProduct);
 }
 
-export async function getProductById(
-  tenant: Tenant,
-  id: string,
-): Promise<Product> {
+export async function getProductById(tenant: Tenant, id: string): Promise<Product> {
   return toProduct(await products(tenant).find(id));
 }
 
@@ -65,18 +61,11 @@ export async function getProductsByIds(tenant: Tenant, ids: readonly string[]): 
   return ((data ?? []) as ProductRow[]).map(toProduct);
 }
 
-export async function createProduct(
-  tenant: Tenant,
-  input: CreateProductPayload,
-): Promise<Product> {
+export async function createProduct(tenant: Tenant, input: CreateProductPayload): Promise<Product> {
   return toProduct(await products(tenant).insert(toColumns(input)));
 }
 
-export async function updateProduct(
-  tenant: Tenant,
-  id: string,
-  input: UpdateProductPayload,
-): Promise<Product> {
+export async function updateProduct(tenant: Tenant, id: string, input: UpdateProductPayload): Promise<Product> {
   const row = await products(tenant).update(id, toColumns(input), EDITABLE_COLUMNS.products);
   return toProduct(row);
 }

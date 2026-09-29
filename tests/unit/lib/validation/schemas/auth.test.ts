@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import { VALIDATION_MESSAGES } from "@/constants/messages";
-import { changeAvatarSchema, changePasswordSchema, deleteAccountSchema, registerSchema } from "@/lib/validation/schemas/auth";
+import {
+  changeAvatarSchema,
+  changePasswordSchema,
+  deleteAccountSchema,
+  registerSchema,
+} from "@/lib/validation/schemas/auth";
 
 const you = {
   name: "Asha Baker",
@@ -77,7 +82,12 @@ describe("changeAvatarSchema", () => {
 });
 
 describe("deleteAccountSchema", () => {
-  const typed = { phone: "98765 43210", email: " Asha@Example.com ", password: " pass word ", confirmPassword: " pass word " };
+  const typed = {
+    phone: "98765 43210",
+    email: " Asha@Example.com ",
+    password: " pass word ",
+    confirmPassword: " pass word ",
+  };
 
   it("reads the number and the email as the account keeps them, and the password exactly as typed", () => {
     expect(deleteAccountSchema.parse(typed)).toEqual({

@@ -109,7 +109,10 @@ function fakeAdmin({
               single: async () => {
                 if (table === "bakeries") return { data: { id: "b-1" }, error: null };
                 if (profileFails) {
-                  return { data: null, error: { message: 'duplicate key value violates unique constraint "profiles_email_key"' } };
+                  return {
+                    data: null,
+                    error: { message: 'duplicate key value violates unique constraint "profiles_email_key"' },
+                  };
                 }
                 return { data: { ...row, email_confirmed_at: null }, error: null };
               },
@@ -184,7 +187,10 @@ describe("register", () => {
 
     await expect(register(client, registration)).resolves.toMatchObject({ userId: "u-1", bakeryId: "b-1" });
     expect(deletedUsers).toEqual([]);
-    expect(logger.error).toHaveBeenCalledWith("Could not send the confirmation email", { userId: "u-1", reason: "SMTP refused" });
+    expect(logger.error).toHaveBeenCalledWith("Could not send the confirmation email", {
+      userId: "u-1",
+      reason: "SMTP refused",
+    });
   });
 
   it("queues the confirmation email when a worker runs, naming only the user (BUG-16)", async () => {
@@ -203,7 +209,10 @@ describe("register", () => {
 
     await expect(register(client, registration)).resolves.toMatchObject({ userId: "u-1", bakeryId: "b-1" });
     expect(deletedUsers).toEqual([]);
-    expect(logger.error).toHaveBeenCalledWith("Could not send the confirmation email", { userId: "u-1", reason: "queue down" });
+    expect(logger.error).toHaveBeenCalledWith("Could not send the confirmation email", {
+      userId: "u-1",
+      reason: "queue down",
+    });
   });
 
   it("takes the new user away again when the rest of the account cannot be made", async () => {
@@ -292,7 +301,9 @@ describe("resendConfirmation", () => {
 
   it("refuses when the address is already confirmed", async () => {
     const { client } = fakeAdmin();
-    await expect(resendConfirmation(client, { ...profile, emailConfirmedAt: "2026-09-25T10:00:00Z" })).rejects.toMatchObject({
+    await expect(
+      resendConfirmation(client, { ...profile, emailConfirmedAt: "2026-09-25T10:00:00Z" }),
+    ).rejects.toMatchObject({
       code: "AUTH_EMAIL_ALREADY_CONFIRMED",
       httpStatus: 409,
     });
@@ -302,7 +313,13 @@ describe("resendConfirmation", () => {
 
 describe("mapProfile", () => {
   it("carries the profile picture, and shows the first one for a key the app no longer has", () => {
-    const row = { ...profileRow(), name_changed_at: null, phone_changed_at: null, email_changed_at: null, pending_email: null };
+    const row = {
+      ...profileRow(),
+      name_changed_at: null,
+      phone_changed_at: null,
+      email_changed_at: null,
+      pending_email: null,
+    };
     expect(mapProfile(row as Parameters<typeof mapProfile>[0]).avatar).toBe("tiger");
     expect(mapProfile({ ...row, avatar: "dragon" } as Parameters<typeof mapProfile>[0]).avatar).toBe("pomeranian");
   });

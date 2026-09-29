@@ -16,7 +16,17 @@ const { auth } = vi.hoisted(() => ({ auth: { current: {} as ReturnType<typeof au
 vi.mock("@/features/auth/AuthProvider", () => ({ useAuth: () => auth.current }));
 // The mark's own states are BusinessMark's tests; here it is simply loaded.
 vi.mock("@/features/business/hooks/useBusiness", () => ({
-  useBusiness: () => ({ data: { id: "b-1", name: "Asha's Kitchen", tagline: null, city: null, address: null, phone: "+919876543210", logoUrl: null } }),
+  useBusiness: () => ({
+    data: {
+      id: "b-1",
+      name: "Asha's Kitchen",
+      tagline: null,
+      city: null,
+      address: null,
+      phone: "+919876543210",
+      logoUrl: null,
+    },
+  }),
 }));
 
 // The count's own states are the bell's tests; here some wait.
@@ -80,9 +90,11 @@ describe("AppShell", () => {
     shell();
     const [sidebar] = navs();
     expect(within(sidebar).getAllByRole("list")).toHaveLength(3);
-    expect(within(sidebar).getAllByRole("link").map((link) => link.textContent)).toEqual(
-      ALL_NAV.map((item) => item.label),
-    );
+    expect(
+      within(sidebar)
+        .getAllByRole("link")
+        .map((link) => link.textContent),
+    ).toEqual(ALL_NAV.map((item) => item.label));
   });
 
   it("puts Home, Orders, Products, Customers and More on a phone's bottom bar", () => {
@@ -91,8 +103,12 @@ describe("AppShell", () => {
     // What a floating notice clears on a phone, and only where there is one.
     expect(bottom).toHaveAttribute("data-bottom-nav");
     const names = [
-      ...within(bottom).getAllByRole("link").map((link) => link.textContent),
-      ...within(bottom).getAllByRole("button").map((button) => button.textContent),
+      ...within(bottom)
+        .getAllByRole("link")
+        .map((link) => link.textContent),
+      ...within(bottom)
+        .getAllByRole("button")
+        .map((button) => button.textContent),
     ];
     expect(names.sort()).toEqual(BOTTOM_NAV.map((item) => item.label).sort());
   });

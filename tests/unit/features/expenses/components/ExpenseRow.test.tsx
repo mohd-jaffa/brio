@@ -42,12 +42,11 @@ describe("ExpenseTable", () => {
     render(<ExpenseTable label="Sep 2026" expenses={[flour, boxes]} iconOf={iconOf} onOpen={onOpen} />);
 
     const table = screen.getByRole("table", { name: "Sep 2026" });
-    expect(within(table).getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual([
-      "Description",
-      "Category",
-      "Date",
-      "Amount",
-    ]);
+    expect(
+      within(table)
+        .getAllByRole("columnheader")
+        .map((cell) => cell.textContent),
+    ).toEqual(["Description", "Category", "Date", "Amount"]);
     expect(iconOf).toHaveBeenCalledWith("Packaging");
     const [, first, second] = within(table).getAllByRole("row");
     expect(first).toHaveTextContent("Flour and sugarIngredients12 Sep 2026₹2,450");

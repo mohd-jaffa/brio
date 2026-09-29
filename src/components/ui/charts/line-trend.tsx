@@ -61,8 +61,7 @@ export function LineTrend({
   const baseline = height - BOTTOM;
   const y = linearScale([0, ticks[ticks.length - 1]], [baseline, TOP]);
   const span = Math.max(0, width - RIGHT - axis - INSET);
-  const x = (index: number) =>
-    axis + INSET + (points.length > 1 ? (index * span) / (points.length - 1) : span / 2);
+  const x = (index: number) => axis + INSET + (points.length > 1 ? (index * span) / (points.length - 1) : span / 2);
 
   const line = points.map((point, index) => ({ x: x(index), y: y(point.value) }));
   const before = compared?.map((point, index) => ({ x: x(index), y: y(point.value) }));

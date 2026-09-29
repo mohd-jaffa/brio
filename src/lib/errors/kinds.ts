@@ -10,8 +10,7 @@ import { AppError, type ErrorKind } from "./AppError";
  */
 
 function make(kind: ErrorKind) {
-  return (code: ErrorMessageCode, details?: unknown, cause?: unknown) =>
-    new AppError({ kind, code, details, cause });
+  return (code: ErrorMessageCode, details?: unknown, cause?: unknown) => new AppError({ kind, code, details, cause });
 }
 
 /** A request that does not satisfy its schema. */
@@ -35,8 +34,7 @@ export const conflictError = (code: ErrorMessageCode = "CONFLICT", details?: unk
   make("CONFLICT")(code, details);
 
 /** A request that is well formed but the business rules refuse. */
-export const businessRuleError = (code: ErrorMessageCode, details?: unknown) =>
-  make("BUSINESS_RULE")(code, details);
+export const businessRuleError = (code: ErrorMessageCode, details?: unknown) => make("BUSINESS_RULE")(code, details);
 
 /** A service we depend on failed: mail, storage, a provider. */
 export const externalServiceError = (
@@ -46,11 +44,8 @@ export const externalServiceError = (
 ) => make("EXTERNAL_SERVICE")(code, details, cause);
 
 /** Anything else. The cause is logged; the caller is told only that it failed. */
-export const internalError = (
-  code: ErrorMessageCode = "INTERNAL_ERROR",
-  details?: unknown,
-  cause?: unknown,
-) => make("INTERNAL")(code, details, cause);
+export const internalError = (code: ErrorMessageCode = "INTERNAL_ERROR", details?: unknown, cause?: unknown) =>
+  make("INTERNAL")(code, details, cause);
 
 /** The error for an action that needs a signed-in user when there is none. */
 export const signInRequired = () => authenticationError("AUTH_SESSION_REQUIRED");

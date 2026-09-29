@@ -1,11 +1,7 @@
 "use client";
 
 import { forwardRef, useId } from "react";
-import type {
-  InputHTMLAttributes,
-  ReactNode,
-  TextareaHTMLAttributes,
-} from "react";
+import type { InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from "react";
 
 import { UI_TEXT } from "@/constants/messages";
 import { todayKey } from "@/lib/dates/calendar";
@@ -141,9 +137,7 @@ export const TextField = forwardRef<
           )}
           {...rest}
         />
-        {trailing && (
-          <span className="absolute inset-y-0 right-1.5 flex items-center">{trailing}</span>
-        )}
+        {trailing && <span className="absolute inset-y-0 right-1.5 flex items-center">{trailing}</span>}
       </div>
       <FieldHint id={hintId} hint={hint} />
       <FieldError id={errorId} message={error} />
@@ -324,10 +318,7 @@ export function DateTimeField({
 }
 
 /** Options built from one of the constant lists and its label map (src/constants/statuses.ts). */
-export function optionsFrom<T extends string>(
-  values: readonly T[],
-  labels: Record<T, string>,
-): SelectOption[] {
+export function optionsFrom<T extends string>(values: readonly T[], labels: Record<T, string>): SelectOption[] {
   return values.map((value) => ({ value, label: labels[value] }));
 }
 

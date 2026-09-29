@@ -81,7 +81,10 @@ export function addMonthsKey(key: string, months: number): string {
  */
 export function monthWeeks(key: string): (string | null)[][] {
   const first = monthStartKey(key);
-  const cells: (string | null)[] = Array.from({ length: (new Date(`${first}T00:00:00Z`).getUTCDay() + 6) % 7 }, () => null);
+  const cells: (string | null)[] = Array.from(
+    { length: (new Date(`${first}T00:00:00Z`).getUTCDay() + 6) % 7 },
+    () => null,
+  );
   for (let day = first; day.slice(0, 7) === first.slice(0, 7); day = nextDayKey(day)) cells.push(day);
   while (cells.length % 7 !== 0) cells.push(null);
   return Array.from({ length: cells.length / 7 }, (_, week) => cells.slice(week * 7, week * 7 + 7));

@@ -1,0 +1,9 @@
+# Prettier also skips what .gitignore does.
+
+# Prose is wrapped by hand, and the plan's tables and emphasis are kept as written.
+*.md
+
+# Generated, or not the web app's source.
+package-lock.json
+android/
+supabase/.temp/

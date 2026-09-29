@@ -148,7 +148,10 @@ describe("listOrders", () => {
 
   it("passes on a refusal in the app's own words", async () => {
     const fake = fakeSupabase(() => ({ error: { code: "42501", message: "permission denied for view order_search" } }));
-    await expect(listOrders(tenantOf(fake.client), QUERY)).rejects.toMatchObject({ code: "AUTH_ROLE_FORBIDDEN", kind: "AUTHORIZATION" });
+    await expect(listOrders(tenantOf(fake.client), QUERY)).rejects.toMatchObject({
+      code: "AUTH_ROLE_FORBIDDEN",
+      kind: "AUTHORIZATION",
+    });
   });
 });
 

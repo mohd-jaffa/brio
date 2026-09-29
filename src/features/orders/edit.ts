@@ -58,7 +58,12 @@ export async function updateOrder(tenant: Tenant, id: string, input: UpdateOrder
 }
 
 /** The order as `update_order` takes it: what the server priced, never what was sent. */
-function toChanges(input: UpdateOrderPayload, customerId: string | null, lines: readonly PricedLine[], totals: OrderTotals) {
+function toChanges(
+  input: UpdateOrderPayload,
+  customerId: string | null,
+  lines: readonly PricedLine[],
+  totals: OrderTotals,
+) {
   return {
     customer_id: customerId,
     delivery_type: input.delivery.type,

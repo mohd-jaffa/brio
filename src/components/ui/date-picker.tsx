@@ -1,15 +1,7 @@
 "use client";
 
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
-import {
-  forwardRef,
-  useEffect,
-  useId,
-  useImperativeHandle,
-  useRef,
-  useState,
-  type KeyboardEvent,
-} from "react";
+import { forwardRef, useEffect, useId, useImperativeHandle, useRef, useState, type KeyboardEvent } from "react";
 
 import { UI_TEXT } from "@/constants/messages";
 import { addDaysKey, addMonthsKey, monthWeeks, todayKey, weekStartKey } from "@/lib/dates/calendar";
@@ -224,90 +216,92 @@ export const DatePicker = forwardRef<
         {/* Drawn only while open: a closed calendar is nothing to carry. */}
         {open && (
           <>
-        <div className="flex items-center justify-between gap-2 pb-2">
-          <IconButton
-            icon={ChevronLeft}
-            label={text.previousMonth}
-            disabled={Boolean(min) && focused.slice(0, 7) <= min!.slice(0, 7)}
-            onClick={() => goTo(addMonthsKey(focused, -1))}
-          />
-          <p id={titleId} aria-live="polite" className="font-heading text-lg font-medium text-text">
-            {formatMonthYear(focused)}
-          </p>
-          <IconButton
-            icon={ChevronRight}
-            label={text.nextMonth}
-            disabled={Boolean(max) && focused.slice(0, 7) >= max!.slice(0, 7)}
-            onClick={() => goTo(addMonthsKey(focused, 1))}
-          />
-        </div>
+            <div className="flex items-center justify-between gap-2 pb-2">
+              <IconButton
+                icon={ChevronLeft}
+                label={text.previousMonth}
+                disabled={Boolean(min) && focused.slice(0, 7) <= min!.slice(0, 7)}
+                onClick={() => goTo(addMonthsKey(focused, -1))}
+              />
+              <p id={titleId} aria-live="polite" className="font-heading text-lg font-medium text-text">
+                {formatMonthYear(focused)}
+              </p>
+              <IconButton
+                icon={ChevronRight}
+                label={text.nextMonth}
+                disabled={Boolean(max) && focused.slice(0, 7) >= max!.slice(0, 7)}
+                onClick={() => goTo(addMonthsKey(focused, 1))}
+              />
+            </div>
 
-        <div role="grid" aria-labelledby={titleId} onKeyDown={onGridKeyDown} className="space-y-1">
-          <div role="row" className="grid grid-cols-7">
-            {text.weekdaysShort.map((day, index) => (
-              <span
-                key={day}
-                role="columnheader"
-                aria-label={text.weekdays[index]}
-                className="py-1 text-center text-xs font-medium text-text-muted"
+            <div role="grid" aria-labelledby={titleId} onKeyDown={onGridKeyDown} className="space-y-1">
+              <div role="row" className="grid grid-cols-7">
+                {text.weekdaysShort.map((day, index) => (
+                  <span
+                    key={day}
+                    role="columnheader"
+                    aria-label={text.weekdays[index]}
+                    className="py-1 text-center text-xs font-medium text-text-muted"
+                  >
+                    {day}
+                  </span>
+                ))}
+              </div>
+              {monthWeeks(focused).map((week) => (
+                <div key={week.find(Boolean)} role="row" className="grid grid-cols-7">
+                  {week.map((day, index) =>
+                    day ? (
+                      <div key={day} role="gridcell" aria-selected={day === value} className="flex justify-center">
+                        <button
+                          type="button"
+                          data-day={day}
+                          tabIndex={day === focused ? 0 : -1}
+                          disabled={!within(day)}
+                          aria-label={formatLongDate(day)}
+                          aria-current={day === today ? "date" : undefined}
+                          onClick={() => take(day)}
+                          className={cn(
+                            "flex size-11 items-center justify-center rounded-full text-sm tabular-nums transition-colors",
+                            "disabled:cursor-not-allowed disabled:opacity-35",
+                            day === value
+                              ? "bg-primary font-semibold text-primary-text hover:bg-primary-hover"
+                              : "text-text enabled:hover:bg-sunken",
+                            day === today &&
+                              day !== value &&
+                              "font-semibold text-primary ring-1 ring-inset ring-primary/50",
+                          )}
+                        >
+                          {Number(day.slice(8))}
+                        </button>
+                      </div>
+                    ) : (
+                      <div key={`blank-${index}`} role="gridcell" aria-hidden="true" />
+                    ),
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-2 flex items-center justify-between gap-2 border-t border-border pt-2">
+              <button
+                type="button"
+                disabled={!within(today)}
+                onClick={() => take(today)}
+                className="touch-target rounded-lg px-3 text-sm font-semibold text-primary transition-colors hover:bg-sunken disabled:opacity-40"
               >
-                {day}
-              </span>
-            ))}
-          </div>
-          {monthWeeks(focused).map((week) => (
-            <div key={week.find(Boolean)} role="row" className="grid grid-cols-7">
-              {week.map((day, index) =>
-                day ? (
-                  <div key={day} role="gridcell" aria-selected={day === value} className="flex justify-center">
-                    <button
-                      type="button"
-                      data-day={day}
-                      tabIndex={day === focused ? 0 : -1}
-                      disabled={!within(day)}
-                      aria-label={formatLongDate(day)}
-                      aria-current={day === today ? "date" : undefined}
-                      onClick={() => take(day)}
-                      className={cn(
-                        "flex size-11 items-center justify-center rounded-full text-sm tabular-nums transition-colors",
-                        "disabled:cursor-not-allowed disabled:opacity-35",
-                        day === value
-                          ? "bg-primary font-semibold text-primary-text hover:bg-primary-hover"
-                          : "text-text enabled:hover:bg-sunken",
-                        day === today && day !== value && "font-semibold text-primary ring-1 ring-inset ring-primary/50",
-                      )}
-                    >
-                      {Number(day.slice(8))}
-                    </button>
-                  </div>
-                ) : (
-                  <div key={`blank-${index}`} role="gridcell" aria-hidden="true" />
-                ),
+                {text.today}
+              </button>
+              {clearable && (
+                <button
+                  type="button"
+                  disabled={!value}
+                  onClick={() => take("")}
+                  className="touch-target rounded-lg px-3 text-sm font-medium text-text-muted transition-colors hover:bg-sunken hover:text-text disabled:opacity-40"
+                >
+                  {text.clear}
+                </button>
               )}
             </div>
-          ))}
-        </div>
-
-        <div className="mt-2 flex items-center justify-between gap-2 border-t border-border pt-2">
-          <button
-            type="button"
-            disabled={!within(today)}
-            onClick={() => take(today)}
-            className="touch-target rounded-lg px-3 text-sm font-semibold text-primary transition-colors hover:bg-sunken disabled:opacity-40"
-          >
-            {text.today}
-          </button>
-          {clearable && (
-            <button
-              type="button"
-              disabled={!value}
-              onClick={() => take("")}
-              className="touch-target rounded-lg px-3 text-sm font-medium text-text-muted transition-colors hover:bg-sunken hover:text-text disabled:opacity-40"
-            >
-              {text.clear}
-            </button>
-          )}
-        </div>
           </>
         )}
       </div>

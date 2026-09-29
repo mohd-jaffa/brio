@@ -8,226 +8,91 @@
         "role": "primary",
         "displayName": "Toasted Caramel",
         "canonical": "oklch(45.7% 0.083 56)",
-        "tonalRamp": [
-          "#1b0400",
-          "#3b1c02",
-          "#5e3719",
-          "#835532",
-          "#a77653",
-          "#c89a7a",
-          "#e9c0a3",
-          "#ffe6cd"
-        ]
+        "tonalRamp": ["#1b0400", "#3b1c02", "#5e3719", "#835532", "#a77653", "#c89a7a", "#e9c0a3", "#ffe6cd"]
       },
       "honey-gold": {
         "role": "secondary",
         "displayName": "Honey Gold",
         "canonical": "oklch(60.1% 0.110 75)",
-        "tonalRamp": [
-          "#1b0400",
-          "#3b1d00",
-          "#5e3900",
-          "#835700",
-          "#a67932",
-          "#c79d61",
-          "#e8c28d",
-          "#ffe9ba"
-        ]
+        "tonalRamp": ["#1b0400", "#3b1d00", "#5e3900", "#835700", "#a67932", "#c79d61", "#e8c28d", "#ffe9ba"]
       },
       "espresso": {
         "role": "tertiary",
         "displayName": "Espresso",
         "canonical": "oklch(23.9% 0.029 52)",
-        "tonalRamp": [
-          "#110905",
-          "#2e221b",
-          "#4d3f36",
-          "#6e5d53",
-          "#907e74",
-          "#b2a197",
-          "#d5c6bd",
-          "#f9ebe3"
-        ]
+        "tonalRamp": ["#110905", "#2e221b", "#4d3f36", "#6e5d53", "#907e74", "#b2a197", "#d5c6bd", "#f9ebe3"]
       },
       "warm-cream": {
         "role": "neutral",
         "displayName": "Warm Cream",
         "canonical": "oklch(95.5% 0.015 77)",
-        "tonalRamp": [
-          "#0f0a05",
-          "#29241d",
-          "#474139",
-          "#666058",
-          "#888178",
-          "#aba49b",
-          "#cfc8be",
-          "#f4ede3"
-        ]
+        "tonalRamp": ["#0f0a05", "#29241d", "#474139", "#666058", "#888178", "#aba49b", "#cfc8be", "#f4ede3"]
       },
       "oat-paper": {
         "role": "neutral",
         "displayName": "Oat Paper",
         "canonical": "oklch(99.2% 0.006 75)",
-        "tonalRamp": [
-          "#0d0b08",
-          "#272522",
-          "#44423e",
-          "#63615d",
-          "#84827e",
-          "#a7a4a1",
-          "#cbc9c5",
-          "#f1eeea"
-        ]
+        "tonalRamp": ["#0d0b08", "#272522", "#44423e", "#63615d", "#84827e", "#a7a4a1", "#cbc9c5", "#f1eeea"]
       },
       "baked-terracotta": {
         "role": "primary",
         "displayName": "Baked Terracotta (Peach)",
         "canonical": "oklch(52.7% 0.135 40)",
-        "tonalRamp": [
-          "#250000",
-          "#4a0900",
-          "#712605",
-          "#9b4221",
-          "#c16543",
-          "#e28c6d",
-          "#ffb398",
-          "#ffdcc3"
-        ]
+        "tonalRamp": ["#250000", "#4a0900", "#712605", "#9b4221", "#c16543", "#e28c6d", "#ffb398", "#ffdcc3"]
       },
       "apricot-glaze": {
         "role": "secondary",
         "displayName": "Apricot Glaze (Peach)",
         "canonical": "oklch(61.9% 0.129 46)",
-        "tonalRamp": [
-          "#230000",
-          "#480e00",
-          "#6e2a00",
-          "#984618",
-          "#bd683d",
-          "#de8f69",
-          "#feb694",
-          "#ffdec0"
-        ]
+        "tonalRamp": ["#230000", "#480e00", "#6e2a00", "#984618", "#bd683d", "#de8f69", "#feb694", "#ffdec0"]
       },
       "cocoa": {
         "role": "tertiary",
         "displayName": "Cocoa (Peach)",
         "canonical": "oklch(27.8% 0.042 39)",
-        "tonalRamp": [
-          "#150704",
-          "#32201a",
-          "#533c34",
-          "#765a51",
-          "#987b71",
-          "#ba9e95",
-          "#dcc3bb",
-          "#ffe9e2"
-        ]
+        "tonalRamp": ["#150704", "#32201a", "#533c34", "#765a51", "#987b71", "#ba9e95", "#dcc3bb", "#ffe9e2"]
       },
       "blush-cream": {
         "role": "neutral",
         "displayName": "Blush Cream (Peach)",
         "canonical": "oklch(95.7% 0.018 54)",
-        "tonalRamp": [
-          "#110905",
-          "#2c231d",
-          "#4a4039",
-          "#6a5f58",
-          "#8b8079",
-          "#aea29b",
-          "#d3c6bf",
-          "#f9ece4"
-        ]
+        "tonalRamp": ["#110905", "#2c231d", "#4a4039", "#6a5f58", "#8b8079", "#aea29b", "#d3c6bf", "#f9ece4"]
       },
       "rose-paper": {
         "role": "neutral",
         "displayName": "Rose Paper (Peach)",
         "canonical": "oklch(98.8% 0.008 61)",
-        "tonalRamp": [
-          "#0e0a08",
-          "#282421",
-          "#45413e",
-          "#64605d",
-          "#86817e",
-          "#a9a4a0",
-          "#cdc8c4",
-          "#f2ede9"
-        ]
+        "tonalRamp": ["#0e0a08", "#282421", "#45413e", "#64605d", "#86817e", "#a9a4a0", "#cdc8c4", "#f2ede9"]
       },
       "status-pending": {
         "role": "status",
         "displayName": "Pending",
         "canonical": "oklch(49.2% 0.107 65)",
-        "tonalRamp": [
-          "#1d0200",
-          "#3e1a00",
-          "#623600",
-          "#885314",
-          "#ac753b",
-          "#cd9967",
-          "#eebf92",
-          "#ffe6bf"
-        ]
+        "tonalRamp": ["#1d0200", "#3e1a00", "#623600", "#885314", "#ac753b", "#cd9967", "#eebf92", "#ffe6bf"]
       },
       "status-ready": {
         "role": "status",
         "displayName": "Ready",
         "canonical": "oklch(49.5% 0.072 173)",
-        "tonalRamp": [
-          "#001109",
-          "#002d23",
-          "#174c3f",
-          "#326e5e",
-          "#55907f",
-          "#7db2a2",
-          "#a6d5c6",
-          "#d0f9ec"
-        ]
+        "tonalRamp": ["#001109", "#002d23", "#174c3f", "#326e5e", "#55907f", "#7db2a2", "#a6d5c6", "#d0f9ec"]
       },
       "status-transit": {
         "role": "status",
         "displayName": "Out for delivery",
         "canonical": "oklch(48.4% 0.107 257)",
-        "tonalRamp": [
-          "#000827",
-          "#07244a",
-          "#204271",
-          "#3a629a",
-          "#5a84be",
-          "#81a7dd",
-          "#a9ccfd",
-          "#d2f1ff"
-        ]
+        "tonalRamp": ["#000827", "#07244a", "#204271", "#3a629a", "#5a84be", "#81a7dd", "#a9ccfd", "#d2f1ff"]
       },
       "status-delivered": {
         "role": "status",
         "displayName": "Delivered / Completed",
         "canonical": "oklch(49.1% 0.093 154)",
-        "tonalRamp": [
-          "#001202",
-          "#002e15",
-          "#174e2e",
-          "#32704a",
-          "#55926a",
-          "#7db48f",
-          "#a6d7b5",
-          "#d0fbdd"
-        ]
+        "tonalRamp": ["#001202", "#002e15", "#174e2e", "#32704a", "#55926a", "#7db48f", "#a6d7b5", "#d0fbdd"]
       },
       "status-cancelled": {
         "role": "status",
         "displayName": "Cancelled",
         "canonical": "oklch(50.2% 0.144 27)",
-        "tonalRamp": [
-          "#270000",
-          "#4d0104",
-          "#751e1b",
-          "#a03b35",
-          "#c75e55",
-          "#e7867c",
-          "#ffaea4",
-          "#ffd7ce"
-        ]
+        "tonalRamp": ["#270000", "#4d0104", "#751e1b", "#a03b35", "#c75e55", "#e7867c", "#ffaea4", "#ffd7ce"]
       },
       "baked-terracotta-deep": {
         "role": "primary-strong",

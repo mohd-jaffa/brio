@@ -30,17 +30,10 @@ export function lineSubtotal(line: PricedLine): number {
   return line.unitPrice * line.quantity;
 }
 
-export function orderTotals(
-  lines: readonly PricedLine[],
-  adjustments: readonly Adjustment[],
-): OrderTotals {
+export function orderTotals(lines: readonly PricedLine[], adjustments: readonly Adjustment[]): OrderTotals {
   const subtotal = sumPaise(lines.map(lineSubtotal));
-  const discount = sumPaise(
-    adjustments.filter((entry) => entry.type === "DISCOUNT").map((entry) => entry.amount),
-  );
-  const deliveryCharge = sumPaise(
-    adjustments.filter((entry) => entry.type === "CHARGE").map((entry) => entry.amount),
-  );
+  const discount = sumPaise(adjustments.filter((entry) => entry.type === "DISCOUNT").map((entry) => entry.amount));
+  const deliveryCharge = sumPaise(adjustments.filter((entry) => entry.type === "CHARGE").map((entry) => entry.amount));
   // No tax is charged yet; the field exists because the order row carries it.
   const tax = 0;
 

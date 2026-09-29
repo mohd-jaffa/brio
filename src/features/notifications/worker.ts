@@ -49,7 +49,12 @@ async function handleEmailChangeConfirmation(job: Job): Promise<void> {
  * that carries its words ready-made (`payload`), and is filed as the system's.
  */
 async function handlePushNotification(job: Job): Promise<void> {
-  const { token, bakeryId, payload: written, message } = job.payload as {
+  const {
+    token,
+    bakeryId,
+    payload: written,
+    message,
+  } = job.payload as {
     token?: string;
     bakeryId?: string;
     payload?: NotificationPayload;

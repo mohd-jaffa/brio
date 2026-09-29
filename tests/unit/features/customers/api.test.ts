@@ -39,7 +39,14 @@ function lookupClient(holder: { id: string; name: string } | null) {
   return { client: { from: () => chain } as unknown as SupabaseClient, filters };
 }
 
-const input = { name: "Priya Menon", phone: "+919876543210", email: null, address: null, googleMapsLink: null, notes: null };
+const input = {
+  name: "Priya Menon",
+  phone: "+919876543210",
+  email: null,
+  address: null,
+  googleMapsLink: null,
+  notes: null,
+};
 
 beforeEach(() => vi.clearAllMocks());
 
@@ -53,7 +60,10 @@ describe("a customer's phone number, already taken (§139.6, §139.11.4)", () =>
       kind: "CONFLICT",
       details: { customerId: "c-9", name: "Priya M." },
     });
-    expect(filters).toEqual([["bakery_id", "b-1"], ["phone", "+919876543210"]]);
+    expect(filters).toEqual([
+      ["bakery_id", "b-1"],
+      ["phone", "+919876543210"],
+    ]);
   });
 
   it("says the same when an edit takes another customer's number", async () => {
@@ -78,7 +88,11 @@ describe("a customer's phone number, already taken (§139.6, §139.11.4)", () =>
 
   it("looks nothing up when the write worked", async () => {
     insert.mockResolvedValue(row("c-1", "Priya Menon"));
-    const client = { from: () => { throw new Error("no lookup"); } } as unknown as SupabaseClient;
+    const client = {
+      from: () => {
+        throw new Error("no lookup");
+      },
+    } as unknown as SupabaseClient;
     await expect(createCustomer(tenantOf(client), input)).resolves.toMatchObject({ id: "c-1", name: "Priya Menon" });
   });
 });
@@ -118,7 +132,9 @@ describe("getCustomerSummary", () => {
 
   it("reads a customer with no orders, and passes on a refusal", async () => {
     find.mockResolvedValue(row("c-1", "Anu Sharma"));
-    expect((await getCustomerSummary(tenantOf(fakeSupabase(() => ({ data: null })).client), "c-1", now)).orders).toBe(0);
+    expect((await getCustomerSummary(tenantOf(fakeSupabase(() => ({ data: null })).client), "c-1", now)).orders).toBe(
+      0,
+    );
     const refused = fakeSupabase(() => ({ error: { code: "PGRST000", message: "down" } }));
     await expect(getCustomerSummary(tenantOf(refused.client), "c-1", now)).rejects.toBeInstanceOf(AppError);
   });
@@ -135,7 +151,9 @@ describe("listCustomers", () => {
   });
 
   it("reads a page of the business's customers by name, each with their orders and segment", async () => {
-    const fake = fakeSupabase(() => ({ data: [stats("c-1", "Anu", 4), stats("c-2", "Bina", 0, "2026-09-20T00:00:00Z"), stats("c-3", "Chitra", 1)] }));
+    const fake = fakeSupabase(() => ({
+      data: [stats("c-1", "Anu", 4), stats("c-2", "Bina", 0, "2026-09-20T00:00:00Z"), stats("c-3", "Chitra", 1)],
+    }));
     const page = await listCustomers(tenantOf(fake.client), { search: null }, now);
 
     const [query] = fake.queries;
@@ -147,7 +165,9 @@ describe("listCustomers", () => {
     ]);
     expect(fake.argsOf(query, "range")).toEqual([[0, PAGE_SIZE]]);
     expect(page.nextCursor).toBeNull();
-    expect(page.items.map(({ name, orders, lastOrderAt, segment }) => ({ name, orders, lastOrderAt, segment }))).toEqual([
+    expect(
+      page.items.map(({ name, orders, lastOrderAt, segment }) => ({ name, orders, lastOrderAt, segment })),
+    ).toEqual([
       { name: "Anu", orders: 4, lastOrderAt: "2026-09-24T05:00:00Z", segment: "REGULAR" },
       { name: "Bina", orders: 0, lastOrderAt: null, segment: "NEW" },
       { name: "Chitra", orders: 1, lastOrderAt: "2026-09-24T05:00:00Z", segment: null },

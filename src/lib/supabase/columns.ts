@@ -4,10 +4,7 @@
  * EDITABLE_COLUMNS (src/constants/editableColumns.ts), which is the only list
  * of columns the app may UPDATE directly.
  */
-export function pickColumns<T extends object, K extends keyof T>(
-  patch: T,
-  columns: readonly K[],
-): Partial<Pick<T, K>> {
+export function pickColumns<T extends object, K extends keyof T>(patch: T, columns: readonly K[]): Partial<Pick<T, K>> {
   const picked: Partial<Pick<T, K>> = {};
   for (const column of columns) {
     if (Object.prototype.hasOwnProperty.call(patch, column)) picked[column] = patch[column];
@@ -21,9 +18,7 @@ export function pickColumns<T extends object, K extends keyof T>(
  * different things all the way to the database.
  */
 export function definedOnly<T extends object>(values: T): Partial<T> {
-  return Object.fromEntries(
-    Object.entries(values).filter(([, value]) => value !== undefined),
-  ) as Partial<T>;
+  return Object.fromEntries(Object.entries(values).filter(([, value]) => value !== undefined)) as Partial<T>;
 }
 
 /**

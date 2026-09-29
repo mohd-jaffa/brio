@@ -23,12 +23,7 @@ import type {
 } from "@/lib/validation";
 
 import { generateTemporaryPassword } from "./security";
-import {
-  type AuthProfile,
-  type AuthSessionView,
-  type AuthenticatedSession,
-  type UserRole,
-} from "./types";
+import { type AuthProfile, type AuthSessionView, type AuthenticatedSession, type UserRole } from "./types";
 
 /** Where the confirmation link in the welcome email lands. */
 export const EMAIL_CONFIRMATION_PATH = "/confirm-email";
@@ -150,15 +145,8 @@ export async function createBakeryAndProfile(
   };
 }
 
-export async function getProfileById(
-  client: SupabaseClient,
-  userId: string,
-): Promise<ProfileRow | null> {
-  const { data, error } = await client
-    .from("profiles")
-    .select(PROFILE_COLUMNS)
-    .eq("id", userId)
-    .maybeSingle();
+export async function getProfileById(client: SupabaseClient, userId: string): Promise<ProfileRow | null> {
+  const { data, error } = await client.from("profiles").select(PROFILE_COLUMNS).eq("id", userId).maybeSingle();
 
   if (error) {
     throw mapDatabaseError(error);
@@ -167,15 +155,8 @@ export async function getProfileById(
   return data as ProfileRow | null;
 }
 
-export async function getProfileByEmail(
-  client: SupabaseClient,
-  email: string,
-): Promise<ProfileRow | null> {
-  const { data, error } = await client
-    .from("profiles")
-    .select(PROFILE_COLUMNS)
-    .eq("email", email)
-    .maybeSingle();
+export async function getProfileByEmail(client: SupabaseClient, email: string): Promise<ProfileRow | null> {
+  const { data, error } = await client.from("profiles").select(PROFILE_COLUMNS).eq("email", email).maybeSingle();
 
   if (error) {
     throw mapDatabaseError(error);
@@ -184,15 +165,8 @@ export async function getProfileByEmail(
   return data as ProfileRow | null;
 }
 
-async function setPasswordChangeRequirement(
-  client: SupabaseClient,
-  userId: string,
-  required: boolean,
-): Promise<void> {
-  const { error } = await client
-    .from("profiles")
-    .update({ must_change_password: required })
-    .eq("id", userId);
+async function setPasswordChangeRequirement(client: SupabaseClient, userId: string, required: boolean): Promise<void> {
+  const { error } = await client.from("profiles").update({ must_change_password: required }).eq("id", userId);
 
   if (error) {
     throw mapDatabaseError(error);
@@ -206,10 +180,7 @@ export const clearPasswordChangeRequirement = (client: SupabaseClient, userId: s
   setPasswordChangeRequirement(client, userId, false);
 
 async function markEmailConfirmed(client: SupabaseClient, userId: string, at: string) {
-  const { error } = await client
-    .from("profiles")
-    .update({ email_confirmed_at: at })
-    .eq("id", userId);
+  const { error } = await client.from("profiles").update({ email_confirmed_at: at }).eq("id", userId);
 
   if (error) {
     throw mapDatabaseError(error);
@@ -426,10 +397,7 @@ export async function resendConfirmation(adminClient: SupabaseClient, profile: A
   }
 }
 
-export async function login(
-  client: SupabaseClient,
-  credentials: LoginPayload,
-): Promise<AuthenticatedSession> {
+export async function login(client: SupabaseClient, credentials: LoginPayload): Promise<AuthenticatedSession> {
   const { data, error } = await client.auth.signInWithPassword({
     phone: credentials.phone,
     password: credentials.password,
@@ -463,10 +431,7 @@ export async function logout(client: SupabaseClient) {
   return { signedOut: true };
 }
 
-export async function getSession(
-  client: SupabaseClient,
-  accessToken: string,
-): Promise<AuthenticatedSession> {
+export async function getSession(client: SupabaseClient, accessToken: string): Promise<AuthenticatedSession> {
   const { data, error } = await client.auth.getUser(accessToken);
 
   if (error || !data.user) {
@@ -543,10 +508,7 @@ export async function confirmEmail(
  * belongs to an account, so this endpoint cannot be used to discover who has
  * one; the temporary password is never returned and never logged.
  */
-export async function requestPasswordReset(
-  client: SupabaseClient,
-  resetRequest: PasswordResetRequestPayload,
-) {
+export async function requestPasswordReset(client: SupabaseClient, resetRequest: PasswordResetRequestPayload) {
   const mailService = createConfiguredMailService();
   const profile = await getProfileByEmail(client, resetRequest.email);
 

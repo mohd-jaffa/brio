@@ -21,13 +21,8 @@ describe("AuthClient", () => {
   it("signs in through the login endpoint", async () => {
     answers(session);
 
-    await expect(AuthClient.signIn({ phone: "9876543210", password: "hunter22" })).resolves.toEqual(
-      session,
-    );
-    expect(mockFetch).toHaveBeenCalledWith(
-      apiRoutes.auth.login,
-      expect.objectContaining({ method: "POST" }),
-    );
+    await expect(AuthClient.signIn({ phone: "9876543210", password: "hunter22" })).resolves.toEqual(session);
+    expect(mockFetch).toHaveBeenCalledWith(apiRoutes.auth.login, expect.objectContaining({ method: "POST" }));
   });
 
   it("never hands a token back to the browser", async () => {
@@ -54,10 +49,7 @@ describe("AuthClient", () => {
         address: "12 MG Road",
       }),
     ).resolves.toEqual({ userId: "u-1", bakeryId: "b-1" });
-    expect(mockFetch).toHaveBeenCalledWith(
-      apiRoutes.auth.register,
-      expect.objectContaining({ method: "POST" }),
-    );
+    expect(mockFetch).toHaveBeenCalledWith(apiRoutes.auth.register, expect.objectContaining({ method: "POST" }));
   });
 
   it("asks for the confirmation email again", async () => {
@@ -75,10 +67,7 @@ describe("AuthClient", () => {
 
     await AuthClient.requestPasswordReset({ email: "asha@example.com" });
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      apiRoutes.auth.passwordReset,
-      expect.objectContaining({ method: "POST" }),
-    );
+    expect(mockFetch).toHaveBeenCalledWith(apiRoutes.auth.passwordReset, expect.objectContaining({ method: "POST" }));
   });
 
   it("changes a password with PATCH, as the route expects", async () => {
@@ -86,10 +75,7 @@ describe("AuthClient", () => {
 
     await AuthClient.changePassword({ newPassword: "hunter22", confirmPassword: "hunter22" });
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      apiRoutes.auth.password,
-      expect.objectContaining({ method: "PATCH" }),
-    );
+    expect(mockFetch).toHaveBeenCalledWith(apiRoutes.auth.password, expect.objectContaining({ method: "PATCH" }));
   });
 
   it("confirms an email with the tokens from the link", async () => {

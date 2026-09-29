@@ -134,7 +134,9 @@ describe("Products: one product's menu", () => {
     open();
     await userEvent.click(within(await menu("Chocolate truffle cake")).getByRole("button", { name: "Take off sale" }));
     expect(ProductsClient.updateProduct).toHaveBeenCalledWith("p-1", { isActive: false });
-    expect((await screen.findAllByText("Chocolate truffle cake no longer shows on the order screen."))[0]).toBeInTheDocument();
+    expect(
+      (await screen.findAllByText("Chocolate truffle cake no longer shows on the order screen."))[0],
+    ).toBeInTheDocument();
 
     await userEvent.click(within(await menu("Rose bunch")).getByRole("button", { name: "Put back on sale" }));
     await waitFor(() => expect(ProductsClient.updateProduct).toHaveBeenCalledWith("p-2", { isActive: true }));

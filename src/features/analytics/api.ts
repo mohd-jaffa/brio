@@ -32,7 +32,11 @@ const REPORT_COLUMNS =
  * summed on the server, in the business's calendar (§133.9 I3). The browser
  * never adds up a raw row.
  */
-export async function getAnalytics(tenant: Tenant, query: RangeQuery, now: Date = new Date()): Promise<AnalyticsReport> {
+export async function getAnalytics(
+  tenant: Tenant,
+  query: RangeQuery,
+  now: Date = new Date(),
+): Promise<AnalyticsReport> {
   const { supabase: client, bakeryId } = tenant;
   const range = { preset: query.range, from: query.from, to: query.to };
   const period = resolvePeriod(range, todayKey(now));

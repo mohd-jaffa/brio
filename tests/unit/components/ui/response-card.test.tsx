@@ -111,7 +111,11 @@ describe("a card with a next step", () => {
     );
     const card = screen.getByRole("dialog", { name: "Order placed" });
     expect(within(card).getByText("ORD-1028 is saved and ready to share.")).toBeInTheDocument();
-    expect(within(card).getAllByRole("term").map((term) => term.textContent)).toEqual(["Order", "Customer", "Total"]);
+    expect(
+      within(card)
+        .getAllByRole("term")
+        .map((term) => term.textContent),
+    ).toEqual(["Order", "Customer", "Total"]);
     expect(within(card).getByRole("link", { name: "View bill" })).toHaveAttribute("href", "/orders/1");
 
     await userEvent.click(within(card).getByRole("button", { name: "New order" }));
@@ -160,7 +164,9 @@ describe("an error card", () => {
 
   it("never shows a raw failure's text, and closes on Escape", async () => {
     const respond = mount();
-    act(() => respond.failure(new TypeError("fetch failed at 10.0.0.3"), { title: "Not saved", fallback: "SAVE_FAILED" }));
+    act(() =>
+      respond.failure(new TypeError("fetch failed at 10.0.0.3"), { title: "Not saved", fallback: "SAVE_FAILED" }),
+    );
     const card = screen.getByRole("alertdialog", { name: "Not saved" });
     expect(card).toHaveTextContent(ERROR_MESSAGES.SAVE_FAILED);
     expect(card).not.toHaveTextContent("10.0.0.3");
@@ -179,7 +185,11 @@ describe("an error card", () => {
   it("keeps its own actions when it has them", () => {
     const respond = mount();
     act(() =>
-      respond.error({ title: "Phone already used", message: "It belongs to Priya.", primary: { label: "Use that customer" } }),
+      respond.error({
+        title: "Phone already used",
+        message: "It belongs to Priya.",
+        primary: { label: "Use that customer" },
+      }),
     );
     expect(screen.getByRole("button", { name: "Use that customer" })).toBeInTheDocument();
     act(() => respond.failure(new Error("x"), { title: "Other", primary: { label: "Edit" } }));
@@ -205,7 +215,12 @@ describe("a confirmation", () => {
     const respond = mount();
     let answer: Promise<boolean>;
     act(() => {
-      answer = respond.confirm({ title: "Cancel ORD-1028?", message: "Its stock is released.", confirmLabel: "Cancel order", tone: "danger" });
+      answer = respond.confirm({
+        title: "Cancel ORD-1028?",
+        message: "Its stock is released.",
+        confirmLabel: "Cancel order",
+        tone: "danger",
+      });
     });
     const card = screen.getByRole("alertdialog", { name: "Cancel ORD-1028?" });
     // A destructive question starts on the safe answer.

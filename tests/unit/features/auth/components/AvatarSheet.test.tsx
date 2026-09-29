@@ -52,11 +52,17 @@ describe("AvatarSheet", () => {
     ]);
     const people = within(within(group).getByRole("region", { name: "People" })).getAllByRole("radio");
     expect(people).toHaveLength(24);
-    expect(people.slice(0, 3).map((choice) => choice.textContent)).toEqual(["Green hoodie", "Wavy hair", "Round glasses"]);
-    expect(people.at(-1)).toHaveTextContent("Low bun");
-    expect(within(group).getAllByRole("radio").filter((choice) => choice.getAttribute("aria-checked") === "true")).toEqual([
-      within(group).getByRole("radio", { name: "Husky" }),
+    expect(people.slice(0, 3).map((choice) => choice.textContent)).toEqual([
+      "Green hoodie",
+      "Wavy hair",
+      "Round glasses",
     ]);
+    expect(people.at(-1)).toHaveTextContent("Low bun");
+    expect(
+      within(group)
+        .getAllByRole("radio")
+        .filter((choice) => choice.getAttribute("aria-checked") === "true"),
+    ).toEqual([within(group).getByRole("radio", { name: "Husky" })]);
     expect(chooser()).toHaveTextContent("It shows on your account, beside your name.");
   });
 
@@ -120,7 +126,9 @@ describe("AvatarSheet", () => {
   });
 
   it("stays open on a failure, which it says on a card with the request's id", async () => {
-    client.changeAvatar.mockRejectedValue(new ApiError(503, "EXTERNAL_SERVICE_ERROR", "The service is unavailable.", "req_9"));
+    client.changeAvatar.mockRejectedValue(
+      new ApiError(503, "EXTERNAL_SERVICE_ERROR", "The service is unavailable.", "req_9"),
+    );
     const onClose = vi.fn();
     render(<AvatarSheet open onClose={onClose} />);
 

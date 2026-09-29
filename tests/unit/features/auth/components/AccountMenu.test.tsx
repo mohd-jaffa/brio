@@ -17,7 +17,9 @@ beforeEach(() => {
 });
 
 const agree = () =>
-  userEvent.click(within(screen.getByRole("alertdialog", { name: "Sign out?" })).getByRole("button", { name: "Sign out" }));
+  userEvent.click(
+    within(screen.getByRole("alertdialog", { name: "Sign out?" })).getByRole("button", { name: "Sign out" }),
+  );
 
 describe("the account menu", () => {
   it("says which account is signed in, and in what role", () => {

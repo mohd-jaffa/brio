@@ -9,7 +9,8 @@ export default function OrdersPage() {
   return (
     <AppScreen
       pages={{
-        [apiRoutes.orders.list]: (tenant) => listOrders(tenant, routeQuery(apiRoutes.orders.list, orderListQuerySchema)),
+        [apiRoutes.orders.list]: (tenant) =>
+          listOrders(tenant, routeQuery(apiRoutes.orders.list, orderListQuerySchema)),
       }}
       queries={{
         [apiRoutes.orders.counts]: (tenant) =>

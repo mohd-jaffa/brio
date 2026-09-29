@@ -53,10 +53,20 @@ function stubBrowser() {
   });
   Element.prototype.animate = function (this: Element, keyframes, options) {
     const list = running.get(this) ?? [];
-    const cancel = vi.fn(() => running.set(this, (running.get(this) ?? []).filter((one) => one !== animation)));
+    const cancel = vi.fn(() =>
+      running.set(
+        this,
+        (running.get(this) ?? []).filter((one) => one !== animation),
+      ),
+    );
     const animation = { id: (options as KeyframeAnimationOptions).id ?? "", cancel };
     running.set(this, [...list, animation]);
-    played.push({ element: this, keyframes: keyframes as Keyframe[], options: options as KeyframeAnimationOptions, cancel });
+    played.push({
+      element: this,
+      keyframes: keyframes as Keyframe[],
+      options: options as KeyframeAnimationOptions,
+      cancel,
+    });
     return animation as unknown as Animation;
   };
   Element.prototype.getAnimations = function (this: Element) {

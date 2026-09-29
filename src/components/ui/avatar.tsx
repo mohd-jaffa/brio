@@ -39,12 +39,24 @@ export function tintIndex(name: string, tints = CHART_COLORS.length) {
  * lightest pair measures 5.38 : 1. Decorative, since the name is always
  * written beside it.
  */
-export function Avatar({ name, size = "md", className }: { name: string; size?: keyof typeof SIZES; className?: string }) {
+export function Avatar({
+  name,
+  size = "md",
+  className,
+}: {
+  name: string;
+  size?: keyof typeof SIZES;
+  className?: string;
+}) {
   const colour = CHART_COLORS[tintIndex(name)];
   return (
     <span
       aria-hidden="true"
-      className={cn("inline-flex shrink-0 items-center justify-center rounded-full font-semibold", SIZES[size], className)}
+      className={cn(
+        "inline-flex shrink-0 items-center justify-center rounded-full font-semibold",
+        SIZES[size],
+        className,
+      )}
       style={{
         background: `color-mix(in oklab, ${colour} 20%, var(--color-surface))`,
         color: `color-mix(in oklab, ${colour} 40%, var(--color-text))`,

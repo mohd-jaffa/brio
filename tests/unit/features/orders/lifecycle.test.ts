@@ -6,16 +6,40 @@ import { canMoveTo, isFinal, movesBack, nextStatuses } from "@/features/orders/l
 
 describe("nextStatuses", () => {
   it("moves a new order on in one step, as far as it goes, or cancels it (§139.11.8, 2026-09-27)", () => {
-    expect(nextStatuses("PENDING", "DELIVERY")).toEqual(["IN_PROGRESS", "READY", "IN_TRANSIT", "DELIVERED", "CANCELLED"]);
+    expect(nextStatuses("PENDING", "DELIVERY")).toEqual([
+      "IN_PROGRESS",
+      "READY",
+      "IN_TRANSIT",
+      "DELIVERED",
+      "CANCELLED",
+    ]);
     expect(nextStatuses("PENDING", "PICKUP")).toEqual(["IN_PROGRESS", "READY", "DELIVERED", "CANCELLED"]);
   });
 
   it("offers the usual next step first, then the rest onward, then the way back, Cancel last", () => {
-    expect(nextStatuses("IN_PROGRESS", "DELIVERY")).toEqual(["READY", "IN_TRANSIT", "DELIVERED", "PENDING", "CANCELLED"]);
+    expect(nextStatuses("IN_PROGRESS", "DELIVERY")).toEqual([
+      "READY",
+      "IN_TRANSIT",
+      "DELIVERED",
+      "PENDING",
+      "CANCELLED",
+    ]);
     expect(nextStatuses("IN_PROGRESS", "PICKUP")).toEqual(["READY", "DELIVERED", "PENDING", "CANCELLED"]);
-    expect(nextStatuses("READY", "DELIVERY")).toEqual(["IN_TRANSIT", "DELIVERED", "IN_PROGRESS", "PENDING", "CANCELLED"]);
+    expect(nextStatuses("READY", "DELIVERY")).toEqual([
+      "IN_TRANSIT",
+      "DELIVERED",
+      "IN_PROGRESS",
+      "PENDING",
+      "CANCELLED",
+    ]);
     expect(nextStatuses("READY", "PICKUP")).toEqual(["DELIVERED", "IN_PROGRESS", "PENDING", "CANCELLED"]);
-    expect(nextStatuses("IN_TRANSIT", "DELIVERY")).toEqual(["DELIVERED", "READY", "IN_PROGRESS", "PENDING", "CANCELLED"]);
+    expect(nextStatuses("IN_TRANSIT", "DELIVERY")).toEqual([
+      "DELIVERED",
+      "READY",
+      "IN_PROGRESS",
+      "PENDING",
+      "CANCELLED",
+    ]);
   });
 
   it("lets nothing follow a delivered or cancelled order", () => {

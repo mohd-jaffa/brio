@@ -32,7 +32,10 @@ async function worker(): Promise<ServiceWorkerRegistration | undefined> {
 
 /** A base64url key as the bytes `subscribe` takes. */
 function keyBytes(key: string): Uint8Array<ArrayBuffer> {
-  const base64 = key.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(key.length / 4) * 4, "=");
+  const base64 = key
+    .replace(/-/g, "+")
+    .replace(/_/g, "/")
+    .padEnd(Math.ceil(key.length / 4) * 4, "=");
   return Uint8Array.from(atob(base64), (character) => character.charCodeAt(0));
 }
 
@@ -59,7 +62,10 @@ export async function turnOnWebPush(): Promise<ReminderPermission> {
 
   const subscription =
     (await registration.pushManager.getSubscription()) ??
-    (await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(publicVapidKey()) }));
+    (await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: keyBytes(publicVapidKey()),
+    }));
   try {
     await postJson(apiRoutes.notifications.devices, subscription.toJSON());
   } catch (failure) {

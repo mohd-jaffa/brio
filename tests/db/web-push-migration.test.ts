@@ -32,7 +32,9 @@ describe("web push migration", () => {
     expect(migration).toContain("alter table public.device_tokens enable row level security;");
     expect(migration).toContain("revoke all on public.device_tokens from anon, authenticated;");
     expect(migration).not.toMatch(/create policy/i);
-    expect(migration).toContain("revoke all on function public.request_due_order_sweep() from public, anon, authenticated;");
+    expect(migration).toContain(
+      "revoke all on function public.request_due_order_sweep() from public, anon, authenticated;",
+    );
   });
 
   it("calls the app only with the Vault's address and secret, while browsers want pushes and no worker runs", () => {
@@ -44,7 +46,9 @@ describe("web push migration", () => {
   });
 
   it("asks every five minutes, and keeps a week of the scheduler's history", () => {
-    expect(migration).toContain("select cron.schedule('due-order-sweep', '*/5 * * * *', 'select public.request_due_order_sweep()');");
+    expect(migration).toContain(
+      "select cron.schedule('due-order-sweep', '*/5 * * * *', 'select public.request_due_order_sweep()');",
+    );
     expect(migration).toContain("delete from cron.job_run_details where end_time < now() - interval '7 days'");
   });
 

@@ -42,7 +42,10 @@ describe("Orders: the list", () => {
   it("lists the orders as rows and as a table, with New order in the header (§139.10)", async () => {
     open();
     expect(screen.getByRole("heading", { level: 1, name: "Orders" })).toBeInTheDocument();
-    expect(within(await rows()).getByRole("link", { name: /ORD-1006 · Meena Gupta/ })).toHaveAttribute("href", "/orders/o-1");
+    expect(within(await rows()).getByRole("link", { name: /ORD-1006 · Meena Gupta/ })).toHaveAttribute(
+      "href",
+      "/orders/o-1",
+    );
     expect(screen.getByRole("table", { name: "Orders" })).toHaveTextContent("Chocolate truffle cake");
     expect(screen.getAllByRole("link", { name: "New order" })[0]).toHaveAttribute("href", "/orders/new");
   });
@@ -51,10 +54,14 @@ describe("Orders: the list", () => {
     open();
     await rows();
     const tabs = screen.getByRole("tablist", { name: "Orders by status" });
-    await waitFor(() => expect(within(tabs).getByRole("tab", { name: "All 2" })).toHaveAttribute("aria-selected", "true"));
+    await waitFor(() =>
+      expect(within(tabs).getByRole("tab", { name: "All 2" })).toHaveAttribute("aria-selected", "true"),
+    );
     expect(within(tabs).getByRole("tab", { name: "Out for delivery 0" })).toBeInTheDocument();
 
-    answers["/api/orders?status=DELIVERED"] = page([anOrderListItem({ id: "o-9", orderNumber: "ORD-1009", status: "DELIVERED" })]);
+    answers["/api/orders?status=DELIVERED"] = page([
+      anOrderListItem({ id: "o-9", orderNumber: "ORD-1009", status: "DELIVERED" }),
+    ]);
     await userEvent.click(within(tabs).getByRole("tab", { name: "Delivered 1" }));
     expect(await within(await rows()).findByRole("link", { name: /ORD-1009/ })).toBeInTheDocument();
     expect(fetcher).toHaveBeenCalledWith("/api/orders?status=DELIVERED");

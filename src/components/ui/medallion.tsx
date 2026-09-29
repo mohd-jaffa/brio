@@ -37,7 +37,12 @@ export function Medallion({
   return (
     <span
       aria-hidden="true"
-      className={cn("inline-flex shrink-0 items-center justify-center rounded-full", TONES[tone], SIZES[size].box, className)}
+      className={cn(
+        "inline-flex shrink-0 items-center justify-center rounded-full",
+        TONES[tone],
+        SIZES[size].box,
+        className,
+      )}
     >
       <Icon size={SIZES[size].icon} strokeWidth={1.75} />
     </span>

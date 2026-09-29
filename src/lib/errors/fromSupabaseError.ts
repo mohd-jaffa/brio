@@ -52,8 +52,7 @@ function raisedDetails(err: PostgrestError): Record<string, unknown> | undefined
 /** supabase-js turns a request that never reached the server into a codeless error. */
 function isNetworkFailure(err: PostgrestError): boolean {
   return (
-    !err.code &&
-    /failed to fetch|network request failed|networkerror|load failed|fetch failed/i.test(err.message ?? "")
+    !err.code && /failed to fetch|network request failed|networkerror|load failed|fetch failed/i.test(err.message ?? "")
   );
 }
 

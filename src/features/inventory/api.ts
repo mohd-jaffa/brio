@@ -13,8 +13,7 @@ import type { InventoryBalance, InventoryTransaction, InventoryTransactionRow } 
  * movement is appended, and a balance is the sum of a product's movements, so
  * two things happening at once cannot lose one of them.
  */
-const ledger = (tenant: Tenant) =>
-  tenantRecords<InventoryTransactionRow>(tenant, "inventory_transactions");
+const ledger = (tenant: Tenant) => tenantRecords<InventoryTransactionRow>(tenant, "inventory_transactions");
 
 export function toTransaction(row: InventoryTransactionRow): InventoryTransaction {
   return {
@@ -57,12 +56,12 @@ interface StockLevelRow {
  * so it holds however long the ledger grows — a read of the lines themselves
  * stops at the API's row limit. A product with no movements has no row.
  */
-export async function getInventoryBalances(
-  tenant: Tenant,
-  productIds?: string[],
-): Promise<InventoryBalance[]> {
+export async function getInventoryBalances(tenant: Tenant, productIds?: string[]): Promise<InventoryBalance[]> {
   const { supabase: client, bakeryId } = tenant;
-  let query = client.from("stock_levels").select("product_id, balance, stocked, last_moved_at").eq("bakery_id", bakeryId);
+  let query = client
+    .from("stock_levels")
+    .select("product_id, balance, stocked, last_moved_at")
+    .eq("bakery_id", bakeryId);
   if (productIds && productIds.length > 0) query = query.in("product_id", productIds);
 
   const { data, error } = await query;

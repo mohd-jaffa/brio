@@ -4,7 +4,9 @@ const insert = vi.fn();
 const from = vi.fn(() => ({ insert }));
 vi.mock("@/lib/supabase/server", () => ({ createSupabaseServiceRoleClient: () => ({ from }) }));
 const error = vi.fn();
-vi.mock("@/lib/logger", () => ({ logger: { info: vi.fn(), warn: vi.fn(), error: (...args: unknown[]) => error(...args) } }));
+vi.mock("@/lib/logger", () => ({
+  logger: { info: vi.fn(), warn: vi.fn(), error: (...args: unknown[]) => error(...args) },
+}));
 
 import { logActionSafe } from "@/lib/audit/auditLog";
 import { tenantOf } from "@tests/support/tenant";
@@ -14,7 +16,13 @@ beforeEach(() => {
   insert.mockResolvedValue({ error: null });
 });
 
-const entry = { action: "UPDATE" as const, entity_type: "customers", entity_id: "c-1", previous_data: { name: "A" }, new_data: { name: "B" } };
+const entry = {
+  action: "UPDATE" as const,
+  entity_type: "customers",
+  entity_id: "c-1",
+  previous_data: { name: "A" },
+  new_data: { name: "B" },
+};
 
 describe("logActionSafe", () => {
   it("writes through the server's own client, never the caller's (BUG-20)", async () => {

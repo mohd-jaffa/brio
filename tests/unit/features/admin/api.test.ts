@@ -4,7 +4,8 @@ import { listAccounts, listAuditLog, readOverview } from "@/features/admin/api";
 import { AppError } from "@/lib/errors/AppError";
 import { fakeSupabase, type RecordedQuery } from "@tests/support/supabase";
 
-const calls = (query: RecordedQuery, method: string) => query.calls.filter(([name]) => name === method).map(([, ...args]) => args);
+const calls = (query: RecordedQuery, method: string) =>
+  query.calls.filter(([name]) => name === method).map(([, ...args]) => args);
 
 describe("readOverview", () => {
   it("counts the accounts, businesses and audit lines, without reading a row of them", async () => {
@@ -83,8 +84,13 @@ describe("listAccounts", () => {
   });
 
   it("answers an empty page when there are none, and a refusal in the app's words", async () => {
-    await expect(listAccounts(fakeSupabase(() => ({ data: null })).client, {})).resolves.toEqual({ items: [], nextCursor: null });
-    await expect(listAccounts(fakeSupabase(() => ({ error: { message: "down" } })).client, {})).rejects.toBeInstanceOf(AppError);
+    await expect(listAccounts(fakeSupabase(() => ({ data: null })).client, {})).resolves.toEqual({
+      items: [],
+      nextCursor: null,
+    });
+    await expect(listAccounts(fakeSupabase(() => ({ error: { message: "down" } })).client, {})).rejects.toBeInstanceOf(
+      AppError,
+    );
   });
 });
 
@@ -123,7 +129,12 @@ describe("listAuditLog", () => {
   });
 
   it("answers an empty page when there are none, and a refusal in the app's words", async () => {
-    await expect(listAuditLog(fakeSupabase(() => ({ data: null })).client, {})).resolves.toEqual({ items: [], nextCursor: null });
-    await expect(listAuditLog(fakeSupabase(() => ({ error: { message: "down" } })).client, {})).rejects.toBeInstanceOf(AppError);
+    await expect(listAuditLog(fakeSupabase(() => ({ data: null })).client, {})).resolves.toEqual({
+      items: [],
+      nextCursor: null,
+    });
+    await expect(listAuditLog(fakeSupabase(() => ({ error: { message: "down" } })).client, {})).rejects.toBeInstanceOf(
+      AppError,
+    );
   });
 });

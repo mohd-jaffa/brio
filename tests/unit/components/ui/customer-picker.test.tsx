@@ -19,7 +19,8 @@ function Screen({
   value = null,
   onPick = vi.fn(),
   onAddNew = vi.fn(),
-  answer = (search: string) => customers.filter((customer) => customer.name.toLowerCase().includes(search.toLowerCase())),
+  answer = (search: string) =>
+    customers.filter((customer) => customer.name.toLowerCase().includes(search.toLowerCase())),
   more = { hasMore: false, loadingMore: false, loadMore: vi.fn() },
 }: {
   value?: CustomerChoice | null;

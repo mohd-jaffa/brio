@@ -111,7 +111,10 @@ self.addEventListener("message", (event) => {
 
 /** Only a screen of this app: a pushed address that leads anywhere else opens Home. */
 function appAddress(url) {
-  const target = new URL(typeof url === "string" && url.startsWith("/") && !url.startsWith("//") ? url : "/", self.location.origin);
+  const target = new URL(
+    typeof url === "string" && url.startsWith("/") && !url.startsWith("//") ? url : "/",
+    self.location.origin,
+  );
   return target.origin === self.location.origin ? target.href : self.location.origin + "/";
 }
 

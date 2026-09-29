@@ -70,9 +70,7 @@ function ProductForm({
   const respond = useResponse();
   const { submit, submitting } = useApiMutation<ProductFormPayload, Product>(
     (values) =>
-      initialData
-        ? ProductsClient.updateProduct(initialData.id, values)
-        : ProductsClient.createProduct(values),
+      initialData ? ProductsClient.updateProduct(initialData.id, values) : ProductsClient.createProduct(values),
     {
       revalidate: [apiRoutes.products.list],
       onSuccess: () => {

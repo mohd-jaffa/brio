@@ -60,7 +60,8 @@ const DISC_MIN_AREA = 10000;
 const DISC_INSET = 1.5;
 
 for (const sheet of [SHEET, PEOPLE_SHEET]) {
-  if (!fs.existsSync(sheet)) throw new Error(`${sheet} is missing: the profile pictures are built from the design references.`);
+  if (!fs.existsSync(sheet))
+    throw new Error(`${sheet} is missing: the profile pictures are built from the design references.`);
 }
 
 /** White ground (and its shadows) that reaches the border becomes see-through. */
@@ -86,7 +87,8 @@ function clearGround(pixels, width, height) {
 
     const alpha = Math.max(255 - pixels[i], 255 - pixels[i + 1], 255 - pixels[i + 2]) / 255;
     for (let c = 0; c < 3; c++) {
-      pixels[i + c] = alpha === 0 ? 0 : Math.round(Math.min(255, Math.max(0, (pixels[i + c] - 255 * (1 - alpha)) / alpha)));
+      pixels[i + c] =
+        alpha === 0 ? 0 : Math.round(Math.min(255, Math.max(0, (pixels[i + c] - 255 * (1 - alpha)) / alpha)));
     }
     pixels[i + 3] = Math.round(alpha * 255);
 
@@ -117,7 +119,9 @@ async function build(key, column, row, sheet) {
   clearGround(data, info.width, info.height);
   if (touchesEdge(data, info.width, info.height)) throw new Error(`${key}: the drawing runs to the edge of its third`);
 
-  const cleared = await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).png().toBuffer();
+  const cleared = await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } })
+    .png()
+    .toBuffer();
   const trimmed = await sharp(cleared).trim({ threshold: 0 }).toBuffer({ resolveWithObject: true });
   const side = Math.round(Math.max(trimmed.info.width, trimmed.info.height) / (1 - 2 * PADDING));
 
@@ -136,7 +140,8 @@ async function build(key, column, row, sheet) {
     .resize(SIZE, SIZE, { kernel: "lanczos3" })
     .webp({ quality: QUALITY, alphaQuality: 90, effort: 6 })
     .toBuffer();
-  if (webp.length > MAX_BYTES) throw new Error(`${key}: ${Math.round(webp.length / 1024)} KB, over ${MAX_BYTES / 1024} KB`);
+  if (webp.length > MAX_BYTES)
+    throw new Error(`${key}: ${Math.round(webp.length / 1024)} KB, over ${MAX_BYTES / 1024} KB`);
 
   fs.writeFileSync(path.join(OUT, `${key}.webp`), webp);
   return webp.length;
@@ -175,7 +180,8 @@ async function findDiscs() {
     if (area < DISC_MIN_AREA) continue;
     // A circle fills π/4 of its box; anything else is not a disc.
     const fill = area / ((right - left + 1) * (bottom - top + 1));
-    if (Math.abs(fill - Math.PI / 4) > 0.03) throw new Error(`A shape at ${left},${top} is not round (fills ${fill.toFixed(2)} of its box)`);
+    if (Math.abs(fill - Math.PI / 4) > 0.03)
+      throw new Error(`A shape at ${left},${top} is not round (fills ${fill.toFixed(2)} of its box)`);
     discs.push({ cx: sumX / area + 0.5, cy: sumY / area + 0.5, r: Math.sqrt(area / Math.PI) });
   }
   const expected = PEOPLE.flat().length;
@@ -209,7 +215,8 @@ async function buildPerson(key, disc) {
     .resize(SIZE, SIZE, { kernel: "lanczos3" })
     .webp({ quality: QUALITY, alphaQuality: 90, effort: 6 })
     .toBuffer();
-  if (webp.length > MAX_BYTES) throw new Error(`${key}: ${Math.round(webp.length / 1024)} KB, over ${MAX_BYTES / 1024} KB`);
+  if (webp.length > MAX_BYTES)
+    throw new Error(`${key}: ${Math.round(webp.length / 1024)} KB, over ${MAX_BYTES / 1024} KB`);
 
   fs.writeFileSync(path.join(OUT, `${key}.webp`), webp);
   return webp.length;
@@ -223,4 +230,6 @@ for (const [row, keys] of KEYS.entries()) {
 }
 const discs = await findDiscs();
 for (const [index, key] of PEOPLE.flat().entries()) total += await buildPerson(key, discs[index]);
-console.log(`Wrote ${KEYS.flat().length + PEOPLE.flat().length} WebPs to ${OUT}: ${Math.round(total / 1024)} KB in all.`);
+console.log(
+  `Wrote ${KEYS.flat().length + PEOPLE.flat().length} WebPs to ${OUT}: ${Math.round(total / 1024)} KB in all.`,
+);

@@ -54,7 +54,10 @@ export function BusinessLogo({
   return (
     <span
       aria-hidden="true"
-      className={cn(box, "flex shrink-0 items-center justify-center rounded-full bg-primary text-primary-text shadow-card")}
+      className={cn(
+        box,
+        "flex shrink-0 items-center justify-center rounded-full bg-primary text-primary-text shadow-card",
+      )}
     >
       <Cake size={icon} strokeWidth={1.75} />
     </span>

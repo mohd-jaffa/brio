@@ -16,10 +16,6 @@ export async function POST(request: Request) {
     const refreshToken = readRefreshTokenCookie(request.headers);
     if (!refreshToken) throw authenticationError("AUTH_SESSION_REQUIRED");
 
-    return refreshSession(
-      createSupabaseAnonClient(),
-      createSupabaseServiceRoleClient(),
-      refreshToken,
-    );
+    return refreshSession(createSupabaseAnonClient(), createSupabaseServiceRoleClient(), refreshToken);
   });
 }

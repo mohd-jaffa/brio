@@ -2,10 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-const migration = readFileSync(
-  join(process.cwd(), "supabase/migrations/0001_auth_foundation.sql"),
-  "utf8",
-);
+const migration = readFileSync(join(process.cwd(), "supabase/migrations/0001_auth_foundation.sql"), "utf8");
 
 describe("auth foundation migration", () => {
   it("creates the required auth-owned tables", () => {

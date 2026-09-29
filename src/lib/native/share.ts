@@ -59,7 +59,10 @@ function base64(blob: Blob): Promise<string> {
  * cannot download a blob. The last file shared is cleared first.
  */
 async function shareOnAndroid(blob: Blob, name: string, text?: string): Promise<ShareOutcome> {
-  const [{ Directory, Filesystem }, { Share }] = await Promise.all([import("@capacitor/filesystem"), import("@capacitor/share")]);
+  const [{ Directory, Filesystem }, { Share }] = await Promise.all([
+    import("@capacitor/filesystem"),
+    import("@capacitor/share"),
+  ]);
   await Filesystem.rmdir({ path: OUTBOX, directory: Directory.Cache, recursive: true }).catch(() => undefined);
   const { uri } = await Filesystem.writeFile({
     path: `${OUTBOX}/${name}`,

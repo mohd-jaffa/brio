@@ -16,8 +16,7 @@ import { summariseExpenses } from "./summary";
 import type { Expense, ExpenseRow, ExpenseSummary } from "./types";
 
 /** A bakery's expenses, newest day first. */
-const expenses = (tenant: Tenant) =>
-  tenantRecords<ExpenseRow>(tenant, "expenses");
+const expenses = (tenant: Tenant) => tenantRecords<ExpenseRow>(tenant, "expenses");
 
 export function toExpense(row: ExpenseRow): Expense {
   return {
@@ -49,7 +48,11 @@ function toColumns(input: UpdateExpensePayload) {
  * every one (the Transactions tab, plan §139.10). The period is resolved in
  * the business's calendar, as the summary resolves it.
  */
-export async function listExpenses(tenant: Tenant, query: ExpenseListQuery, now: Date = new Date()): Promise<Page<Expense>> {
+export async function listExpenses(
+  tenant: Tenant,
+  query: ExpenseListQuery,
+  now: Date = new Date(),
+): Promise<Page<Expense>> {
   const period = resolvePeriod({ preset: query.range, from: query.from, to: query.to }, todayKey(now));
   const window = pageWindow(query.cursor);
   let request = tenant.supabase
@@ -75,7 +78,11 @@ export async function listExpenses(tenant: Tenant, query: ExpenseListQuery, now:
  * §139.11.11), read a window at a time past the API's row limit and summed
  * on the server, in the business's calendar.
  */
-export async function getExpenseSummary(tenant: Tenant, query: RangeQuery, now: Date = new Date()): Promise<ExpenseSummary> {
+export async function getExpenseSummary(
+  tenant: Tenant,
+  query: RangeQuery,
+  now: Date = new Date(),
+): Promise<ExpenseSummary> {
   const range = { preset: query.range, from: query.from, to: query.to };
   const period = resolvePeriod(range, todayKey(now));
   const previous = previousPeriod(range, period);
@@ -98,32 +105,19 @@ export async function getExpenseSummary(tenant: Tenant, query: RangeQuery, now: 
   ]);
 }
 
-export async function getExpenseById(
-  tenant: Tenant,
-  id: string,
-): Promise<Expense> {
+export async function getExpenseById(tenant: Tenant, id: string): Promise<Expense> {
   return toExpense(await expenses(tenant).find(id));
 }
 
-export async function createExpense(
-  tenant: Tenant,
-  input: CreateExpensePayload,
-): Promise<Expense> {
+export async function createExpense(tenant: Tenant, input: CreateExpensePayload): Promise<Expense> {
   return toExpense(await expenses(tenant).insert(toColumns(input)));
 }
 
-export async function updateExpense(
-  tenant: Tenant,
-  id: string,
-  input: UpdateExpensePayload,
-): Promise<Expense> {
+export async function updateExpense(tenant: Tenant, id: string, input: UpdateExpensePayload): Promise<Expense> {
   const row = await expenses(tenant).update(id, toColumns(input), EDITABLE_COLUMNS.expenses);
   return toExpense(row);
 }
 
-export async function deleteExpense(
-  tenant: Tenant,
-  id: string,
-): Promise<Expense> {
+export async function deleteExpense(tenant: Tenant, id: string): Promise<Expense> {
   return toExpense(await expenses(tenant).remove(id));
 }

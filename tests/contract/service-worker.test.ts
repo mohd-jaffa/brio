@@ -17,7 +17,8 @@ type Handler = (event: Record<string, unknown>) => void;
 function worker(version = "0.1.0") {
   const handlers: Record<string, Handler> = {};
   const stores = new Map<string, Map<string, Response>>();
-  const keyOf = (request: Request | string) => (typeof request === "string" ? new URL(request, ORIGIN).href : request.url);
+  const keyOf = (request: Request | string) =>
+    typeof request === "string" ? new URL(request, ORIGIN).href : request.url;
   const store = (name: string) => {
     if (!stores.has(name)) stores.set(name, new Map());
     const entries = stores.get(name)!;
@@ -56,7 +57,9 @@ function worker(version = "0.1.0") {
       matchAll: vi.fn(async (): Promise<unknown[]> => []),
       openWindow: vi.fn(async () => null),
     },
-    registration: { showNotification: vi.fn<(title: string, options: NotificationOptions) => Promise<void>>(async () => {}) },
+    registration: {
+      showNotification: vi.fn<(title: string, options: NotificationOptions) => Promise<void>>(async () => {}),
+    },
   };
   // A worker's Request reads a path against the worker's own address, as the browser's does.
   class WorkerRequest extends Request {
@@ -148,7 +151,9 @@ describe("the service worker", () => {
     expect(await sw.dispatch("fetch", { request: get("/api/orders") })).toBeUndefined();
     const elsewhere = new Request("https://cdn.example.com/_next/static/x.js");
     expect(await sw.dispatch("fetch", { request: elsewhere })).toBeUndefined();
-    expect(await sw.dispatch("fetch", { request: new Request(`${ORIGIN}/api/orders`, { method: "POST" }) })).toBeUndefined();
+    expect(
+      await sw.dispatch("fetch", { request: new Request(`${ORIGIN}/api/orders`, { method: "POST" }) }),
+    ).toBeUndefined();
   });
 
   it("asks the network for every screen, and keeps none of them", async () => {
@@ -203,10 +208,15 @@ describe("the service worker", () => {
 });
 
 describe("order reminders pushed by the server (R8.6)", () => {
-  const pushed = (message: unknown) => ({ data: { json: () => (typeof message === "string" ? JSON.parse(message) : message) } });
+  const pushed = (message: unknown) => ({
+    data: { json: () => (typeof message === "string" ? JSON.parse(message) : message) },
+  });
 
   it("shows one, with the app's icons, a tag so a repeat replaces it, and where a tap leads", async () => {
-    await sw.dispatch("push", pushed({ title: "Due soon", body: "ORD-1028 is due tomorrow.", url: "/orders/o-1", tag: "ORDER_DUE:o-1" }));
+    await sw.dispatch(
+      "push",
+      pushed({ title: "Due soon", body: "ORD-1028 is due tomorrow.", url: "/orders/o-1", tag: "ORDER_DUE:o-1" }),
+    );
     expect(sw.self.registration.showNotification).toHaveBeenCalledWith("Due soon", {
       body: "ORD-1028 is due tomorrow.",
       icon: "/icons/icon-192.png",
@@ -263,7 +273,11 @@ describe("order reminders pushed by the server (R8.6)", () => {
     await sw.dispatch("notificationclick", tapped(`${ORIGIN}/orders/o-1`));
     expect(sw.self.clients.openWindow).toHaveBeenLastCalledWith(`${ORIGIN}/orders/o-1`);
 
-    const stuck = { url: `${ORIGIN}/`, navigate: vi.fn(async () => Promise.reject(new TypeError("not controlled"))), focus: vi.fn() };
+    const stuck = {
+      url: `${ORIGIN}/`,
+      navigate: vi.fn(async () => Promise.reject(new TypeError("not controlled"))),
+      focus: vi.fn(),
+    };
     sw.self.clients.matchAll.mockResolvedValue([stuck]);
     await sw.dispatch("notificationclick", tapped(`${ORIGIN}/orders/o-2`));
     expect(sw.self.clients.openWindow).toHaveBeenLastCalledWith(`${ORIGIN}/orders/o-2`);

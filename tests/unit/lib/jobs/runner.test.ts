@@ -40,21 +40,31 @@ describe("runWorker", () => {
 
     await runWorker({ client, workerId: "w-1", signal: stop.signal });
 
-    expect(queue.recoverStaleJobs.mock.invocationCallOrder[0]).toBeLessThan(queue.processNextJob.mock.invocationCallOrder[0]);
-    expect(logger.warn).toHaveBeenCalledWith("Recovered jobs whose worker stopped responding", { workerId: "w-1", recovered: 2 });
+    expect(queue.recoverStaleJobs.mock.invocationCallOrder[0]).toBeLessThan(
+      queue.processNextJob.mock.invocationCallOrder[0],
+    );
+    expect(logger.warn).toHaveBeenCalledWith("Recovered jobs whose worker stopped responding", {
+      workerId: "w-1",
+      recovered: 2,
+    });
   });
 
   it("waits out a queue it cannot reach instead of ending", async () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     try {
       const stop = new AbortController();
-      queue.processNextJob.mockRejectedValueOnce(new Error("connection refused")).mockImplementation(async () => (stop.abort(), false));
+      queue.processNextJob
+        .mockRejectedValueOnce(new Error("connection refused"))
+        .mockImplementation(async () => (stop.abort(), false));
 
       const running = runWorker({ client, workerId: "w-1", signal: stop.signal, idleMs: 1_000 });
       await vi.advanceTimersByTimeAsync(1_000);
       await running;
 
-      expect(logger.error).toHaveBeenCalledWith("Worker could not reach the queue", { workerId: "w-1", reason: "connection refused" });
+      expect(logger.error).toHaveBeenCalledWith("Worker could not reach the queue", {
+        workerId: "w-1",
+        reason: "connection refused",
+      });
       expect(queue.processNextJob).toHaveBeenCalledTimes(2);
     } finally {
       vi.useRealTimers();
@@ -95,7 +105,9 @@ describe("runWorker", () => {
 
       expect(queue.runSweeps).toHaveBeenCalledTimes(2);
       expect(queue.runSweeps).toHaveBeenCalledWith(client);
-      expect(queue.runSweeps.mock.invocationCallOrder[0]).toBeLessThan(queue.processNextJob.mock.invocationCallOrder[0]);
+      expect(queue.runSweeps.mock.invocationCallOrder[0]).toBeLessThan(
+        queue.processNextJob.mock.invocationCallOrder[0],
+      );
     } finally {
       vi.useRealTimers();
     }

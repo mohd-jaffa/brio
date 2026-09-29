@@ -73,10 +73,18 @@ export function ExpenseTable({
         </colgroup>
         <thead className="border-b border-border text-left text-xs font-medium text-text-muted">
           <tr>
-            <th scope="col" className={CELL}>{columns.description}</th>
-            <th scope="col" className={CELL}>{columns.category}</th>
-            <th scope="col" className={CELL}>{columns.date}</th>
-            <th scope="col" className={`${CELL} text-right`}>{columns.amount}</th>
+            <th scope="col" className={CELL}>
+              {columns.description}
+            </th>
+            <th scope="col" className={CELL}>
+              {columns.category}
+            </th>
+            <th scope="col" className={CELL}>
+              {columns.date}
+            </th>
+            <th scope="col" className={`${CELL} text-right`}>
+              {columns.amount}
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
@@ -104,7 +112,9 @@ export function ExpenseTable({
               </td>
               <td className={`${CELL} truncate text-text`}>{expense.category}</td>
               <td className={`${CELL} text-text`}>{formatDate(expense.expenseDate)}</td>
-              <td className={`${CELL} text-right font-semibold tabular-nums text-text`}>{formatPaise(expense.amount)}</td>
+              <td className={`${CELL} text-right font-semibold tabular-nums text-text`}>
+                {formatPaise(expense.amount)}
+              </td>
             </tr>
           ))}
         </tbody>

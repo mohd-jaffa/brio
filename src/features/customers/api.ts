@@ -22,8 +22,7 @@ import type { Customer, CustomerListItem, CustomerRow, CustomerSummary } from ".
  * The input these take has already been parsed by its schema at the route
  * boundary, so the server is authoritative and nothing is parsed twice.
  */
-const customers = (tenant: Tenant) =>
-  tenantRecords<CustomerRow>(tenant, "customers");
+const customers = (tenant: Tenant) => tenantRecords<CustomerRow>(tenant, "customers");
 
 export function toCustomer(row: CustomerRow): Customer {
   return {
@@ -70,7 +69,8 @@ export async function listCustomers(
   const { from, to } = pageWindow(query.cursor);
   let request = tenant.supabase.from("customer_stats").select("*").eq("bakery_id", tenant.bakeryId);
   if (query.segment === "REGULAR") request = request.gte("order_count", REGULAR_MIN_ORDERS);
-  if (query.segment === "NEW") request = request.lt("order_count", REGULAR_MIN_ORDERS).gte("created_at", newCustomersSince(now));
+  if (query.segment === "NEW")
+    request = request.lt("order_count", REGULAR_MIN_ORDERS).gte("created_at", newCustomersSince(now));
   if (query.segment === "DUE") request = request.gt("balance_due", 0).order("balance_due", { ascending: false });
   const pattern = query.search ? containsPattern(query.search) : null;
   if (query.search && pattern) {
@@ -78,7 +78,10 @@ export async function listCustomers(
     request = request.or([ilikeFilter("name", pattern), ...(digits ? [`phone.like."%${digits}%"`] : [])].join(","));
   }
 
-  const { data, error } = await request.order("name", { ascending: true }).order("id", { ascending: true }).range(from, to);
+  const { data, error } = await request
+    .order("name", { ascending: true })
+    .order("id", { ascending: true })
+    .range(from, to);
   if (error) throw fromPostgrestError(error);
 
   const page = toPage((data ?? []) as CustomerStatsRow[], query.cursor);
@@ -94,25 +97,15 @@ export async function listCustomers(
   };
 }
 
-export async function getCustomerById(
-  tenant: Tenant,
-  id: string,
-): Promise<Customer> {
+export async function getCustomerById(tenant: Tenant, id: string): Promise<Customer> {
   return toCustomer(await customers(tenant).find(id));
 }
 
-export async function createCustomer(
-  tenant: Tenant,
-  input: CreateCustomerPayload,
-): Promise<Customer> {
+export async function createCustomer(tenant: Tenant, input: CreateCustomerPayload): Promise<Customer> {
   return toCustomer(await namingDuplicate(tenant, input.phone, null, customers(tenant).insert(toColumns(input))));
 }
 
-export async function updateCustomer(
-  tenant: Tenant,
-  id: string,
-  input: UpdateCustomerPayload,
-): Promise<Customer> {
+export async function updateCustomer(tenant: Tenant, id: string, input: UpdateCustomerPayload): Promise<Customer> {
   const row = await namingDuplicate(
     tenant,
     input.phone,
@@ -128,7 +121,12 @@ export async function updateCustomer(
  * **Use that customer** (plan §139.6, §139.11.4). Any other refusal is passed
  * on as it was.
  */
-async function namingDuplicate<T>(tenant: Tenant, phone: string | undefined, self: string | null, write: Promise<T>): Promise<T> {
+async function namingDuplicate<T>(
+  tenant: Tenant,
+  phone: string | undefined,
+  self: string | null,
+  write: Promise<T>,
+): Promise<T> {
   try {
     return await write;
   } catch (error) {
@@ -162,7 +160,9 @@ export async function getCustomerSummary(tenant: Tenant, id: string, now: Date =
   const orders = await readAll<SummaryOrder>((from, to) =>
     tenant.supabase
       .from("orders")
-      .select("id, total, status, created_at, delivery_type, delivery_address, delivery_google_maps_link, payments(amount)")
+      .select(
+        "id, total, status, created_at, delivery_type, delivery_address, delivery_google_maps_link, payments(amount)",
+      )
       .eq("bakery_id", tenant.bakeryId)
       .eq("customer_id", id)
       .order("id", { ascending: true })

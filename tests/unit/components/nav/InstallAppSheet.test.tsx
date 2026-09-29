@@ -16,7 +16,10 @@ beforeEach(() => {
 });
 
 const sheet = () => screen.getByRole("dialog", { name: "Install Brio" });
-const steps = () => within(sheet()).getAllByRole("listitem").map((step) => step.textContent);
+const steps = () =>
+  within(sheet())
+    .getAllByRole("listitem")
+    .map((step) => step.textContent);
 
 describe("InstallAppSheet", () => {
   it("shows an iPhone's steps: Safari, Share, Add to Home Screen", () => {
@@ -46,7 +49,12 @@ describe("InstallAppSheet", () => {
 
   it("asks the browser to install where it will, and closes once the owner takes it", async () => {
     const onClose = vi.fn();
-    install.current = { ...install.current, platform: "android", canPrompt: true, install: vi.fn().mockResolvedValue(true) };
+    install.current = {
+      ...install.current,
+      platform: "android",
+      canPrompt: true,
+      install: vi.fn().mockResolvedValue(true),
+    };
     render(<InstallAppSheet open onClose={onClose} />);
     expect(within(sheet()).getByRole("heading", { name: "Or follow these steps" })).toBeInTheDocument();
     await userEvent.click(within(sheet()).getByRole("button", { name: "Install" }));

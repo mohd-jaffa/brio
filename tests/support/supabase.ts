@@ -54,7 +54,11 @@ export function fakeSupabase(answer: (query: RecordedQuery) => FakeAnswer = () =
     queries.find(
       (query) =>
         query.table === table &&
-        argsOf(query, method).some((given) => args.every((arg, index) => Object.is(given[index], arg) || JSON.stringify(given[index]) === JSON.stringify(arg))),
+        argsOf(query, method).some((given) =>
+          args.every(
+            (arg, index) => Object.is(given[index], arg) || JSON.stringify(given[index]) === JSON.stringify(arg),
+          ),
+        ),
     );
 
   return { client: client as unknown as SupabaseClient, queries, argsOf, find };

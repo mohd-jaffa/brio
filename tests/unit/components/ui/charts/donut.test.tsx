@@ -22,8 +22,7 @@ function donut(props: Partial<Parameters<typeof Donut>[0]> = {}) {
   );
 }
 
-const legend = (container: HTMLElement) =>
-  [...container.querySelectorAll("ul li")].map((item) => item.textContent);
+const legend = (container: HTMLElement) => [...container.querySelectorAll("ul li")].map((item) => item.textContent);
 
 describe("Donut", () => {
   it("rings the slices largest first, with the total in the middle", () => {
@@ -44,11 +43,11 @@ describe("Donut", () => {
     const { container } = donut();
     expect(container.querySelector("ul")).toHaveAttribute("aria-hidden", "true");
     const table = screen.getByRole("table", { name: "Expenses by category" });
-    expect(within(table).getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual([
-      "Category",
-      "Amount",
-      "Share",
-    ]);
+    expect(
+      within(table)
+        .getAllByRole("columnheader")
+        .map((cell) => cell.textContent),
+    ).toEqual(["Category", "Amount", "Share"]);
     expect(within(table).getByRole("row", { name: "Ingredients ₹5,210 58%" })).toBeInTheDocument();
   });
 

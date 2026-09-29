@@ -24,7 +24,13 @@ describe("getAnalytics", () => {
     const fake = fakeSupabase((query) =>
       query.table === "orders"
         ? { data: [anOrder("2026-09-10T05:00:00Z", 3000), anOrder("2026-08-10T05:00:00Z", 2000)] }
-        : { data: [{ created_at: "2026-09-12T05:00:00Z" }, { created_at: "2026-08-12T05:00:00Z" }, { created_at: "2026-08-13T05:00:00Z" }] },
+        : {
+            data: [
+              { created_at: "2026-09-12T05:00:00Z" },
+              { created_at: "2026-08-12T05:00:00Z" },
+              { created_at: "2026-08-13T05:00:00Z" },
+            ],
+          },
     );
     const report = await getAnalytics(tenantOf(fake.client), { range: "THIS_MONTH" }, now);
 

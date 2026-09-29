@@ -39,7 +39,12 @@ export const DELIVERY_ONLY_STATUSES: readonly OrderStatus[] = ["IN_TRANSIT"];
 export const FINAL_STATUSES: readonly OrderStatus[] = ["DELIVERED", "CANCELLED"];
 
 /** The statuses of an order still being worked on, in the order it passes through them. */
-export const OPEN_STATUSES = ["PENDING", "IN_PROGRESS", "READY", "IN_TRANSIT"] as const satisfies readonly OrderStatus[];
+export const OPEN_STATUSES = [
+  "PENDING",
+  "IN_PROGRESS",
+  "READY",
+  "IN_TRANSIT",
+] as const satisfies readonly OrderStatus[];
 export type OpenStatus = (typeof OPEN_STATUSES)[number];
 
 /** Orders' tabs (plan §139.10): every order, then one status each. */
@@ -229,7 +234,10 @@ export type DevicePlatform = (typeof DEVICE_PLATFORMS)[number];
 export const NOTIFICATION_TABS = ["ALL", "UNREAD", "READ", "ORDERS", "CUSTOMERS", "SYSTEM"] as const;
 export type NotificationTab = (typeof NOTIFICATION_TABS)[number];
 
-export const NOTIFICATION_TAB_FILTERS: Record<NotificationTab, { read?: boolean; kinds?: readonly NotificationKind[] }> = {
+export const NOTIFICATION_TAB_FILTERS: Record<
+  NotificationTab,
+  { read?: boolean; kinds?: readonly NotificationKind[] }
+> = {
   ALL: {},
   UNREAD: { read: false },
   READ: { read: true },

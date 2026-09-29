@@ -56,7 +56,10 @@ describe("Tabs", () => {
 function layTabsOut() {
   vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(80);
   vi.spyOn(HTMLElement.prototype, "offsetLeft", "get").mockImplementation(function (this: HTMLElement) {
-    return [...(this.parentElement?.children ?? [])].filter((child) => child.getAttribute("role") === "tab").indexOf(this) * 100;
+    return (
+      [...(this.parentElement?.children ?? [])].filter((child) => child.getAttribute("role") === "tab").indexOf(this) *
+      100
+    );
   });
 }
 
@@ -152,11 +155,25 @@ describe("TabPanel", () => {
   it("comes in from the right when there are no tabs to tell which way, and keeps still where nothing can animate", () => {
     const animate = vi.fn();
     HTMLElement.prototype.animate = animate;
-    const { rerender } = render(<TabPanel id="lone" value="a">A</TabPanel>);
-    rerender(<TabPanel id="lone" value="b">B</TabPanel>);
+    const { rerender } = render(
+      <TabPanel id="lone" value="a">
+        A
+      </TabPanel>,
+    );
+    rerender(
+      <TabPanel id="lone" value="b">
+        B
+      </TabPanel>,
+    );
     expect(animate.mock.calls[0][0][0]).toEqual({ opacity: 0, transform: "translateX(8px)" });
 
     Reflect.deleteProperty(HTMLElement.prototype, "animate");
-    expect(() => rerender(<TabPanel id="lone" value="c">C</TabPanel>)).not.toThrow();
+    expect(() =>
+      rerender(
+        <TabPanel id="lone" value="c">
+          C
+        </TabPanel>,
+      ),
+    ).not.toThrow();
   });
 });

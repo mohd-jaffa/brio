@@ -32,16 +32,26 @@ describe("getProductsByIds", () => {
     const { client, filters } = recordingClient({ data: [row("p-1"), row("p-2")], error: null });
     const products = await getProductsByIds(tenantOf(client), ["p-1", "p-2", "p-1"]);
     expect(products.map((product) => product.id)).toEqual(["p-1", "p-2"]);
-    expect(filters).toEqual([["eq", "bakery_id", "b-1"], ["in", "id", ["p-1", "p-2"]]]);
+    expect(filters).toEqual([
+      ["eq", "bakery_id", "b-1"],
+      ["in", "id", ["p-1", "p-2"]],
+    ]);
   });
 
   it("asks nothing for no ids", async () => {
-    const client = { from: () => { throw new Error("should not query"); } } as unknown as SupabaseClient;
+    const client = {
+      from: () => {
+        throw new Error("should not query");
+      },
+    } as unknown as SupabaseClient;
     await expect(getProductsByIds(tenantOf(client), [])).resolves.toEqual([]);
   });
 
   it("passes a failed read on in the app's words", async () => {
-    const { client } = recordingClient({ data: null, error: { code: "42501", message: "permission denied for table products" } });
+    const { client } = recordingClient({
+      data: null,
+      error: { code: "42501", message: "permission denied for table products" },
+    });
     await expect(getProductsByIds(tenantOf(client), ["p-1"])).rejects.toMatchObject({ code: "AUTH_ROLE_FORBIDDEN" });
   });
 });

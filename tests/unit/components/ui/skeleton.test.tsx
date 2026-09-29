@@ -22,4 +22,3 @@ describe("ScreenSkeleton", () => {
     expect(status.querySelectorAll('[aria-hidden="true"]').length).toBeGreaterThan(0);
   });
 });
-

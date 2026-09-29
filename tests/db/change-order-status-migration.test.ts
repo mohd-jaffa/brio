@@ -16,7 +16,10 @@ function databaseNext(status: string, deliveryType: string): string[] {
   const branch = body.split(/\n\s+when '/).find((part) => part.startsWith(`${status}'`));
   if (!branch) return [];
   const arrays = [...branch.matchAll(/array\[([^\]]*)\]/g)].map((match) =>
-    match[1].split(",").map((value) => value.trim().replace(/'/g, "")).filter(Boolean),
+    match[1]
+      .split(",")
+      .map((value) => value.trim().replace(/'/g, ""))
+      .filter(Boolean),
   );
   // With two arrays, the first is for a delivery and the second for a pickup.
   return arrays.length === 2 ? arrays[deliveryType === "DELIVERY" ? 0 : 1] : arrays[0];
@@ -45,8 +48,12 @@ describe("change order status migration", () => {
   });
 
   it("releases the reservation on delivery and cancel, and consumes on delivery, for catalogue lines only", () => {
-    expect(migration).toMatch(/if p_to in \('DELIVERED', 'CANCELLED'\) then[\s\S]*?'ORDER_RESERVATION', i\.quantity[\s\S]*?i\.product_id is not null;/);
-    expect(migration).toMatch(/if p_to = 'DELIVERED' then[\s\S]*?'ORDER_CONSUMPTION', -i\.quantity[\s\S]*?i\.product_id is not null;/);
+    expect(migration).toMatch(
+      /if p_to in \('DELIVERED', 'CANCELLED'\) then[\s\S]*?'ORDER_RESERVATION', i\.quantity[\s\S]*?i\.product_id is not null;/,
+    );
+    expect(migration).toMatch(
+      /if p_to = 'DELIVERED' then[\s\S]*?'ORDER_CONSUMPTION', -i\.quantity[\s\S]*?i\.product_id is not null;/,
+    );
   });
 
   it("queues the notification in the same transaction, as facts, under the app's job type", () => {
@@ -59,8 +66,14 @@ describe("change order status migration", () => {
   });
 
   it("runs as the caller, so row-level security applies, and for signed-in users only", () => {
-    expect(migration).toMatch(/function public\.change_order_status\(p_order_id uuid, p_from text, p_to text\)[\s\S]*?security invoker/);
-    expect(migration).toMatch(/grant execute on function public\.change_order_status\(uuid, text, text\) to authenticated;/);
-    expect(migration).toMatch(/revoke all on function public\.change_order_status\(uuid, text, text\) from public, anon;/);
+    expect(migration).toMatch(
+      /function public\.change_order_status\(p_order_id uuid, p_from text, p_to text\)[\s\S]*?security invoker/,
+    );
+    expect(migration).toMatch(
+      /grant execute on function public\.change_order_status\(uuid, text, text\) to authenticated;/,
+    );
+    expect(migration).toMatch(
+      /revoke all on function public\.change_order_status\(uuid, text, text\) from public, anon;/,
+    );
   });
 });

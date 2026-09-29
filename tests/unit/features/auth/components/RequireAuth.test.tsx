@@ -24,7 +24,12 @@ beforeEach(() => {
   auth.current = authStub();
 });
 
-const screenUnder = () => render(<RequireAuth><p>Order detail</p></RequireAuth>);
+const screenUnder = () =>
+  render(
+    <RequireAuth>
+      <p>Order detail</p>
+    </RequireAuth>,
+  );
 
 describe("the session gate", () => {
   it("draws the screen for a signed-in baker", () => {
@@ -51,11 +56,19 @@ describe("the session gate", () => {
       return <p>Order detail</p>;
     }
     auth.current = authStub({ status: "loading", profile: null });
-    const { rerender } = render(<RequireAuth><Screen /></RequireAuth>);
+    const { rerender } = render(
+      <RequireAuth>
+        <Screen />
+      </RequireAuth>,
+    );
     expect(mounted).toHaveBeenCalledOnce();
 
     auth.current = authStub();
-    rerender(<RequireAuth><Screen /></RequireAuth>);
+    rerender(
+      <RequireAuth>
+        <Screen />
+      </RequireAuth>,
+    );
     expect(screen.getByText("Order detail")).toBeVisible();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(mounted).toHaveBeenCalledOnce();

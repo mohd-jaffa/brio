@@ -111,7 +111,9 @@ describe("DeleteAccount", () => {
     render(<DeleteAccount />);
     await fill();
     await userEvent.click(deleteButton());
-    expect(await screen.findByRole("alertdialog")).toHaveTextContent("Your account and your business, with every order");
+    expect(await screen.findByRole("alertdialog")).toHaveTextContent(
+      "Your account and your business, with every order",
+    );
   });
 
   it("deletes with what was typed once agreed, and stays busy while the page leaves", async () => {

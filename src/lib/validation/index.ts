@@ -62,11 +62,7 @@ export {
   type RegisterPayload,
 } from "./schemas/auth";
 
-export {
-  businessProfileSchema,
-  type BusinessProfileInput,
-  type BusinessProfilePayload,
-} from "./schemas/business";
+export { businessProfileSchema, type BusinessProfileInput, type BusinessProfilePayload } from "./schemas/business";
 
 export {
   createCustomerSchema,

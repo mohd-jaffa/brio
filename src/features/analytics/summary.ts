@@ -57,7 +57,8 @@ export function headlineFigures(
 ): { sales: Figure; orders: Figure; newCustomers: Figure; averageOrder: Figure } {
   const now = counted(current);
   const then = counted(previous);
-  const average = (orders: readonly ReportOrder[]) => (orders.length === 0 ? 0 : Math.round(sales(orders) / orders.length));
+  const average = (orders: readonly ReportOrder[]) =>
+    orders.length === 0 ? 0 : Math.round(sales(orders) / orders.length);
   return {
     sales: { value: sales(now), previous: sales(then) },
     orders: { value: now.length, previous: then.length },
@@ -119,15 +120,23 @@ export function productSales(orders: readonly ReportOrder[]): ProductSales[] {
     }
   }
   return [...lines.values()]
-    .map(({ productId, name, iconKey, orders, quantity, sales }) => ({ productId, name, iconKey, orders, quantity, sales }))
+    .map(({ productId, name, iconKey, orders, quantity, sales }) => ({
+      productId,
+      name,
+      iconKey,
+      orders,
+      quantity,
+      sales,
+    }))
     .sort((a, b) => b.sales - a.sales || b.quantity - a.quantity || a.name.localeCompare(b.name));
 }
 
 /** How many orders stand at each status, in the order an order passes through them; none left out. */
 export function statusCounts(orders: readonly ReportOrder[]): { status: OrderStatus; count: number }[] {
-  return ORDER_STATUSES.map((status) => ({ status, count: orders.filter((order) => order.status === status).length })).filter(
-    (entry) => entry.count > 0,
-  );
+  return ORDER_STATUSES.map((status) => ({
+    status,
+    count: orders.filter((order) => order.status === status).length,
+  })).filter((entry) => entry.count > 0);
 }
 
 /** Orders collected in person against orders delivered. */
@@ -151,7 +160,10 @@ export function collection(orders: readonly ReportOrder[]): { collected: number;
   let collected = 0;
   let toCollect = 0;
   for (const order of counted(orders)) {
-    const paid = Math.min(order.total, order.payments.reduce((sum, payment) => sum + payment.amount, 0));
+    const paid = Math.min(
+      order.total,
+      order.payments.reduce((sum, payment) => sum + payment.amount, 0),
+    );
     collected += paid;
     toCollect += order.total - paid;
   }
@@ -173,7 +185,12 @@ export function topCustomers(orders: readonly ReportOrder[]): TopCustomer[] {
   const customers = new Map<string, TopCustomer>();
   for (const order of counted(orders)) {
     if (!order.customers) continue;
-    const entry = customers.get(order.customers.id) ?? { id: order.customers.id, name: order.customers.name, orders: 0, spent: 0 };
+    const entry = customers.get(order.customers.id) ?? {
+      id: order.customers.id,
+      name: order.customers.name,
+      orders: 0,
+      spent: 0,
+    };
     entry.orders += 1;
     entry.spent += order.total;
     customers.set(order.customers.id, entry);

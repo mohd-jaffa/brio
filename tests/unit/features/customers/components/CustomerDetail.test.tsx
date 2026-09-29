@@ -24,7 +24,15 @@ const useOrderDraft = vi.hoisted(() => vi.fn(() => ({ update })));
 vi.mock("@/features/orders/hooks/useOrderDraft", () => ({ useOrderDraft }));
 // The form has its own tests; here it only has to open on the customer and say it saved.
 vi.mock("@/features/customers/components/CustomerFormSheet", () => ({
-  CustomerFormSheet: ({ isOpen, initialData, onSuccess }: { isOpen: boolean; initialData?: Customer; onSuccess: () => void }) =>
+  CustomerFormSheet: ({
+    isOpen,
+    initialData,
+    onSuccess,
+  }: {
+    isOpen: boolean;
+    initialData?: Customer;
+    onSuccess: () => void;
+  }) =>
     isOpen ? (
       <div role="dialog" aria-label={`Edit ${initialData?.name}`}>
         <button type="button" onClick={onSuccess}>
@@ -53,7 +61,11 @@ const summary = (changes: Partial<CustomerSummary> = {}): CustomerSummary => ({
   lastOrderAt: "2026-09-24T05:00:00Z",
   segment: "REGULAR",
   addresses: [
-    { address: "Flat 302, Sunrise Apartments", googleMapsLink: "https://maps.app.goo.gl/anu", lastUsed: "2026-09-24T05:00:00Z" },
+    {
+      address: "Flat 302, Sunrise Apartments",
+      googleMapsLink: "https://maps.app.goo.gl/anu",
+      lastUsed: "2026-09-24T05:00:00Z",
+    },
     { address: "", googleMapsLink: "https://maps.app.goo.gl/office", lastUsed: "2026-09-10T05:00:00Z" },
   ],
   ...changes,
@@ -67,7 +79,10 @@ beforeEach(() => {
   answers = {
     "/api/customers/c-1": anu,
     "/api/customers/c-1/summary": summary(),
-    "/api/orders?customer=c-1": { items: [anOrderListItem({ customer: { id: "c-1", name: "Anu Sharma" } })], nextCursor: null },
+    "/api/orders?customer=c-1": {
+      items: [anOrderListItem({ customer: { id: "c-1", name: "Anu Sharma" } })],
+      nextCursor: null,
+    },
   };
   fetcher.mockImplementation(async (key: string) => {
     const answer = answers[key];
@@ -97,16 +112,31 @@ describe("CustomerDetail: who they are", () => {
     // The number is there to read and copy; Call, below it, is the one way to dial.
     expect(within(about).getByText("+91 98123 45678")).toBeInTheDocument();
     expect(within(about).queryByRole("link", { name: "+91 98123 45678" })).not.toBeInTheDocument();
-    expect(within(about).getByRole("link", { name: "anu@example.com" })).toHaveAttribute("href", "mailto:anu@example.com");
+    expect(within(about).getByRole("link", { name: "anu@example.com" })).toHaveAttribute(
+      "href",
+      "mailto:anu@example.com",
+    );
     expect(about).toHaveTextContent("Flat 302, Sunrise Apartments");
     expect(within(about).getByRole("link", { name: "Call Anu Sharma" })).toHaveAttribute("href", "tel:+919812345678");
-    expect(within(about).getByRole("link", { name: "WhatsApp Anu Sharma" })).toHaveAttribute("href", expect.stringContaining("wa.me"));
-    expect(within(about).getByRole("link", { name: "Anu Sharma’s place on a map" })).toHaveAttribute("href", anu.googleMapsLink);
+    expect(within(about).getByRole("link", { name: "WhatsApp Anu Sharma" })).toHaveAttribute(
+      "href",
+      expect.stringContaining("wa.me"),
+    );
+    expect(within(about).getByRole("link", { name: "Anu Sharma’s place on a map" })).toHaveAttribute(
+      "href",
+      anu.googleMapsLink,
+    );
     expect(screen.getByRole("link", { name: "Go back" })).toHaveAttribute("href", "/customers");
   });
 
   it("leaves out what they have not given, and the segment when they have none", async () => {
-    answers["/api/customers/c-1"] = { ...anu, email: undefined, address: undefined, googleMapsLink: undefined, notes: undefined };
+    answers["/api/customers/c-1"] = {
+      ...anu,
+      email: undefined,
+      address: undefined,
+      googleMapsLink: undefined,
+      notes: undefined,
+    };
     answers["/api/customers/c-1/summary"] = summary({ segment: null });
     open();
     await loaded();
@@ -188,7 +218,10 @@ describe("CustomerDetail: the tabs", () => {
     const [home, office] = within(places).getAllByRole("listitem");
     expect(home).toHaveTextContent("Flat 302, Sunrise Apartments");
     expect(home).toHaveTextContent("Last delivered 24 Sep");
-    expect(within(home).getByRole("link", { name: "Map: Flat 302, Sunrise Apartments" })).toHaveAttribute("href", anu.googleMapsLink);
+    expect(within(home).getByRole("link", { name: "Map: Flat 302, Sunrise Apartments" })).toHaveAttribute(
+      "href",
+      anu.googleMapsLink,
+    );
     expect(office).toHaveTextContent("A map link");
   });
 
@@ -221,7 +254,10 @@ describe("CustomerDetail: acting on them", () => {
     await userEvent.click(screen.getByRole("button", { name: "Create an order for Anu Sharma" }));
     const change = update.mock.calls[0][0] as (draft: OrderDraft) => OrderDraft;
     const kept = { ...newDraft(), notes: "keep me" };
-    expect(change(kept)).toMatchObject({ notes: "keep me", customer: { kind: "CUSTOMER", id: "c-1", name: "Anu Sharma" } });
+    expect(change(kept)).toMatchObject({
+      notes: "keep me",
+      customer: { kind: "CUSTOMER", id: "c-1", name: "Anu Sharma" },
+    });
     expect(push).toHaveBeenCalledWith("/orders/new");
 
     await userEvent.click(screen.getByRole("button", { name: "Create order" }));
@@ -244,7 +280,9 @@ describe("CustomerDetail: acting on them", () => {
     await loaded();
     await userEvent.click(screen.getByRole("button", { name: "Edit Anu Sharma" }));
     fetcher.mockClear();
-    await userEvent.click(within(screen.getByRole("dialog", { name: "Edit Anu Sharma" })).getByRole("button", { name: "Save" }));
+    await userEvent.click(
+      within(screen.getByRole("dialog", { name: "Edit Anu Sharma" })).getByRole("button", { name: "Save" }),
+    );
     await waitFor(() => expect(fetcher).toHaveBeenCalledWith("/api/customers/c-1"));
     expect(fetcher).toHaveBeenCalledWith("/api/customers/c-1/summary");
   });

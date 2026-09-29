@@ -2,10 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const migration = readFileSync(
-  join(process.cwd(), "supabase/migrations/0005_tenant_integrity.sql"),
-  "utf8",
-);
+const migration = readFileSync(join(process.cwd(), "supabase/migrations/0005_tenant_integrity.sql"), "utf8");
 
 /**
  * The contract of 0005 (plan §139.12). Each rule was also proved against the
@@ -19,7 +16,9 @@ describe("tenant integrity migration", () => {
     expect(migration).toMatch(/foreign key \(bakery_id, customer_id\) references public\.customers \(bakery_id, id\)/i);
     expect(migration).toMatch(/foreign key \(bakery_id, order_id\) references public\.orders \(bakery_id, id\)/i);
     expect(migration).toMatch(/foreign key \(bakery_id, product_id\) references public\.products \(bakery_id, id\)/i);
-    expect(migration).toMatch(/foreign key \(bakery_id, category_id\) references public\.categories \(bakery_id, id\)/i);
+    expect(migration).toMatch(
+      /foreign key \(bakery_id, category_id\) references public\.categories \(bakery_id, id\)/i,
+    );
   });
 
   it("clears only the category when one is deleted, never the product's business", () => {

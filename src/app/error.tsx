@@ -12,13 +12,7 @@ import { HOME_ROUTE } from "@/constants/routes";
  * a blank page (plan §134 P0-2). The error's own message is never shown — in
  * production it is withheld anyway — only the digest the server logs carry.
  */
-export default function ScreenError({
-  error,
-  retry,
-}: {
-  error: Error & { digest?: string };
-  retry: () => void;
-}) {
+export default function ScreenError({ error, retry }: { error: Error & { digest?: string }; retry: () => void }) {
   return (
     <SystemScreen
       icon={TriangleAlert}
@@ -27,7 +21,14 @@ export default function ScreenError({
       reference={error.digest ? UI_TEXT.system.errorReference(error.digest) : undefined}
     >
       <Button label={UI_TEXT.actions.retry} icon={RotateCcw} size="lg" fullWidth onClick={() => retry()} />
-      <LinkButton href={HOME_ROUTE} label={UI_TEXT.system.toDashboard} icon={Home} variant="ghost" size="lg" fullWidth />
+      <LinkButton
+        href={HOME_ROUTE}
+        label={UI_TEXT.system.toDashboard}
+        icon={Home}
+        variant="ghost"
+        size="lg"
+        fullWidth
+      />
     </SystemScreen>
   );
 }

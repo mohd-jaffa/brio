@@ -41,9 +41,7 @@ describe("ProductCard", () => {
 
   it("grows the + into − count + once some are in the order, and takes one off with the −", async () => {
     const onRemove = vi.fn();
-    render(
-      <ProductCard {...labels} onAdd={vi.fn()} onRemove={onRemove} quantity={3} quantityLabel="3 in the order" />,
-    );
+    render(<ProductCard {...labels} onAdd={vi.fn()} onRemove={onRemove} quantity={3} quantityLabel="3 in the order" />);
     expect(screen.getByText("3")).toBeInTheDocument();
     expect(screen.getByText("3 in the order")).toBeInTheDocument();
     const less = screen.getByRole("button", { name: labels.removeLabel });

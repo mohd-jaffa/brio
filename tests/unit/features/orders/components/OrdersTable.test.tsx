@@ -27,16 +27,17 @@ describe("OrdersTable", () => {
       />,
     );
     const table = screen.getByRole("table", { name: "Orders" });
-    expect(within(table).getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual([
-      "Order",
-      "Due",
-      "Customer",
-      "Items",
-      "Amount",
-      "Status",
-    ]);
+    expect(
+      within(table)
+        .getAllByRole("columnheader")
+        .map((cell) => cell.textContent),
+    ).toEqual(["Order", "Due", "Customer", "Items", "Amount", "Status"]);
     const [, first, second] = within(table).getAllByRole("row");
-    expect(within(first).getAllByRole("cell").map((cell) => cell.textContent)).toEqual([
+    expect(
+      within(first)
+        .getAllByRole("cell")
+        .map((cell) => cell.textContent),
+    ).toEqual([
       "ORD-1006",
       "27 Sep10:30 AM",
       "Meena Gupta",

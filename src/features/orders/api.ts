@@ -6,7 +6,10 @@ import { requireRow } from "@/lib/supabase/writes";
 /**
  * Reads an order by id with items and adjustments.
  */
-export async function findOrderById(tenant: Tenant, id: string): Promise<{
+export async function findOrderById(
+  tenant: Tenant,
+  id: string,
+): Promise<{
   order: OrderRow;
   items: OrderItemRow[];
   adjustments: OrderAdjustmentRow[];
@@ -37,10 +40,7 @@ export async function findOrderById(tenant: Tenant, id: string): Promise<{
  * What has been paid against each of several orders, in whole paise. One query
  * for the whole list; an order with no payments is simply absent from the map.
  */
-export async function findPaidByOrder(
-  tenant: Tenant,
-  orderIds: readonly string[],
-): Promise<Map<string, number>> {
+export async function findPaidByOrder(tenant: Tenant, orderIds: readonly string[]): Promise<Map<string, number>> {
   const { supabase: client, bakeryId } = tenant;
   const paid = new Map<string, number>();
   if (orderIds.length === 0) return paid;
@@ -57,4 +57,3 @@ export async function findPaidByOrder(
   }
   return paid;
 }
-

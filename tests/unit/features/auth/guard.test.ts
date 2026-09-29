@@ -18,8 +18,16 @@ vi.mock("@/lib/supabase/server", () => ({
   createSupabaseServiceRoleClient: vi.fn(() => serviceClient),
 }));
 
-const { assertPasswordChanged, assertRole, bearerToken, businessOf, readAccessToken, withAccountRoute, withBakeryRoute, withDevRoute } =
-  await import("@/features/auth/guard");
+const {
+  assertPasswordChanged,
+  assertRole,
+  bearerToken,
+  businessOf,
+  readAccessToken,
+  withAccountRoute,
+  withBakeryRoute,
+  withDevRoute,
+} = await import("@/features/auth/guard");
 
 const profile = (role: AuthProfile["role"]): AuthProfile => ({
   id: "u-1",
@@ -64,9 +72,7 @@ describe("the token behind a request", () => {
   });
 
   it("falls back to the session cookie the browser sends", () => {
-    expect(readAccessToken(requestWith({ cookie: `${ACCESS_TOKEN_COOKIE}=from-cookie` }))).toBe(
-      "from-cookie",
-    );
+    expect(readAccessToken(requestWith({ cookie: `${ACCESS_TOKEN_COOKIE}=from-cookie` }))).toBe("from-cookie");
   });
 
   it("prefers an explicit bearer token over the cookie", () => {
@@ -133,7 +139,10 @@ describe("a route that changes the owner's own account", () => {
       user: context.supabase === (anonClient as unknown),
       server: context.admin === (serviceClient as unknown),
     }));
-    expect(await response.json()).toMatchObject({ success: true, data: { actor: "u-1", bakery: "b-1", user: true, server: true } });
+    expect(await response.json()).toMatchObject({
+      success: true,
+      data: { actor: "u-1", bakery: "b-1", user: true, server: true },
+    });
   });
 
   it("refuses anyone still owing a password change, and a role it does not serve", async () => {

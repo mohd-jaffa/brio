@@ -115,7 +115,14 @@ export async function priceOrder(
     }
     if ("custom" in item) {
       const { name, unitPrice } = item.custom;
-      return { productId: null, name, unitPrice, quantity: item.quantity, subtotal: unitPrice * item.quantity, notes: item.notes };
+      return {
+        productId: null,
+        name,
+        unitPrice,
+        quantity: item.quantity,
+        subtotal: unitPrice * item.quantity,
+        notes: item.notes,
+      };
     }
     const product = products.get(item.productId);
     // Gone, another business's, or taken off the menu: all read the same.

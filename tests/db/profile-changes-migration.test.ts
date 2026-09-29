@@ -34,7 +34,9 @@ describe("profile changes migration", () => {
   it("holds the rule on the owner's name, sign-in number and email, keeping each date its own", () => {
     const guard = body("profiles_change_once_a_month");
     for (const field of ["name", "phone", "email"]) {
-      expect(guard).toContain(`when new.${field} is distinct from old.${field} then public.stamp_profile_change(old.${field}_changed_at)`);
+      expect(guard).toContain(
+        `when new.${field} is distinct from old.${field} then public.stamp_profile_change(old.${field}_changed_at)`,
+      );
       expect(guard).toContain(`else old.${field}_changed_at`);
     }
     expect(migration).toMatch(
@@ -50,14 +52,24 @@ describe("profile changes migration", () => {
   });
 
   it("keeps a new email waiting, with only its link token's hash, looked up by it", () => {
-    for (const column of ["pending_email citext", "pending_email_token_hash text", "pending_email_expires_at timestamptz"]) {
+    for (const column of [
+      "pending_email citext",
+      "pending_email_token_hash text",
+      "pending_email_expires_at timestamptz",
+    ]) {
       expect(migration).toContain(`add column ${column}`);
     }
-    expect(migration).toMatch(/on public\.profiles \(pending_email_token_hash\)\s+where pending_email_token_hash is not null;/);
+    expect(migration).toMatch(
+      /on public\.profiles \(pending_email_token_hash\)\s+where pending_email_token_hash is not null;/,
+    );
   });
 
   it("gives no API role its functions", () => {
-    for (const fn of ["stamp_profile_change(timestamptz)", "profiles_change_once_a_month()", "bakeries_name_once_a_month()"]) {
+    for (const fn of [
+      "stamp_profile_change(timestamptz)",
+      "profiles_change_once_a_month()",
+      "bakeries_name_once_a_month()",
+    ]) {
       expect(migration).toContain(`revoke all on function public.${fn} from public, anon, authenticated;`);
     }
   });

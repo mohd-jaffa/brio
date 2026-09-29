@@ -218,16 +218,12 @@ describe("wholeNumberText and positiveWholeText", () => {
   });
 
   it("refuses a fraction of a count", () => {
-    expect(messageOf(wholeNumberText("Quantity"), "1.5")).toBe(
-      VALIDATION_MESSAGES.wholeNumber("Quantity"),
-    );
+    expect(messageOf(wholeNumberText("Quantity"), "1.5")).toBe(VALIDATION_MESSAGES.wholeNumber("Quantity"));
   });
 
   it("insists a positive count is above zero", () => {
     expect(positiveWholeText("Quantity").parse("3")).toBe(3);
-    expect(messageOf(positiveWholeText("Quantity"), "0")).toBe(
-      VALIDATION_MESSAGES.moreThanZero("Quantity"),
-    );
+    expect(messageOf(positiveWholeText("Quantity"), "0")).toBe(VALIDATION_MESSAGES.moreThanZero("Quantity"));
   });
 });
 

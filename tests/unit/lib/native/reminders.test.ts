@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const android = vi.hoisted(() => ({ on: true, plugin: true }));
 vi.mock("@/lib/native/platform", () => ({
   isAndroidApp: () => android.on,
-  hasPlugins: (...names: string[]) => android.on && android.plugin && names.every((name) => name === "LocalNotifications"),
+  hasPlugins: (...names: string[]) =>
+    android.on && android.plugin && names.every((name) => name === "LocalNotifications"),
 }));
 const web = vi.hoisted(() => ({
   webPushPermission: vi.fn(async () => "OFF"),

@@ -39,4 +39,3 @@ describe("ProductTile", () => {
     expect(container.querySelector("img")?.getAttribute("src")).toMatch(/default-expense/);
   });
 });
-

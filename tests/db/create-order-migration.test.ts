@@ -25,7 +25,9 @@ describe("create order migration", () => {
     });
 
     it("numbers every inserted order from it, as ORD-n, and refuses another business's counter", () => {
-      expect(migration).toMatch(/before insert on public\.orders\s+for each row\s+execute function public\.assign_order_number\(\)/);
+      expect(migration).toMatch(
+        /before insert on public\.orders\s+for each row\s+execute function public\.assign_order_number\(\)/,
+      );
       expect(migration).toMatch(/new\.order_number := 'ORD-' \|\| number;/);
       expect(migration).toMatch(/new\.bakery_id is distinct from public\.current_profile_bakery_id\(\)/);
     });
@@ -44,7 +46,9 @@ describe("create order migration", () => {
     });
 
     it("returns the order a key already made, after waiting for any call still making it", () => {
-      expect(migration).toMatch(/pg_advisory_xact_lock\(hashtextextended\(business::text \|\| ':' \|\| p_idempotency_key::text, 0\)\)/);
+      expect(migration).toMatch(
+        /pg_advisory_xact_lock\(hashtextextended\(business::text \|\| ':' \|\| p_idempotency_key::text, 0\)\)/,
+      );
       expect(migration).toMatch(/if found then\s+return query select new_order, false;/);
     });
   });
@@ -62,17 +66,23 @@ describe("create order migration", () => {
     });
 
     it("refuses a shortfall with what is left", () => {
-      expect(migration).toMatch(/hint = 'ORDER_INSUFFICIENT_STOCK',\s+detail = jsonb_build_object\('shortfalls', shortfalls\)::text;/);
+      expect(migration).toMatch(
+        /hint = 'ORDER_INSUFFICIENT_STOCK',\s+detail = jsonb_build_object\('shortfalls', shortfalls\)::text;/,
+      );
     });
 
     it("reserves stock for catalogue lines only", () => {
-      expect(migration).toMatch(/'ORDER_RESERVATION', -\(line ->> 'quantity'\)::integer, 'ORDER', new_order::text\s+from jsonb_array_elements\(lines\) as line\s+where line ->> 'product_id' is not null;/);
+      expect(migration).toMatch(
+        /'ORDER_RESERVATION', -\(line ->> 'quantity'\)::integer, 'ORDER', new_order::text\s+from jsonb_array_elements\(lines\) as line\s+where line ->> 'product_id' is not null;/,
+      );
     });
   });
 
   describe("payments decide the payment status (BUG-02, BUG-06)", () => {
     it("refuses a payment past the order's total, with the order locked", () => {
-      expect(migration).toMatch(/for no key update;[\s\S]*already_paid \+ new\.amount > order_total[\s\S]*hint = 'PAYMENT_EXCEEDS_BALANCE'/);
+      expect(migration).toMatch(
+        /for no key update;[\s\S]*already_paid \+ new\.amount > order_total[\s\S]*hint = 'PAYMENT_EXCEEDS_BALANCE'/,
+      );
     });
 
     it("derives the status from the payments on every change", () => {
@@ -94,7 +104,9 @@ describe("create order migration", () => {
   });
 
   it("runs create_order as the caller, so row-level security applies, and for signed-in users only", () => {
-    expect(migration).toMatch(/function public\.create_order\(p_order jsonb, p_idempotency_key uuid\)[\s\S]*?security invoker/);
+    expect(migration).toMatch(
+      /function public\.create_order\(p_order jsonb, p_idempotency_key uuid\)[\s\S]*?security invoker/,
+    );
     expect(migration).toMatch(/revoke all on function public\.create_order\(jsonb, uuid\) from public, anon;/);
     expect(migration).toMatch(/grant execute on function public\.create_order\(jsonb, uuid\) to authenticated;/);
   });

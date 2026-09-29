@@ -73,6 +73,11 @@ async function findStockShortfalls(tenant: Tenant, lines: readonly PricedLine[])
   if (error) throw fromPostgrestError(error);
 
   return ((data ?? []) as { product_id: string; product_name: string; available: number; requested: number }[]).map(
-    (row) => ({ productId: row.product_id, name: row.product_name, available: row.available, requested: row.requested }),
+    (row) => ({
+      productId: row.product_id,
+      name: row.product_name,
+      available: row.available,
+      requested: row.requested,
+    }),
   );
 }

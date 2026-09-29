@@ -33,7 +33,10 @@ beforeEach(() => {
 describe("ServerData", () => {
   it("draws the screen with the data the page arrived with, and does not ask for it again", async () => {
     renderWith(
-      <ServerData queries={{ "/api/orders/counts": { all: 3 } }} pages={{ "/api/orders": { items: ["a", "b"], nextCursor: null } }}>
+      <ServerData
+        queries={{ "/api/orders/counts": { all: 3 } }}
+        pages={{ "/api/orders": { items: ["a", "b"], nextCursor: null } }}
+      >
         <Screen />
       </ServerData>,
     );

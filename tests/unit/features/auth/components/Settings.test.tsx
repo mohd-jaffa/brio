@@ -91,7 +91,9 @@ describe("Settings", () => {
     expect(within(chooser).getByRole("radio", { name: "Husky" })).toHaveAttribute("aria-checked", "true");
 
     await userEvent.click(within(chooser).getByRole("radio", { name: "Husky" }));
-    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Choose a profile picture" })).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: "Choose a profile picture" })).not.toBeInTheDocument(),
+    );
     expect(changeAvatar).not.toHaveBeenCalled();
   });
 
@@ -152,11 +154,15 @@ describe("Settings", () => {
   });
 
   it("shows a link that could not be sent again on a card", async () => {
-    resendEmailChange.mockRejectedValue(new ApiError(400, "AUTH_NO_PENDING_EMAIL", "There is no new email address waiting to be confirmed.", "req_9"));
+    resendEmailChange.mockRejectedValue(
+      new ApiError(400, "AUTH_NO_PENDING_EMAIL", "There is no new email address waiting to be confirmed.", "req_9"),
+    );
     auth.current = authStub({ profile: { ...TEST_PROFILE, pendingEmail: "asha.new@example.com" } });
     render(<Settings />);
     await userEvent.click(screen.getByRole("button", { name: "Send the link again" }));
-    expect(await screen.findByRole("alertdialog", { name: "Email not sent" })).toHaveTextContent("There is no new email address");
+    expect(await screen.findByRole("alertdialog", { name: "Email not sent" })).toHaveTextContent(
+      "There is no new email address",
+    );
   });
 
   it("chooses the theme under Appearance", async () => {

@@ -20,7 +20,11 @@ describe("readStep", () => {
 
 describe("issuesByPath and within", () => {
   const error = z
-    .object({ items: z.array(z.string()).min(1, "Add an item"), customer: z.string("Choose one"), payment: z.string("Pay") })
+    .object({
+      items: z.array(z.string()).min(1, "Add an item"),
+      customer: z.string("Choose one"),
+      payment: z.string("Pay"),
+    })
     .safeParse({ items: [] }).error!;
 
   it("keeps the first message under each path", () => {
@@ -31,7 +35,11 @@ describe("issuesByPath and within", () => {
     const issues = { items: "Add an item", "customer.id": "Choose one", "payment.amount": "Pay", elsewhere: "x" };
     expect(within(issues, "items")).toEqual({ items: "Add an item" });
     expect(within(issues, "details")).toEqual({ items: "Add an item", "customer.id": "Choose one" });
-    expect(within(issues, "payment")).toEqual({ items: "Add an item", "customer.id": "Choose one", "payment.amount": "Pay" });
+    expect(within(issues, "payment")).toEqual({
+      items: "Add an item",
+      "customer.id": "Choose one",
+      "payment.amount": "Pay",
+    });
   });
 });
 
@@ -41,10 +49,19 @@ describe("stockRefusal", () => {
   it("names what is short, in words, under the title it is given", () => {
     expect(
       stockRefusal(
-        short({ shortfalls: [{ productId: "p-1", name: "Truffle Cake", available: 2, requested: 3 }, { productId: "p-2", name: "Bread", available: 0, requested: 1 }] }),
+        short({
+          shortfalls: [
+            { productId: "p-1", name: "Truffle Cake", available: 2, requested: 3 },
+            { productId: "p-2", name: "Bread", available: 0, requested: 1 },
+          ],
+        }),
         "Changes not saved",
       ),
-    ).toEqual({ title: "Changes not saved", message: "Only 2 left of Truffle Cake. Bread is out of stock.", requestId: "req_1" });
+    ).toEqual({
+      title: "Changes not saved",
+      message: "Only 2 left of Truffle Cake. Bread is out of stock.",
+      requestId: "req_1",
+    });
   });
 
   it("is nothing for any other failure, or a stock refusal that names nothing", () => {

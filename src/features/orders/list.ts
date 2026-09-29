@@ -151,5 +151,8 @@ export async function countOrders(tenant: Tenant, filters: OrderCountsQuery): Pr
     return found ?? 0;
   };
   const [all, ...each] = await Promise.all([count(), ...ORDER_STATUSES.map((status) => count(status))]);
-  return { ALL: all, ...Object.fromEntries(ORDER_STATUSES.map((status, index) => [status, each[index]])) } as OrderCounts;
+  return {
+    ALL: all,
+    ...Object.fromEntries(ORDER_STATUSES.map((status, index) => [status, each[index]])),
+  } as OrderCounts;
 }

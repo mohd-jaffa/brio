@@ -2,8 +2,7 @@ import { randomBytes } from "node:crypto";
 
 // Ambiguous glyphs (0/O, 1/l/I) are left out: this is read off a screen and
 // typed by hand, and the plan asks for it to be usable, not just random (§94).
-const TEMPORARY_PASSWORD_ALPHABET =
-  "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+const TEMPORARY_PASSWORD_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
 
 /**
  * The password emailed after a reset request. Generated with the platform's

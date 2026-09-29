@@ -39,7 +39,13 @@ export function aSummary(changes: Partial<ExpenseSummary> = {}): ExpenseSummary 
     ],
     recent: [
       anExpense(),
-      anExpense({ id: "e-2", category: "Packaging", description: "Cake boxes", amount: 96000, expenseDate: "2026-09-10" }),
+      anExpense({
+        id: "e-2",
+        category: "Packaging",
+        description: "Cake boxes",
+        amount: 96000,
+        expenseDate: "2026-09-10",
+      }),
     ],
     ...changes,
   };

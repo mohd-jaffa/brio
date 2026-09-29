@@ -75,7 +75,10 @@ export async function listCategories(tenant: Tenant): Promise<ExpenseCategoryIte
  * schema says so first, `create_expense_category` (0020) makes sure.
  */
 export async function createCategory(tenant: Tenant, input: ExpenseCategoryFormPayload): Promise<ExpenseCategoryItem> {
-  const row = await call<CategoryRow>(tenant, "create_expense_category", { p_name: input.name, p_icon_key: input.iconKey });
+  const row = await call<CategoryRow>(tenant, "create_expense_category", {
+    p_name: input.name,
+    p_icon_key: input.iconKey,
+  });
   await logActionSafe(tenant, {
     action: "CREATE",
     entity_type: "expense_categories",

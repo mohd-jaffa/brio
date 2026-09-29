@@ -78,7 +78,9 @@ export function Row({
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-semibold text-text">{title}</span>
         {subtitle && (
-          <span className={cn("mt-0.5 block text-sm text-text-muted", wrap ? "line-clamp-2" : "truncate")}>{subtitle}</span>
+          <span className={cn("mt-0.5 block text-sm text-text-muted", wrap ? "line-clamp-2" : "truncate")}>
+            {subtitle}
+          </span>
         )}
         {meta && <span className="mt-0.5 block truncate text-xs text-text-muted">{meta}</span>}
       </span>
@@ -88,7 +90,10 @@ export function Row({
       {chevron && <ChevronRight size={18} strokeWidth={1.75} className="shrink-0 text-text-muted" aria-hidden="true" />}
     </>
   );
-  const layout = cn("flex w-full items-center gap-3 py-3 pr-4 text-left", leadingControl !== undefined ? "pl-3" : "pl-4");
+  const layout = cn(
+    "flex w-full items-center gap-3 py-3 pr-4 text-left",
+    leadingControl !== undefined ? "pl-3" : "pl-4",
+  );
   const interactive = "focus-inset transition-colors hover:bg-surface-hover";
 
   const target =

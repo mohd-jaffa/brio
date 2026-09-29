@@ -12,7 +12,7 @@ import dripCake from "./drip-cake.webp";
 export const PLATES = {
   "cake-table": cakeTable,
   "drip-cake": dripCake,
-  "brownies": brownies,
+  brownies: brownies,
 } as const satisfies Record<string, StaticImageData>;
 
 export type PlateName = keyof typeof PLATES;
@@ -28,5 +28,5 @@ export const PLATE_QUALITY = 60;
 export const PLATE_FOCUS: Record<PlateName, string> = {
   "cake-table": "68% 55%",
   "drip-cake": "50% 45%",
-  "brownies": "40% 55%",
+  brownies: "40% 55%",
 };

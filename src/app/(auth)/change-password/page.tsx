@@ -15,10 +15,7 @@ export const metadata: Metadata = {
  */
 export default function ChangePasswordPage() {
   return (
-    <AuthScene
-      headline={UI_TEXT.auth.changePasswordHeadline}
-      intro={UI_TEXT.auth.changePasswordIntro}
-    >
+    <AuthScene headline={UI_TEXT.auth.changePasswordHeadline} intro={UI_TEXT.auth.changePasswordIntro}>
       <ChangePasswordForm />
     </AuthScene>
   );

@@ -42,15 +42,27 @@ const GROUND_MAX_CHROMA = 28;
 // and is cleared from there just as the border is. White an outline closes off
 // and is not named here is drawing — the cream, the cup, the receipt — and stays.
 const HOLES = {
-  "bow-and-arrow": [[0.474, 0.414], [0.486, 0.591]],
+  "bow-and-arrow": [
+    [0.474, 0.414],
+    [0.486, 0.591],
+  ],
   "capybara-headphones": [[0.503, 0.201]],
   "cookie-cup": [[0.811, 0.576]],
-  "cupid": [[0.661, 0.549], [0.632, 0.678]],
+  cupid: [
+    [0.661, 0.549],
+    [0.632, 0.678],
+  ],
   "default-product": [[0.678, 0.23]],
-  "donut": [[0.499, 0.482]],
-  "heart-balloons": [[0.739, 0.528], [0.249, 0.547]],
+  donut: [[0.499, 0.482]],
+  "heart-balloons": [
+    [0.739, 0.528],
+    [0.249, 0.547],
+  ],
   "heart-padlock": [[0.476, 0.357]],
-  "love-locks": [[0.618, 0.345], [0.284, 0.453]],
+  "love-locks": [
+    [0.618, 0.345],
+    [0.284, 0.453],
+  ],
 };
 
 const masters = fs
@@ -60,7 +72,11 @@ const masters = fs
 
 /** A 256-bit difference hash: how the picture's brightness falls left to right. */
 async function dHash(file) {
-  const { data } = await sharp(file).greyscale().resize(17, 16, { fit: "fill" }).raw().toBuffer({ resolveWithObject: true });
+  const { data } = await sharp(file)
+    .greyscale()
+    .resize(17, 16, { fit: "fill" })
+    .raw()
+    .toBuffer({ resolveWithObject: true });
   let bits = 0n;
   for (let y = 0; y < 16; y++) {
     for (let x = 0; x < 16; x++) bits = (bits << 1n) | (data[y * 17 + x] > data[y * 17 + x + 1] ? 1n : 0n);
@@ -68,7 +84,11 @@ async function dHash(file) {
   return bits;
 }
 
-const distance = (a, b) => (a ^ b).toString(2).split("").filter((bit) => bit === "1").length;
+const distance = (a, b) =>
+  (a ^ b)
+    .toString(2)
+    .split("")
+    .filter((bit) => bit === "1").length;
 
 async function check() {
   const problems = [];
@@ -123,7 +143,8 @@ function clearGround(pixels, width, height, holes) {
     // the pixel is drawing, and the colour is what remains once white is lifted.
     const alpha = Math.max(255 - pixels[i], 255 - pixels[i + 1], 255 - pixels[i + 2]) / 255;
     for (let c = 0; c < 3; c++) {
-      pixels[i + c] = alpha === 0 ? 0 : Math.round(Math.min(255, Math.max(0, (pixels[i + c] - 255 * (1 - alpha)) / alpha)));
+      pixels[i + c] =
+        alpha === 0 ? 0 : Math.round(Math.min(255, Math.max(0, (pixels[i + c] - 255 * (1 - alpha)) / alpha)));
     }
     pixels[i + 3] = Math.round(alpha * 255);
 
@@ -138,7 +159,10 @@ function clearGround(pixels, width, height, holes) {
 
 async function build(file) {
   const key = path.parse(file).name;
-  const { data, info } = await sharp(path.join(MASTERS, file)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const { data, info } = await sharp(path.join(MASTERS, file))
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
   try {
     clearGround(data, info.width, info.height, HOLES[key] ?? []);
   } catch (error) {
@@ -146,7 +170,10 @@ async function build(file) {
   }
 
   const cleared = sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } });
-  const trimmed = await cleared.png().toBuffer().then((png) => sharp(png).trim({ threshold: 0 }).toBuffer({ resolveWithObject: true }));
+  const trimmed = await cleared
+    .png()
+    .toBuffer()
+    .then((png) => sharp(png).trim({ threshold: 0 }).toBuffer({ resolveWithObject: true }));
   const side = Math.round(Math.max(trimmed.info.width, trimmed.info.height) / (1 - 2 * PADDING));
 
   // Two passes on purpose: sharp resizes before it extends whatever order the

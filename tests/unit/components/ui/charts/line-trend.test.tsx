@@ -44,7 +44,11 @@ describe("LineTrend", () => {
   it("carries the same numbers in a table", () => {
     trend();
     const table = screen.getByRole("table", { name: "Sales trend" });
-    expect(within(table).getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual(["Date", "Amount"]);
+    expect(
+      within(table)
+        .getAllByRole("columnheader")
+        .map((cell) => cell.textContent),
+    ).toEqual(["Date", "Amount"]);
     expect(within(table).getByRole("row", { name: "3 Sep ₹6,240" })).toBeInTheDocument();
   });
 
@@ -64,18 +68,24 @@ describe("LineTrend", () => {
     expect(screen.getByText("Previous period", { selector: "span" })).toBeInTheDocument();
 
     const table = screen.getByRole("table", { name: "Sales trend" });
-    expect(within(table).getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual([
-      "Day",
-      "This period",
-      "Previous period",
-    ]);
+    expect(
+      within(table)
+        .getAllByRole("columnheader")
+        .map((cell) => cell.textContent),
+    ).toEqual(["Day", "This period", "Previous period"]);
     expect(within(table).getByRole("row", { name: "2 Sep ₹1,800 ₹1,500" })).toBeInTheDocument();
     // A previous period shorter than this one leaves the cell blank.
     expect(within(table).getByRole("row", { name: "4 Sep ₹5,400" })).toBeInTheDocument();
   });
 
   it("counts things when asked to", () => {
-    const { container } = trend({ unit: "count", points: [{ label: "Mon", value: 3 }, { label: "Tue", value: 7 }] });
+    const { container } = trend({
+      unit: "count",
+      points: [
+        { label: "Mon", value: 3 },
+        { label: "Tue", value: 7 },
+      ],
+    });
     const labels = [...container.querySelectorAll("text")].map((text) => text.textContent);
     expect(labels).toEqual(expect.arrayContaining(["0", "8"]));
     expect(screen.getByRole("columnheader", { name: "Count" })).toBeInTheDocument();

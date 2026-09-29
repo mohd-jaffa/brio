@@ -14,7 +14,13 @@ import {
 } from "@/features/dashboard/summary";
 import type { OrderListItem } from "@/features/orders/types";
 
-const item = (productId: string | null, name: string, quantity: number, subtotal: number, iconKey: string | null = null) => ({
+const item = (
+  productId: string | null,
+  name: string,
+  quantity: number,
+  subtotal: number,
+  iconKey: string | null = null,
+) => ({
   product_id: productId,
   product_name: name,
   quantity,
@@ -24,11 +30,36 @@ const item = (productId: string | null, name: string, quantity: number, subtotal
 
 // 26 Sep 2026 is a Saturday. Times are in India: 10:00 IST is 04:30Z.
 const orders: PeriodOrder[] = [
-  { total: 1000, status: "DELIVERED", created_at: "2026-09-26T04:30:00Z", order_items: [item("p-cake", "Cake", 1, 1000, "cake")] },
-  { total: 500, status: "PENDING", created_at: "2026-09-25T20:00:00Z", order_items: [item("p-cake", "Cake", 1, 500, "cake")] }, // 26 Sep 01:30 IST
-  { total: 700, status: "CANCELLED", created_at: "2026-09-26T05:00:00Z", order_items: [item("p-bread", "Bread", 5, 700)] },
-  { total: 300, status: "IN_PROGRESS", created_at: "2026-09-22T05:00:00Z", order_items: [item(null, "Topper", 2, 200), item(null, "Card", 1, 100)] },
-  { total: 900, status: "PENDING", created_at: "2026-09-02T05:00:00Z", order_items: [item("p-bread", "Bread", 3, 900)] },
+  {
+    total: 1000,
+    status: "DELIVERED",
+    created_at: "2026-09-26T04:30:00Z",
+    order_items: [item("p-cake", "Cake", 1, 1000, "cake")],
+  },
+  {
+    total: 500,
+    status: "PENDING",
+    created_at: "2026-09-25T20:00:00Z",
+    order_items: [item("p-cake", "Cake", 1, 500, "cake")],
+  }, // 26 Sep 01:30 IST
+  {
+    total: 700,
+    status: "CANCELLED",
+    created_at: "2026-09-26T05:00:00Z",
+    order_items: [item("p-bread", "Bread", 5, 700)],
+  },
+  {
+    total: 300,
+    status: "IN_PROGRESS",
+    created_at: "2026-09-22T05:00:00Z",
+    order_items: [item(null, "Topper", 2, 200), item(null, "Card", 1, 100)],
+  },
+  {
+    total: 900,
+    status: "PENDING",
+    created_at: "2026-09-02T05:00:00Z",
+    order_items: [item("p-bread", "Bread", 3, 900)],
+  },
 ];
 
 describe("periodDays", () => {
@@ -71,7 +102,12 @@ describe("topProducts", () => {
 
   it("breaks a tie on what it took by how many, then by name", () => {
     const tied: PeriodOrder[] = [
-      { total: 0, status: "PENDING", created_at: "2026-09-26T05:00:00Z", order_items: [item("a", "Bun", 1, 100), item("b", "Apple", 1, 100), item("c", "Cookie", 3, 100)] },
+      {
+        total: 0,
+        status: "PENDING",
+        created_at: "2026-09-26T05:00:00Z",
+        order_items: [item("a", "Bun", 1, 100), item("b", "Apple", 1, 100), item("c", "Cookie", 3, 100)],
+      },
     ];
     expect(topProducts(tied, "2026-09-26").map((line) => line.name)).toEqual(["Cookie", "Apple", "Bun"]);
   });
@@ -106,7 +142,11 @@ describe("groupDue", () => {
 
   it("groups by day — an order due earlier today is still today (IMP-05)", () => {
     const groups = groupDue(
-      [due("late", "2026-09-25T05:00:00Z"), due("earlier", "2026-09-26T03:00:00Z"), due("next", "2026-09-27T05:00:00Z")],
+      [
+        due("late", "2026-09-25T05:00:00Z"),
+        due("earlier", "2026-09-26T03:00:00Z"),
+        due("next", "2026-09-27T05:00:00Z"),
+      ],
       now,
     );
     expect(groups.map((group) => [group.bucket, group.orders.map((order) => order.id)])).toEqual([

@@ -119,7 +119,9 @@ describe("useApiMutation", () => {
       await result.current.submit(undefined);
     });
 
-    await waitFor(() => expect(reads).toEqual(expect.arrayContaining(["/api/customers?search=x", "/api/customers?search=y"])));
+    await waitFor(() =>
+      expect(reads).toEqual(expect.arrayContaining(["/api/customers?search=x", "/api/customers?search=y"])),
+    );
     expect(reads).not.toContain("/api/products");
   });
 });

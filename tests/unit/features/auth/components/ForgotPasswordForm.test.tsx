@@ -37,9 +37,7 @@ describe("asking for a temporary password", () => {
     await userEvent.type(screen.getByLabelText(/email address/i), "ASHA@Example.com");
     await userEvent.click(ask());
 
-    await waitFor(() =>
-      expect(client.requestPasswordReset).toHaveBeenCalledWith({ email: "asha@example.com" }),
-    );
+    await waitFor(() => expect(client.requestPasswordReset).toHaveBeenCalledWith({ email: "asha@example.com" }));
   });
 
   it("will not send something that is not an address", async () => {

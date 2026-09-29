@@ -7,7 +7,14 @@ import { ActionRow } from "@/components/ui/action-row";
 describe("ActionRow", () => {
   it("is one button: its mark, its title and the line under it", async () => {
     const onClick = vi.fn();
-    render(<ActionRow leading={<span data-testid="mark" />} title="Add custom item" subtitle="A name and an amount" onClick={onClick} />);
+    render(
+      <ActionRow
+        leading={<span data-testid="mark" />}
+        title="Add custom item"
+        subtitle="A name and an amount"
+        onClick={onClick}
+      />,
+    );
     const row = screen.getByRole("button", { name: /Add custom item/ });
     expect(row).toHaveAttribute("type", "button");
     expect(row).toHaveTextContent("A name and an amount");
@@ -18,7 +25,13 @@ describe("ActionRow", () => {
 
   it("cuts long lines short unless they must be read whole, and takes a name and a description", () => {
     const { rerender } = render(
-      <ActionRow leading={null} title="Meena Gupta" subtitle="+91 98765 43210" aria-label="Change customer: Meena Gupta" aria-describedby="why" />,
+      <ActionRow
+        leading={null}
+        title="Meena Gupta"
+        subtitle="+91 98765 43210"
+        aria-label="Change customer: Meena Gupta"
+        aria-describedby="why"
+      />,
     );
     const row = screen.getByRole("button", { name: "Change customer: Meena Gupta" });
     expect(row).toHaveAttribute("aria-describedby", "why");

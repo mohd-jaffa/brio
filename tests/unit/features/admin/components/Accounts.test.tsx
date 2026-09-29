@@ -7,7 +7,10 @@ import { anAccount, answering } from "@tests/support/admin";
 import { Providers } from "@tests/support/providers";
 
 const fetcher = vi.hoisted(() => vi.fn());
-vi.mock("@/lib/api/client", async (original) => ({ ...(await original<typeof import("@/lib/api/client")>()), fetcher }));
+vi.mock("@/lib/api/client", async (original) => ({
+  ...(await original<typeof import("@/lib/api/client")>()),
+  fetcher,
+}));
 
 const { Accounts } = await import("@/features/admin/components/Accounts");
 
@@ -21,7 +24,15 @@ beforeEach(() => {
       nextCursor: "20",
     },
     "/api/admin/users?cursor=20": {
-      items: [anAccount("u-2", { name: "Anu Cakes", active: false, emailConfirmedAt: null, mustChangePassword: true, business: { name: "Anu's", city: null } })],
+      items: [
+        anAccount("u-2", {
+          name: "Anu Cakes",
+          active: false,
+          emailConfirmedAt: null,
+          mustChangePassword: true,
+          business: { name: "Anu's", city: null },
+        }),
+      ],
       nextCursor: null,
     },
   });
@@ -54,7 +65,9 @@ describe("the console's accounts", () => {
     expect(within(card("Priya Baker")).queryByText("Deactivated")).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Show more" }));
 
-    const later = within(await screen.findByRole("heading", { name: "Anu Cakes" }).then((heading) => heading.closest("article")!));
+    const later = within(
+      await screen.findByRole("heading", { name: "Anu Cakes" }).then((heading) => heading.closest("article")!),
+    );
     expect(later.getByText("Deactivated")).toBeInTheDocument();
     expect(later.getByText("Email not confirmed")).toBeInTheDocument();
     expect(later.getByText("Owes a password change")).toBeInTheDocument();

@@ -87,7 +87,8 @@ export const ERROR_MESSAGES = {
   ORDER_UPDATE_FAILED: "Could not save the changes to this order. Please try again.",
   ORDER_NOT_EDITABLE: "This order is finished, so it can’t be changed.",
   ORDER_CHANGED: "This order was just changed somewhere else. Open it again to see it as it is now.",
-  ORDER_TOTAL_BELOW_PAID: "More has been paid than the order would come to. Keep the total at or above what has been paid.",
+  ORDER_TOTAL_BELOW_PAID:
+    "More has been paid than the order would come to. Keep the total at or above what has been paid.",
   ORDER_IN_TRANSIT_PICKUP: "This order is out for delivery. Move it back to Ready before making it a pickup.",
   PAYMENT_FAILED: "Could not record this payment. Please try again.",
   PAYMENT_EXCEEDS_BALANCE: "That is more than is still owed on this order.",
@@ -496,7 +497,8 @@ export const UI_TEXT = {
       `${top} took the most: ${amount} of the ${total} items brought in.`,
     itemSales: "Item sales",
     salesBySource: "Guest and customer sales",
-    salesBySourceSummary: (guest: string, customers: string) => `Guests bought ${guest}; saved customers, ${customers}.`,
+    salesBySourceSummary: (guest: string, customers: string) =>
+      `Guests bought ${guest}; saved customers, ${customers}.`,
     guests: "Guests",
     savedCustomers: "Saved customers",
     viewGuestSales: "Guest sales",
@@ -514,7 +516,8 @@ export const UI_TEXT = {
     pickup: "Pickup",
     delivery: "Delivery",
     customerMix: "New and returning customers",
-    customerMixSummary: (added: number, returning: number) => `${added} new and ${returning} returning customers ordered.`,
+    customerMixSummary: (added: number, returning: number) =>
+      `${added} new and ${returning} returning customers ordered.`,
     newLabel: "New",
     returningLabel: "Returning",
     noCustomers: "No saved customer ordered in this period.",
@@ -737,7 +740,8 @@ export const UI_TEXT = {
     confirmDeleteCategoryNote: "Only a category with no expenses can be deleted. This cannot be undone.",
     deleteExpense: "Delete expense",
     confirmDeleteExpense: "Delete this expense?",
-    confirmDeleteExpenseNote: (description: string, amount: string) => `${description}, ${amount}. This cannot be undone.`,
+    confirmDeleteExpenseNote: (description: string, amount: string) =>
+      `${description}, ${amount}. This cannot be undone.`,
     delete: "Delete",
     categoryForm: {
       title: "New category",
@@ -1123,7 +1127,8 @@ export const UI_TEXT = {
     newEmailNote: "A link goes to the new address. It takes over once you follow it; until then you keep this one.",
     currentPassword: "Current password",
     save: "Save",
-    pendingEmail: (email: string) => `Confirm ${email} with the link sent to it. Until then, your email stays as it is.`,
+    pendingEmail: (email: string) =>
+      `Confirm ${email} with the link sent to it. Until then, your email stays as it is.`,
     resendLink: "Send the link again",
     appearance: "Appearance",
     appearanceHint: "Kept on this device.",
@@ -1151,7 +1156,8 @@ export const UI_TEXT = {
       web: "Turned off in this browser’s settings for Brio",
     },
     remindersNote: {
-      android: "Set on this phone for the orders it has seen. An order added elsewhere joins them when you next open the app.",
+      android:
+        "Set on this phone for the orders it has seen. An order added elsewhere joins them when you next open the app.",
       web: "Sent to this device, even when Brio is closed. Each device you use asks for its own.",
     },
     remindersOn: "Reminders on",

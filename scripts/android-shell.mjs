@@ -29,7 +29,10 @@ const server = shellServer(process.env.ANDROID_APP_URL);
 const text = UI_TEXT.offline;
 
 const escape = (value) =>
-  String(value).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  String(value).replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
+  );
 
 // Golden (src/app/globals.css): ground, ink, muted ink, the one dark control.
 const page = (title, body) => `<!doctype html>

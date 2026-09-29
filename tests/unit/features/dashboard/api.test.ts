@@ -28,8 +28,10 @@ function answers(overrides: Partial<Record<string, unknown>> = {}) {
   return (query: RecordedQuery) => {
     const pick = (name: string, fallback: unknown) => ({ data: name in overrides ? overrides[name] : fallback });
     if (query.table === "stock_levels") return pick("ledger", [{ product_id: "p-1", balance: 2, stocked: true }]);
-    if (query.table === "products") return pick("products", [{ id: "p-1", name: "Cake", icon_key: null, unit: "piece" }]);
-    if (selects(query, ORDER_LIST_COLUMNS)) return pick("due", [listRow("a", "2026-09-25T05:00:00Z"), listRow("b", "2026-09-27T05:00:00Z")]);
+    if (query.table === "products")
+      return pick("products", [{ id: "p-1", name: "Cake", icon_key: null, unit: "piece" }]);
+    if (selects(query, ORDER_LIST_COLUMNS))
+      return pick("due", [listRow("a", "2026-09-25T05:00:00Z"), listRow("b", "2026-09-27T05:00:00Z")]);
     if (selects(query, "id")) return { count: 3 };
     if (selects(query, "id, total, payments(amount)"))
       return pick("owing", [
@@ -106,8 +108,14 @@ describe("getDashboard", () => {
   });
 
   it("says when more are due than it shows", async () => {
-    const many = Array.from({ length: HOME_LIST_LIMITS.due + 1 }, (_, index) => listRow(`o${index}`, "2026-09-26T05:00:00Z"));
-    const dashboard = await getDashboard(tenantOf(fakeSupabase(answers({ due: many })).client), { period: "TODAY" }, now);
+    const many = Array.from({ length: HOME_LIST_LIMITS.due + 1 }, (_, index) =>
+      listRow(`o${index}`, "2026-09-26T05:00:00Z"),
+    );
+    const dashboard = await getDashboard(
+      tenantOf(fakeSupabase(answers({ due: many })).client),
+      { period: "TODAY" },
+      now,
+    );
     expect(dashboard.moreDue).toBe(true);
     expect(dashboard.due[0].orders).toHaveLength(HOME_LIST_LIMITS.due);
   });
@@ -129,7 +137,9 @@ describe("getDashboard", () => {
     const failing = fakeSupabase(() => ({ error: { message: "boom", code: "XX000" } }));
     await expect(getDashboard(tenantOf(failing.client), { period: "TODAY" }, now)).rejects.toBeInstanceOf(AppError);
 
-    const countFails = fakeSupabase((query) => (selects(query, "id") ? { error: { message: "boom", code: "XX000" } } : { data: [] }));
+    const countFails = fakeSupabase((query) =>
+      selects(query, "id") ? { error: { message: "boom", code: "XX000" } } : { data: [] },
+    );
     await expect(getDashboard(tenantOf(countFails.client), { period: "TODAY" }, now)).rejects.toBeInstanceOf(AppError);
   });
 });

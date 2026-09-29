@@ -54,7 +54,9 @@ describe("ExpensesOverview", () => {
     const recent = screen.getByRole("region", { name: "Recent expenses" });
     // Rows on a phone, and the same expenses as a table on a desktop.
     expect(within(recent).getByRole("table", { name: "Recent expenses" })).toHaveTextContent("Cake boxes");
-    const boxes = within(within(recent).getByRole("list", { name: "Recent expenses" })).getByRole("button", { name: /Cake boxes/ });
+    const boxes = within(within(recent).getByRole("list", { name: "Recent expenses" })).getByRole("button", {
+      name: /Cake boxes/,
+    });
     expect(boxes.querySelector("img")?.getAttribute("src")).toMatch(/shopping-bags/);
     await userEvent.click(boxes);
     expect(props.onOpen).toHaveBeenCalledWith(expect.objectContaining({ id: "e-2" }));
@@ -71,7 +73,11 @@ describe("ExpensesOverview", () => {
         recent: [],
       }),
     );
-    expect(within(screen.getByRole("region", { name: "Recent expenses" })).getByText("No expenses in this period.")).toBeInTheDocument();
-    expect(screen.getByRole("figure", { name: "Expenses by category" })).toHaveTextContent("No expenses in this period.");
+    expect(
+      within(screen.getByRole("region", { name: "Recent expenses" })).getByText("No expenses in this period."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("figure", { name: "Expenses by category" })).toHaveTextContent(
+      "No expenses in this period.",
+    );
   });
 });

@@ -56,10 +56,7 @@ export async function getBusiness(tenant: Tenant): Promise<BusinessProfile> {
   return toBusinessProfile(await findBusiness(tenant));
 }
 
-export async function updateBusiness(
-  tenant: Tenant,
-  input: BusinessProfilePayload,
-): Promise<BusinessProfile> {
+export async function updateBusiness(tenant: Tenant, input: BusinessProfilePayload): Promise<BusinessProfile> {
   const { supabase: client } = tenant;
   const before = await findBusiness(tenant);
   const after = await requireRow<BusinessRow>(
@@ -112,18 +109,13 @@ export async function removeBusinessFiles(adminClient: SupabaseClient, bakeryId:
  * place and takes the new file away again, so there is never a moment with
  * no logo, or two. The size was already checked as the body was read.
  */
-export async function replaceLogo(
-  tenant: Tenant,
-  file: Uint8Array,
-): Promise<BusinessProfile> {
+export async function replaceLogo(tenant: Tenant, file: Uint8Array): Promise<BusinessProfile> {
   const { supabase: client, bakeryId } = tenant;
   const type = sniffLogoType(file);
   if (!type) throw validationError("LOGO_TYPE_NOT_ALLOWED");
 
   const path = logoPath(bakeryId, crypto.randomUUID());
-  const stored = await client.storage
-    .from(LOGO_BUCKET)
-    .upload(path, file, { contentType: type, upsert: false });
+  const stored = await client.storage.from(LOGO_BUCKET).upload(path, file, { contentType: type, upsert: false });
   if (stored.error) throw externalServiceError("UPLOAD_FAILED", undefined, stored.error);
 
   const switched = await client.rpc("set_business_logo", { p_path: path, p_mime_type: type });
@@ -140,9 +132,7 @@ export async function replaceLogo(
 }
 
 /** The current logo's bytes, for /api/business/logo to answer with. */
-export async function readLogo(
-  tenant: Tenant,
-): Promise<{ file: Blob; type: LogoMimeType; version: string }> {
+export async function readLogo(tenant: Tenant): Promise<{ file: Blob; type: LogoMimeType; version: string }> {
   const row = await findBusiness(tenant);
   if (!row.logo_path || !row.logo_mime_type) throw notFoundError();
 

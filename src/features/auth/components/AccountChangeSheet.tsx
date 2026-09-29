@@ -42,7 +42,11 @@ const FIELD_REFUSALS: Partial<Record<string, "value" | "password">> = {
 };
 
 /** A refusal beside the field it is about, where the form has that field; on a card otherwise. */
-function refuse(failure: unknown, respond: Respond, besides: (where: "value" | "password", message: string) => boolean) {
+function refuse(
+  failure: unknown,
+  respond: Respond,
+  besides: (where: "value" | "password", message: string) => boolean,
+) {
   const where = failure instanceof ApiError ? FIELD_REFUSALS[failure.code] : undefined;
   if (where && besides(where, (failure as ApiError).message)) return;
   respond.failure(failure, { title: UI_TEXT.outcomes.detailNotChanged, fallback: "SAVE_FAILED" });

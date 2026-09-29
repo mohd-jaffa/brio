@@ -32,7 +32,17 @@ function Anchored({ onDismiss = vi.fn(), maxHeight = 300 }: { onDismiss?: () => 
 }
 
 const box = (top: number, height: number, left = 20, width = 200) =>
-  ({ top, bottom: top + height, left, right: left + width, width, height, x: left, y: top, toJSON: () => ({}) }) as DOMRect;
+  ({
+    top,
+    bottom: top + height,
+    left,
+    right: left + width,
+    width,
+    height,
+    x: left,
+    y: top,
+    toJSON: () => ({}),
+  }) as DOMRect;
 
 const control = () => screen.getByRole("button", { name: "Open" });
 const panel = () => screen.getByRole("dialog", { name: "Panel" });
@@ -47,7 +57,13 @@ describe("placeAgainst", () => {
     const anchor = document.createElement("button");
     vi.spyOn(anchor, "getBoundingClientRect").mockReturnValue(box(100, 44));
     placeAgainst(element, anchor, 300);
-    expect(element.style).toMatchObject({ top: "150px", bottom: "auto", minWidth: "200px", maxHeight: "300px", left: "20px" });
+    expect(element.style).toMatchObject({
+      top: "150px",
+      bottom: "auto",
+      minWidth: "200px",
+      maxHeight: "300px",
+      left: "20px",
+    });
   });
 
   it("opens over the control where there is more room, lined up with its nearer edge, inside the screen", () => {

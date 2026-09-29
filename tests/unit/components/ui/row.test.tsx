@@ -73,7 +73,11 @@ describe("RowList and Row", () => {
     render(
       <RowList label="Categories">
         <Row
-          leadingControl={<button type="button" onClick={change}>Change the picture for Rent</button>}
+          leadingControl={
+            <button type="button" onClick={change}>
+              Change the picture for Rent
+            </button>
+          }
           title="Rent"
           onClick={open}
         />
@@ -91,4 +95,3 @@ describe("RowList and Row", () => {
     expect(open).toHaveBeenCalledOnce();
   });
 });
-

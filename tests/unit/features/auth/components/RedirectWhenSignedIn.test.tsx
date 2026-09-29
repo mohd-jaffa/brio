@@ -28,7 +28,11 @@ beforeEach(() => {
 });
 
 const signInScreen = () =>
-  render(<RedirectWhenSignedIn><p>Sign in form</p></RedirectWhenSignedIn>);
+  render(
+    <RedirectWhenSignedIn>
+      <p>Sign in form</p>
+    </RedirectWhenSignedIn>,
+  );
 
 describe("an already-signed-in visitor", () => {
   it("is shown the form while nobody is signed in", () => {

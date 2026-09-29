@@ -124,7 +124,10 @@ function fill(pixels, width, [left, top, right, bottom], key) {
       for (let c = 0; c < 3; c++) {
         const edges = (1 - v) * topEdge[c][i] + v * bottomEdge[c][i] + (1 - u) * leftEdge[c][j] + u * rightEdge[c][j];
         const bilinear =
-          (1 - u) * (1 - v) * topEdge[c][0] + u * (1 - v) * topEdge[c][w] + (1 - u) * v * bottomEdge[c][0] + u * v * bottomEdge[c][w];
+          (1 - u) * (1 - v) * topEdge[c][0] +
+          u * (1 - v) * topEdge[c][w] +
+          (1 - u) * v * bottomEdge[c][0] +
+          u * v * bottomEdge[c][w];
         pixels[(y * width + x) * 3 + c] = Math.min(255, Math.max(0, Math.round(edges - bilinear + shade)));
       }
     }
@@ -139,7 +142,8 @@ for (const [key, { from, boxes }] of Object.entries(ART)) {
   const webp = await sharp(data, { raw: { width: info.width, height: info.height, channels: 3 } })
     .webp({ quality: QUALITY, effort: 6 })
     .toBuffer();
-  if (webp.length > MAX_BYTES) throw new Error(`${key}: ${Math.round(webp.length / 1024)} KB, over ${MAX_BYTES / 1024} KB`);
+  if (webp.length > MAX_BYTES)
+    throw new Error(`${key}: ${Math.round(webp.length / 1024)} KB, over ${MAX_BYTES / 1024} KB`);
   fs.writeFileSync(`${OUT}/${key}.webp`, webp);
   console.log(`${OUT}/${key}.webp: ${info.width}×${info.height}, ${Math.round(webp.length / 1024)} KB`);
 }

@@ -39,7 +39,9 @@ function Action({ action, email }: { action: PrivacySection["action"]; email: st
 export default async function PrivacyPage() {
   const signedIn = Boolean(await readInitialSession());
   const email = supportEmail();
-  const back = signedIn ? { href: "/settings", label: text.backToSettings } : { href: AUTH_ROUTES.signIn, label: text.backToSignIn };
+  const back = signedIn
+    ? { href: "/settings", label: text.backToSettings }
+    : { href: AUTH_ROUTES.signIn, label: text.backToSignIn };
 
   return (
     <main className="safe-top safe-bottom safe-x [--safe-pt:1.5rem] [--safe-pb:4rem] [--safe-px:1.25rem] min-h-dvh bg-background">
@@ -71,7 +73,10 @@ export default async function PrivacyPage() {
           </div>
         </header>
 
-        <nav aria-labelledby="privacy-contents" className="mt-8 rounded-2xl border border-border bg-surface p-5 shadow-card">
+        <nav
+          aria-labelledby="privacy-contents"
+          className="mt-8 rounded-2xl border border-border bg-surface p-5 shadow-card"
+        >
           <h2 id="privacy-contents" className="text-sm font-semibold text-text">
             {text.contents}
           </h2>
@@ -90,12 +95,19 @@ export default async function PrivacyPage() {
         </nav>
 
         {PRIVACY_POLICY.sections.map((section: PrivacySection) => (
-          <section key={section.id} id={section.id} aria-labelledby={`${section.id}-heading`} className="mt-10 scroll-mt-6">
+          <section
+            key={section.id}
+            id={section.id}
+            aria-labelledby={`${section.id}-heading`}
+            className="mt-10 scroll-mt-6"
+          >
             <h2 id={`${section.id}-heading`} className="font-heading text-2xl font-medium leading-tight text-text">
               {section.heading}
             </h2>
             <div className="mt-3 space-y-3 text-base leading-relaxed text-text text-pretty">
-              {section.paragraphs?.map((line) => <p key={line}>{line}</p>)}
+              {section.paragraphs?.map((line) => (
+                <p key={line}>{line}</p>
+              ))}
               {section.points && (
                 <ul className="list-disc space-y-2 pl-5 marker:text-text-muted">
                   {section.points.map((line) => (
@@ -103,7 +115,9 @@ export default async function PrivacyPage() {
                   ))}
                 </ul>
               )}
-              {section.after?.map((line) => <p key={line}>{line}</p>)}
+              {section.after?.map((line) => (
+                <p key={line}>{line}</p>
+              ))}
             </div>
             {section.action && (
               <div className="mt-5">

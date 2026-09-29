@@ -64,7 +64,10 @@ describe("renewSession", () => {
     const location = new URL(response.headers.get("location")!);
     expect(location.pathname + location.search).toBe("/login?next=%2Forders%3Fstatus%3DPENDING");
     expect(response.headers.getSetCookie()).toEqual(
-      expect.arrayContaining([expect.stringMatching(/^brio_access_token=; .*Max-Age=0/), expect.stringMatching(/^brio_refresh_token=; .*Max-Age=0/)]),
+      expect.arrayContaining([
+        expect.stringMatching(/^brio_access_token=; .*Max-Age=0/),
+        expect.stringMatching(/^brio_refresh_token=; .*Max-Age=0/),
+      ]),
     );
   });
 

@@ -11,11 +11,7 @@ import { ScreenNotice } from "@/components/ui/screen-notice";
 import { UI_TEXT } from "@/constants/messages";
 import { HOME_ROUTE } from "@/constants/routes";
 import { useApiMutation } from "@/lib/query/useApiMutation";
-import {
-  changePasswordSchema,
-  type ChangePasswordInput,
-  type ChangePasswordPayload,
-} from "@/lib/validation";
+import { changePasswordSchema, type ChangePasswordInput, type ChangePasswordPayload } from "@/lib/validation";
 
 import { AuthClient } from "../api.client";
 import { useAuth } from "../AuthProvider";
@@ -41,27 +37,22 @@ export function ChangePasswordForm() {
   });
 
   const respond = useResponse();
-  const { submit, submitting } = useApiMutation<ChangePasswordPayload, AuthSessionView>(
-    AuthClient.changePassword,
-    {
-      onError: (failure) =>
-        respond.failure(failure, {
-          title: UI_TEXT.outcomes.passwordNotChanged,
-          fallback: "AUTH_PASSWORD_CHANGE_FAILED",
-        }),
-      onSuccess: async (session) => {
-        await adopt(session);
-        router.replace(HOME_ROUTE);
-      },
+  const { submit, submitting } = useApiMutation<ChangePasswordPayload, AuthSessionView>(AuthClient.changePassword, {
+    onError: (failure) =>
+      respond.failure(failure, {
+        title: UI_TEXT.outcomes.passwordNotChanged,
+        fallback: "AUTH_PASSWORD_CHANGE_FAILED",
+      }),
+    onSuccess: async (session) => {
+      await adopt(session);
+      router.replace(HOME_ROUTE);
     },
-  );
+  });
 
   return (
     <form method="post" onSubmit={handleSubmit((values) => submit(values))} className="space-y-4" noValidate>
       {/* Why the screen is here, not the outcome of anything done on it. */}
-      {requiresPasswordChange && (
-        <ScreenNotice tone="info">{UI_TEXT.auth.temporaryPasswordNotice}</ScreenNotice>
-      )}
+      {requiresPasswordChange && <ScreenNotice tone="info">{UI_TEXT.auth.temporaryPasswordNotice}</ScreenNotice>}
 
       <PasswordField
         label={UI_TEXT.auth.newPasswordLabel}

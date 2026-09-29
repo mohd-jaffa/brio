@@ -16,7 +16,9 @@ vi.mock("@/features/expenses/api.client", () => ({
 // The sheet has its own tests; here it only has to open on the right category.
 vi.mock("@/features/expenses/components/ExpenseCategorySheet", () => ({
   ExpenseCategorySheet: ({ isOpen, category }: { isOpen: boolean; category?: ExpenseCategoryItem }) =>
-    isOpen ? <div role="dialog" aria-label={category ? `Edit ${category.category} (${category.iconKey})` : "New category"} /> : null,
+    isOpen ? (
+      <div role="dialog" aria-label={category ? `Edit ${category.category} (${category.iconKey})` : "New category"} />
+    ) : null,
 }));
 
 beforeEach(() => vi.clearAllMocks());
@@ -24,7 +26,9 @@ beforeEach(() => vi.clearAllMocks());
 function open() {
   const onOpenCategory = vi.fn();
   const iconOf = (category: string) => (category === "Flowers" ? ("rose-bunch" as const) : null);
-  render(<ExpenseCategories summary={aSummary()} iconOf={iconOf} onOpenCategory={onOpenCategory} />, { wrapper: Providers });
+  render(<ExpenseCategories summary={aSummary()} iconOf={iconOf} onOpenCategory={onOpenCategory} />, {
+    wrapper: Providers,
+  });
   return { onOpenCategory };
 }
 
@@ -47,14 +51,23 @@ describe("ExpenseCategories", () => {
   it("keeps the eight as they are: no picture to change, and a tap opens their expenses", async () => {
     const { onOpenCategory } = open();
     expect(screen.queryByRole("button", { name: "Change the picture for Packaging" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /^Packaging/ }).querySelector("img")?.getAttribute("src")).toMatch(/default-expense/);
+    expect(
+      screen
+        .getByRole("button", { name: /^Packaging/ })
+        .querySelector("img")
+        ?.getAttribute("src"),
+    ).toMatch(/default-expense/);
     await userEvent.click(screen.getByRole("button", { name: /^Packaging/ }));
     expect(onOpenCategory).toHaveBeenCalledWith("Packaging");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("changes one of the business's own pictures from the library, and says so", async () => {
-    vi.mocked(ExpensesClient.setCategoryIcon).mockResolvedValue({ category: "Flowers", iconKey: "gift-box", custom: true });
+    vi.mocked(ExpensesClient.setCategoryIcon).mockResolvedValue({
+      category: "Flowers",
+      iconKey: "gift-box",
+      custom: true,
+    });
     open();
     await userEvent.click(screen.getByRole("button", { name: "Change the picture for Flowers" }));
     const picker = screen.getByRole("dialog", { name: "Choose a picture" });
@@ -70,7 +83,9 @@ describe("ExpenseCategories", () => {
     vi.mocked(ExpensesClient.setCategoryIcon).mockRejectedValue(new ApiError(500, "SAVE_FAILED", "Could not save."));
     open();
     await userEvent.click(screen.getByRole("button", { name: "Change the picture for Flowers" }));
-    await userEvent.click(within(screen.getByRole("dialog", { name: "Choose a picture" })).getByRole("radio", { name: "Donut" }));
+    await userEvent.click(
+      within(screen.getByRole("dialog", { name: "Choose a picture" })).getByRole("radio", { name: "Donut" }),
+    );
     expect((await screen.findAllByText("Picture not changed"))[0]).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "Change the picture for Flowers" }));

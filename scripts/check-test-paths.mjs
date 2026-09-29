@@ -7,9 +7,9 @@ import path from "node:path";
 
 const UNIT = "tests/unit";
 const walk = (dir) =>
-  fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
-    entry.isDirectory() ? walk(path.join(dir, entry.name)) : [path.join(dir, entry.name)],
-  );
+  fs
+    .readdirSync(dir, { withFileTypes: true })
+    .flatMap((entry) => (entry.isDirectory() ? walk(path.join(dir, entry.name)) : [path.join(dir, entry.name)]));
 
 const orphans = walk(UNIT)
   .filter((file) => /\.test\.tsx?$/.test(file))

@@ -29,11 +29,15 @@ describe("business profile migration", () => {
 
   it("edits only through owner-checked functions, for signed-in users only", () => {
     for (const fn of ["update_business_profile", "set_business_logo"]) {
-      expect(migration).toMatch(new RegExp(`function public\\.${fn}\\([\\s\\S]*?security definer\\s+set search_path = ''`));
+      expect(migration).toMatch(
+        new RegExp(`function public\\.${fn}\\([\\s\\S]*?security definer\\s+set search_path = ''`),
+      );
       expect(migration).toMatch(new RegExp(`revoke all on function public\\.${fn}\\(.*\\) from public, anon;`));
       expect(migration).toMatch(new RegExp(`grant execute on function public\\.${fn}\\(.*\\) to authenticated;`));
     }
-    expect(migration.match(/b\.id = (public\.current_profile_bakery_id\(\)|business)\s+and b\.owner_id = auth\.uid\(\)/g)).toHaveLength(2);
+    expect(
+      migration.match(/b\.id = (public\.current_profile_bakery_id\(\)|business)\s+and b\.owner_id = auth\.uid\(\)/g),
+    ).toHaveLength(2);
   });
 
   it("refuses to point a business at a logo file that was never stored", () => {
@@ -48,9 +52,15 @@ describe("business profile migration", () => {
   });
 
   it("keeps logos in a private, limited bucket, reachable only inside the caller's own folder", () => {
-    expect(migration).toMatch(/'business-logos', 'business-logos', false, 512000, array\['image\/png', 'image\/jpeg', 'image\/webp'\]/);
+    expect(migration).toMatch(
+      /'business-logos', 'business-logos', false, 512000, array\['image\/png', 'image\/jpeg', 'image\/webp'\]/,
+    );
     for (const action of ["select", "insert", "delete"]) {
-      expect(migration).toMatch(new RegExp(`create policy business_logos_${action}_own[\\s\\S]*?\\(storage\\.foldername\\(name\\)\\)\\[2\\] = public\\.current_profile_bakery_id\\(\\)::text`));
+      expect(migration).toMatch(
+        new RegExp(
+          `create policy business_logos_${action}_own[\\s\\S]*?\\(storage\\.foldername\\(name\\)\\)\\[2\\] = public\\.current_profile_bakery_id\\(\\)::text`,
+        ),
+      );
     }
     expect(migration).not.toMatch(/business_logos_update/);
   });

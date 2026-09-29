@@ -29,7 +29,10 @@ import type { Product } from "../types";
 
 /** Kept out of the screen's first download, and fetched once it is idle (`lazySheet`). */
 const InventoryAdjustmentSheet = lazySheet(
-  () => import("@/features/inventory/components/InventoryAdjustmentSheet").then((module) => module.InventoryAdjustmentSheet),
+  () =>
+    import("@/features/inventory/components/InventoryAdjustmentSheet").then(
+      (module) => module.InventoryAdjustmentSheet,
+    ),
   (props) => props.isOpen,
 );
 const ProductFormSheet = lazySheet(

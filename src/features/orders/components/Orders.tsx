@@ -110,12 +110,7 @@ export function Orders() {
         />
       </TabPanel>
 
-      <OrderFilterSheet
-        open={choosing}
-        value={filters}
-        onClose={() => setChoosing(false)}
-        onApply={setFilters}
-      />
+      <OrderFilterSheet open={choosing} value={filters} onClose={() => setChoosing(false)} onApply={setFilters} />
     </div>
   );
 }

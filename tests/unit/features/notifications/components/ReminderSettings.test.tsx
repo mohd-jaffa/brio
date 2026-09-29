@@ -28,12 +28,15 @@ beforeEach(() => {
 });
 
 describe("ReminderSettings", () => {
-  it.each([undefined, "UNSUPPORTED"] as const)("is not shown while the permission is %s: a browser has nothing to turn on", (permission) => {
-    native.permission = permission;
-    show();
-    expect(screen.queryByRole("region", { name: "Notifications" })).not.toBeInTheDocument();
-    expect(screen.queryByText("Order reminders")).not.toBeInTheDocument();
-  });
+  it.each([undefined, "UNSUPPORTED"] as const)(
+    "is not shown while the permission is %s: a browser has nothing to turn on",
+    (permission) => {
+      native.permission = permission;
+      show();
+      expect(screen.queryByRole("region", { name: "Notifications" })).not.toBeInTheDocument();
+      expect(screen.queryByText("Order reminders")).not.toBeInTheDocument();
+    },
+  );
 
   it("offers to turn reminders on, asks Android, and says they are on", async () => {
     show();
@@ -48,7 +51,9 @@ describe("ReminderSettings", () => {
   });
 
   it("says on a card when reminders could not be turned on, with its reference", async () => {
-    native.ask.mockRejectedValue(new ApiError(422, "PUSH_UNAVAILABLE", "Reminders cannot be turned on here yet.", "req_7"));
+    native.ask.mockRejectedValue(
+      new ApiError(422, "PUSH_UNAVAILABLE", "Reminders cannot be turned on here yet.", "req_7"),
+    );
     show();
     await userEvent.click(within(section()).getByRole("button", { name: /Order reminders/ }));
     const card = await screen.findByRole("alertdialog", { name: "Reminders not turned on" });

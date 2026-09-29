@@ -85,8 +85,7 @@ export function Inventory() {
       void balances.mutate();
     },
   };
-  const lines =
-    products.data && balances.data ? stockLines(products.data, balances.data, search) : undefined;
+  const lines = products.data && balances.data ? stockLines(products.data, balances.data, search) : undefined;
   const level = (product: Product | undefined) => balances.data?.find((entry) => entry.productId === product?.id);
 
   return (
@@ -126,7 +125,9 @@ export function Inventory() {
                 trailing={
                   line.level?.stocked ? (
                     <span className="hidden flex-col items-end gap-1.5 lg:flex">
-                      <span className="tabular-nums">{text.inStock(formatQuantity(line.level.balance, line.product.unit))}</span>
+                      <span className="tabular-nums">
+                        {text.inStock(formatQuantity(line.level.balance, line.product.unit))}
+                      </span>
                       {low(line) && <StatusPill label={text.low} tone="cancelled" />}
                     </span>
                   ) : undefined

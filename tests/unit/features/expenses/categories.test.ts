@@ -21,7 +21,9 @@ function clientWith({
   rpc = { data: null, error: null },
 }: { stored?: unknown; custom?: string[]; rpc?: { data?: unknown; error?: unknown } } = {}) {
   const fake = fakeSupabase((query) =>
-    query.table === "bakeries" ? { data: { expense_category_icons: stored } } : { data: custom.map((name) => ({ name })) },
+    query.table === "bakeries"
+      ? { data: { expense_category_icons: stored } }
+      : { data: custom.map((name) => ({ name })) },
   );
   const call = vi.fn(async () => ({ data: null, error: null, ...rpc }));
   Object.assign(fake.client, { rpc: call });
@@ -61,7 +63,9 @@ describe("listCategories", () => {
   });
 
   it("reads a business that has made nothing as the eight", async () => {
-    const fake = fakeSupabase((query) => (query.table === "bakeries" ? { data: { expense_category_icons: null } } : { data: null }));
+    const fake = fakeSupabase((query) =>
+      query.table === "bakeries" ? { data: { expense_category_icons: null } } : { data: null },
+    );
     const categories = await listCategories(tenantOf(fake.client));
     expect(categories).toHaveLength(8);
     expect(categories.every((item) => item.iconKey === null && !item.custom)).toBe(true);
@@ -93,7 +97,12 @@ describe("createCategory", () => {
     expect(fake.rpc).toHaveBeenCalledWith("create_expense_category", { p_name: "Flowers", p_icon_key: "rose-bunch" });
     expect(logActionSafe).toHaveBeenCalledWith(
       tenant,
-      expect.objectContaining({ action: "CREATE", entity_type: "expense_categories", entity_id: "c-1", previous_data: null }),
+      expect.objectContaining({
+        action: "CREATE",
+        entity_type: "expense_categories",
+        entity_id: "c-1",
+        previous_data: null,
+      }),
     );
   });
 
@@ -136,7 +145,9 @@ describe("updateCategory", () => {
 
   it("refuses a default, which never changes, as a business rule", async () => {
     const fake = clientWith({ rpc: refusal("EXPENSE_CATEGORY_DEFAULT_FIXED") });
-    await expect(updateCategory(tenantOf(fake.client), "Rent", { name: "Home rent", iconKey: null })).rejects.toMatchObject({
+    await expect(
+      updateCategory(tenantOf(fake.client), "Rent", { name: "Home rent", iconKey: null }),
+    ).rejects.toMatchObject({
       code: "EXPENSE_CATEGORY_DEFAULT_FIXED",
       kind: "BUSINESS_RULE",
     });
@@ -152,7 +163,12 @@ describe("deleteCategory", () => {
     expect(fake.rpc).toHaveBeenCalledWith("delete_expense_category", { p_category: "Ribbons" });
     expect(logActionSafe).toHaveBeenCalledWith(
       tenant,
-      expect.objectContaining({ action: "DELETE", entity_id: "c-2", previous_data: { id: "c-2", name: "Ribbons" }, new_data: null }),
+      expect.objectContaining({
+        action: "DELETE",
+        entity_id: "c-2",
+        previous_data: { id: "c-2", name: "Ribbons" },
+        new_data: null,
+      }),
     );
   });
 

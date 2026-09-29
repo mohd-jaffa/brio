@@ -158,10 +158,14 @@ describe("the launch script", () => {
     Object.defineProperty(document, "fonts", { configurable: true, value: undefined });
     boot({ standalone: true });
     run(300);
-    expect(Number(document.getElementById(`${LAUNCH.id}-track`)!.getAttribute("aria-valuenow"))).toBeLessThanOrEqual(19);
+    expect(Number(document.getElementById(`${LAUNCH.id}-track`)!.getAttribute("aria-valuenow"))).toBeLessThanOrEqual(
+      19,
+    );
     document.dispatchEvent(new Event("DOMContentLoaded"));
     run(600);
-    expect(Number(document.getElementById(`${LAUNCH.id}-track`)!.getAttribute("aria-valuenow"))).toBeGreaterThanOrEqual(45);
+    expect(Number(document.getElementById(`${LAUNCH.id}-track`)!.getAttribute("aria-valuenow"))).toBeGreaterThanOrEqual(
+      45,
+    );
     Reflect.deleteProperty(document, "readyState");
   });
 
@@ -177,11 +181,14 @@ describe("the launch script", () => {
   });
 
   it("never leaves the page covered when something fails", () => {
-    vi.stubGlobal("Image", class {
-      constructor() {
-        throw new Error("no images");
-      }
-    });
+    vi.stubGlobal(
+      "Image",
+      class {
+        constructor() {
+          throw new Error("no images");
+        }
+      },
+    );
     boot({ standalone: true });
     expect(root).not.toHaveAttribute("data-launch");
   });

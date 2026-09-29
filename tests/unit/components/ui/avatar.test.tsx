@@ -20,7 +20,9 @@ describe("initials", () => {
 describe("tintIndex", () => {
   it("always gives the same name the same tint, whatever its case or spacing", () => {
     expect(tintIndex("Priya Menon")).toBe(tintIndex("  priya menon "));
-    const tints = new Set(["Priya Menon", "Aisha Khan", "Neha Suresh", "Rohan Das", "Anita Joseph"].map((name) => tintIndex(name)));
+    const tints = new Set(
+      ["Priya Menon", "Aisha Khan", "Neha Suresh", "Rohan Das", "Anita Joseph"].map((name) => tintIndex(name)),
+    );
     expect(tints.size).toBeGreaterThan(1);
     for (const tint of tints) expect(tint).toBeGreaterThanOrEqual(0);
     expect(tintIndex("Priya Menon", 3)).toBeLessThan(3);

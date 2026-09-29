@@ -59,7 +59,13 @@ export function StockLedgerSheet({
                 {stock?.stocked ? formatQuantity(stock.balance, shown.unit) : text.notCounted}
               </p>
             </div>
-            <Button label={text.record} icon={PackagePlus} variant="secondary" size="sm" onClick={() => onRecord(shown)} />
+            <Button
+              label={text.record}
+              icon={PackagePlus}
+              variant="secondary"
+              size="sm"
+              onClick={() => onRecord(shown)}
+            />
           </div>
           <ListScreen
             query={movements}

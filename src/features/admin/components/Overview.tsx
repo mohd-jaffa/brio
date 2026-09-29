@@ -33,7 +33,8 @@ function SignedInCard() {
         <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">{text.signedInAs}</p>
         <p className="truncate text-lg font-semibold text-text">{profile.name}</p>
         <p className="truncate text-sm text-text-muted">
-          {ROLE_LABELS[profile.role]} · {UI_TEXT.fields.phonePrefix} {formatPhoneDigits(profile.phone)} · {profile.email}
+          {ROLE_LABELS[profile.role]} · {UI_TEXT.fields.phonePrefix} {formatPhoneDigits(profile.phone)} ·{" "}
+          {profile.email}
         </p>
       </div>
     </section>

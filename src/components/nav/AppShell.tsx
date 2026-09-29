@@ -105,7 +105,11 @@ function AppFrame({ children }: { children: ReactNode }) {
           <div className="flex shrink-0 items-center gap-1">
             <NotificationBell />
             {profile && (
-              <Link href="/settings" aria-label={UI_TEXT.nav.account(profile.name)} className="touch-target flex items-center justify-center rounded-full">
+              <Link
+                href="/settings"
+                aria-label={UI_TEXT.nav.account(profile.name)}
+                className="touch-target flex items-center justify-center rounded-full"
+              >
                 <ProfileAvatar avatar={profile.avatar} />
               </Link>
             )}

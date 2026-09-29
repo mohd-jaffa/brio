@@ -4,11 +4,20 @@ import { shellServer } from "@/lib/native/shell";
 
 describe("shellServer", () => {
   it("loads a release from its HTTPS origin, whatever path was given", () => {
-    expect(shellServer("https://app.brio.in/orders?x=1")).toEqual({ url: "https://app.brio.in", host: "app.brio.in", cleartext: false });
+    expect(shellServer("https://app.brio.in/orders?x=1")).toEqual({
+      url: "https://app.brio.in",
+      host: "app.brio.in",
+      cleartext: false,
+    });
   });
 
   it("allows plain http only for a development server on a private address", () => {
-    for (const address of ["http://10.0.2.2:3000", "http://localhost:3000", "http://192.168.1.20:3000", "http://172.20.0.5"]) {
+    for (const address of [
+      "http://10.0.2.2:3000",
+      "http://localhost:3000",
+      "http://192.168.1.20:3000",
+      "http://172.20.0.5",
+    ]) {
       expect(shellServer(address).cleartext).toBe(true);
     }
     expect(() => shellServer("http://app.brio.in")).toThrow(/only for a development server/);

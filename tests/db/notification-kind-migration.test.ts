@@ -54,7 +54,9 @@ describe("notification kind migration", () => {
       expect(body(fn)).toContain(`'${JOB_TYPES.pushNotification}'`);
       expect(body(fn)).toContain(`'kind', '${kind}'`);
     }
-    expect(body("notify_order_placed")).toContain("(select c.name from public.customers as c where c.id = new.customer_id)");
+    expect(body("notify_order_placed")).toContain(
+      "(select c.name from public.customers as c where c.id = new.customer_id)",
+    );
   });
 
   it("alerts once as stock crosses the mark, for a counted product on sale, never for a consumption", () => {
@@ -71,8 +73,12 @@ describe("notification kind migration", () => {
   });
 
   it("fires after an order and a customer are written", () => {
-    expect(migration).toMatch(/after insert on public\.orders\s+for each row execute function public\.notify_order_placed\(\)/);
-    expect(migration).toMatch(/after insert on public\.customers\s+for each row execute function public\.notify_customer_added\(\)/);
+    expect(migration).toMatch(
+      /after insert on public\.orders\s+for each row execute function public\.notify_order_placed\(\)/,
+    );
+    expect(migration).toMatch(
+      /after insert on public\.customers\s+for each row execute function public\.notify_customer_added\(\)/,
+    );
   });
 
   it("gives no API role a trigger's function, and the signed-in owner the mark", () => {

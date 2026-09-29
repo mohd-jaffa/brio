@@ -95,7 +95,10 @@ describe("trend and salesTrend", () => {
   });
 
   it("puts the period before's group beside each, and nothing where it had none", () => {
-    const current = [order({ created_at: "2026-09-02T05:00:00Z", total: 500 }), order({ created_at: "2026-09-30T05:00:00Z", status: "CANCELLED" })];
+    const current = [
+      order({ created_at: "2026-09-02T05:00:00Z", total: 500 }),
+      order({ created_at: "2026-09-30T05:00:00Z", status: "CANCELLED" }),
+    ];
     const before = [order({ created_at: "2026-08-02T05:00:00Z", total: 300 })];
     const groups = salesTrend(current, before, september, { from: "2026-08-01", to: "2026-08-29" }, "DAY");
     expect(groups[1]).toEqual({ start: "2026-09-02", value: 500, previous: 300 });
@@ -106,7 +109,9 @@ describe("trend and salesTrend", () => {
 describe("productSales", () => {
   it("ranks every product by what it took, counting each order once, with custom items as one line", () => {
     const orders = [
-      order({ order_items: [line("p-cake", "Cake", 2, 2000), line("p-cake", "Cake", 1, 1000), line(null, "Topper", 1, 150)] }),
+      order({
+        order_items: [line("p-cake", "Cake", 2, 2000), line("p-cake", "Cake", 1, 1000), line(null, "Topper", 1, 150)],
+      }),
       order({ order_items: [line("p-bun", "Bun", 6, 600), line(null, "Card", 2, 100)] }),
       order({ status: "CANCELLED", order_items: [line("p-bun", "Bun", 50, 5000)] }),
     ];
@@ -118,7 +123,9 @@ describe("productSales", () => {
   });
 
   it("breaks a tie on what it took by how many, then by name", () => {
-    const orders = [order({ order_items: [line("b", "Bun", 1, 100), line("a", "Apple", 1, 100), line("c", "Cookie", 4, 100)] })];
+    const orders = [
+      order({ order_items: [line("b", "Bun", 1, 100), line("a", "Apple", 1, 100), line("c", "Cookie", 4, 100)] }),
+    ];
     expect(productSales(orders).map((entry) => entry.name)).toEqual(["Cookie", "Apple", "Bun"]);
   });
 });
@@ -182,7 +189,10 @@ describe("the customers", () => {
 
   it("keeps to the top few", () => {
     const many = Array.from({ length: TOP_CUSTOMERS + 3 }, (_, index) =>
-      order({ customer_id: `c-${index}`, customers: { id: `c-${index}`, name: `C${index}`, created_at: "2026-09-01T05:00:00Z" } }),
+      order({
+        customer_id: `c-${index}`,
+        customers: { id: `c-${index}`, name: `C${index}`, created_at: "2026-09-01T05:00:00Z" },
+      }),
     );
     expect(topCustomers(many)).toHaveLength(TOP_CUSTOMERS);
   });

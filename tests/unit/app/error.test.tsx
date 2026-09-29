@@ -9,7 +9,7 @@ import ScreenError from "@/app/error";
 
 describe("the error screen", () => {
   it("never shows the error's own text, only its reference", () => {
-    const error = Object.assign(new Error("relation \"orders\" does not exist"), { digest: "4012887" });
+    const error = Object.assign(new Error('relation "orders" does not exist'), { digest: "4012887" });
     render(<ScreenError error={error} retry={vi.fn()} />);
 
     expect(screen.getByRole("heading", { level: 1, name: UI_TEXT.system.errorTitle })).toBeInTheDocument();

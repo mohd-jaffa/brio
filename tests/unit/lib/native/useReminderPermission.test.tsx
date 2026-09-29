@@ -21,10 +21,9 @@ describe("useReminderPermission", () => {
   });
 
   it("asks Android, and everything reading it follows the answer without reading again", async () => {
-    const { result } = renderHook(
-      () => ({ asking: useReminderPermission(), reading: useReminderPermission() }),
-      { wrapper: Providers },
-    );
+    const { result } = renderHook(() => ({ asking: useReminderPermission(), reading: useReminderPermission() }), {
+      wrapper: Providers,
+    });
     await waitFor(() => expect(result.current.reading.permission).toBe("OFF"));
 
     let answer: string | undefined;

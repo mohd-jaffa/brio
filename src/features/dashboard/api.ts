@@ -22,7 +22,13 @@ import {
 import type { Dashboard } from "./types";
 
 /** A query's answer, or the failure in the app's own words (AGENTS.md §10). */
-function rows<T>({ data, error }: { data: unknown; error: import("@supabase/supabase-js").PostgrestError | null }): T[] {
+function rows<T>({
+  data,
+  error,
+}: {
+  data: unknown;
+  error: import("@supabase/supabase-js").PostgrestError | null;
+}): T[] {
   if (error) throw fromPostgrestError(error);
   return (data ?? []) as T[];
 }
@@ -52,12 +58,14 @@ export async function getDashboard(tenant: Tenant, query: DashboardQuery, now: D
 
   // The period's orders and what is still owed are read a window at a time,
   // since either can pass the API's row limit; the rest are bounded.
-  const [periodOrders, dueResult, dueTodayResult, owing, stockResult, productsResult, recentResult] =
-    await Promise.all([
+  const [periodOrders, dueResult, dueTodayResult, owing, stockResult, productsResult, recentResult] = await Promise.all(
+    [
       readAll<PeriodOrder>((from, to) =>
         client
           .from("orders")
-          .select("id, total, status, created_at, order_items(product_id, product_name, quantity, subtotal, products(icon_key))")
+          .select(
+            "id, total, status, created_at, order_items(product_id, product_name, quantity, subtotal, products(icon_key))",
+          )
           .eq("bakery_id", bakeryId)
           .gte("created_at", dayStart(chartStart))
           .lt("created_at", dayStart(tomorrow))
@@ -94,7 +102,8 @@ export async function getDashboard(tenant: Tenant, query: DashboardQuery, now: D
         .not("customer_id", "is", null)
         .order("created_at", { ascending: false })
         .limit(HOME_LIST_LIMITS.recentCustomers * 10),
-    ]);
+    ],
+  );
 
   const dueRows = rows<OrderListRow>(dueResult);
   if (dueTodayResult.error) throw fromPostgrestError(dueTodayResult.error);

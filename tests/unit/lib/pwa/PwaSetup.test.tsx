@@ -34,9 +34,13 @@ describe("PwaSetup", () => {
   it("logs a worker that could not be set up, and carries on", async () => {
     setUpServiceWorker.mockRejectedValueOnce(new Error("blocked")).mockRejectedValueOnce("denied");
     const { unmount } = render(<PwaSetup />);
-    await waitFor(() => expect(logger.warn).toHaveBeenCalledWith("The service worker could not be set up", { reason: "blocked" }));
+    await waitFor(() =>
+      expect(logger.warn).toHaveBeenCalledWith("The service worker could not be set up", { reason: "blocked" }),
+    );
     unmount();
     render(<PwaSetup />);
-    await waitFor(() => expect(logger.warn).toHaveBeenLastCalledWith("The service worker could not be set up", { reason: "denied" }));
+    await waitFor(() =>
+      expect(logger.warn).toHaveBeenLastCalledWith("The service worker could not be set up", { reason: "denied" }),
+    );
   });
 });

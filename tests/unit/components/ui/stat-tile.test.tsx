@@ -20,7 +20,13 @@ describe("StatTile", () => {
   });
 
   it("sets a headline amount in the serif, with its medallion", () => {
-    const { container } = tile({ label: "Total sales", value: "₹45,280", headline: true, icon: ShoppingBag, tone: "success" });
+    const { container } = tile({
+      label: "Total sales",
+      value: "₹45,280",
+      headline: true,
+      icon: ShoppingBag,
+      tone: "success",
+    });
     expect(screen.getByText("₹45,280")).toHaveClass("font-heading");
     expect(container.querySelector('[aria-hidden="true"]')).toHaveClass("bg-success-bg");
   });

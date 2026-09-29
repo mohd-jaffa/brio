@@ -8,7 +8,10 @@ describe("rangeQuerySchema", () => {
   });
 
   it("takes a preset and how to group the trend", () => {
-    expect(rangeQuerySchema.parse({ range: "THIS_MONTH", interval: "WEEK" })).toEqual({ range: "THIS_MONTH", interval: "WEEK" });
+    expect(rangeQuerySchema.parse({ range: "THIS_MONTH", interval: "WEEK" })).toEqual({
+      range: "THIS_MONTH",
+      interval: "WEEK",
+    });
   });
 
   it("takes a custom period with both its dates, in order, up to a year", () => {
@@ -30,7 +33,11 @@ describe("rangeQuerySchema", () => {
   });
 
   it("refuses a preset, a date or an interval it does not know", () => {
-    for (const query of [{ range: "YEAR" }, { range: "CUSTOM", from: "1/1/2026", to: "2026-01-02" }, { interval: "HOUR" }]) {
+    for (const query of [
+      { range: "YEAR" },
+      { range: "CUSTOM", from: "1/1/2026", to: "2026-01-02" },
+      { interval: "HOUR" },
+    ]) {
       expect(rangeQuerySchema.safeParse(query).success).toBe(false);
     }
   });

@@ -15,10 +15,14 @@ export type BackStep = "CLOSED_LIST" | "CLOSED_LAYER" | "WENT_BACK" | "LEAVE";
 const STARTS = new Set<string>([HOME_ROUTE, AUTH_ROUTES.signIn]);
 
 export function goBack(canGoBack: boolean): BackStep {
-  const list = [...document.querySelectorAll<HTMLElement>("[popover]")].find((element) => element.matches(":popover-open"));
+  const list = [...document.querySelectorAll<HTMLElement>("[popover]")].find((element) =>
+    element.matches(":popover-open"),
+  );
   if (list) {
     // The list's own control, or the list, answers Escape (select-menu, date-picker).
-    (document.activeElement ?? document.body).dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    (document.activeElement ?? document.body).dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
     return "CLOSED_LIST";
   }
   const layers = document.querySelectorAll<HTMLDialogElement>("dialog[open]");

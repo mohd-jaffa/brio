@@ -18,11 +18,7 @@ import { todayKey } from "@/lib/dates/calendar";
 import { paiseToRupees } from "@/lib/money";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiMutation } from "@/lib/query/useApiMutation";
-import {
-  expenseFormSchema,
-  type ExpenseFormPayload,
-  type ExpenseFormValues,
-} from "@/lib/validation";
+import { expenseFormSchema, type ExpenseFormPayload, type ExpenseFormValues } from "@/lib/validation";
 
 import { ExpensesClient } from "../api.client";
 import { useExpenseCategories } from "../hooks/useExpenseCategories";
@@ -79,9 +75,7 @@ function ExpenseForm({
   const respond = useResponse();
   const { submit, submitting } = useApiMutation<ExpenseFormPayload, Expense>(
     (values) =>
-      initialData
-        ? ExpensesClient.updateExpense(initialData.id, values)
-        : ExpensesClient.createExpense(values),
+      initialData ? ExpensesClient.updateExpense(initialData.id, values) : ExpensesClient.createExpense(values),
     {
       revalidate: [apiRoutes.expenses.list, apiRoutes.expenses.summary],
       onSuccess: () => {
@@ -151,7 +145,9 @@ function ExpenseForm({
                 >
                   <Plus size={20} strokeWidth={1.75} />
                 </span>
-                <span className="w-full truncate text-xs font-medium text-primary">{UI_TEXT.expenses.newCategoryShort}</span>
+                <span className="w-full truncate text-xs font-medium text-primary">
+                  {UI_TEXT.expenses.newCategoryShort}
+                </span>
               </button>
             </li>
           </ul>

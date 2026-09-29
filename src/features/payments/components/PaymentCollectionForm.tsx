@@ -13,11 +13,7 @@ import { formatPaise } from "@/lib/format/currency";
 import { paiseToRupees } from "@/lib/money";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiMutation } from "@/lib/query/useApiMutation";
-import {
-  paymentFormSchema,
-  type PaymentFormPayload,
-  type PaymentFormValues,
-} from "@/lib/validation";
+import { paymentFormSchema, type PaymentFormPayload, type PaymentFormValues } from "@/lib/validation";
 
 import { PaymentsClient } from "../api.client";
 import type { Payment } from "../types";

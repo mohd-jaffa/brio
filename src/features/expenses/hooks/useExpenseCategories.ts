@@ -15,7 +15,6 @@ import type { ExpenseCategoryItem } from "../types";
 export function useExpenseCategories() {
   const query = useApiQuery<ExpenseCategoryItem[]>(apiRoutes.expenseCategories.list);
   const names: readonly ExpenseCategory[] = query.data?.map((item) => item.category) ?? DEFAULT_EXPENSE_CATEGORIES;
-  const iconOf = (category: ExpenseCategory) =>
-    query.data?.find((item) => item.category === category)?.iconKey ?? null;
+  const iconOf = (category: ExpenseCategory) => query.data?.find((item) => item.category === category)?.iconKey ?? null;
   return { names, iconOf };
 }

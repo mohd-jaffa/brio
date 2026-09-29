@@ -13,7 +13,11 @@ import {
 } from "@/constants/illustrations";
 
 const files = (dir: string, ext: RegExp) =>
-  fs.readdirSync(path.join(process.cwd(), dir)).filter((f) => ext.test(f)).map((f) => f.replace(ext, "")).sort();
+  fs
+    .readdirSync(path.join(process.cwd(), dir))
+    .filter((f) => ext.test(f))
+    .map((f) => f.replace(ext, ""))
+    .sort();
 
 describe("the illustration catalogue", () => {
   it("has one entry for every master, and one master for every entry", () => {

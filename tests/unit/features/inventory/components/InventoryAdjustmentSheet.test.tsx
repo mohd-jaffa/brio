@@ -40,10 +40,7 @@ beforeEach(() => vi.clearAllMocks());
 
 describe("InventoryAdjustmentSheet", () => {
   it("stays closed without a product to adjust, its form already in place", () => {
-    const { container } = render(
-      <InventoryAdjustmentSheet isOpen onClose={vi.fn()} />,
-      { wrapper },
-    );
+    const { container } = render(<InventoryAdjustmentSheet isOpen onClose={vi.fn()} />, { wrapper });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(container.querySelector("dialog")).not.toHaveAttribute("open");
     expect(container.querySelector("form")).toBeInTheDocument();

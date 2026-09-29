@@ -17,6 +17,8 @@ describe("text hygiene migration", () => {
   });
 
   it("keeps category names unique within a business, whatever their case or spacing", () => {
-    expect(migration).toMatch(/unique index if not exists categories_bakery_name_unique\s+on public\.categories \(bakery_id, lower\(btrim\(name\)\)\)/);
+    expect(migration).toMatch(
+      /unique index if not exists categories_bakery_name_unique\s+on public\.categories \(bakery_id, lower\(btrim\(name\)\)\)/,
+    );
   });
 });

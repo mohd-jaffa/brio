@@ -55,7 +55,10 @@ beforeEach(() => {
   vi.setSystemTime(new Date("2026-09-26T06:00:00Z"));
   vi.clearAllMocks();
   answers = {
-    "/api/customers": { items: [customer(), customer({ id: "c-2", name: "Neha Suresh", orders: 0, lastOrderAt: null, segment: "NEW" })], nextCursor: null },
+    "/api/customers": {
+      items: [customer(), customer({ id: "c-2", name: "Neha Suresh", orders: 0, lastOrderAt: null, segment: "NEW" })],
+      nextCursor: null,
+    },
     "/api/guest-sales?range=LAST_30_DAYS": guest(),
   };
   fetcher.mockImplementation(async (key: string) => answers[key] ?? { items: [], nextCursor: null });
@@ -93,8 +96,13 @@ describe("Customers: the list", () => {
   });
 
   it("names a custom period by its dates, and waits for both before asking", async () => {
-    localStorage.setItem("brio_range_guest-sales", JSON.stringify({ preset: "CUSTOM", from: "2026-09-01", to: "2026-09-10" }));
-    answers["/api/guest-sales?range=CUSTOM&from=2026-09-01&to=2026-09-10"] = guest({ period: { from: "2026-09-01", to: "2026-09-10" } });
+    localStorage.setItem(
+      "brio_range_guest-sales",
+      JSON.stringify({ preset: "CUSTOM", from: "2026-09-01", to: "2026-09-10" }),
+    );
+    answers["/api/guest-sales?range=CUSTOM&from=2026-09-01&to=2026-09-10"] = guest({
+      period: { from: "2026-09-01", to: "2026-09-10" },
+    });
     const { unmount } = open();
     const pinned = await screen.findByRole("list", { name: "Guest sales for the period" });
     await waitFor(() => expect(pinned).toHaveTextContent("1 Sep – 10 Sep"));
@@ -139,7 +147,9 @@ describe("Customers: the list", () => {
     answers["/api/customers?search=98470"] = { items: [customer()], nextCursor: null };
     await userEvent.type(screen.getByRole("searchbox", { name: "Search by name or phone" }), "98470");
     await waitFor(() => expect(fetcher).toHaveBeenCalledWith("/api/customers?search=98470"));
-    await waitFor(() => expect(screen.queryByRole("list", { name: "Guest sales for the period" })).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByRole("list", { name: "Guest sales for the period" })).not.toBeInTheDocument(),
+    );
   });
 });
 
@@ -171,7 +181,9 @@ describe("Customers: adding one", () => {
     open();
     await list();
     await userEvent.click(screen.getAllByRole("button", { name: "New customer" })[0]);
-    await userEvent.click(within(screen.getByRole("dialog", { name: "New Customer" })).getByRole("button", { name: "Save" }));
+    await userEvent.click(
+      within(screen.getByRole("dialog", { name: "New Customer" })).getByRole("button", { name: "Save" }),
+    );
     expect(push).toHaveBeenCalledWith("/customers/c-new");
   });
 });

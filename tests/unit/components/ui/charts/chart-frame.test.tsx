@@ -4,7 +4,13 @@ import { describe, expect, it, vi } from "vitest";
 
 import { ChartFrame, type ChartShape } from "@/components/ui/charts/chart-frame";
 
-const TABLE = { columns: ["Date", "Amount"], rows: [["1 Sep", "₹300"], ["2 Sep", "₹420"]] };
+const TABLE = {
+  columns: ["Date", "Amount"],
+  rows: [
+    ["1 Sep", "₹300"],
+    ["2 Sep", "₹420"],
+  ],
+};
 
 function frame(props: Partial<Parameters<typeof ChartFrame>[0]> = {}) {
   return render(
@@ -32,7 +38,11 @@ describe("ChartFrame", () => {
     expect(within(figure).getByText("the plot")).toBeInTheDocument();
 
     const table = within(figure).getByRole("table", { name: "Expense trend" });
-    expect(within(table).getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual(["Date", "Amount"]);
+    expect(
+      within(table)
+        .getAllByRole("columnheader")
+        .map((cell) => cell.textContent),
+    ).toEqual(["Date", "Amount"]);
     expect(within(table).getByRole("rowheader", { name: "2 Sep" })).toBeInTheDocument();
     expect(within(table).getByRole("cell", { name: "₹420" })).toBeInTheDocument();
     expect(figure).not.toHaveAttribute("aria-busy");

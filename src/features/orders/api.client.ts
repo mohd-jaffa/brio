@@ -14,6 +14,5 @@ export const OrdersClient = {
   preview: (payload: CreateOrderInput) => postJson<OrderEstimate>(apiRoutes.orders.preview, payload),
   /** The whole open order as it should now stand; sent again, it changes nothing more (§139.11.13). */
   updateOrder: (id: string, payload: UpdateOrderInput) => putJson<Order>(apiRoutes.orders.detail(id), payload),
-  updateStatus: (id: string, payload: UpdateOrderStatusInput) =>
-    patchJson<Order>(apiRoutes.orders.detail(id), payload),
+  updateStatus: (id: string, payload: UpdateOrderStatusInput) => patchJson<Order>(apiRoutes.orders.detail(id), payload),
 };

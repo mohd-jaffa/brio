@@ -7,9 +7,7 @@ import { updateExpenseSchema } from "@/lib/validation";
 export const runtime = "nodejs";
 
 export async function GET(request: Request, { params }: RouteParams<"id">) {
-  return withBakeryRoute(request, async (tenant) =>
-    getExpenseById(tenant, (await params).id),
-  );
+  return withBakeryRoute(request, async (tenant) => getExpenseById(tenant, (await params).id));
 }
 
 export async function PATCH(request: Request, { params }: RouteParams<"id">) {

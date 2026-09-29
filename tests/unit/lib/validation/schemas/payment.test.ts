@@ -15,9 +15,7 @@ describe("payment", () => {
   });
 
   it("refuses a payment of nothing", () => {
-    expect(
-      createPaymentSchema.safeParse({ order_id: UUID, amount: 0, payment_method: "UPI" }).success,
-    ).toBe(false);
+    expect(createPaymentSchema.safeParse({ order_id: UUID, amount: 0, payment_method: "UPI" }).success).toBe(false);
   });
 
   it("the form takes rupees and hands over paise", () => {

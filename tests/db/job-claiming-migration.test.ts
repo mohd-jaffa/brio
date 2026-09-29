@@ -17,7 +17,9 @@ describe("job claiming migration", () => {
 
   it("claims one due job atomically, skipping any another worker holds, and counts the attempt", () => {
     expect(migration).toMatch(/function public\.claim_next_job\(p_worker text\)/);
-    expect(migration).toMatch(/where status = 'pending'\s+and run_at <= now\(\)\s+order by run_at, created_at\s+limit 1\s+for update skip locked/);
+    expect(migration).toMatch(
+      /where status = 'pending'\s+and run_at <= now\(\)\s+order by run_at, created_at\s+limit 1\s+for update skip locked/,
+    );
     expect(migration).toMatch(/attempts = j\.attempts \+ 1/);
   });
 

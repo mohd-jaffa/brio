@@ -302,10 +302,14 @@ export function repeatOrder(
   now: Date = new Date(),
 ): { draft: OrderDraft; left: number } {
   const fresh = newDraft(now);
-  const kept = order.items.filter((item) => item.custom || (item.productId !== undefined && onSale.has(item.productId)));
+  const kept = order.items.filter(
+    (item) => item.custom || (item.productId !== undefined && onSale.has(item.productId)),
+  );
   const lines: DraftLine[] = kept.map((item) => ({
     key: newKey(),
-    ...(item.custom ? { custom: { name: item.productName, unitPrice: item.unitPrice } } : { productId: item.productId }),
+    ...(item.custom
+      ? { custom: { name: item.productName, unitPrice: item.unitPrice } }
+      : { productId: item.productId }),
     quantity: item.quantity,
     notes: item.notes ?? "",
   }));

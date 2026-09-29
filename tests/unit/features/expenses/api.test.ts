@@ -60,23 +60,35 @@ describe("listExpenses", () => {
   it("narrows to one category, and says where the next page starts", async () => {
     const rows = Array.from({ length: PAGE_SIZE + 1 }, (_, index) => aRow(`e-${index}`, "2026-09-25"));
     const fake = fakeSupabase(() => ({ data: rows }));
-    const page = await listExpenses(
-      tenantOf(fake.client),
-      { range: "CUSTOM", from: "2026-09-01", to: "2026-09-10", category: "Rent", cursor: PAGE_SIZE },
-    );
+    const page = await listExpenses(tenantOf(fake.client), {
+      range: "CUSTOM",
+      from: "2026-09-01",
+      to: "2026-09-10",
+      category: "Rent",
+      cursor: PAGE_SIZE,
+    });
     expect(page.items).toHaveLength(PAGE_SIZE);
     expect(page.nextCursor).toBe(String(PAGE_SIZE * 2));
     const [query] = fake.queries;
-    expect(fake.argsOf(query, "eq")).toEqual([["bakery_id", "b-1"], ["category", "Rent"]]);
+    expect(fake.argsOf(query, "eq")).toEqual([
+      ["bakery_id", "b-1"],
+      ["category", "Rent"],
+    ]);
     expect(fake.argsOf(query, "gte")).toEqual([["expense_date", "2026-09-01"]]);
     expect(fake.argsOf(query, "range")).toEqual([[PAGE_SIZE, PAGE_SIZE * 2]]);
   });
 
   it("reads nothing as an empty page, and a failure in the app's own words", async () => {
-    const empty = await listExpenses(tenantOf(fakeSupabase(() => ({ data: null })).client), { range: "LAST_7_DAYS" }, now);
+    const empty = await listExpenses(
+      tenantOf(fakeSupabase(() => ({ data: null })).client),
+      { range: "LAST_7_DAYS" },
+      now,
+    );
     expect(empty).toEqual({ items: [], nextCursor: null });
     const failing = fakeSupabase(() => ({ error: { message: "boom", code: "XX000" } }));
-    await expect(listExpenses(tenantOf(failing.client), { range: "LAST_7_DAYS" }, now)).rejects.toBeInstanceOf(AppError);
+    await expect(listExpenses(tenantOf(failing.client), { range: "LAST_7_DAYS" }, now)).rejects.toBeInstanceOf(
+      AppError,
+    );
   });
 });
 
@@ -128,7 +140,11 @@ describe("one expense", () => {
       receiptUrl: null,
     });
     const insert = fake.queries.find((query) => fake.argsOf(query, "insert").length > 0)!;
-    expect(fake.argsOf(insert, "insert")[0][0]).toMatchObject({ bakery_id: "b-1", category: "Flowers", expense_date: "2026-09-25" });
+    expect(fake.argsOf(insert, "insert")[0][0]).toMatchObject({
+      bakery_id: "b-1",
+      category: "Flowers",
+      expense_date: "2026-09-25",
+    });
 
     await updateExpense(tenant, "e-1", { amount: 50000 });
     const update = fake.queries.find((query) => fake.argsOf(query, "update").length > 0)!;

@@ -41,7 +41,9 @@ describe("OrderFilterSheet", () => {
     await userEvent.click(screen.getByRole("radio", { name: "Any" }));
     await userEvent.click(screen.getByRole("radio", { name: "Everyone" }));
     await userEvent.click(screen.getByLabelText("Due from"));
-    await userEvent.click(within(screen.getByRole("dialog", { name: "Due from: pick a day" })).getByRole("button", { name: "Clear" }));
+    await userEvent.click(
+      within(screen.getByRole("dialog", { name: "Due from: pick a day" })).getByRole("button", { name: "Clear" }),
+    );
     expect(screen.getByLabelText("Due from")).toHaveTextContent("Any day");
     await userEvent.click(screen.getByRole("button", { name: "Apply filters" }));
     expect(onApply).toHaveBeenCalledWith({ from: undefined, to: undefined, payment: undefined, guest: undefined });

@@ -25,9 +25,7 @@ describe("normaliseLine", () => {
 
 describe("normaliseLines", () => {
   it("keeps the lines, and turns Windows breaks into plain ones", () => {
-    expect(normaliseLines("Flat 302\r\nSunrise Apartments\rM.G. Road")).toBe(
-      "Flat 302\nSunrise Apartments\nM.G. Road",
-    );
+    expect(normaliseLines("Flat 302\r\nSunrise Apartments\rM.G. Road")).toBe("Flat 302\nSunrise Apartments\nM.G. Road");
   });
 
   it("trims each line's end and the whole", () => {

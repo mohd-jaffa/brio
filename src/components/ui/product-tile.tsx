@@ -34,12 +34,7 @@ export function ProductTile({
         // picture arriving cannot stretch it and move the name and price below.
         className={cn("flex h-36 w-full items-center justify-center rounded-xl bg-sunken", className)}
       >
-        <Illustration
-          name={iconKey}
-          fallback={fallback}
-          size={FILL_IMAGE}
-          className="h-4/5 w-auto"
-        />
+        <Illustration name={iconKey} fallback={fallback} size={FILL_IMAGE} className="h-4/5 w-auto" />
       </span>
     );
   }

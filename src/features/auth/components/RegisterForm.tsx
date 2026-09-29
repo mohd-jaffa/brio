@@ -87,7 +87,8 @@ export function RegisterForm() {
       router.replace(AUTH_ROUTES.signIn);
     },
     onError: (failure) => {
-      const field = failure instanceof ApiError && failure.code in TAKEN ? TAKEN[failure.code as keyof typeof TAKEN] : null;
+      const field =
+        failure instanceof ApiError && failure.code in TAKEN ? TAKEN[failure.code as keyof typeof TAKEN] : null;
       if (field) {
         setError(field, { message: failure instanceof ApiError ? failure.message : undefined });
         goTo(0);

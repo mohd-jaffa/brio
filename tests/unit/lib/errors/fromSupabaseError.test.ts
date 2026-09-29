@@ -65,15 +65,15 @@ describe("fromPostgrestError", () => {
 
   it("keeps no detail that is not the app's own object", () => {
     for (const details of ["", "Key (id)=(1) already exists.", "[1,2]", "null"]) {
-      expect(fromPostgrestError(postgrest({ code: "P0001", hint: "VALIDATION_ERROR", details })).details).toBeUndefined();
+      expect(
+        fromPostgrestError(postgrest({ code: "P0001", hint: "VALIDATION_ERROR", details })).details,
+      ).toBeUndefined();
     }
     expect(fromPostgrestError(postgrest({ code: "23505", details: '{"a":1}' })).details).toBeUndefined();
   });
 
   it("reads a request that never reached the server as a network failure", () => {
-    expect(fromPostgrestError(postgrest({ code: "", message: "TypeError: Failed to fetch" })).kind).toBe(
-      "NETWORK",
-    );
+    expect(fromPostgrestError(postgrest({ code: "", message: "TypeError: Failed to fetch" })).kind).toBe("NETWORK");
   });
 
   it("never lets an unmapped driver message reach the user", () => {

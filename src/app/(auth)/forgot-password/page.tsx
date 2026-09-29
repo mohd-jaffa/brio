@@ -11,11 +11,7 @@ export const metadata: Metadata = {
 
 export default function ForgotPasswordPage() {
   return (
-    <AuthScene
-      headline={UI_TEXT.auth.forgotHeadline}
-      intro={UI_TEXT.auth.forgotIntro}
-      backHref={AUTH_ROUTES.signIn}
-    >
+    <AuthScene headline={UI_TEXT.auth.forgotHeadline} intro={UI_TEXT.auth.forgotIntro} backHref={AUTH_ROUTES.signIn}>
       <ForgotPasswordForm />
     </AuthScene>
   );

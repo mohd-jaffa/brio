@@ -33,7 +33,8 @@ vi.mock("@/features/auth/api", () => ({
   }),
 }));
 
-const { readInitialSession, readScreen, requireDeveloperScreen, routeQuery } = await import("@/features/auth/session.server");
+const { readInitialSession, readScreen, requireDeveloperScreen, routeQuery } =
+  await import("@/features/auth/session.server");
 
 beforeEach(() => {
   jar.clear();
@@ -67,7 +68,10 @@ describe("readInitialSession", () => {
     const view = await readInitialSession();
 
     expect(getSession).toHaveBeenCalledWith("service-client", "access-1");
-    expect(view).toEqual({ profile: TEST_SESSION.profile, requiresPasswordChange: TEST_SESSION.requiresPasswordChange });
+    expect(view).toEqual({
+      profile: TEST_SESSION.profile,
+      requiresPasswordChange: TEST_SESSION.requiresPasswordChange,
+    });
     expect(JSON.stringify(view)).not.toContain("access-1");
   });
 
@@ -87,7 +91,10 @@ describe("readInitialSession", () => {
 describe("readScreen", () => {
   it("reads a screen's first data as its routes would, for the signed-in business, in the shape they send", async () => {
     signedIn();
-    const listOrders = vi.fn(async () => ({ items: [{ id: "o-1", dueAt: new Date("2026-09-27T05:00:00Z"), note: undefined }], nextCursor: null }));
+    const listOrders = vi.fn(async () => ({
+      items: [{ id: "o-1", dueAt: new Date("2026-09-27T05:00:00Z"), note: undefined }],
+      nextCursor: null,
+    }));
 
     const data = await readScreen({
       queries: { "/api/business": async () => ({ name: "Asha's Kitchen" }) },
@@ -101,7 +108,10 @@ describe("readScreen", () => {
     });
     expect(data.queries).toEqual({ "/api/business": { name: "Asha's Kitchen" } });
     // As JSON: the date a string, nothing undefined.
-    expect(data.pages["/api/orders"]).toEqual({ items: [{ id: "o-1", dueAt: "2026-09-27T05:00:00.000Z" }], nextCursor: null });
+    expect(data.pages["/api/orders"]).toEqual({
+      items: [{ id: "o-1", dueAt: "2026-09-27T05:00:00.000Z" }],
+      nextCursor: null,
+    });
   });
 
   it("leaves out a read that fails, for the screen to ask for itself", async () => {
@@ -177,4 +187,3 @@ describe("routeQuery", () => {
     expect(routeQuery("/api/orders", schema)).toEqual({});
   });
 });
-

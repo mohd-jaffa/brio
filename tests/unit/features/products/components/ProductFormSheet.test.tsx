@@ -39,10 +39,7 @@ beforeEach(() => vi.clearAllMocks());
 
 describe("ProductFormSheet", () => {
   it("is out of sight while it is closed", () => {
-    const { container } = render(
-      <ProductFormSheet isOpen={false} onClose={vi.fn()} />,
-      { wrapper },
-    );
+    const { container } = render(<ProductFormSheet isOpen={false} onClose={vi.fn()} />, { wrapper });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(container.querySelector("dialog")).not.toHaveAttribute("open");
   });
@@ -88,10 +85,7 @@ describe("ProductFormSheet", () => {
     await userEvent.click(screen.getByRole("button", { name: "Save product" }));
 
     await waitFor(() =>
-      expect(ProductsClient.updateProduct).toHaveBeenCalledWith(
-        "p-1",
-        expect.objectContaining({ isActive: false }),
-      ),
+      expect(ProductsClient.updateProduct).toHaveBeenCalledWith("p-1", expect.objectContaining({ isActive: false })),
     );
   });
 
@@ -110,7 +104,9 @@ describe("ProductFormSheet", () => {
   });
 
   it("keeps the sheet open, and says why, when a product is refused", async () => {
-    vi.mocked(ProductsClient.createProduct).mockRejectedValue(new ApiError(409, "CONFLICT", "That was changed elsewhere."));
+    vi.mocked(ProductsClient.createProduct).mockRejectedValue(
+      new ApiError(409, "CONFLICT", "That was changed elsewhere."),
+    );
     const props = open();
     await userEvent.type(screen.getByLabelText(/Product name/), "Brownie");
     await userEvent.type(screen.getByLabelText(/^Price \(₹\)/), "80");
@@ -149,9 +145,12 @@ describe("ProductFormSheet: the picture (§139.11.10)", () => {
   });
 
   it("shows a product's own picture, and one the library no longer has as the price tag", () => {
-    const { unmount } = render(<ProductFormSheet isOpen onClose={vi.fn()} initialData={{ ...cake, iconKey: "cupcake" }} />, {
-      wrapper,
-    });
+    const { unmount } = render(
+      <ProductFormSheet isOpen onClose={vi.fn()} initialData={{ ...cake, iconKey: "cupcake" }} />,
+      {
+        wrapper,
+      },
+    );
     expect(screen.getByRole("button", { name: "Picture: Cupcake. Change" })).toBeInTheDocument();
     unmount();
     open({ initialData: { ...cake, iconKey: "retired-key" } });

@@ -67,7 +67,9 @@ describe("the developer console's frame", () => {
     open();
     await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
     expect(auth.current.signOut).not.toHaveBeenCalled();
-    await userEvent.click(within(screen.getByRole("alertdialog", { name: "Sign out?" })).getByRole("button", { name: "Sign out" }));
+    await userEvent.click(
+      within(screen.getByRole("alertdialog", { name: "Sign out?" })).getByRole("button", { name: "Sign out" }),
+    );
     expect(auth.current.signOut).toHaveBeenCalled();
   });
 

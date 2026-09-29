@@ -6,7 +6,13 @@ import { Hero } from "@/components/ui/hero";
 describe("Hero", () => {
   it("sets its lines in the serif, with the subtitle, the rule and the plate", () => {
     const { container } = render(
-      <Hero as="h1" lines={["Good morning,", "Sarah!"]} subtitle="Fresh bakes, happy customers." plate="cake-table" priority>
+      <Hero
+        as="h1"
+        lines={["Good morning,", "Sarah!"]}
+        subtitle="Fresh bakes, happy customers."
+        plate="cake-table"
+        priority
+      >
         <a href="/products">View products</a>
       </Hero>,
     );
@@ -28,7 +34,12 @@ describe("Hero", () => {
 
   it("is a compact band with a tracked line, its words not a heading", () => {
     const { container } = render(
-      <Hero variant="band" lines={["Good baking brings", "great numbers."]} tagline="Grow · Bake · Repeat" plate="drip-cake" />,
+      <Hero
+        variant="band"
+        lines={["Good baking brings", "great numbers."]}
+        tagline="Grow · Bake · Repeat"
+        plate="drip-cake"
+      />,
     );
     expect(screen.queryByRole("heading")).not.toBeInTheDocument();
     expect(screen.getByText("Grow · Bake · Repeat")).toHaveClass("uppercase");

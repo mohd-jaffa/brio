@@ -2,13 +2,7 @@
 
 import { createContext, useCallback, useContext, useSyncExternalStore, type ReactNode } from "react";
 
-import {
-  DEFAULT_THEME,
-  THEME_COLORS,
-  THEME_STORAGE_KEY,
-  toTheme,
-  type Theme,
-} from "./themes";
+import { DEFAULT_THEME, THEME_COLORS, THEME_STORAGE_KEY, toTheme, type Theme } from "./themes";
 
 export { THEME_LABELS, THEMES, type Theme } from "./themes";
 
@@ -59,9 +53,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setTheme = useCallback((next: Theme) => apply(next), []);
   const toggleTheme = useCallback(() => apply(current() === "golden" ? "peach" : "golden"), []);
 
-  return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>{children}</ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme(): ThemeContextValue {

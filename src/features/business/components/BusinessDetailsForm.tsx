@@ -14,11 +14,7 @@ import { formatDate } from "@/lib/format/date";
 import { formatPhoneDigits } from "@/lib/phone";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiMutation } from "@/lib/query/useApiMutation";
-import {
-  businessProfileSchema,
-  type BusinessProfileInput,
-  type BusinessProfilePayload,
-} from "@/lib/validation";
+import { businessProfileSchema, type BusinessProfileInput, type BusinessProfilePayload } from "@/lib/validation";
 
 import { BusinessClient } from "../api.client";
 import type { BusinessProfile } from "../types";
@@ -94,8 +90,20 @@ export function BusinessDetailsForm({ business }: { business: BusinessProfile })
             error={errors.tagline?.message}
             {...register("tagline")}
           />
-          <TextField label={text.city} required autoComplete="address-level2" error={errors.city?.message} {...register("city")} />
-          <TextAreaField label={text.address} required autoComplete="street-address" error={errors.address?.message} {...register("address")} />
+          <TextField
+            label={text.city}
+            required
+            autoComplete="address-level2"
+            error={errors.city?.message}
+            {...register("city")}
+          />
+          <TextAreaField
+            label={text.address}
+            required
+            autoComplete="street-address"
+            error={errors.address?.message}
+            {...register("address")}
+          />
           <TextField
             label={text.phone}
             required

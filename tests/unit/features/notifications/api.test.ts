@@ -67,7 +67,10 @@ describe("listNotifications", () => {
   });
 
   it("narrows to the unread or the read, whatever their kind", async () => {
-    for (const [tab, read] of [["UNREAD", false], ["READ", true]] as const) {
+    for (const [tab, read] of [
+      ["UNREAD", false],
+      ["READ", true],
+    ] as const) {
       const fake = fakeSupabase(() => ({ data: [aRow("n-1", { is_read: read })] }));
       const page = await listNotifications(tenantOf(fake.client), { tab });
       expect(page.items[0].read).toBe(read);
@@ -122,7 +125,9 @@ describe("markNotificationRead", () => {
 
   it("finds none that is not the business's", async () => {
     const fake = fakeSupabase(() => ({ data: null }));
-    await expect(markNotificationRead(tenantOf(fake.client), "n-9")).rejects.toMatchObject({ code: "RECORD_NOT_FOUND" });
+    await expect(markNotificationRead(tenantOf(fake.client), "n-9")).rejects.toMatchObject({
+      code: "RECORD_NOT_FOUND",
+    });
   });
 });
 

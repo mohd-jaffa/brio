@@ -34,4 +34,3 @@ export function ScreenSkeleton({ label }: { label: string }) {
     </div>
   );
 }
-

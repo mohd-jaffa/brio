@@ -43,29 +43,32 @@ export function pushMessage(message: NotificationMessage): PushMessage {
  * time the app opens. Through the service role: only the server keeps these
  * (0031).
  */
-export async function registerDevice(tenant: Tenant, subscription: PushSubscriptionPayload): Promise<{ registered: true }> {
+export async function registerDevice(
+  tenant: Tenant,
+  subscription: PushSubscriptionPayload,
+): Promise<{ registered: true }> {
   if (!webPushKeys()) throw businessRuleError("PUSH_UNAVAILABLE");
-  const { error } = await createSupabaseServiceRoleClient()
-    .from("device_tokens")
-    .upsert(
-      {
-        bakery_id: tenant.bakeryId,
-        profile_id: tenant.actorId,
-        platform: WEB,
-        token: subscription.endpoint,
-        p256dh: subscription.keys.p256dh,
-        auth: subscription.keys.auth,
-        last_seen_at: new Date().toISOString(),
-      },
-      { onConflict: "token" },
-    );
+  const { error } = await createSupabaseServiceRoleClient().from("device_tokens").upsert(
+    {
+      bakery_id: tenant.bakeryId,
+      profile_id: tenant.actorId,
+      platform: WEB,
+      token: subscription.endpoint,
+      p256dh: subscription.keys.p256dh,
+      auth: subscription.keys.auth,
+      last_seen_at: new Date().toISOString(),
+    },
+    { onConflict: "token" },
+  );
   if (error) throw fromPostgrestError(error);
   return { registered: true };
 }
 
 /** Why a push failed, for the log: never the address, which reaches one person's device. */
 const reason = (failure: unknown) =>
-  failure instanceof WebPushError ? { status: failure.statusCode } : { reason: failure instanceof Error ? failure.message : String(failure) };
+  failure instanceof WebPushError
+    ? { status: failure.statusCode }
+    : { reason: failure instanceof Error ? failure.message : String(failure) };
 
 /**
  * Pushes each message to every browser of the business that wants them
@@ -105,14 +108,18 @@ export async function pushToBusiness(
         );
         sent += 1;
       } catch (failure) {
-        if (failure instanceof WebPushError && (failure.statusCode === 404 || failure.statusCode === 410)) gone.add(device.id);
+        if (failure instanceof WebPushError && (failure.statusCode === 404 || failure.statusCode === 410))
+          gone.add(device.id);
         else logger.warn("Push not sent", { bakeryId, deviceId: device.id, ...reason(failure) });
       }
     }
   }
 
   if (gone.size > 0) {
-    const { error: removal } = await client.from("device_tokens").delete().in("id", [...gone]);
+    const { error: removal } = await client
+      .from("device_tokens")
+      .delete()
+      .in("id", [...gone]);
     if (removal) logger.warn("Gone push devices not removed", { bakeryId, reason: removal.message });
   }
   if (sent > 0 || gone.size > 0) logger.info("Pushed reminders", { bakeryId, sent, gone: gone.size });

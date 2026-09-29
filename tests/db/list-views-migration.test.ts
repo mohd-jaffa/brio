@@ -15,7 +15,9 @@ describe("list views migration", () => {
     expect(migration).toMatch(/create or replace view public\.order_search\s+with \(security_invoker = true\) as/);
     expect(migration).toMatch(/c\.name\s+as customer_name/);
     expect(migration).toMatch(/c\.phone as customer_phone/);
-    expect(migration).toMatch(/left join public\.customers as c\s+on c\.bakery_id = o\.bakery_id and c\.id = o\.customer_id;/);
+    expect(migration).toMatch(
+      /left join public\.customers as c\s+on c\.bakery_id = o\.bakery_id and c\.id = o\.customer_id;/,
+    );
   });
 
   it("counts each customer's orders and their last, cancelled ones not counted", () => {

@@ -19,10 +19,7 @@ describe("a password box", () => {
     await userEvent.click(screen.getByRole("button", { name: UI_TEXT.auth.showPassword }));
 
     expect(screen.getByLabelText("Password")).toHaveAttribute("type", "text");
-    expect(screen.getByRole("button", { name: UI_TEXT.auth.hidePassword })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
+    expect(screen.getByRole("button", { name: UI_TEXT.auth.hidePassword })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("hides it again", async () => {

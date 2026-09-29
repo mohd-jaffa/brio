@@ -149,7 +149,10 @@ export async function changePhone(
   await assertFree(adminClient, profile.id, "phone", input.phone);
   await assertPassword(profile.phone, input.password);
 
-  const { error } = await adminClient.auth.admin.updateUserById(profile.id, { phone: input.phone, phone_confirm: true });
+  const { error } = await adminClient.auth.admin.updateUserById(profile.id, {
+    phone: input.phone,
+    phone_confirm: true,
+  });
   if (error) throw mapDatabaseError(error);
 
   let saved: AuthProfile;
@@ -327,7 +330,10 @@ export async function confirmEmailChange(
       pending_email_expires_at: null,
     });
   } catch (failure) {
-    const { error: undo } = await adminClient.auth.admin.updateUserById(row.id, { email: row.email, email_confirm: true });
+    const { error: undo } = await adminClient.auth.admin.updateUserById(row.id, {
+      email: row.email,
+      email_confirm: true,
+    });
     if (undo) logger.error("Could not put the email back after a failed change", { userId: row.id });
     throw failure;
   }

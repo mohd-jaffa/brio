@@ -31,7 +31,9 @@ const desktop = (matches: boolean) => {
 describe("OverviewPanel", () => {
   it("draws the period before beneath the trend on a desktop only", () => {
     desktop(true);
-    const { container, unmount } = render(<OverviewPanel report={aReport()} onInterval={vi.fn()} onAllProducts={vi.fn()} />);
+    const { container, unmount } = render(
+      <OverviewPanel report={aReport()} onInterval={vi.fn()} onAllProducts={vi.fn()} />,
+    );
     expect(container.querySelector('[data-series="previous"]')).not.toBeNull();
     expect(screen.getByRole("img", { name: "Sales came to ₹4,500, up 13% on the period before." })).toBeInTheDocument();
     unmount();
@@ -42,8 +44,11 @@ describe("OverviewPanel", () => {
   });
 
   it("words the trend's movement down, level, or with nothing to compare", () => {
-    const sales = (value: number, previous: number) => aReport({ kpis: { ...aReport().kpis, sales: { value, previous } } });
-    const { rerender } = render(<OverviewPanel report={sales(900, 1000)} onInterval={vi.fn()} onAllProducts={vi.fn()} />);
+    const sales = (value: number, previous: number) =>
+      aReport({ kpis: { ...aReport().kpis, sales: { value, previous } } });
+    const { rerender } = render(
+      <OverviewPanel report={sales(900, 1000)} onInterval={vi.fn()} onAllProducts={vi.fn()} />,
+    );
     expect(screen.getByRole("img", { name: /₹9, down 10% on the period before/ })).toBeInTheDocument();
     rerender(<OverviewPanel report={sales(1000, 1000)} onInterval={vi.fn()} onAllProducts={vi.fn()} />);
     expect(screen.getByRole("img", { name: /level on the period before/ })).toBeInTheDocument();
@@ -54,13 +59,16 @@ describe("OverviewPanel", () => {
   it("lists catalogue products as the best sellers, and rings every product's sales, custom items as one", () => {
     render(<OverviewPanel report={aReport()} onInterval={vi.fn()} onAllProducts={vi.fn()} />);
     const best = screen.getByRole("list", { name: "Top selling products" });
-    expect(within(best).getAllByRole("listitem").map((item) => item.textContent)).toEqual([
-      "Truffle cake4 orders₹3,000",
-      "Cupcakes3 orders₹1,200",
-    ]);
+    expect(
+      within(best)
+        .getAllByRole("listitem")
+        .map((item) => item.textContent),
+    ).toEqual(["Truffle cake4 orders₹3,000", "Cupcakes3 orders₹1,200"]);
 
     expect(screen.getByRole("figure", { name: "Sales by product" })).toBeInTheDocument();
-    const ring = screen.getByRole("img", { name: "Truffle cake took the most: ₹3,000 of the ₹4,500 items brought in." });
+    const ring = screen.getByRole("img", {
+      name: "Truffle cake took the most: ₹3,000 of the ₹4,500 items brought in.",
+    });
     expect(within(ring).getByText("Item sales")).toBeInTheDocument();
     const table = screen.getByRole("table", { name: "Sales by product" });
     expect(within(table).getByRole("columnheader", { name: "Product" })).toBeInTheDocument();
@@ -131,7 +139,11 @@ describe("ProductsPanel", () => {
     });
     render(<ProductsPanel report={tied} />);
     await userEvent.click(screen.getByRole("radio", { name: "Quantity" }));
-    expect(screen.getAllByRole("listitem").map((item) => item.textContent?.slice(0, 4))).toEqual(["Cook", "Appl", "Bun1"]);
+    expect(screen.getAllByRole("listitem").map((item) => item.textContent?.slice(0, 4))).toEqual([
+      "Cook",
+      "Appl",
+      "Bun1",
+    ]);
   });
 
   it("says when nothing sold", () => {

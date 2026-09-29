@@ -29,8 +29,7 @@ export interface RegisteredAccount {
 export const AuthClient = {
   signIn: (payload: LoginInput) => postJson<AuthSessionView>(apiRoutes.auth.login, payload),
 
-  register: (payload: RegisterInput) =>
-    postJson<RegisteredAccount>(apiRoutes.auth.register, payload),
+  register: (payload: RegisterInput) => postJson<RegisteredAccount>(apiRoutes.auth.register, payload),
 
   requestPasswordReset: (payload: PasswordResetRequestInput) =>
     postJson<{ accepted: boolean }>(apiRoutes.auth.passwordReset, payload),
@@ -41,8 +40,7 @@ export const AuthClient = {
       body: JSON.stringify(payload),
     }),
 
-  confirmEmail: (payload: ConfirmEmailInput) =>
-    postJson<AuthSessionView>(apiRoutes.auth.confirm, payload),
+  confirmEmail: (payload: ConfirmEmailInput) => postJson<AuthSessionView>(apiRoutes.auth.confirm, payload),
 
   resendConfirmation: () => postJson<{ queued: boolean }>(apiRoutes.auth.resendConfirmation),
 

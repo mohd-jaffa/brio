@@ -8,7 +8,11 @@ describe("SectionHeading", () => {
   it("titles its section, with View all named for a screen reader", () => {
     render(
       <section aria-labelledby="due">
-        <SectionHeading id="due" title="Orders due" viewAll={{ href: "/orders", label: "View all", name: "View all orders due" }}>
+        <SectionHeading
+          id="due"
+          title="Orders due"
+          viewAll={{ href: "/orders", label: "View all", name: "View all orders due" }}
+        >
           <button type="button">Filter</button>
         </SectionHeading>
       </section>,
@@ -22,7 +26,11 @@ describe("SectionHeading", () => {
   it("shows another view of the screen when View all does something rather than going somewhere", async () => {
     const onClick = vi.fn();
     const { rerender } = render(
-      <SectionHeading id="recent" title="Recent expenses" viewAll={{ label: "View all", name: "View all expenses", onClick }} />,
+      <SectionHeading
+        id="recent"
+        title="Recent expenses"
+        viewAll={{ label: "View all", name: "View all expenses", onClick }}
+      />,
     );
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "View all expenses" }));

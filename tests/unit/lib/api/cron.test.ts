@@ -7,7 +7,10 @@ import { assertCronRequest } from "@/lib/api/cron";
 
 const SECRET = "a".repeat(64);
 const asking = (authorization?: string) =>
-  new Request("https://app.test/api/cron/due-orders", { method: "POST", headers: authorization ? { authorization } : {} });
+  new Request("https://app.test/api/cron/due-orders", {
+    method: "POST",
+    headers: authorization ? { authorization } : {},
+  });
 
 describe("assertCronRequest", () => {
   it("lets the scheduler in with its secret", () => {
@@ -20,7 +23,9 @@ describe("assertCronRequest", () => {
     ["a shorter one", `Bearer ${"a".repeat(63)}`],
     ["the secret, not as a bearer token", SECRET],
   ])("refuses %s", (_, authorization) => {
-    expect(() => assertCronRequest(asking(authorization), SECRET)).toThrow(expect.objectContaining({ code: "CRON_UNAUTHORIZED" }));
+    expect(() => assertCronRequest(asking(authorization), SECRET)).toThrow(
+      expect.objectContaining({ code: "CRON_UNAUTHORIZED" }),
+    );
   });
 
   it("reads the secret from the environment, and refuses everyone while none is set: the route is closed", () => {
@@ -28,6 +33,8 @@ describe("assertCronRequest", () => {
     expect(() => assertCronRequest(asking(`Bearer ${SECRET}`))).not.toThrow();
     env.CRON_SECRET = undefined;
     expect(() => assertCronRequest(asking("Bearer "))).toThrow(expect.objectContaining({ code: "CRON_UNAUTHORIZED" }));
-    expect(() => assertCronRequest(asking(`Bearer ${SECRET}`))).toThrow(expect.objectContaining({ code: "CRON_UNAUTHORIZED" }));
+    expect(() => assertCronRequest(asking(`Bearer ${SECRET}`))).toThrow(
+      expect.objectContaining({ code: "CRON_UNAUTHORIZED" }),
+    );
   });
 });

@@ -53,7 +53,6 @@ function InventoryAdjustmentForm({
     defaultValues: EMPTY,
   });
 
-
   // Read here, never as `product!.id` inside the callback: the React Compiler
   // lifts that read into a render-time memo dependency, and it threw on every
   // visit while the sheet was closed with no product (plan §134 P0-1). The sheet

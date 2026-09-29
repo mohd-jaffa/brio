@@ -91,7 +91,11 @@ export function EditOrder({ id }: { id: string }) {
   const current = order.data;
   if (!current) {
     return order.error ? (
-      <Unread error={errorMessage(order.error, "ORDER_LOAD_FAILED")} retrying={order.isValidating} retry={() => void order.mutate()} />
+      <Unread
+        error={errorMessage(order.error, "ORDER_LOAD_FAILED")}
+        retrying={order.isValidating}
+        retry={() => void order.mutate()}
+      />
     ) : (
       <Loading />
     );
@@ -311,9 +315,7 @@ function Editor({ order, customer }: { order: Order; customer: DraftCustomer }) 
             {saveButton}
           </div>
 
-          <StepBar>
-            {saveButton}
-          </StepBar>
+          <StepBar>{saveButton}</StepBar>
         </aside>
       </div>
 

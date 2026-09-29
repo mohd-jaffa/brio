@@ -120,9 +120,12 @@ describe("Expenses", () => {
     await userEvent.click(screen.getByRole("tab", { name: "Categories" }));
     const categories = screen.getByRole("list", { name: "Categories" });
     // The business's own categories show the picture it chose.
-    expect(within(categories).getByRole("button", { name: "Change the picture for Flowers" }).querySelector("img")?.getAttribute("src")).toMatch(
-      /rose-bunch/,
-    );
+    expect(
+      within(categories)
+        .getByRole("button", { name: "Change the picture for Flowers" })
+        .querySelector("img")
+        ?.getAttribute("src"),
+    ).toMatch(/rose-bunch/);
     await userEvent.click(within(categories).getByRole("button", { name: /^Packaging/ }));
     expect(screen.getByRole("tab", { name: "Transactions" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("combobox", { name: "Category" })).toHaveTextContent("Packaging");

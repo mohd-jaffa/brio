@@ -19,7 +19,12 @@ describe("SearchField", () => {
   it("opens the list's filters from the button beside it, marked when some are on", async () => {
     const onClick = vi.fn();
     const { rerender } = render(
-      <SearchField value="" onChange={() => {}} placeholder="Search customers" filter={{ label: "Filters", onClick }} />,
+      <SearchField
+        value=""
+        onChange={() => {}}
+        placeholder="Search customers"
+        filter={{ label: "Filters", onClick }}
+      />,
     );
     const button = screen.getByRole("button", { name: "Filters" });
     expect(button).toHaveAttribute("aria-pressed", "false");
@@ -27,7 +32,12 @@ describe("SearchField", () => {
     expect(onClick).toHaveBeenCalledOnce();
 
     rerender(
-      <SearchField value="" onChange={() => {}} placeholder="Search customers" filter={{ label: "Filters", onClick, active: true }} />,
+      <SearchField
+        value=""
+        onChange={() => {}}
+        placeholder="Search customers"
+        filter={{ label: "Filters", onClick, active: true }}
+      />,
     );
     expect(button).toHaveAttribute("aria-pressed", "true");
     expect(button.querySelector("span")).toHaveClass("bg-primary");

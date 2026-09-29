@@ -13,7 +13,13 @@ import { balanceDue } from "../view";
  * subtotal, each discount and charge, the total, what has been paid and the
  * balance due — the last two tick when a payment is recorded.
  */
-export function OrderLines({ order, action }: { order: Order; /** Beside the heading: Order again. */ action?: ReactNode }) {
+export function OrderLines({
+  order,
+  action,
+}: {
+  order: Order;
+  /** Beside the heading: Order again. */ action?: ReactNode;
+}) {
   const text = UI_TEXT.orderDetail;
   const { pricing } = order;
   return (

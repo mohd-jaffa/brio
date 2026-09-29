@@ -22,7 +22,11 @@ function subscribe(onChange: () => void) {
  * back. The server always draws it hidden: it cannot know.
  */
 export function OfflineBanner() {
-  const online = useSyncExternalStore(subscribe, () => navigator.onLine, () => true);
+  const online = useSyncExternalStore(
+    subscribe,
+    () => navigator.onLine,
+    () => true,
+  );
   if (online) return null;
   return (
     <div

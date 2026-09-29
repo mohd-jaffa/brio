@@ -163,7 +163,13 @@ export function CustomerPicker<T extends PickableCustomer>({
         )}
         {more.hasMore && (
           <div className="flex justify-center">
-            <Button label={UI_TEXT.actions.showMore} variant="ghost" size="sm" loading={more.loadingMore} onClick={more.loadMore} />
+            <Button
+              label={UI_TEXT.actions.showMore}
+              variant="ghost"
+              size="sm"
+              loading={more.loadingMore}
+              onClick={more.loadMore}
+            />
           </div>
         )}
       </div>

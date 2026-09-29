@@ -16,7 +16,9 @@ beforeEach(() => {
 });
 
 const agree = () =>
-  userEvent.click(within(screen.getByRole("alertdialog", { name: "Sign out?" })).getByRole("button", { name: "Sign out" }));
+  userEvent.click(
+    within(screen.getByRole("alertdialog", { name: "Sign out?" })).getByRole("button", { name: "Sign out" }),
+  );
 
 describe("SignOutRow", () => {
   it("asks first, then signs out once, saying so, however often it is tapped", async () => {

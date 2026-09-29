@@ -113,7 +113,9 @@ describe("Analytics", () => {
       ["Customers", "Top customers"],
     ] as const) {
       await userEvent.click(screen.getByRole("tab", { name: tab }));
-      expect(within(screen.getByRole("tabpanel", { name: tab })).getByRole("heading", { name: heading })).toBeInTheDocument();
+      expect(
+        within(screen.getByRole("tabpanel", { name: tab })).getByRole("heading", { name: heading }),
+      ).toBeInTheDocument();
     }
   });
 });

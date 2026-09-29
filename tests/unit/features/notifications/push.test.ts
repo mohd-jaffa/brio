@@ -28,8 +28,20 @@ vi.mock("@/lib/logger", () => ({ logger }));
 
 const { pushMessage, pushToBusiness, registerDevice } = await import("@/features/notifications/push");
 
-const due: NotificationMessage = { kind: "ORDER_DUE", orderId: "o-1", orderNumber: "ORD-1028", customerName: "Priya Menon", day: "TOMORROW" };
-const late: NotificationMessage = { kind: "ORDER_OVERDUE", orderId: "o-2", orderNumber: "ORD-1020", customerName: null, dueDate: "2026-09-26" };
+const due: NotificationMessage = {
+  kind: "ORDER_DUE",
+  orderId: "o-1",
+  orderNumber: "ORD-1028",
+  customerName: "Priya Menon",
+  day: "TOMORROW",
+};
+const late: NotificationMessage = {
+  kind: "ORDER_OVERDUE",
+  orderId: "o-2",
+  orderNumber: "ORD-1020",
+  customerName: null,
+  dueDate: "2026-09-26",
+};
 
 const device = (id: string) => ({ id, token: `https://push.example/${id}`, p256dh: `key-${id}`, auth: `auth-${id}` });
 
@@ -122,26 +134,40 @@ describe("pushToBusiness", () => {
 
   it("logs any other failure without the browser's address, and goes on to the rest", async () => {
     const fake = fakeSupabase(() => ({ data: [device("d-1")] }));
-    push.sendNotification.mockRejectedValueOnce(new push.WebPushError(500)).mockRejectedValueOnce(new Error("socket hang up"));
+    push.sendNotification
+      .mockRejectedValueOnce(new push.WebPushError(500))
+      .mockRejectedValueOnce(new Error("socket hang up"));
 
     await expect(pushToBusiness(fake.client, "b-1", [due, late])).resolves.toEqual({ sent: 0, gone: 0 });
     expect(logger.warn).toHaveBeenCalledWith("Push not sent", { bakeryId: "b-1", deviceId: "d-1", status: 500 });
-    expect(logger.warn).toHaveBeenCalledWith("Push not sent", { bakeryId: "b-1", deviceId: "d-1", reason: "socket hang up" });
+    expect(logger.warn).toHaveBeenCalledWith("Push not sent", {
+      bakeryId: "b-1",
+      deviceId: "d-1",
+      reason: "socket hang up",
+    });
     expect(JSON.stringify(logger.warn.mock.calls)).not.toContain("push.example");
     expect(logger.info).not.toHaveBeenCalled();
   });
 
   it("logs a browser it could not let go of, or browsers it could not read, and throws neither", async () => {
     const failing = fakeSupabase(({ calls }) =>
-      calls[0][0] === "select" ? { data: [device("d-1")] } : { error: { code: "57014", message: "canceling statement" } },
+      calls[0][0] === "select"
+        ? { data: [device("d-1")] }
+        : { error: { code: "57014", message: "canceling statement" } },
     );
     push.sendNotification.mockRejectedValueOnce(new push.WebPushError(404));
     await expect(pushToBusiness(failing.client, "b-1", [due])).resolves.toEqual({ sent: 0, gone: 1 });
-    expect(logger.warn).toHaveBeenCalledWith("Gone push devices not removed", { bakeryId: "b-1", reason: "canceling statement" });
+    expect(logger.warn).toHaveBeenCalledWith("Gone push devices not removed", {
+      bakeryId: "b-1",
+      reason: "canceling statement",
+    });
 
     const unreadable = fakeSupabase(() => ({ error: { code: "57014", message: "canceling statement" } }));
     await expect(pushToBusiness(unreadable.client, "b-1", [due])).resolves.toEqual({ sent: 0, gone: 0 });
-    expect(logger.warn).toHaveBeenCalledWith("Push devices not read", { bakeryId: "b-1", reason: "canceling statement" });
+    expect(logger.warn).toHaveBeenCalledWith("Push devices not read", {
+      bakeryId: "b-1",
+      reason: "canceling statement",
+    });
 
     const none = fakeSupabase(() => ({ data: null }));
     await expect(pushToBusiness(none.client, "b-1", [due])).resolves.toEqual({ sent: 0, gone: 0 });

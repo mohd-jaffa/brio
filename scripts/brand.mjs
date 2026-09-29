@@ -71,7 +71,8 @@ function unwhite(pixels, i) {
   const darkest = Math.max(255 - pixels[i], 255 - pixels[i + 1], 255 - pixels[i + 2]);
   const alpha = darkest <= WHITE_NOISE ? 0 : darkest / 255;
   for (let c = 0; c < 3; c++) {
-    pixels[i + c] = alpha === 0 ? 0 : Math.round(Math.min(255, Math.max(0, (pixels[i + c] - 255 * (1 - alpha)) / alpha)));
+    pixels[i + c] =
+      alpha === 0 ? 0 : Math.round(Math.min(255, Math.max(0, (pixels[i + c] - 255 * (1 - alpha)) / alpha)));
   }
   pixels[i + 3] = Math.round(alpha * 255);
 }
@@ -100,7 +101,9 @@ async function roundedIcon() {
     if (p >= width) stack.push(p - width);
     if (p < (height - 1) * width) stack.push(p + width);
   }
-  const png = await sharp(data, { raw: { width, height, channels: 4 } }).png().toBuffer();
+  const png = await sharp(data, { raw: { width, height, channels: 4 } })
+    .png()
+    .toBuffer();
   return sharp(png).trim({ threshold: 0 }).png().toBuffer();
 }
 
@@ -124,15 +127,21 @@ async function markAndGreen(rounded) {
   const mark = Buffer.alloc(width * height * 4);
   for (let p = 0; p < width * height; p++) {
     const i = p * 4;
-    const green = [0, 1, 2].map((c) => from[c] + ((to[c] - from[c]) * (p % width + Math.floor(p / width))) / (width + height));
-    const light = (data[i] * 0.3 + data[i + 1] * 0.59 + data[i + 2] * 0.11) - (green[0] * 0.3 + green[1] * 0.59 + green[2] * 0.11);
+    const green = [0, 1, 2].map(
+      (c) => from[c] + ((to[c] - from[c]) * ((p % width) + Math.floor(p / width))) / (width + height),
+    );
+    const light =
+      data[i] * 0.3 + data[i + 1] * 0.59 + data[i + 2] * 0.11 - (green[0] * 0.3 + green[1] * 0.59 + green[2] * 0.11);
     const alpha = data[i + 3] === 255 ? Math.min(1, Math.max(0, (light - 25) / 70)) : 0;
     for (let c = 0; c < 3; c++) {
-      mark[i + c] = alpha === 0 ? 0 : Math.round(Math.min(255, Math.max(0, (data[i + c] - green[c] * (1 - alpha)) / alpha)));
+      mark[i + c] =
+        alpha === 0 ? 0 : Math.round(Math.min(255, Math.max(0, (data[i + c] - green[c] * (1 - alpha)) / alpha)));
     }
     mark[i + 3] = Math.round(alpha * 255);
   }
-  const lifted = await sharp(mark, { raw: { width, height, channels: 4 } }).png().toBuffer();
+  const lifted = await sharp(mark, { raw: { width, height, channels: 4 } })
+    .png()
+    .toBuffer();
   const trimmed = await sharp(lifted).trim({ threshold: 0 }).png().toBuffer({ resolveWithObject: true });
   const hex = (rgb) => `#${rgb.map((c) => c.toString(16).padStart(2, "0")).join("")}`;
   return { mark: trimmed, green: [hex(from), hex(to)] };
@@ -159,7 +168,9 @@ const PNG = { palette: true, quality: 95, effort: 10, dither: 1, compressionLeve
 
 /** An .ico holding PNGs, one per size — every browser since 2007 reads them. */
 async function favicon(rounded, sizes) {
-  const images = await Promise.all(sizes.map((size) => sharp(rounded).resize(size, size).png({ compressionLevel: 9 }).toBuffer()));
+  const images = await Promise.all(
+    sizes.map((size) => sharp(rounded).resize(size, size).png({ compressionLevel: 9 }).toBuffer()),
+  );
   const header = Buffer.alloc(6 + 16 * sizes.length);
   header.writeUInt16LE(0, 0);
   header.writeUInt16LE(1, 2);
@@ -193,11 +204,18 @@ async function wordmarkAndLeaf() {
     unwhite(data, i);
   }
   if (right <= left) throw new Error(`${WORDMARK}: no leaf found`);
-  const clear = await sharp(data, { raw: { width, height, channels: 4 } }).png().toBuffer();
+  const clear = await sharp(data, { raw: { width, height, channels: 4 } })
+    .png()
+    .toBuffer();
   const wordmark = await sharp(clear).trim({ threshold: 0 }).png().toBuffer();
   const margin = 4;
   const leaf = await sharp(clear)
-    .extract({ left: left - margin, top: top - margin, width: right - left + 1 + 2 * margin, height: bottom - top + 1 + 2 * margin })
+    .extract({
+      left: left - margin,
+      top: top - margin,
+      width: right - left + 1 + 2 * margin,
+      height: bottom - top + 1 + 2 * margin,
+    })
     .png()
     .toBuffer();
   return { wordmark, leaf };
@@ -216,10 +234,19 @@ const written = {
   [`${ICONS}/icon-maskable-512.png`]: await fullBleed(512, MASKABLE_SHARE, lifted),
   "src/app/apple-icon.png": await fullBleed(180, APPLE_SHARE, lifted),
   "src/app/favicon.ico": await favicon(rounded, [16, 32, 48]),
-  [`${ASSETS}/icon.webp`]: await sharp(rounded).resize(192, 192).webp({ quality: 90, alphaQuality: 95, effort: 6 }).toBuffer(),
+  [`${ASSETS}/icon.webp`]: await sharp(rounded)
+    .resize(192, 192)
+    .webp({ quality: 90, alphaQuality: 95, effort: 6 })
+    .toBuffer(),
   // Tall enough for the launch splash's largest, 380 px wide on a 2× screen.
-  [`${ASSETS}/wordmark.webp`]: await sharp(wordmark).resize({ height: 360 }).webp({ quality: 90, alphaQuality: 95, effort: 6 }).toBuffer(),
-  [`${ASSETS}/leaf.webp`]: await sharp(leaf).resize({ height: 96 }).webp({ quality: 90, alphaQuality: 95, effort: 6 }).toBuffer(),
+  [`${ASSETS}/wordmark.webp`]: await sharp(wordmark)
+    .resize({ height: 360 })
+    .webp({ quality: 90, alphaQuality: 95, effort: 6 })
+    .toBuffer(),
+  [`${ASSETS}/leaf.webp`]: await sharp(leaf)
+    .resize({ height: 96 })
+    .webp({ quality: 90, alphaQuality: 95, effort: 6 })
+    .toBuffer(),
 };
 // Android's densities, as multiples of a density-independent pixel.
 const DENSITIES = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 };
@@ -240,7 +267,9 @@ async function markOnly(size, share, { mark }, solid = false) {
     scaled = sharp({ create: { width: wide, height: tall, channels: 3, background: "#ffffff" } }).joinChannel(alpha);
   }
   return sharp({ create: { width: size, height: size, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
-    .composite([{ input: await scaled.png().toBuffer(), left: Math.round((size - wide) / 2), top: Math.round((size - tall) / 2) }])
+    .composite([
+      { input: await scaled.png().toBuffer(), left: Math.round((size - wide) / 2), top: Math.round((size - tall) / 2) },
+    ])
     .png(PNG)
     .toBuffer();
 }
@@ -270,17 +299,29 @@ written[`${ICONS}/badge-96.png`] = await statusIcon(96, lifted);
 
 if (fs.existsSync(RES)) {
   const circle = (size) =>
-    Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${size / 2}"/></svg>`);
+    Buffer.from(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${size / 2}"/></svg>`,
+    );
   for (const [bucket, scale] of Object.entries(DENSITIES)) {
     const launcher = Math.round(48 * scale);
     const adaptive = Math.round(108 * scale);
-    written[`${RES}/mipmap-${bucket}/ic_launcher.png`] = await sharp(rounded).resize(launcher, launcher).png(PNG).toBuffer();
-    written[`${RES}/mipmap-${bucket}/ic_launcher_round.png`] = await sharp(await fullBleed(launcher, APPLE_SHARE, lifted))
+    written[`${RES}/mipmap-${bucket}/ic_launcher.png`] = await sharp(rounded)
+      .resize(launcher, launcher)
+      .png(PNG)
+      .toBuffer();
+    written[`${RES}/mipmap-${bucket}/ic_launcher_round.png`] = await sharp(
+      await fullBleed(launcher, APPLE_SHARE, lifted),
+    )
       .composite([{ input: circle(launcher), blend: "dest-in" }])
       .png(PNG)
       .toBuffer();
     written[`${RES}/mipmap-${bucket}/ic_launcher_foreground.png`] = await markOnly(adaptive, ADAPTIVE_SHARE, lifted);
-    written[`${RES}/mipmap-${bucket}/ic_launcher_monochrome.png`] = await markOnly(adaptive, ADAPTIVE_SHARE, lifted, true);
+    written[`${RES}/mipmap-${bucket}/ic_launcher_monochrome.png`] = await markOnly(
+      adaptive,
+      ADAPTIVE_SHARE,
+      lifted,
+      true,
+    );
     written[`${RES}/drawable-${bucket}/ic_stat_brio.png`] = await statusIcon(Math.round(24 * scale), lifted);
   }
   written[`${RES}/drawable-xxhdpi/splash_icon.png`] = await sharp(rounded).resize(288, 288).png(PNG).toBuffer();

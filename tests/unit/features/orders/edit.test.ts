@@ -22,7 +22,13 @@ const LINE = "3f2504e0-4f89-11d3-9a0c-0305e82c3310";
 const CUSTOMER = "3f2504e0-4f89-11d3-9a0c-0305e82c3302";
 
 const order = { id: "o-1", order_number: "ORD-1001", status: "IN_PROGRESS" } as OrderRow;
-const line = { id: LINE, product_id: CAKE, product_name: "Truffle Cake", unit_price: 100_000, quantity: 1 } as OrderItemRow;
+const line = {
+  id: LINE,
+  product_id: CAKE,
+  product_name: "Truffle Cake",
+  unit_price: 100_000,
+  quantity: 1,
+} as OrderItemRow;
 const before = { order, items: [line], adjustments: [] };
 const after = { order: { ...order, total: 350_000 }, items: [{ ...line, quantity: 2 }], adjustments: [] };
 
@@ -55,7 +61,15 @@ beforeEach(() => {
   priceOrder.mockResolvedValue({
     customer: { kind: "CUSTOMER", id: CUSTOMER, name: "Priya", phone: "+919876543210" },
     lines: [
-      { itemId: LINE, productId: CAKE, name: "Truffle Cake", unitPrice: 100_000, quantity: 2, subtotal: 200_000, notes: "No nuts" },
+      {
+        itemId: LINE,
+        productId: CAKE,
+        name: "Truffle Cake",
+        unitPrice: 100_000,
+        quantity: 2,
+        subtotal: 200_000,
+        notes: "No nuts",
+      },
       { productId: null, name: "Name topper", unitPrice: 15_000, quantity: 1, subtotal: 15_000, notes: null },
     ],
     totals: { subtotal: 215_000, discount: 0, deliveryCharge: 5_000, tax: 0, total: 220_000 },
@@ -86,8 +100,24 @@ describe("updateOrder", () => {
             tax: 0,
             total: 220_000,
             items: [
-              { item_id: LINE, product_id: CAKE, product_name: "Truffle Cake", unit_price: 100_000, quantity: 2, subtotal: 200_000, notes: "No nuts" },
-              { item_id: null, product_id: null, product_name: "Name topper", unit_price: 15_000, quantity: 1, subtotal: 15_000, notes: null },
+              {
+                item_id: LINE,
+                product_id: CAKE,
+                product_name: "Truffle Cake",
+                unit_price: 100_000,
+                quantity: 2,
+                subtotal: 200_000,
+                notes: "No nuts",
+              },
+              {
+                item_id: null,
+                product_id: null,
+                product_name: "Name topper",
+                unit_price: 15_000,
+                quantity: 1,
+                subtotal: 15_000,
+                notes: null,
+              },
             ],
             adjustments: [{ type: "CHARGE", name: "Delivery", amount: 5_000 }],
           },
@@ -109,7 +139,11 @@ describe("updateOrder", () => {
   });
 
   it("stores a Guest order with no customer", async () => {
-    priceOrder.mockResolvedValue({ customer: { kind: "GUEST" }, lines: [], totals: { subtotal: 0, discount: 0, deliveryCharge: 0, tax: 0, total: 0 } });
+    priceOrder.mockResolvedValue({
+      customer: { kind: "GUEST" },
+      lines: [],
+      totals: { subtotal: 0, discount: 0, deliveryCharge: 0, tax: 0, total: 0 },
+    });
     const { client, calls } = rpcClient({ data: after.order, error: null });
     await updateOrder(tenantOf(client), "o-1", { ...input, customer: { kind: "GUEST" } });
     expect((calls[0][1] as { p_order: { customer_id: unknown } }).p_order.customer_id).toBeNull();

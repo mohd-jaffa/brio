@@ -157,7 +157,9 @@ describe("SelectField", () => {
   });
 
   it("can start on a placeholder that is a choice of its own, with the empty value", async () => {
-    render(<SelectField label="Customer" options={options} value="" onChange={vi.fn()} placeholder="Choose a customer…" />);
+    render(
+      <SelectField label="Customer" options={options} value="" onChange={vi.fn()} placeholder="Choose a customer…" />,
+    );
     expect(screen.getByRole("combobox", { name: "Customer" })).toHaveTextContent("Choose a customer…");
     await userEvent.click(screen.getByRole("combobox", { name: "Customer" }));
     expect(screen.getByRole("option", { name: "Choose a customer…" })).toHaveAttribute("aria-selected", "true");

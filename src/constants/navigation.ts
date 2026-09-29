@@ -31,12 +31,27 @@ const HOME: NavItem = { id: "home", label: UI_TEXT.nav.places.home, icon: Home, 
 const ORDERS: NavItem = { id: "orders", label: UI_TEXT.nav.places.orders, icon: ClipboardList, href: "/orders" };
 const PRODUCTS: NavItem = { id: "products", label: UI_TEXT.nav.places.products, icon: Cookie, href: "/products" };
 const CUSTOMERS: NavItem = { id: "customers", label: UI_TEXT.nav.places.customers, icon: Users, href: "/customers" };
-const ANALYTICS: NavItem = { id: "analytics", label: UI_TEXT.nav.places.analytics, icon: BarChart3, href: "/analytics" };
-const EXPENSES: NavItem = { id: "expenses", label: UI_TEXT.nav.places.expenses, icon: CircleDollarSign, href: "/expenses" };
+const ANALYTICS: NavItem = {
+  id: "analytics",
+  label: UI_TEXT.nav.places.analytics,
+  icon: BarChart3,
+  href: "/analytics",
+};
+const EXPENSES: NavItem = {
+  id: "expenses",
+  label: UI_TEXT.nav.places.expenses,
+  icon: CircleDollarSign,
+  href: "/expenses",
+};
 const INVENTORY: NavItem = { id: "inventory", label: UI_TEXT.nav.places.inventory, icon: Package, href: "/inventory" };
 /** The inbox, which the bell in every top bar opens too (plan §139.10). */
 export const NOTIFICATIONS_ROUTE = "/notifications";
-const NOTIFICATIONS: NavItem = { id: "notifications", label: UI_TEXT.nav.places.notifications, icon: Bell, href: NOTIFICATIONS_ROUTE };
+const NOTIFICATIONS: NavItem = {
+  id: "notifications",
+  label: UI_TEXT.nav.places.notifications,
+  icon: Bell,
+  href: NOTIFICATIONS_ROUTE,
+};
 const BUSINESS: NavItem = { id: "business", label: UI_TEXT.nav.places.business, icon: Store, href: "/business" };
 const SETTINGS: NavItem = { id: "settings", label: UI_TEXT.nav.places.settings, icon: Settings, href: "/settings" };
 

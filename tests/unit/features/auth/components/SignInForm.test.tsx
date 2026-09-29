@@ -148,9 +148,6 @@ describe("signing in", () => {
   it("offers the way to a forgotten password", () => {
     render(<SignInForm />, { wrapper: Providers });
 
-    expect(screen.getByRole("link", { name: UI_TEXT.auth.forgotPassword })).toHaveAttribute(
-      "href",
-      "/forgot-password",
-    );
+    expect(screen.getByRole("link", { name: UI_TEXT.auth.forgotPassword })).toHaveAttribute("href", "/forgot-password");
   });
 });

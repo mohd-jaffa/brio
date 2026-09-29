@@ -57,10 +57,7 @@ function writeLog(level: LogLevel, message: string, context?: unknown, requestId
 }
 
 export const logger = {
-  info: (message: string, context?: unknown, requestId?: string) =>
-    writeLog("info", message, context, requestId),
-  warn: (message: string, context?: unknown, requestId?: string) =>
-    writeLog("warn", message, context, requestId),
-  error: (message: string, context?: unknown, requestId?: string) =>
-    writeLog("error", message, context, requestId),
+  info: (message: string, context?: unknown, requestId?: string) => writeLog("info", message, context, requestId),
+  warn: (message: string, context?: unknown, requestId?: string) => writeLog("warn", message, context, requestId),
+  error: (message: string, context?: unknown, requestId?: string) => writeLog("error", message, context, requestId),
 };

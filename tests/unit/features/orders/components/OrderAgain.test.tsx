@@ -18,7 +18,12 @@ const push = vi.hoisted(() => vi.fn());
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 const auth = vi.hoisted(() => ({ profile: { id: "u-1" } as { id: string } | null }));
 vi.mock("@/features/auth/AuthProvider", () => ({ useAuth: () => auth }));
-const drafts = vi.hoisted(() => ({ current: null as OrderDraft | null, update: vi.fn(), clear: vi.fn(), user: "" as string | null }));
+const drafts = vi.hoisted(() => ({
+  current: null as OrderDraft | null,
+  update: vi.fn(),
+  clear: vi.fn(),
+  user: "" as string | null,
+}));
 vi.mock("@/features/orders/hooks/useOrderDraft", () => ({
   useOrderDraft: (user: string | null) => {
     drafts.user = user;

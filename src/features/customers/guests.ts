@@ -23,7 +23,11 @@ function rows<T>({ data, error }: { data: unknown; error: PostgrestError | null 
  * out as they are from every sales figure. The count and the total are read
  * from the orders' totals alone; the page is read as any list of orders is.
  */
-export async function getGuestSales(tenant: Tenant, query: PagedRangeQuery, now: Date = new Date()): Promise<GuestSales> {
+export async function getGuestSales(
+  tenant: Tenant,
+  query: PagedRangeQuery,
+  now: Date = new Date(),
+): Promise<GuestSales> {
   const { supabase: client, bakeryId } = tenant;
   const period = resolvePeriod({ preset: query.range, from: query.from, to: query.to }, todayKey(now));
   const window = pageWindow(query.cursor);
@@ -38,7 +42,10 @@ export async function getGuestSales(tenant: Tenant, query: PagedRangeQuery, now:
       .lt("created_at", dayStart(addDaysKey(period.to, 1)));
 
   const [pageResult, totals] = await Promise.all([
-    placed(ORDER_LIST_COLUMNS).order("created_at", { ascending: false }).order("id", { ascending: true }).range(window.from, window.to),
+    placed(ORDER_LIST_COLUMNS)
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: true })
+      .range(window.from, window.to),
     // Every Guest order's total, a window at a time: a year of them can pass the API's row limit.
     readAll<{ total: number }>((from, to) => placed("id, total").order("id", { ascending: true }).range(from, to)),
   ]);

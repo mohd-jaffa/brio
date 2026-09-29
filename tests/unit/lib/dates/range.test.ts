@@ -59,8 +59,16 @@ describe("intervalFor and the groups", () => {
   });
 
   it("starts a group each day, or each seventh day from the period's start", () => {
-    expect(bucketStarts({ from: "2026-09-01", to: "2026-09-03" }, "DAY")).toEqual(["2026-09-01", "2026-09-02", "2026-09-03"]);
-    expect(bucketStarts({ from: "2026-09-01", to: "2026-09-15" }, "WEEK")).toEqual(["2026-09-01", "2026-09-08", "2026-09-15"]);
+    expect(bucketStarts({ from: "2026-09-01", to: "2026-09-03" }, "DAY")).toEqual([
+      "2026-09-01",
+      "2026-09-02",
+      "2026-09-03",
+    ]);
+    expect(bucketStarts({ from: "2026-09-01", to: "2026-09-15" }, "WEEK")).toEqual([
+      "2026-09-01",
+      "2026-09-08",
+      "2026-09-15",
+    ]);
   });
 
   it("finds a day's group, or none outside the period", () => {

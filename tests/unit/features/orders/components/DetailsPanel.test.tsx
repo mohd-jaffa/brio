@@ -138,7 +138,16 @@ describe("DetailsPanel: the items", () => {
   it("shows a line already on an order being changed at the name and price it was ordered at (§139.11.13)", () => {
     const kept: OrderDraft = {
       ...newDraft(),
-      lines: [{ key: "i-1", itemId: "i-1", productId: "p-cake", agreed: { name: "Truffle cake (old)", unitPrice: 100000 }, quantity: 2, notes: "" }],
+      lines: [
+        {
+          key: "i-1",
+          itemId: "i-1",
+          productId: "p-cake",
+          agreed: { name: "Truffle cake (old)", unitPrice: 100000 },
+          quantity: 2,
+          notes: "",
+        },
+      ],
     };
     render(<Screen start={kept} />);
     expect(within(items()[0]).getByText("Truffle cake (old)")).toBeInTheDocument();

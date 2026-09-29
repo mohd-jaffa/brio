@@ -49,7 +49,11 @@ describe("SelectMenu", () => {
 
     await userEvent.click(control());
     expect(control()).toHaveAttribute("aria-expanded", "true");
-    expect(within(list()).getAllByRole("option").map((option) => option.textContent)).toEqual(["Cash", "UPI", "Card", "Other"]);
+    expect(
+      within(list())
+        .getAllByRole("option")
+        .map((option) => option.textContent),
+    ).toEqual(["Cash", "UPI", "Card", "Other"]);
     expect(within(list()).getByRole("option", { name: "UPI" })).toHaveAttribute("aria-selected", "true");
     expect(active()).toBe("UPI");
   });

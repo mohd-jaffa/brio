@@ -13,13 +13,7 @@ import "./globals.css";
  * The last line: the root layout itself failed. It replaces that layout, so it
  * brings its own document, styles and theme (plan §134 P0-2).
  */
-export default function GlobalError({
-  error,
-  retry,
-}: {
-  error: Error & { digest?: string };
-  retry: () => void;
-}) {
+export default function GlobalError({ error, retry }: { error: Error & { digest?: string }; retry: () => void }) {
   return (
     <html lang="en" data-theme={DEFAULT_THEME}>
       <head>

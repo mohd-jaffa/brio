@@ -110,9 +110,7 @@ describe("PaymentCollectionForm", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Record payment" }));
 
-    await waitFor(() =>
-      expect(screen.getByText("This action conflicts with existing data.")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText("This action conflicts with existing data.")).toBeInTheDocument());
     expect(props.onPaymentSuccess).not.toHaveBeenCalled();
   });
 

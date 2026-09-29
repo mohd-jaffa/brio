@@ -2,7 +2,9 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { unread, pathname } = vi.hoisted(() => ({ unread: { current: 0 }, pathname: { current: "/" } }));
-vi.mock("@/features/notifications/hooks/useUnreadNotifications", () => ({ useUnreadNotifications: () => unread.current }));
+vi.mock("@/features/notifications/hooks/useUnreadNotifications", () => ({
+  useUnreadNotifications: () => unread.current,
+}));
 vi.mock("next/navigation", () => ({ usePathname: () => pathname.current }));
 
 import { badgeCount, NotificationBell } from "@/features/notifications/components/NotificationBell";

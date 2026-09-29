@@ -101,7 +101,14 @@ describe("processPayment", () => {
     await processPayment(tenantOf(client), payment, KEY);
 
     expect(inserted).toEqual([
-      { bakery_id: "b-1", order_id: ORDER_ID, amount: 50000, payment_method: "UPI", reference: null, idempotency_key: KEY },
+      {
+        bakery_id: "b-1",
+        order_id: ORDER_ID,
+        amount: 50000,
+        payment_method: "UPI",
+        reference: null,
+        idempotency_key: KEY,
+      },
     ]);
   });
 
@@ -125,7 +132,13 @@ describe("processPayment", () => {
     const first = { id: "p-1", order_id: ORDER_ID, amount: 50000 };
     const { client } = fakeClient({
       byKey: [null, first],
-      insertResult: { data: null, error: { code: "23505", message: 'duplicate key value violates unique constraint "payments_bakery_idempotency_key"' } },
+      insertResult: {
+        data: null,
+        error: {
+          code: "23505",
+          message: 'duplicate key value violates unique constraint "payments_bakery_idempotency_key"',
+        },
+      },
     });
     await expect(processPayment(tenantOf(client), payment, KEY)).resolves.toBe(first);
   });
@@ -137,7 +150,10 @@ describe("processPayment", () => {
 
   it("passes the database's refusal of too much on, in the app's words", async () => {
     const { client } = fakeClient({
-      insertResult: { data: null, error: { code: "P0001", hint: "PAYMENT_EXCEEDS_BALANCE", message: "payment exceeds the balance" } },
+      insertResult: {
+        data: null,
+        error: { code: "P0001", hint: "PAYMENT_EXCEEDS_BALANCE", message: "payment exceeds the balance" },
+      },
     });
     await expect(processPayment(tenantOf(client), payment, KEY)).rejects.toMatchObject({
       code: "PAYMENT_EXCEEDS_BALANCE",
@@ -158,7 +174,10 @@ describe("processPayment", () => {
     const { client } = fakeClient();
     const tenant = tenantOf(client, { actorId: "u-7" });
     await processPayment(tenant, payment, KEY);
-    expect(logActionSafe).toHaveBeenCalledWith(tenant, expect.objectContaining({ action: "CREATE", entity_type: "payments", entity_id: "p-1" }));
+    expect(logActionSafe).toHaveBeenCalledWith(
+      tenant,
+      expect.objectContaining({ action: "CREATE", entity_type: "payments", entity_id: "p-1" }),
+    );
   });
 
   it("queues no notification while no worker runs: only orders due are told of", async () => {
@@ -173,7 +192,10 @@ describe("processPayment", () => {
     await processPayment(tenantOf(client), payment, KEY);
     expect(createJob).toHaveBeenCalledWith(client, {
       type: "SEND_PUSH_NOTIFICATION",
-      payload: { bakeryId: "b-1", message: { kind: "PAYMENT_RECEIVED", orderId: ORDER_ID, orderNumber: "ORD-1001", amount: 50000 } },
+      payload: {
+        bakeryId: "b-1",
+        message: { kind: "PAYMENT_RECEIVED", orderId: ORDER_ID, orderNumber: "ORD-1001", amount: 50000 },
+      },
     });
   });
 

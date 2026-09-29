@@ -6,5 +6,7 @@ import { notificationListQuerySchema } from "@/lib/validation";
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  return withBakeryRoute(request, (tenant) => listNotificationsAfterDue(tenant, readQuery(request, notificationListQuerySchema)));
+  return withBakeryRoute(request, (tenant) =>
+    listNotificationsAfterDue(tenant, readQuery(request, notificationListQuerySchema)),
+  );
 }

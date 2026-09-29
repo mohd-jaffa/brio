@@ -27,7 +27,9 @@ export async function pickDate(label: string, day: string) {
     if (turns > 240) throw new Error(`Could not reach ${day}`);
     const later = day.slice(0, 7) > monthShown(calendar);
     await userEvent.click(
-      within(calendar).getByRole("button", { name: later ? UI_TEXT.datePicker.nextMonth : UI_TEXT.datePicker.previousMonth }),
+      within(calendar).getByRole("button", {
+        name: later ? UI_TEXT.datePicker.nextMonth : UI_TEXT.datePicker.previousMonth,
+      }),
     );
   }
   await userEvent.click(within(calendar).getByRole("button", { name: formatLongDate(day) }));

@@ -35,10 +35,7 @@ export async function withSessionRoute(
  * did: someone asking to be signed out is signed out, even if revoking the
  * token at Supabase failed.
  */
-export async function withSignOutRoute<TData>(
-  request: Request,
-  handler: (context: ApiContext) => Promise<TData>,
-) {
+export async function withSignOutRoute<TData>(request: Request, handler: (context: ApiContext) => Promise<TData>) {
   const response = await withApiHandler(request, handler);
   return withSessionCookies(response, clearedSessionCookies());
 }

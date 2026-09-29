@@ -8,7 +8,9 @@ const migration = readFileSync(join(process.cwd(), "supabase/migrations/0007_ill
 describe("illustrations migration", () => {
   it("turns the never-used product image into an illustration key", () => {
     expect(migration).toMatch(/rename column image to icon_key/);
-    expect(migration).toMatch(/check \(icon_key is null or \(icon_key ~ '\^\[a-z0-9\]\+\(-\[a-z0-9\]\+\)\*\$' and char_length\(icon_key\) <= 64\)\)/);
+    expect(migration).toMatch(
+      /check \(icon_key is null or \(icon_key ~ '\^\[a-z0-9\]\+\(-\[a-z0-9\]\+\)\*\$' and char_length\(icon_key\) <= 64\)\)/,
+    );
   });
 
   it("clears any stored value that is not a key before the check applies", () => {

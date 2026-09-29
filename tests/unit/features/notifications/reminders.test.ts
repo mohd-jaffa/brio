@@ -48,7 +48,10 @@ describe("remindersFor (the inbox's rule, 0023)", () => {
   });
 
   it("tells of it that morning instead, once the morning before has gone", () => {
-    expect(remindersFor(order(), ist("2026-09-30T09:00:00"))).toEqual([dueSoon("2026-10-01T08:00:00", "today"), overdue]);
+    expect(remindersFor(order(), ist("2026-09-30T09:00:00"))).toEqual([
+      dueSoon("2026-10-01T08:00:00", "today"),
+      overdue,
+    ]);
   });
 
   it("sets only what is still ahead: the inbox tells the rest as the app is open", () => {

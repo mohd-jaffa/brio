@@ -241,7 +241,12 @@ describe("signing in and out", () => {
     const { result } = session();
     await waitFor(() => expect(result.current.status).toBe("authenticated"));
     await expect(
-      result.current.deleteAccount({ phone: "9876543210", email: "asha@example.com", password: "x", confirmPassword: "x" }),
+      result.current.deleteAccount({
+        phone: "9876543210",
+        email: "asha@example.com",
+        password: "x",
+        confirmPassword: "x",
+      }),
     ).rejects.toThrow("That is not your current password.");
 
     expect(result.current.status).toBe("authenticated");

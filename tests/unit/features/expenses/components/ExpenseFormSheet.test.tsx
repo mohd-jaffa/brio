@@ -65,10 +65,7 @@ beforeEach(() => {
 
 describe("ExpenseFormSheet", () => {
   it("is out of sight while it is closed", () => {
-    const { container } = render(
-      <ExpenseFormSheet isOpen={false} onClose={vi.fn()} />,
-      { wrapper },
-    );
+    const { container } = render(<ExpenseFormSheet isOpen={false} onClose={vi.fn()} />, { wrapper });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(container.querySelector("dialog")).not.toHaveAttribute("open");
   });
@@ -148,18 +145,27 @@ describe("ExpenseFormSheet", () => {
     expect(within(categories).queryByRole("radio", { name: "Fireworks" })).not.toBeInTheDocument();
     const flowers = within(categories).getByRole("radio", { name: "Flowers" }).closest("label")!;
     expect(flowers.querySelector("img")?.getAttribute("src")).toMatch(/rose-bunch/);
-    expect(within(categories).getByRole("radio", { name: "Rent" }).closest("label")!.querySelector("img")?.getAttribute("src")).toMatch(
-      /default-expense/,
-    );
+    expect(
+      within(categories)
+        .getByRole("radio", { name: "Rent" })
+        .closest("label")!
+        .querySelector("img")
+        ?.getAttribute("src"),
+    ).toMatch(/default-expense/);
   });
 
   it("saves the category chosen, and keeps the sheet open when refused", async () => {
-    vi.mocked(ExpensesClient.updateExpense).mockRejectedValue(new ApiError(409, "CONFLICT", "That was changed elsewhere."));
+    vi.mocked(ExpensesClient.updateExpense).mockRejectedValue(
+      new ApiError(409, "CONFLICT", "That was changed elsewhere."),
+    );
     const props = open({ initialData: boxes });
     await userEvent.click(screen.getByRole("radio", { name: "Delivery" }));
     await userEvent.click(screen.getByRole("button", { name: "Save expense" }));
     await waitFor(() =>
-      expect(ExpensesClient.updateExpense).toHaveBeenCalledWith("e-1", expect.objectContaining({ category: "Delivery" })),
+      expect(ExpensesClient.updateExpense).toHaveBeenCalledWith(
+        "e-1",
+        expect.objectContaining({ category: "Delivery" }),
+      ),
     );
     expect((await screen.findAllByText("Expense not saved"))[0]).toBeInTheDocument();
     expect(props.onClose).not.toHaveBeenCalled();
@@ -170,7 +176,9 @@ describe("ExpenseFormSheet", () => {
     const categories = screen.getByRole("group", { name: "Category" });
     await within(categories).findByRole("radio", { name: "Flowers" });
     await userEvent.click(within(categories).getByRole("button", { name: "New category" }));
-    await userEvent.click(within(screen.getByRole("dialog", { name: "New category" })).getByRole("button", { name: "Made Flowers" }));
+    await userEvent.click(
+      within(screen.getByRole("dialog", { name: "New category" })).getByRole("button", { name: "Made Flowers" }),
+    );
     expect(within(categories).getByRole("radio", { name: "Flowers" })).toBeChecked();
   });
 });

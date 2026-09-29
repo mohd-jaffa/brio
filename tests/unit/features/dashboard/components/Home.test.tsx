@@ -30,8 +30,14 @@ function aDashboard(changes: Partial<Dashboard> = {}): Dashboard {
       { day: "2026-09-26", total: 450000 },
     ],
     due: [
-      { bucket: "overdue", orders: [anOrderListItem({ id: "o-late", orderNumber: "ORD-1004", dueAt: "2026-09-24T05:00:00Z" })] },
-      { bucket: "today", orders: [anOrderListItem({ id: "o-today", orderNumber: "ORD-1007", dueAt: "2026-09-26T12:00:00Z" })] },
+      {
+        bucket: "overdue",
+        orders: [anOrderListItem({ id: "o-late", orderNumber: "ORD-1004", dueAt: "2026-09-24T05:00:00Z" })],
+      },
+      {
+        bucket: "today",
+        orders: [anOrderListItem({ id: "o-today", orderNumber: "ORD-1007", dueAt: "2026-09-26T12:00:00Z" })],
+      },
     ],
     moreDue: false,
     lowStock: [{ productId: "p-1", name: "Blueberry cheesecake", iconKey: null, unit: "piece", balance: 3 }],
@@ -193,7 +199,9 @@ describe("Home: how the period is going (desktop)", () => {
       ],
     });
     open();
-    expect(await screen.findByRole("img", { name: "Sales per day from 24 Sep to 26 Sep: ₹4,500 in all." })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("img", { name: "Sales per day from 24 Sep to 26 Sep: ₹4,500 in all." }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Sales today").closest("div")).toHaveTextContent("₹0");
   });
 

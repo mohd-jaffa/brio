@@ -37,7 +37,9 @@ export function OrderRow({
     <Row
       href={`/orders/${order.id}`}
       leading={<ProductTile iconKey={order.firstItem?.iconKey} />}
-      title={showCustomer ? `${order.orderNumber} · ${order.customer?.name ?? UI_TEXT.orders.guest}` : order.orderNumber}
+      title={
+        showCustomer ? `${order.orderNumber} · ${order.customer?.name ?? UI_TEXT.orders.guest}` : order.orderNumber
+      }
       subtitle={itemsLine(order)}
       meta={meta}
       trailing={

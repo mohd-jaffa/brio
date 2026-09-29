@@ -54,7 +54,11 @@ describe("no worker migration", () => {
     expect(migration).toContain(
       "returns table (kind text, order_id uuid, order_number text, customer_name text, due_day text, due_date text)",
     );
-    expect(migration).toContain("revoke all on function public.take_due_order_notices(uuid, integer) from public, anon, authenticated;");
-    expect(migration).toContain("grant execute on function public.take_due_order_notices(uuid, integer) to service_role;");
+    expect(migration).toContain(
+      "revoke all on function public.take_due_order_notices(uuid, integer) from public, anon, authenticated;",
+    );
+    expect(migration).toContain(
+      "grant execute on function public.take_due_order_notices(uuid, integer) to service_role;",
+    );
   });
 });

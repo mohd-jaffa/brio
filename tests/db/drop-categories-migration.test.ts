@@ -12,7 +12,9 @@ const migration = readFileSync(join(process.cwd(), "supabase/migrations/0018_dro
 describe("drop categories migration", () => {
   it("takes the category off products, with its reference and index", () => {
     expect(migration).toMatch(/drop index if exists public\.products_bakery_category_idx;/);
-    expect(migration).toMatch(/alter table public\.products drop constraint if exists products_category_same_bakery_fkey;/);
+    expect(migration).toMatch(
+      /alter table public\.products drop constraint if exists products_category_same_bakery_fkey;/,
+    );
     expect(migration).toMatch(/alter table public\.products drop column if exists category_id;/);
   });
 

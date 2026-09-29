@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { customerSegment, deliveryAddresses, newCustomersSince, summarise, type SummaryOrder } from "@/features/customers/summary";
+import {
+  customerSegment,
+  deliveryAddresses,
+  newCustomersSince,
+  summarise,
+  type SummaryOrder,
+} from "@/features/customers/summary";
 
 const now = new Date("2026-09-26T06:00:00Z"); // 11:30 in India
 
@@ -34,8 +40,16 @@ describe("deliveryAddresses", () => {
       deliveryAddresses([
         order({ delivery_address: "12 MG Road", created_at: "2026-09-01T00:00:00Z" }),
         order({ delivery_address: " 12  mg road ", created_at: "2026-09-10T00:00:00Z" }),
-        order({ delivery_address: "4 Park St", delivery_google_maps_link: "https://maps.app/x", created_at: "2026-09-05T00:00:00Z" }),
-        order({ delivery_address: null, delivery_google_maps_link: "https://maps.app/y", created_at: "2026-09-03T00:00:00Z" }),
+        order({
+          delivery_address: "4 Park St",
+          delivery_google_maps_link: "https://maps.app/x",
+          created_at: "2026-09-05T00:00:00Z",
+        }),
+        order({
+          delivery_address: null,
+          delivery_google_maps_link: "https://maps.app/y",
+          created_at: "2026-09-03T00:00:00Z",
+        }),
       ]),
     ).toEqual([
       { address: "12  mg road", googleMapsLink: undefined, lastUsed: "2026-09-10T00:00:00Z" },

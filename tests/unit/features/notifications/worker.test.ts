@@ -2,7 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Job } from "@/lib/jobs/types";
 
-const { registerJobHandler, registerSweep } = vi.hoisted(() => ({ registerJobHandler: vi.fn(), registerSweep: vi.fn() }));
+const { registerJobHandler, registerSweep } = vi.hoisted(() => ({
+  registerJobHandler: vi.fn(),
+  registerSweep: vi.fn(),
+}));
 vi.mock("@/lib/jobs/queue", () => ({ registerJobHandler, registerSweep }));
 const sendPush = vi.hoisted(() => vi.fn());
 vi.mock("@/features/notifications/capacitor-push.service", () => ({
@@ -66,7 +69,10 @@ describe("the notification worker", () => {
   it("files it in the business's inbox first, under the job's id, with its kind and where it leads", async () => {
     sendPush.mockResolvedValue(true);
     await handler()(
-      job({ bakeryId: "b-1", message: { kind: "STOCK_LOW", productId: "p-1", productName: "Brownies", balance: 3, unit: "piece" } }),
+      job({
+        bakeryId: "b-1",
+        message: { kind: "STOCK_LOW", productId: "p-1", productName: "Brownies", balance: 3, unit: "piece" },
+      }),
     );
     expect(recordNotification).toHaveBeenCalledWith(serviceClient, {
       id: "j-1",
@@ -95,9 +101,9 @@ describe("the notification worker", () => {
     expect(recordNotification).not.toHaveBeenCalled();
 
     recordNotification.mockRejectedValueOnce(new Error("database down"));
-    await expect(handler()(job({ token: "device-1", bakeryId: "b-1", payload: { title: "t", body: "b" } }))).rejects.toThrow(
-      "database down",
-    );
+    await expect(
+      handler()(job({ token: "device-1", bakeryId: "b-1", payload: { title: "t", body: "b" } })),
+    ).rejects.toThrow("database down");
     expect(sendPush).not.toHaveBeenCalled();
   });
 

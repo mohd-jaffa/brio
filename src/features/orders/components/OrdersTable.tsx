@@ -40,12 +40,24 @@ export function OrdersTable({ orders, now }: { orders: readonly OrderListItem[];
         </colgroup>
         <thead className="border-b border-border text-left text-xs font-medium text-text-muted">
           <tr>
-            <th scope="col" className={CELL}>{columns.order}</th>
-            <th scope="col" className={CELL}>{columns.due}</th>
-            <th scope="col" className={CELL}>{columns.customer}</th>
-            <th scope="col" className={CELL}>{columns.items}</th>
-            <th scope="col" className={`${CELL} text-right`}>{columns.amount}</th>
-            <th scope="col" className={CELL}>{columns.status}</th>
+            <th scope="col" className={CELL}>
+              {columns.order}
+            </th>
+            <th scope="col" className={CELL}>
+              {columns.due}
+            </th>
+            <th scope="col" className={CELL}>
+              {columns.customer}
+            </th>
+            <th scope="col" className={CELL}>
+              {columns.items}
+            </th>
+            <th scope="col" className={`${CELL} text-right`}>
+              {columns.amount}
+            </th>
+            <th scope="col" className={CELL}>
+              {columns.status}
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">

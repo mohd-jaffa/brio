@@ -5,7 +5,9 @@ function loadedFiles(): string[] {
     .map((entry) => entry.name)
     .filter((url) => {
       const { origin, pathname } = new URL(url);
-      return origin === window.location.origin && (pathname.startsWith("/_next/static/") || pathname.startsWith("/fonts/"));
+      return (
+        origin === window.location.origin && (pathname.startsWith("/_next/static/") || pathname.startsWith("/fonts/"))
+      );
     });
 }
 

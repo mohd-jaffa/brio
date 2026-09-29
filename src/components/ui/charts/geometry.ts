@@ -125,7 +125,19 @@ export function areaPath(points: Point[], baseline: number): string {
 }
 
 /** A bar standing on `bottom` with its top corners rounded. Nothing for a zero. */
-export function roundedTopBar({ x, width, top, bottom, radius }: { x: number; width: number; top: number; bottom: number; radius: number }) {
+export function roundedTopBar({
+  x,
+  width,
+  top,
+  bottom,
+  radius,
+}: {
+  x: number;
+  width: number;
+  top: number;
+  bottom: number;
+  radius: number;
+}) {
   const height = bottom - top;
   if (height <= 0 || width <= 0) return "";
   const r = Math.min(radius, width / 2, height);
@@ -148,7 +160,9 @@ export function shares(values: number[]): number[] {
   const exact = values.map((value) => (value * 100) / total);
   const floors = exact.map(Math.floor);
   let spare = 100 - floors.reduce((sum, value) => sum + value, 0);
-  const byRemainder = exact.map((value, index) => ({ index, rest: value - floors[index] })).sort((a, b) => b.rest - a.rest);
+  const byRemainder = exact
+    .map((value, index) => ({ index, rest: value - floors[index] }))
+    .sort((a, b) => b.rest - a.rest);
   for (const { index } of byRemainder) {
     if (spare <= 0) break;
     floors[index] += 1;

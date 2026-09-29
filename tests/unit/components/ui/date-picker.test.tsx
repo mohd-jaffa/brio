@@ -78,15 +78,11 @@ describe("DatePicker", () => {
     expect(day("Sunday, 20 Sep 2026")).toHaveFocus();
     expect(day("Sunday, 20 Sep 2026").closest("[role=gridcell]")).toHaveAttribute("aria-selected", "true");
     expect(day("Sunday, 27 Sep 2026")).toHaveAttribute("aria-current", "date");
-    expect(within(calendar()).getAllByRole("columnheader").map((header) => header.getAttribute("aria-label"))).toEqual([
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday",
-    ]);
+    expect(
+      within(calendar())
+        .getAllByRole("columnheader")
+        .map((header) => header.getAttribute("aria-label")),
+    ).toEqual(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]);
     // 1 September 2026 is a Tuesday: one empty cell before it.
     const [firstWeek] = within(calendar()).getAllByRole("row").slice(1);
     expect(within(firstWeek).getAllByRole("button")[0]).toHaveAccessibleName("Tuesday, 1 Sep 2026");

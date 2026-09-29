@@ -38,10 +38,11 @@ export function summariseExpenses(
   const values = starts.map(() => 0);
   for (const expense of current) values[bucketIndex(period, interval, expense.expenseDate)] += expense.amount;
 
-  const byCategory = categories.map((category, order) => {
-    const spent = current.filter((expense) => expense.category === category);
-    return { category, total: total(spent), count: spent.length, order };
-  })
+  const byCategory = categories
+    .map((category, order) => {
+      const spent = current.filter((expense) => expense.category === category);
+      return { category, total: total(spent), count: spent.length, order };
+    })
     .sort((a, b) => b.total - a.total || a.order - b.order)
     .map(({ category, total: spent, count }) => ({ category, total: spent, count }));
 

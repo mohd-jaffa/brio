@@ -77,7 +77,10 @@ describe("updateOrderStatus", () => {
   });
 
   it("says so when another tap or device moved the order first", async () => {
-    const { client } = rpcClient({ data: null, error: { code: "P0001", hint: "ORDER_STATUS_CHANGED", message: "moved" } });
+    const { client } = rpcClient({
+      data: null,
+      error: { code: "P0001", hint: "ORDER_STATUS_CHANGED", message: "moved" },
+    });
     await expect(updateOrderStatus(tenantOf(client), "o-1", { status: "IN_PROGRESS" })).rejects.toMatchObject({
       code: "ORDER_STATUS_CHANGED",
       httpStatus: 409,

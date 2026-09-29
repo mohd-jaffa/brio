@@ -9,13 +9,19 @@ const fetcher = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/api/client", () => ({ fetcher }));
 
 function wrapper({ children }: { children: ReactNode }) {
-  return <SWRConfig value={{
+  return (
+    <SWRConfig
+      value={{
         provider: () => new Map(),
         dedupingInterval: 0,
         shouldRetryOnError: false,
         // The screen shows the failure; nothing else needs to hear about it.
         onError: () => {},
-      }}>{children}</SWRConfig>;
+      }}
+    >
+      {children}
+    </SWRConfig>
+  );
 }
 
 beforeEach(() => {
@@ -40,10 +46,7 @@ describe("useApiQuery", () => {
       throw new Error("offline");
     });
 
-    const { result } = renderHook(
-      () => useApiQuery("/api/products", { shouldRetryOnError: false }),
-      { wrapper },
-    );
+    const { result } = renderHook(() => useApiQuery("/api/products", { shouldRetryOnError: false }), { wrapper });
 
     await waitFor(() => expect(result.current.error).toBeInstanceOf(Error));
   });

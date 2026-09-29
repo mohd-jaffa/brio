@@ -24,7 +24,9 @@ describe("order due notifications migration", () => {
     expect(migration).toContain(
       "between (now() at time zone b.timezone)::date and (now() at time zone b.timezone)::date + 1",
     );
-    expect(migration).toContain("(o.delivery_date at time zone b.timezone)::date < (now() at time zone b.timezone)::date\n");
+    expect(migration).toContain(
+      "(o.delivery_date at time zone b.timezone)::date < (now() at time zone b.timezone)::date\n",
+    );
   });
 
   it("tells only open orders, each once, from the hour it is given", () => {
@@ -46,11 +48,17 @@ describe("order due notifications migration", () => {
   });
 
   it("takes orders long past their day as known when it arrives", () => {
-    expect(migration).toMatch(/set overdue_notified_at = now\(\)[\s\S]+< \(now\(\) at time zone b\.timezone\)::date - 1;/);
+    expect(migration).toMatch(
+      /set overdue_notified_at = now\(\)[\s\S]+< \(now\(\) at time zone b\.timezone\)::date - 1;/,
+    );
   });
 
   it("is the worker's alone", () => {
-    expect(migration).toContain("revoke all on function public.queue_due_order_notifications(integer) from public, anon, authenticated;");
-    expect(migration).toContain("grant execute on function public.queue_due_order_notifications(integer) to service_role;");
+    expect(migration).toContain(
+      "revoke all on function public.queue_due_order_notifications(integer) from public, anon, authenticated;",
+    );
+    expect(migration).toContain(
+      "grant execute on function public.queue_due_order_notifications(integer) to service_role;",
+    );
   });
 });

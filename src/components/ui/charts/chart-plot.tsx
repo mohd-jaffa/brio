@@ -27,8 +27,7 @@ function bubblePlacement(target: PlotTarget, width: number) {
     const x = target.x > width / 2 ? `calc(-100% - ${BUBBLE_GAP}px)` : `${BUBBLE_GAP}px`;
     return { top: Math.max(target.y, BUBBLE_ROOM / 2), transform: `translate(${x}, -50%)` };
   }
-  const x =
-    target.x < width * EDGE ? "-14px" : target.x > width * (1 - EDGE) ? "calc(-100% + 14px)" : "-50%";
+  const x = target.x < width * EDGE ? "-14px" : target.x > width * (1 - EDGE) ? "calc(-100% + 14px)" : "-50%";
   return { top: target.y, transform: `translate(${x}, calc(-100% - ${BUBBLE_GAP}px))` };
 }
 
@@ -66,7 +65,12 @@ export function ChartPlot({
   const pick = (event: PointerEvent<HTMLDivElement>) => {
     if (targets.length === 0) return;
     const left = event.currentTarget.getBoundingClientRect().left;
-    onActiveChange(nearestIndex(targets.map((point) => point.x), event.clientX - left));
+    onActiveChange(
+      nearestIndex(
+        targets.map((point) => point.x),
+        event.clientX - left,
+      ),
+    );
   };
 
   const leave = (event: PointerEvent<HTMLDivElement>) => {

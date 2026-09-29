@@ -17,8 +17,14 @@ import {
 describe("payment when the order is placed (§139.11.9)", () => {
   it("is unpaid, paid in full, or part paid with the amount", () => {
     expect(orderPaymentSchema.parse({ status: "UNPAID", method: "CASH" })).toEqual({ status: "UNPAID" });
-    expect(orderPaymentSchema.parse({ status: "PAID", method: "UPI" })).toEqual({ status: "PAID", method: "UPI", reference: null });
-    expect(orderPaymentSchema.parse({ status: "PARTIALLY_PAID", amount: 50000, method: "CASH", reference: " R-1 " })).toEqual({
+    expect(orderPaymentSchema.parse({ status: "PAID", method: "UPI" })).toEqual({
+      status: "PAID",
+      method: "UPI",
+      reference: null,
+    });
+    expect(
+      orderPaymentSchema.parse({ status: "PARTIALLY_PAID", amount: 50000, method: "CASH", reference: " R-1 " }),
+    ).toEqual({
       status: "PARTIALLY_PAID",
       amount: 50000,
       method: "CASH",
@@ -28,7 +34,10 @@ describe("payment when the order is placed (§139.11.9)", () => {
 
   it("asks part paid for its amount, and anything paid for its method", () => {
     const part = orderPaymentSchema.safeParse({ status: "PARTIALLY_PAID", method: "CASH" });
-    expect(part.error?.issues[0]).toMatchObject({ path: ["amount"], message: VALIDATION_MESSAGES.amount("Amount paid") });
+    expect(part.error?.issues[0]).toMatchObject({
+      path: ["amount"],
+      message: VALIDATION_MESSAGES.amount("Amount paid"),
+    });
     const paid = orderPaymentSchema.safeParse({ status: "PAID" });
     expect(paid.error?.issues[0].message).toBe(VALIDATION_MESSAGES.chooseOne("payment method"));
     expect(orderPaymentSchema.safeParse({ status: "PAID_LATER" }).error?.issues[0].message).toBe(
@@ -37,19 +46,28 @@ describe("payment when the order is placed (§139.11.9)", () => {
   });
 
   it("the form reads the part amount in rupees, and asks for it only when part paid", () => {
-    expect(orderPaymentFormSchema.parse({ status: "PARTIALLY_PAID", method: "UPI", reference: "", amount: "₹1,500" })).toEqual({
+    expect(
+      orderPaymentFormSchema.parse({ status: "PARTIALLY_PAID", method: "UPI", reference: "", amount: "₹1,500" }),
+    ).toEqual({
       status: "PARTIALLY_PAID",
       amount: 150000,
       method: "UPI",
       reference: null,
     });
-    expect(orderPaymentFormSchema.parse({ status: "UNPAID", method: "UPI", reference: "", amount: "" })).toEqual({ status: "UNPAID" });
+    expect(orderPaymentFormSchema.parse({ status: "UNPAID", method: "UPI", reference: "", amount: "" })).toEqual({
+      status: "UNPAID",
+    });
     for (const [amount, message] of [
       ["", VALIDATION_MESSAGES.required("Amount paid")],
       ["0", VALIDATION_MESSAGES.moreThanZero("Amount paid")],
       ["lots", VALIDATION_MESSAGES.amount("Amount paid")],
     ]) {
-      const result = orderPaymentFormSchema.safeParse({ status: "PARTIALLY_PAID", method: "UPI", reference: "", amount });
+      const result = orderPaymentFormSchema.safeParse({
+        status: "PARTIALLY_PAID",
+        method: "UPI",
+        reference: "",
+        amount,
+      });
       expect(result.error?.issues[0]).toMatchObject({ path: ["amount"], message });
     }
   });
@@ -85,7 +103,14 @@ describe("order", () => {
   });
 
   it("never takes a missing customer, or a bare null, as Guest", () => {
-    for (const customer of [undefined, null, {}, { kind: "CUSTOMER" }, { kind: "CUSTOMER", id: null }, { kind: "SOMEONE" }]) {
+    for (const customer of [
+      undefined,
+      null,
+      {},
+      { kind: "CUSTOMER" },
+      { kind: "CUSTOMER", id: null },
+      { kind: "SOMEONE" },
+    ]) {
       const result = createOrderSchema.safeParse({ ...validOrder, customer });
       expect(result.success).toBe(false);
       expect(result.error?.issues[0].message).toBe(VALIDATION_MESSAGES.chooseOne("customer"));
@@ -96,7 +121,9 @@ describe("order", () => {
     expect(orderListQuerySchema.parse({ customer: "guest" })).toEqual({ customer: "guest", search: null });
     expect(orderListQuerySchema.parse({ customer: UUID })).toEqual({ customer: UUID, search: null });
     expect(orderListQuerySchema.parse({})).toEqual({ search: null });
-    expect(orderListQuerySchema.safeParse({ customer: "everyone" }).error?.issues[0].message).toBe(VALIDATION_MESSAGES.invalid);
+    expect(orderListQuerySchema.safeParse({ customer: "everyone" }).error?.issues[0].message).toBe(
+      VALIDATION_MESSAGES.invalid,
+    );
   });
 
   it("takes a list's status, payment, due dates, search and page (§139.10)", () => {
@@ -149,7 +176,10 @@ describe("order", () => {
       VALIDATION_MESSAGES.tooShort("Item name", 2),
       VALIDATION_MESSAGES.moreThanZero("Amount"),
     ]);
-    expect(result.error?.issues.map((issue) => issue.path.join("."))).toEqual(["items.0.custom.name", "items.0.custom.unitPrice"]);
+    expect(result.error?.issues.map((issue) => issue.path.join("."))).toEqual([
+      "items.0.custom.name",
+      "items.0.custom.unitPrice",
+    ]);
   });
 
   it("reports a catalogue line's mistake against the catalogue line", () => {
@@ -166,7 +196,9 @@ describe("order", () => {
       description: null,
       unitPrice: 125000,
     });
-    expect(customItemFormSchema.parse({ name: "Cake topper", description: "  Gold ", unitPrice: "10" }).description).toBe("Gold");
+    expect(
+      customItemFormSchema.parse({ name: "Cake topper", description: "  Gold ", unitPrice: "10" }).description,
+    ).toBe("Gold");
     expect(customItemFormSchema.safeParse({ name: "Cake topper", unitPrice: "0" }).error?.issues[0].message).toBe(
       VALIDATION_MESSAGES.moreThanZero("Amount"),
     );
@@ -177,7 +209,10 @@ describe("order", () => {
 
   it("sends a delivery somewhere: an address, a map link, or both (§96, BUG-22)", () => {
     const delivery = (address?: string, googleMapsLink?: string) =>
-      createOrderSchema.safeParse({ ...validOrder, delivery: { type: "DELIVERY", date: validOrder.delivery.date, address, googleMapsLink } });
+      createOrderSchema.safeParse({
+        ...validOrder,
+        delivery: { type: "DELIVERY", date: validOrder.delivery.date, address, googleMapsLink },
+      });
 
     expect(delivery("12 MG Road").success).toBe(true);
     expect(delivery(undefined, "https://maps.app.goo.gl/xyz").success).toBe(true);
@@ -196,7 +231,10 @@ describe("order", () => {
     const result = orderFormSchema.safeParse(
       form({ delivery: { type: "DELIVERY", date: "2026-09-23T10:00", address: "", googleMapsLink: "" } }),
     );
-    expect(result.error?.issues[0]).toMatchObject({ path: ["delivery", "address"], message: VALIDATION_MESSAGES.deliveryNeedsPlace });
+    expect(result.error?.issues[0]).toMatchObject({
+      path: ["delivery", "address"],
+      message: VALIDATION_MESSAGES.deliveryNeedsPlace,
+    });
   });
 
   it("names the map link as a map link, whichever service it is from", () => {
@@ -242,7 +280,9 @@ describe("order", () => {
       ["", VALIDATION_MESSAGES.required("Date and time")],
       ["someday", VALIDATION_MESSAGES.invalid],
     ]) {
-      const result = orderFormSchema.safeParse(form({ delivery: { type: "PICKUP", date, address: "", googleMapsLink: "" } }));
+      const result = orderFormSchema.safeParse(
+        form({ delivery: { type: "PICKUP", date, address: "", googleMapsLink: "" } }),
+      );
       expect(result.error?.issues[0]).toMatchObject({ path: ["delivery", "date"], message });
     }
   });
@@ -298,7 +338,10 @@ describe("an order changed (§139.11.13)", () => {
 
   it("refuses a line id that is not an id, against that line", () => {
     const result = updateOrderSchema.safeParse({ ...change, items: [{ itemId: "i-1", productId: UUID, quantity: 1 }] });
-    expect(result.error?.issues[0]).toMatchObject({ path: ["items", 0, "itemId"], message: VALIDATION_MESSAGES.invalid });
+    expect(result.error?.issues[0]).toMatchObject({
+      path: ["items", 0, "itemId"],
+      message: VALIDATION_MESSAGES.invalid,
+    });
   });
 
   it("still needs an item and a place for a delivery", () => {
@@ -311,7 +354,13 @@ describe("an order changed (§139.11.13)", () => {
 
   it("the edit form is the order form without its payment, keeping each line's id", () => {
     const whole = form({ items: [{ itemId: LINE, productId: OTHER_UUID, quantity: 2, notes: "" }] });
-    const rest = { customer: whole.customer, items: whole.items, adjustments: whole.adjustments, delivery: whole.delivery, notes: whole.notes };
+    const rest = {
+      customer: whole.customer,
+      items: whole.items,
+      adjustments: whole.adjustments,
+      delivery: whole.delivery,
+      notes: whole.notes,
+    };
     const parsed = editOrderFormSchema.parse(rest);
     expect(parsed.items).toEqual([{ itemId: LINE, productId: OTHER_UUID, quantity: 2, notes: null }]);
     expect(parsed).not.toHaveProperty("payment");

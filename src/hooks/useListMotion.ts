@@ -115,13 +115,21 @@ export function useListMotion<T extends HTMLElement>(): RefObject<T | null> {
     let arriving = 0;
     for (const item of added) {
       if (item.getAnimations().length > 0) continue;
-      item.animate(reduce ? fade : [{ opacity: 0, transform: "translateY(-6px)" }, { opacity: 1, transform: "none" }], {
-        duration: reduce ? FADE_MS : ARRIVE_MS,
-        delay: reduce ? 0 : Math.min(arriving++, MOST_STAGGERED) * STAGGER_MS,
-        easing: EASE_OUT_EXPO,
-        fill: "backwards",
-        id: MOTION,
-      });
+      item.animate(
+        reduce
+          ? fade
+          : [
+              { opacity: 0, transform: "translateY(-6px)" },
+              { opacity: 1, transform: "none" },
+            ],
+        {
+          duration: reduce ? FADE_MS : ARRIVE_MS,
+          delay: reduce ? 0 : Math.min(arriving++, MOST_STAGGERED) * STAGGER_MS,
+          easing: EASE_OUT_EXPO,
+          fill: "backwards",
+          id: MOTION,
+        },
+      );
     }
   });
 

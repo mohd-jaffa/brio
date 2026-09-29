@@ -21,9 +21,8 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/features/auth/api.client", () => ({ AuthClient: client }));
 vi.mock("@/features/auth/AuthProvider", () => ({ useAuth: () => auth.current }));
 
-const { ConfirmEmailPanel, readConfirmationLink, readEmailChangeToken } = await import(
-  "@/features/auth/components/ConfirmEmailPanel"
-);
+const { ConfirmEmailPanel, readConfirmationLink, readEmailChangeToken } =
+  await import("@/features/auth/components/ConfirmEmailPanel");
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -63,9 +62,7 @@ describe("confirming an email address", () => {
     window.location.hash = "#access_token=a&refresh_token=r";
     render(<ConfirmEmailPanel />);
 
-    await waitFor(() =>
-      expect(client.confirmEmail).toHaveBeenCalledWith({ accessToken: "a", refreshToken: "r" }),
-    );
+    await waitFor(() => expect(client.confirmEmail).toHaveBeenCalledWith({ accessToken: "a", refreshToken: "r" }));
     await waitFor(() => expect(auth.current.adopt).toHaveBeenCalled());
     await waitFor(() => expect(loadPage).toHaveBeenCalledWith("/"));
   });
@@ -94,10 +91,7 @@ describe("confirming an email address", () => {
   it("offers the way back to sign-in when it cannot confirm", async () => {
     render(<ConfirmEmailPanel />);
 
-    expect(await screen.findByRole("link", { name: UI_TEXT.auth.backToSignIn })).toHaveAttribute(
-      "href",
-      "/login",
-    );
+    expect(await screen.findByRole("link", { name: UI_TEXT.auth.backToSignIn })).toHaveAttribute("href", "/login");
   });
 
   it("reports a refusal from the server in its own words", async () => {

@@ -44,13 +44,16 @@ describe("OrderReminders", () => {
     expect(fetcher).toHaveBeenCalledWith("/api/notifications/reminders");
   });
 
-  it.each([undefined, "OFF", "BLOCKED", "UNSUPPORTED"] as const)("reads nothing while the permission is %s", async (permission) => {
-    native.permission = permission;
-    render(<OrderReminders />, { wrapper: Providers });
-    await new Promise((settle) => setTimeout(settle, 20));
-    expect(fetcher).not.toHaveBeenCalled();
-    expect(native.scheduleReminders).not.toHaveBeenCalled();
-  });
+  it.each([undefined, "OFF", "BLOCKED", "UNSUPPORTED"] as const)(
+    "reads nothing while the permission is %s",
+    async (permission) => {
+      native.permission = permission;
+      render(<OrderReminders />, { wrapper: Providers });
+      await new Promise((settle) => setTimeout(settle, 20));
+      expect(fetcher).not.toHaveBeenCalled();
+      expect(native.scheduleReminders).not.toHaveBeenCalled();
+    },
+  );
 
   it("in a browser, reads nothing and tells the server it still wants them pushed, once as the app opens", async () => {
     native.android = false;

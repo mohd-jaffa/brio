@@ -144,7 +144,13 @@ export function Home() {
               headline
               trend={data.salesByDay.map((day) => day.total)}
             />
-            <StatTile label={text.toCollect} value={formatPaise(data.toCollect)} icon={Wallet} tone="warning" headline />
+            <StatTile
+              label={text.toCollect}
+              value={formatPaise(data.toCollect)}
+              icon={Wallet}
+              tone="warning"
+              headline
+            />
             <StatTile label={text.lowStock} value={String(data.lowStockCount)} icon={PackageOpen} tone="danger" />
           </dl>
         ) : dashboard.error ? (
@@ -217,7 +223,10 @@ export function Home() {
               <Donut
                 title={text.orderStatus}
                 summary={text.orderStatusSummary(data.ordersByStatus.reduce((sum, entry) => sum + entry.count, 0))}
-                slices={data.ordersByStatus.map((entry) => ({ label: ORDER_STATUS_LABELS[entry.status], value: entry.count }))}
+                slices={data.ordersByStatus.map((entry) => ({
+                  label: ORDER_STATUS_LABELS[entry.status],
+                  value: entry.count,
+                }))}
                 totalLabel={text.totalOrders}
                 unit="count"
                 labelHeading={UI_TEXT.charts.status}

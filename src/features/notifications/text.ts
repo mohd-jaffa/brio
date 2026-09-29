@@ -56,7 +56,11 @@ export function notificationText(message: NotificationMessage): NotificationPayl
     case "ORDER_OVERDUE":
       return {
         title: notifications.orderOverdueTitle,
-        body: notifications.orderOverdueBody(message.orderNumber, whose(message.customerName), formatDayMonth(message.dueDate)),
+        body: notifications.orderOverdueBody(
+          message.orderNumber,
+          whose(message.customerName),
+          formatDayMonth(message.dueDate),
+        ),
       };
     case "PAYMENT_RECEIVED":
       return {
@@ -73,7 +77,10 @@ export function notificationText(message: NotificationMessage): NotificationPayl
     case "ORDER_STATUS":
       return {
         title: notifications.orderStatusTitle,
-        body: notifications.orderStatusBody(message.orderNumber, orderStatusLabel(message.status, message.deliveryType)),
+        body: notifications.orderStatusBody(
+          message.orderNumber,
+          orderStatusLabel(message.status, message.deliveryType),
+        ),
       };
   }
 }
@@ -120,7 +127,10 @@ export function readNotificationMessage(value: unknown): NotificationMessage | n
       : null;
   }
   if (message.kind === "STOCK_LOW") {
-    return text(message.productId) && text(message.productName) && Number.isInteger(message.balance) && text(message.unit)
+    return text(message.productId) &&
+      text(message.productName) &&
+      Number.isInteger(message.balance) &&
+      text(message.unit)
       ? {
           kind: "STOCK_LOW",
           productId: message.productId,

@@ -2,13 +2,7 @@ import * as z from "zod";
 
 import { VALIDATION_MESSAGES } from "@/constants/messages";
 
-import {
-  optionalIllustration,
-  optionalLines,
-  paiseAmount,
-  paiseText,
-  requiredLine,
-} from "../primitives";
+import { optionalIllustration, optionalLines, paiseAmount, paiseText, requiredLine } from "../primitives";
 
 /** A product as the form holds it. Prices are whole paise — never a float (AGENTS.md §13). */
 export const createProductSchema = z.object({

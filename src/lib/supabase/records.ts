@@ -30,11 +30,7 @@ export interface TenantRecords<Row extends { id: string }> {
   list(orderBy?: readonly OrderBy[]): Promise<Row[]>;
   find(id: string): Promise<Row>;
   insert(values: Record<string, unknown>): Promise<Row>;
-  update<K extends string>(
-    id: string,
-    patch: Record<string, unknown>,
-    columns: readonly K[],
-  ): Promise<Row>;
+  update<K extends string>(id: string, patch: Record<string, unknown>, columns: readonly K[]): Promise<Row>;
   remove(id: string): Promise<Row>;
 }
 
@@ -80,11 +76,7 @@ export function tenantRecords<Row extends { id: string }>(tenant: Tenant, table:
       return row;
     },
 
-    async update<K extends string>(
-      id: string,
-      patch: Record<string, unknown>,
-      columns: readonly K[],
-    ): Promise<Row> {
+    async update<K extends string>(id: string, patch: Record<string, unknown>, columns: readonly K[]): Promise<Row> {
       const previous = await find(id);
       const row = await requireRow<Row>(
         client

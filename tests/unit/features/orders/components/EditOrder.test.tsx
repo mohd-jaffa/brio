@@ -90,7 +90,15 @@ function theOrder(changes: Partial<Order> = {}): Order {
     pricing: { subtotal: 115000, discount: 0, deliveryCharge: 0, tax: 0, total: 115000 },
     delivery: { type: "DELIVERY", date: "2099-09-27T08:30:00.000Z", address: "12 Baker Lane" },
     items: [
-      { id: LINE, productId: CAKE, custom: false, productName: "Truffle cake", unitPrice: 100000, quantity: 1, subtotal: 100000 },
+      {
+        id: LINE,
+        productId: CAKE,
+        custom: false,
+        productName: "Truffle cake",
+        unitPrice: 100000,
+        quantity: 1,
+        subtotal: 100000,
+      },
       { id: TOPPER, custom: true, productName: "Name topper", unitPrice: 15000, quantity: 1, subtotal: 15000 },
     ],
     adjustments: [],
@@ -221,7 +229,22 @@ describe("EditOrder: items", () => {
   });
 
   it("will not move on while a line has something to put right", async () => {
-    open("", theOrder({ items: [{ id: "not-an-id", productId: CAKE, custom: false, productName: "Truffle cake", unitPrice: 100000, quantity: 1, subtotal: 100000 }] }));
+    open(
+      "",
+      theOrder({
+        items: [
+          {
+            id: "not-an-id",
+            productId: CAKE,
+            custom: false,
+            productName: "Truffle cake",
+            unitPrice: 100000,
+            quantity: 1,
+            subtotal: 100000,
+          },
+        ],
+      }),
+    );
     await ready();
     await userEvent.click(button("Continue to order details"));
     expect(nav.push).not.toHaveBeenCalled();
@@ -253,7 +276,12 @@ describe("EditOrder: details and saving", () => {
   it("saves the whole order as it now stands, says so, and goes back to it", async () => {
     open("step=details");
     await ready();
-    await userEvent.click(within(screen.getAllByRole("listitem").find((item) => item.textContent?.includes("Truffle cake"))!).getByRole("button", { name: "Increase" }));
+    await userEvent.click(
+      within(screen.getAllByRole("listitem").find((item) => item.textContent?.includes("Truffle cake"))!).getByRole(
+        "button",
+        { name: "Increase" },
+      ),
+    );
     await userEvent.click(saveButton());
 
     await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/orders/o-1"));
@@ -265,7 +293,12 @@ describe("EditOrder: details and saving", () => {
         { itemId: TOPPER, custom: { name: "Name topper", unitPrice: 15000 }, quantity: 1, notes: null },
       ],
       adjustments: [],
-      delivery: { type: "DELIVERY", date: new Date("2099-09-27T08:30:00.000Z").toISOString(), address: "12 Baker Lane", googleMapsLink: null },
+      delivery: {
+        type: "DELIVERY",
+        date: new Date("2099-09-27T08:30:00.000Z").toISOString(),
+        address: "12 Baker Lane",
+        googleMapsLink: null,
+      },
       notes: null,
     });
     expect(await screen.findByText("Order updated")).toBeInTheDocument();
@@ -281,7 +314,19 @@ describe("EditOrder: details and saving", () => {
   });
 
   it("sends a phone back to the first step with something to put right, and keeps a wide screen where it is", async () => {
-    const broken = theOrder({ items: [{ id: "not-an-id", productId: CAKE, custom: false, productName: "Truffle cake", unitPrice: 100000, quantity: 1, subtotal: 100000 }] });
+    const broken = theOrder({
+      items: [
+        {
+          id: "not-an-id",
+          productId: CAKE,
+          custom: false,
+          productName: "Truffle cake",
+          unitPrice: 100000,
+          quantity: 1,
+          subtotal: 100000,
+        },
+      ],
+    });
     const { unmount } = open("step=details", broken);
     await ready();
     await userEvent.click(saveButton());
@@ -328,7 +373,9 @@ describe("EditOrder: details and saving", () => {
     open("step=details");
     await ready();
     await userEvent.click(saveButton());
-    expect(await screen.findByRole("alertdialog", { name: "Changes not saved" })).toHaveTextContent("More has been paid.");
+    expect(await screen.findByRole("alertdialog", { name: "Changes not saved" })).toHaveTextContent(
+      "More has been paid.",
+    );
     await userEvent.click(within(card()).getByRole("button", { name: "Try again" }));
     await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/orders/o-1"));
     expect(OrdersClient.updateOrder).toHaveBeenCalledTimes(2);
@@ -378,7 +425,9 @@ describe("EditOrder: who it is for", () => {
       await userEvent.type(await screen.findByLabelText(/Full name/), "Rahul");
       await userEvent.type(screen.getByLabelText(/Phone number/), "9812345678");
       await userEvent.click(button("Save customer"));
-      await userEvent.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Use that customer" }));
+      await userEvent.click(
+        within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Use that customer" }),
+      );
     };
 
     await useExisting();

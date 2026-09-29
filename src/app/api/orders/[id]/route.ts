@@ -9,9 +9,7 @@ import { updateOrderSchema, updateOrderStatusSchema } from "@/lib/validation";
 export const runtime = "nodejs";
 
 export async function GET(request: Request, { params }: RouteParams<"id">) {
-  return withBakeryRoute(request, async (tenant) =>
-    getOrderById(tenant, (await params).id),
-  );
+  return withBakeryRoute(request, async (tenant) => getOrderById(tenant, (await params).id));
 }
 
 /** The order changed as a whole while it is open (plan §139.11.13). */

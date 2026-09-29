@@ -26,9 +26,7 @@ export interface ConfirmationLink {
  * it expired, arrives carrying an error instead of tokens — can be tested
  * without a browser.
  */
-export function readConfirmationLink(fragment: string):
-  | { link: ConfirmationLink }
-  | { link: null; expired: boolean } {
+export function readConfirmationLink(fragment: string): { link: ConfirmationLink } | { link: null; expired: boolean } {
   const params = new URLSearchParams(fragment.replace(/^#/, ""));
   const accessToken = params.get("access_token");
   const refreshToken = params.get("refresh_token");

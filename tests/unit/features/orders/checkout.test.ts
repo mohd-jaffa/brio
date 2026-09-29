@@ -82,7 +82,14 @@ describe("createOrder", () => {
             tax: 0,
             total: 900,
             items: [
-              { product_id: "p-1", product_name: "Cake", unit_price: 500, quantity: 1, subtotal: 500, notes: "Happy birthday" },
+              {
+                product_id: "p-1",
+                product_name: "Cake",
+                unit_price: 500,
+                quantity: 1,
+                subtotal: 500,
+                notes: "Happy birthday",
+              },
               { product_id: null, product_name: "Topper", unit_price: 500, quantity: 1, subtotal: 500, notes: null },
             ],
             adjustments: [{ type: "DISCOUNT", name: "Festive", amount: 100 }],

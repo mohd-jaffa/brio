@@ -12,7 +12,9 @@ const valid = {
 
 const messages = (input: unknown) => {
   const result = businessProfileSchema.safeParse(input);
-  return result.success ? {} : Object.fromEntries(result.error.issues.map((issue) => [issue.path.join("."), issue.message]));
+  return result.success
+    ? {}
+    : Object.fromEntries(result.error.issues.map((issue) => [issue.path.join("."), issue.message]));
 };
 
 describe("businessProfileSchema", () => {

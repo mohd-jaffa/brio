@@ -209,7 +209,9 @@ describe("creating an account", () => {
   });
 
   it("stays on the business step for any other refusal", async () => {
-    client.register.mockRejectedValue(new ApiError(502, "EXTERNAL_SERVICE_ERROR", ERROR_MESSAGES.EXTERNAL_SERVICE_ERROR));
+    client.register.mockRejectedValue(
+      new ApiError(502, "EXTERNAL_SERVICE_ERROR", ERROR_MESSAGES.EXTERNAL_SERVICE_ERROR),
+    );
     render(<RegisterForm />, { wrapper: Providers });
 
     await fillBoth();

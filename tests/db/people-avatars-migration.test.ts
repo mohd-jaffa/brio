@@ -22,7 +22,9 @@ const keysOf = (sql: string) =>
 describe("people avatars migration", () => {
   it("takes every key the app has, in the app's order", () => {
     expect(keysOf(migration)).toEqual([...AVATAR_KEYS]);
-    expect(migration).toMatch(/create or replace function public\.avatar_keys\(\)\s+returns text\[\]\s+language sql\s+immutable/);
+    expect(migration).toMatch(
+      /create or replace function public\.avatar_keys\(\)\s+returns text\[\]\s+language sql\s+immutable/,
+    );
   });
 
   it("keeps every key 0026 took, so every account keeps its picture", () => {

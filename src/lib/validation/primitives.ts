@@ -168,7 +168,10 @@ function isWebLink(value: string): boolean {
  * the shape alone, so a new illustration needs no migration.
  */
 export function optionalIllustration(label: string) {
-  return z.enum(ILLUSTRATION_KEYS, { error: VALIDATION_MESSAGES.chooseOne(label) }).nullable().optional();
+  return z
+    .enum(ILLUSTRATION_KEYS, { error: VALIDATION_MESSAGES.chooseOne(label) })
+    .nullable()
+    .optional();
 }
 
 /** An amount typed into a text field ("499.50"), parsed to whole paise. */

@@ -116,7 +116,9 @@ describe("in the Android app", () => {
   it("saves a PDF through the same sheet, since a WebView cannot download", async () => {
     const pdf = new Blob(["%PDF"], { type: "application/pdf" });
     expect(await saveFile(pdf, "ORD-1006.pdf")).toBe("SHARED");
-    expect(native.writeFile).toHaveBeenCalledWith(expect.objectContaining({ path: "outbox/ORD-1006.pdf", data: btoa("%PDF") }));
+    expect(native.writeFile).toHaveBeenCalledWith(
+      expect.objectContaining({ path: "outbox/ORD-1006.pdf", data: btoa("%PDF") }),
+    );
     expect(native.share).toHaveBeenCalledWith({ files: ["file:///cache/outbox/bill"], text: undefined });
   });
 
