@@ -4,9 +4,19 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { useTravelMotion } from "@/hooks/useTravelMotion";
 
-function Region({ position, stillWhen, attach = true }: { position: number; stillWhen?: string; attach?: boolean }) {
+function Region({
+  position,
+  stillWhen,
+  carried,
+  attach = true,
+}: {
+  position: number;
+  stillWhen?: string;
+  carried?: () => boolean;
+  attach?: boolean;
+}) {
   const ref = useRef<HTMLDivElement>(null);
-  useTravelMotion(ref, position, stillWhen);
+  useTravelMotion(ref, position, stillWhen, carried);
   return attach ? <div ref={ref} data-testid="region" /> : null;
 }
 
@@ -73,5 +83,19 @@ describe("useTravelMotion", () => {
     Reflect.deleteProperty(HTMLElement.prototype, "animate");
     const old = render(<Region position={0} />);
     expect(() => old.rerender(<Region position={1} />)).not.toThrow();
+  });
+
+  it("keeps still while another motion carries the change, and travels once it does not", () => {
+    HTMLElement.prototype.animate = animate;
+    reduceMotion(false);
+    let running = true;
+    const carried = () => running;
+    const { rerender } = render(<Region position={0} carried={carried} />);
+    rerender(<Region position={1} carried={carried} />);
+    expect(animate).not.toHaveBeenCalled();
+
+    running = false;
+    rerender(<Region position={0} carried={carried} />);
+    expect(animate).toHaveBeenCalledOnce();
   });
 });

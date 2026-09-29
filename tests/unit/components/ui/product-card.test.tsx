@@ -14,7 +14,8 @@ const labels = {
 describe("ProductCard", () => {
   it("shows the illustration, the name and the price, and adds with its +", async () => {
     const onAdd = vi.fn();
-    const { container } = render(<ProductCard {...labels} iconKey="donut" onAdd={onAdd} />);
+    const onAddOrigin = vi.fn();
+    const { container } = render(<ProductCard {...labels} iconKey="donut" onAdd={onAdd} onAddOrigin={onAddOrigin} />);
     expect(screen.getByText("Chocolate truffle cake")).toHaveClass("line-clamp-2");
     expect(screen.getByText("₹1,250")).toBeInTheDocument();
     expect(container.querySelector("img")?.getAttribute("src")).toMatch(/donut/);
@@ -23,6 +24,7 @@ describe("ProductCard", () => {
     expect(add).toHaveClass("hit-area");
     await userEvent.click(add);
     expect(onAdd).toHaveBeenCalledOnce();
+    expect(onAddOrigin).toHaveBeenCalledWith(add);
   });
 
   it("cannot be added while disabled", () => {

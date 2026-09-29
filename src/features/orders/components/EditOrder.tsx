@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { Button, LinkButton } from "@/components/ui/button";
 import { CartBar } from "@/components/ui/cart-bar";
@@ -46,6 +46,8 @@ import {
 import { isFinal } from "../lifecycle";
 import { issuesByPath, readStep, stockRefusal, within, type Step } from "../steps";
 import type { Order } from "../types";
+import { orderChangeDrawn, orderTransitionRunning, transitionOrderStep } from "../choreography";
+import { useOrderAddMotion } from "../hooks/useOrderAddMotion";
 import { DetailsPanel } from "./DetailsPanel";
 import { ItemsPanel } from "./ItemsPanel";
 import { OrderSummary } from "./OrderSummary";
@@ -179,9 +181,12 @@ function Editor({ order, customer }: { order: Order; customer: DraftCustomer }) 
   });
 
   const count = itemCount(draft);
+  const captureAdd = useOrderAddMotion(count);
   const cartArrived = useArrived(count > 0);
   const stepRegion = useRef<HTMLDivElement>(null);
-  useTravelMotion(stepRegion, EDIT_STEPS.indexOf(step), "(min-width: 1024px)");
+  useTravelMotion(stepRegion, EDIT_STEPS.indexOf(step), "(min-width: 1024px)", orderTransitionRunning);
+  // A new step is drawn: a transition waiting on it captures it.
+  useLayoutEffect(orderChangeDrawn, [step]);
 
   const parsed = editOrderFormSchema.safeParse(editForm(draft));
   const issues = parsed.success ? {} : issuesByPath(parsed.error);
@@ -189,7 +194,11 @@ function Editor({ order, customer }: { order: Order; customer: DraftCustomer }) 
   const totals = draftTotals(draft, (productId) => productsById.get(productId)?.defaultPrice);
 
   // A step is the same screen: the address changes, and the server is not asked again.
-  const goTo = (next: Step) => pushUrl(next === "items" ? route : `${route}?step=${next}`);
+  const goTo = (next: Step) =>
+    transitionOrderStep(
+      () => pushUrl(next === "items" ? route : `${route}?step=${next}`),
+      EDIT_STEPS.indexOf(next) > EDIT_STEPS.indexOf(step),
+    );
 
   const choose = (chosen: DraftCustomer) => update((draft) => chooseCustomer(draft, chosen));
   const pick = (picked: PickedCustomer<Customer>) =>
@@ -254,12 +263,13 @@ function Editor({ order, customer }: { order: Order; customer: DraftCustomer }) 
         ref={stepRegion}
         className="relative grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-start"
       >
-        <div className={cn("space-y-4", step !== "items" && "step-away")}>
+        <div className={cn("space-y-4", step === "items" && "order-step-stage", step !== "items" && "step-away")}>
           <ItemsPanel
             products={onSale}
             loading={products.isLoading}
             quantityOf={(productId) => quantityOf(draft, productId)}
             onAdd={(productId) => update((current) => addProduct(current, productId))}
+            onAddOrigin={captureAdd}
             onRemove={(productId) => update((current) => removeProduct(current, productId))}
             onAddCustom={() => setAddingCustom(true)}
           />
@@ -285,6 +295,7 @@ function Editor({ order, customer }: { order: Order; customer: DraftCustomer }) 
           aria-label={UI_TEXT.newOrder.detailsTitle}
           className={cn(
             "space-y-8 lg:sticky lg:top-6 lg:max-h-[calc(100dvh-3rem)] lg:overflow-y-auto lg:rounded-3xl lg:border lg:border-border lg:bg-surface lg:p-6 lg:shadow-card",
+            step !== "items" && "order-step-stage",
             step === "items" && "step-away",
           )}
         >

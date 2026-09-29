@@ -9,10 +9,17 @@ import { canAnimate, travelIn } from "@/lib/motion";
  * changes — the steps of a new order: forward from the right, back from the
  * left — so the way back is where it looks to be. Nothing moves on the first
  * render, nothing while the `stillWhen` media query matches (a wide screen
- * that shows every step at once), and under reduced motion it only fades. Web Animations, not a class,
- * so it replays without remounting what is inside.
+ * that shows every step at once), nothing when `carried` says another motion
+ * is already moving this change (a view transition), and under reduced motion
+ * it only fades. Web Animations, not a class, so it replays without
+ * remounting what is inside.
  */
-export function useTravelMotion(ref: RefObject<HTMLElement | null>, position: number, stillWhen?: string) {
+export function useTravelMotion(
+  ref: RefObject<HTMLElement | null>,
+  position: number,
+  stillWhen?: string,
+  carried?: () => boolean,
+) {
   const last = useRef(position);
   useEffect(() => {
     const from = last.current;
@@ -20,6 +27,7 @@ export function useTravelMotion(ref: RefObject<HTMLElement | null>, position: nu
     const region = ref.current;
     if (from === position || !canAnimate(region)) return;
     if (stillWhen && window.matchMedia?.(stillWhen).matches === true) return;
+    if (carried?.()) return;
     travelIn(region, position > from, 24, 300);
-  }, [ref, position, stillWhen]);
+  }, [ref, position, stillWhen, carried]);
 }

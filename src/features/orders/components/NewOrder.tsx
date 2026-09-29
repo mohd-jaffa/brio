@@ -2,7 +2,7 @@
 
 import { ArrowRight, Trash2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { CartBar } from "@/components/ui/cart-bar";
@@ -47,6 +47,8 @@ import type { OrderEstimate } from "../estimate";
 import { useOrderDraft } from "../hooks/useOrderDraft";
 import { issuesByPath, readStep, STEPS, stockRefusal, within, type Step } from "../steps";
 import type { Order } from "../types";
+import { orderChangeDrawn, orderTransitionRunning, transitionOrderPlaced, transitionOrderStep } from "../choreography";
+import { useOrderAddMotion } from "../hooks/useOrderAddMotion";
 import { DetailsPanel } from "./DetailsPanel";
 import { ItemsPanel } from "./ItemsPanel";
 import { OrderSummary } from "./OrderSummary";
@@ -143,11 +145,15 @@ export function NewOrder() {
   });
 
   // The cart bar rises in with the first item, not when a kept draft loads.
-  const cartArrived = useArrived(draft !== null && itemCount(draft) > 0, draft !== null);
+  const items = draft === null ? 0 : itemCount(draft);
+  const cartArrived = useArrived(items > 0, draft !== null);
+  const captureAdd = useOrderAddMotion(items);
   // On a phone each step comes in from the side it lies on (the grid shows
   // them all from 1024 px, and stays still).
   const stepRegion = useRef<HTMLDivElement>(null);
-  useTravelMotion(stepRegion, STEPS.indexOf(step), "(min-width: 1024px)");
+  useTravelMotion(stepRegion, STEPS.indexOf(step), "(min-width: 1024px)", orderTransitionRunning);
+  // A new step, or an order placed and cleared, is drawn: a transition waiting on it captures it.
+  useLayoutEffect(orderChangeDrawn, [step, items]);
 
   if (!draft) {
     // The draft is kept on this device, so the server cannot see it. On the
@@ -197,7 +203,11 @@ export function NewOrder() {
         : 0;
 
   // A step is the same screen: the address changes, and the server is not asked again.
-  const goTo = (next: Step) => pushUrl(next === "items" ? ROUTE : `${ROUTE}?step=${next}`);
+  const goTo = (next: Step) =>
+    transitionOrderStep(
+      () => pushUrl(next === "items" ? ROUTE : `${ROUTE}?step=${next}`),
+      STEPS.indexOf(next) > STEPS.indexOf(step),
+    );
 
   /** Moves on when this step has nothing left to put right; otherwise shows what. */
   const passes = (at: Step) => {
@@ -259,23 +269,26 @@ export function NewOrder() {
       lastAttempt.current = () => void attempt();
       const order = await create.submit(payload);
       if (!order) return;
-      clear();
-      setTried(null);
-      replaceUrl(ROUTE);
-      respond.success({
-        title: text.placed,
-        message: text.placedBody(order.orderNumber),
-        facts: [
-          { label: text.factOrder, value: order.orderNumber },
-          { label: text.factCustomer, value: who },
-          { label: text.factTotal, value: formatPaise(order.pricing.total) },
-        ],
-        primary: {
-          label: UI_TEXT.bill.view,
-          onClick: () => setPlacedBill({ id: order.id, orderNumber: order.orderNumber }),
-        },
-        secondary: { label: text.newOrder },
-        autoClose: false,
+      transitionOrderPlaced(() => {
+        clear();
+        setTried(null);
+        replaceUrl(ROUTE);
+        respond.success({
+          title: text.placed,
+          message: text.placedBody(order.orderNumber),
+          facts: [
+            { label: text.factOrder, value: order.orderNumber },
+            { label: text.factCustomer, value: who },
+            { label: text.factTotal, value: formatPaise(order.pricing.total) },
+          ],
+          primary: {
+            label: UI_TEXT.bill.view,
+            onClick: () => setPlacedBill({ id: order.id, orderNumber: order.orderNumber }),
+          },
+          secondary: { label: text.newOrder },
+          autoClose: false,
+          motion: "order-placed",
+        });
       });
     };
     await attempt();
@@ -297,15 +310,17 @@ export function NewOrder() {
         : { title: text.title, subtitle: text.itemsSubtitle, back: "/orders" };
 
   const placeButton = (
-    <Button
-      label={text.placeOrder}
-      variant="action"
-      size="lg"
-      fullWidth
-      loading={create.submitting}
-      disabled={count === 0}
-      onClick={() => void place()}
-    />
+    <span className={cn("block", count > 0 && "order-confirm-source")}>
+      <Button
+        label={text.placeOrder}
+        variant="action"
+        size="lg"
+        fullWidth
+        loading={create.submitting}
+        disabled={count === 0}
+        onClick={() => void place()}
+      />
+    </span>
   );
 
   return (
@@ -324,12 +339,13 @@ export function NewOrder() {
         ref={stepRegion}
         className="relative grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-start"
       >
-        <div className={cn("space-y-4", step !== "items" && "step-away")}>
+        <div className={cn("space-y-4", step === "items" && "order-step-stage", step !== "items" && "step-away")}>
           <ItemsPanel
             products={onSale}
             loading={products.isLoading}
             quantityOf={(productId) => quantityOf(draft, productId)}
             onAdd={(productId) => update((current) => addProduct(current, productId))}
+            onAddOrigin={captureAdd}
             onRemove={(productId) => update((current) => removeProduct(current, productId))}
             onAddCustom={() => setAddingCustom(true)}
           />
@@ -352,6 +368,7 @@ export function NewOrder() {
           aria-label={text.detailsTitle}
           className={cn(
             "space-y-8 lg:sticky lg:top-6 lg:max-h-[calc(100dvh-3rem)] lg:overflow-y-auto lg:rounded-3xl lg:border lg:border-border lg:bg-surface lg:p-6 lg:shadow-card",
+            step !== "items" && "order-step-stage",
             step === "items" && "step-away",
           )}
         >

@@ -7831,6 +7831,11 @@ a shared component** (AGENTS §5).
   - **Figures:** Home's four figures, Analytics' four and a ring's total roll the way they moved, up or down, like the order flow's till (`RollingNumber`). Under reduced motion the roll is a short fade.
   - **Charts:** a line, bar or ring moves from the values it showed to the next period's or grouping's over 520 ms, instead of snapping (`useAnimatedValues`). A new point or slice grows from nothing. An interrupted move carries on from where it had reached. Under reduced motion the new values show at once.
   - **What stays still:** a chart's first showing, which keeps its own entrance, and its words. The table, the tooltip and the summary always hold the final values.
+- **Taking an order** (the user, 2026-09-29; `src/features/orders/choreography.ts`):
+  - **Adding:** the pressed + flies into the cart on a phone, or into its line on the desktop's order panel, which answers with a small pulse. Under reduced motion only the cart or the line answers, with a short fade.
+  - **Steps, on a phone:** a View Transition carries the order from one step to the next, forward from the right and back from the left. Where the browser has none, or the step changes by Back, the step slides in as before (`useTravelMotion`); never both. From 1024 px, where every step shows at once, nothing moves.
+  - **Placing:** the Place order button turns into the success card's medallion.
+  - **What it waits for:** a transition captures the new screen when the screen says it is drawn (`orderChangeDrawn`), and holds it 300 ms at most. It never waits for an animation frame: the browser runs none while it holds the screen, and Chrome would freeze it for four seconds.
 
 ---
 

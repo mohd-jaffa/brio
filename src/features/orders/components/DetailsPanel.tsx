@@ -148,7 +148,12 @@ export function DetailsPanel({
                 className={cn("rounded-2xl border border-border bg-surface p-3 shadow-card", addedLine(line.key))}
               >
                 <div className="flex items-center gap-3">
-                  <ProductTile iconKey={line.custom ? null : product?.iconKey} size="md" />
+                  <span
+                    data-order-add-target={line.productId ? "line" : undefined}
+                    data-order-product-id={line.productId ?? undefined}
+                  >
+                    <ProductTile iconKey={line.custom ? null : product?.iconKey} size="md" />
+                  </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-text">{name}</p>
                     <p className="flex items-center gap-2 text-sm text-text-muted">

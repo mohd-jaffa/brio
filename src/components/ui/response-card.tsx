@@ -47,6 +47,8 @@ export interface OutcomeCard {
   secondary?: ResponseAction;
   /** A success or info card with no next step closes itself; `false` keeps it. */
   autoClose?: boolean;
+  /** Optional shared-element finish for a high-value flow. */
+  motion?: "order-placed";
 }
 
 export interface ErrorCard extends OutcomeCard {
@@ -297,7 +299,9 @@ function ResponseCard({ card, onClose }: { card: Card; onClose: (answer?: boolea
             <X size={20} strokeWidth={1.75} aria-hidden="true" />
           </button>
         )}
-        <Medallion icon={icon} tone={danger ? "danger" : tone} size="lg" />
+        <span className={card.motion === "order-placed" ? "order-confirm-destination" : undefined}>
+          <Medallion icon={icon} tone={danger ? "danger" : tone} size="lg" />
+        </span>
         <h2 id={titleId} className="mt-4 font-heading text-2xl font-medium leading-tight">
           {card.title}
         </h2>

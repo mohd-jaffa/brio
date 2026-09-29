@@ -50,9 +50,12 @@ describe("ItemsPanel", () => {
   });
 
   it("adds a product with its +, takes one off with its −, and hands over to a custom item", async () => {
-    const props = show();
-    await userEvent.click(screen.getByRole("button", { name: "Add Walnut brownie" }));
+    const onAddOrigin = vi.fn();
+    const props = show({ onAddOrigin });
+    const add = screen.getByRole("button", { name: "Add Walnut brownie" });
+    await userEvent.click(add);
     expect(props.onAdd).toHaveBeenCalledWith("p-brownie");
+    expect(onAddOrigin).toHaveBeenCalledWith("p-brownie", add);
     expect(screen.queryByRole("button", { name: "Remove one Walnut brownie" })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Remove one Chocolate truffle cake" }));
     expect(props.onRemove).toHaveBeenCalledWith("p-cake");

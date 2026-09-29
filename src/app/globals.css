@@ -754,6 +754,102 @@ main[data-navigating] > :not([data-screen-skeleton]) {
 }
 
 /* ============================================================
+   Order choreography
+   One order token moves from a product into the visible cart or desktop
+   line. On phones, View Transitions carry the assembled order between its
+   three steps, and the final action resolves into the success medallion.
+   Browsers without View Transitions keep the existing WAAPI step travel.
+   ============================================================ */
+@media (width < 64rem) and (prefers-reduced-motion: no-preference) {
+  .order-step-stage {
+    view-transition-name: order-stage;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .order-confirm-source,
+  .order-confirm-destination {
+    view-transition-name: order-confirm;
+  }
+}
+
+@keyframes order-stage-forward-out {
+  to {
+    opacity: 0;
+    transform: translateX(-18px) scale(0.99);
+  }
+}
+
+@keyframes order-stage-forward-in {
+  from {
+    opacity: 0;
+    transform: translateX(34px) scale(0.985);
+  }
+}
+
+@keyframes order-stage-back-out {
+  to {
+    opacity: 0;
+    transform: translateX(18px) scale(0.99);
+  }
+}
+
+@keyframes order-stage-back-in {
+  from {
+    opacity: 0;
+    transform: translateX(-34px) scale(0.985);
+  }
+}
+
+@keyframes order-confirm-out {
+  to {
+    opacity: 0;
+    transform: scale(0.58);
+  }
+}
+
+@keyframes order-confirm-in {
+  from {
+    opacity: 0;
+    transform: scale(0.72) rotate(-8deg);
+  }
+}
+
+:root[data-order-transition="step"]::view-transition-group(order-stage) {
+  animation-duration: 420ms;
+  animation-timing-function: var(--ease-out-expo);
+}
+
+:root[data-order-transition="step"][data-order-direction="forward"]::view-transition-old(order-stage) {
+  animation: order-stage-forward-out 180ms ease-in both;
+}
+
+:root[data-order-transition="step"][data-order-direction="forward"]::view-transition-new(order-stage) {
+  animation: order-stage-forward-in 420ms var(--ease-out-expo) both;
+}
+
+:root[data-order-transition="step"][data-order-direction="back"]::view-transition-old(order-stage) {
+  animation: order-stage-back-out 180ms ease-in both;
+}
+
+:root[data-order-transition="step"][data-order-direction="back"]::view-transition-new(order-stage) {
+  animation: order-stage-back-in 420ms var(--ease-out-expo) both;
+}
+
+:root[data-order-transition="placed"]::view-transition-group(order-confirm) {
+  animation-duration: 560ms;
+  animation-timing-function: var(--ease-out-expo);
+}
+
+:root[data-order-transition="placed"]::view-transition-old(order-confirm) {
+  animation: order-confirm-out 240ms ease-in both;
+}
+
+:root[data-order-transition="placed"]::view-transition-new(order-confirm) {
+  animation: order-confirm-in 520ms 40ms var(--ease-out-expo) both;
+}
+
+/* ============================================================
    Browser surfaces
    The parts nobody draws still ship with somebody's design.
    These take the palette so selection, the caret, scrollbars

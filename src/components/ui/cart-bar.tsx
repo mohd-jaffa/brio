@@ -45,7 +45,10 @@ export function CartBar({
           arriving && "animate-arrive",
         )}
       >
-        <span className="relative inline-flex size-11 shrink-0 items-center justify-center rounded-xl bg-sunken text-text">
+        <span
+          data-order-add-target="cart"
+          className="relative inline-flex size-11 shrink-0 items-center justify-center rounded-xl bg-sunken text-text"
+        >
           <ShoppingCart size={22} strokeWidth={1.75} aria-hidden="true" />
           <span
             aria-hidden="true"

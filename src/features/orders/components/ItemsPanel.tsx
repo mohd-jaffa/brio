@@ -55,6 +55,7 @@ export function ItemsPanel({
   loading,
   quantityOf,
   onAdd,
+  onAddOrigin,
   onRemove,
   onAddCustom,
 }: {
@@ -63,6 +64,8 @@ export function ItemsPanel({
   loading: boolean;
   quantityOf: (productId: string) => number;
   onAdd: (productId: string) => void;
+  /** The pressed + before the item count changes; used only for order choreography. */
+  onAddOrigin?: (productId: string, origin: HTMLButtonElement) => void;
   onRemove: (productId: string) => void;
   onAddCustom: () => void;
 }) {
@@ -106,6 +109,7 @@ export function ItemsPanel({
                     iconKey={product.iconKey}
                     addLabel={text.add(product.name)}
                     onAdd={() => onAdd(product.id)}
+                    onAddOrigin={(origin) => onAddOrigin?.(product.id, origin)}
                     quantity={quantity}
                     quantityLabel={text.inOrder(quantity)}
                     removeLabel={text.removeOne(product.name)}

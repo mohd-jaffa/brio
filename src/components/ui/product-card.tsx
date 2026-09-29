@@ -24,6 +24,7 @@ export function ProductCard({
   iconKey,
   addLabel,
   onAdd,
+  onAddOrigin,
   quantity = 0,
   quantityLabel,
   removeLabel,
@@ -37,6 +38,8 @@ export function ProductCard({
   /** The +'s name for a screen reader: "Add Chocolate truffle cake". */
   addLabel: string;
   onAdd: () => void;
+  /** Receives the + before its quantity changes, for spatial feedback owned by the order screen. */
+  onAddOrigin?: (origin: HTMLButtonElement) => void;
   /** How many are in the order already. */
   quantity?: number;
   /** That count in words, for a screen reader: "2 in the order". */
@@ -95,7 +98,10 @@ export function ProductCard({
             ref={add}
             type="button"
             aria-label={addLabel}
-            onClick={onAdd}
+            onClick={(event) => {
+              onAddOrigin?.(event.currentTarget);
+              onAdd();
+            }}
             disabled={disabled}
             className={cn(STEP, "bg-primary hover:bg-primary-hover disabled:opacity-50")}
           >
