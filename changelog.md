@@ -3748,3 +3748,34 @@ A whole-app `/impeccable critique` (two independent reviews: design, and the det
 
 ### Blockers
 - None.
+
+## 2026-09-29 — Optimize: the first opening of a sheet no longer waits
+
+### Measured
+A second `/impeccable optimize` pass, on the built app at 390 px, with a throttled phone (Fast 4G, CPU slowed 4×):
+- **Sheets:** each sheet's first opening was timed, and so was its second.
+- **Images:** the pixels downloaded were compared with the pixels drawn.
+- **Fonts:** the files loaded on a first visit, and whether they were preloaded.
+- **Screens:** the time to move from one tab to the next.
+
+### Fixed
+- **Every sheet kept out of its screen's first download opened about 340 ms after the first tap, even on a fast machine.** That is 19 sheets, among them Add product, New customer, Add expense, Record stock, Stock history, the bill and the estimate.
+  - The code had already arrived, fetched once the screen was idle. But `React.lazy` suspends on a component's first render anyway, and React holds a suspended reveal back for about 300 ms.
+  - `lazySheet` now keeps the fetched component and draws it directly, with no `Suspense`, so an opened sheet appears in the tap's own frame.
+  - One opened before its code arrives is fetched at once and drawn as it lands.
+  - A failed fetch still reaches the screen's error boundary, and the next opening asks again.
+  - Tap to open, measured in the page: 338–356 ms before, 37–68 ms after. A first opening is now as quick as a later one, and as the filters, which were never lazy.
+
+### Checked, and left as they are
+- **Images** are drawn from the right sizes. The plates are 22–27 KB, and product pictures 2–12 KB.
+- **Fonts** are two preloaded files, 114 KB in all, both needed for the first paint.
+- **Moving between tabs** takes about 365 ms: one server round trip, then drawing, with no long tasks. Products at first measured 825 ms only because Orders' link prefetches were still downloading on the slow network. On its own it is 365 ms.
+- **The Guest sales row on Customers** is read by the browser, about 170 ms after the screen. Its period is remembered on the device, so the server cannot read it ahead (plan §139.10). The row keeps its height meanwhile, so nothing shifts.
+
+### Validation
+- Unit tests: 2,465 pass. `lazy-sheet.tsx` is fully covered, with new tests for drawing in the opening render and for a failed fetch.
+- Both browser journeys pass on the build.
+- Lint, the type check and the format check pass.
+
+### Blockers
+- None.
