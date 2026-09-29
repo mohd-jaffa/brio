@@ -980,6 +980,13 @@ Push / PR
 §139.18). The pipeline runs without them, and errors go to the server's own
 structured logs (§11).
 
+**The pipeline is `.github/workflows/ci.yml`** (R6.4), on every push to main and every pull request:
+
+- `checks`: install, lint, format check, type check and unit tests.
+- `app`, after it: the local Supabase, with every migration applied (the same CLI version as development), then the integration tests, the build and the browser journeys on that build.
+
+There is no staging, smoke test or production step yet: nothing is deployed from CI. `npm run typecheck` generates Next's types first (`next typegen`), so a fresh checkout checks as a working copy does.
+
 **Formatting is Prettier's** (`.prettierrc.json`: 120 columns, otherwise its
 defaults). `npm run format` writes it and `npm run format:check` is the gate.
 Markdown is left as written (`.prettierignore`), as is the generated Android

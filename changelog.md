@@ -3433,3 +3433,29 @@ The user: "complete phase 8 first then phase 6". Their answers: the device check
 
 ### Blockers
 - None.
+
+## 2026-09-29 — Phase 6: the CI pipeline (R6.4)
+
+### Added
+- **`.github/workflows/ci.yml`**, on every push to main and every pull request. It is the pipeline of plan §125 without SonarQube, which is kept for later.
+  - **`checks`:** install, lint, format check, type check, unit tests.
+  - **`app`**, once `checks` passes:
+    - starts the local Supabase with every migration applied, using the same CLI version as development (2.109.1), and only the services the app uses;
+    - writes `.env.local` from it, with mail left unset;
+    - runs the integration tests;
+    - builds;
+    - runs the browser journeys on that build, and keeps Playwright's report and traces for 14 days when they fail.
+  - Nothing is deployed. There is no staging, smoke test or production step: the app is not hosted from CI.
+
+### Fixed
+- **`npm run typecheck` failed on a fresh checkout.** `next-env.d.ts`, which declares image imports, is generated and git-ignored, so `tsc` knew no `.webp` on a clean clone. The script now runs `next typegen` first.
+
+### Validation
+- On a clean worktree of HEAD, with no `.env.local`:
+  - `npm run typecheck` fails before the change and passes after;
+  - `npm test` passes (2,386 tests).
+- The workflow parses. The env step's `eval` of `supabase status -o env` gives the local address and keys.
+- The workflow itself runs for the first time on GitHub, at the next push.
+
+### Blockers
+- None.

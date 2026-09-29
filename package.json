@@ -9,7 +9,7 @@
     "lint": "eslint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "avatars": "node scripts/avatars.mjs",
     "brand": "node scripts/brand.mjs",
     "splash": "node scripts/splash.mjs",

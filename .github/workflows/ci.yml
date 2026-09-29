@@ -1,0 +1,97 @@
+# The quality gates (plan §125, AGENTS §27; tracker R6.4), on every push to
+# main and every pull request:
+#
+#   checks   install → lint → format check → type check → unit tests
+#   app      the local Supabase, every migration applied → integration tests
+#            → build → the browser journeys, on that build
+#
+# SonarQube is kept for later (plan §139.18), so there is no quality gate
+# beyond these. Nor is there a staging, smoke test or production step: the app
+# has no hosting to deploy to from here yet.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, format, types and unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm test
+
+  app:
+    name: Integration, build and journeys
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      # The same CLI as the one the app is developed against.
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+
+      # Only what the app uses: the database, auth, the API and storage.
+      - name: Start the local Supabase
+        run: supabase start -x studio,imgproxy,realtime,edge-runtime,analytics,vector,meta
+
+      # The tests and the build read .env.local, as they do on a laptop. Mail
+      # is left unset, so nothing is sent.
+      - name: Point the app at it
+        run: |
+          eval "$(supabase status -o env)"
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL"
+            echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+            echo "NEXT_PUBLIC_APP_URL=http://localhost:3100"
+          } > .env.local
+
+      - run: npm run test:integration
+
+      - run: npm run build
+
+      - name: Install the browser
+        run: npx playwright install --with-deps chromium
+
+      - run: npm run test:e2e
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-${{ github.run_number }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+          if-no-files-found: ignore
