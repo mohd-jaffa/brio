@@ -3,8 +3,10 @@
 import type { ReactNode } from "react";
 
 import { UI_TEXT } from "@/constants/messages";
+import { useAnimatedValues } from "@/hooks/useAnimatedValues";
 
 import { cn } from "../cn";
+import { RollingNumber } from "../rolling-number";
 import { ChartFrame, type ChartStateProps } from "./chart-frame";
 import { ringSegments, shares, topWithOthers, type Slice } from "./geometry";
 import { CHART_COLORS, CHART_UNITS, type ChartUnit } from "./units";
@@ -68,9 +70,10 @@ export function Donut({
   const values = shown.map((slice) => slice.value);
   const total = values.reduce((sum, value) => sum + value, 0);
   const percents = shares(values);
+  const moving = useAnimatedValues(shown.map((slice, index) => ({ key: String(index), value: slice.value })));
   const radius = (SIZE - THICKNESS) / 2;
   const circumference = 2 * Math.PI * radius;
-  const segments = ringSegments(values, circumference, GAP);
+  const segments = ringSegments(moving, circumference, GAP);
 
   const full = units.value(total);
   const centre = full.length > CENTRE_FULL ? units.axis(total) : full;
@@ -110,13 +113,10 @@ export function Donut({
             ))}
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center px-7 text-center">
-            <span
-              className={cn(
-                "font-heading font-semibold leading-tight tabular-nums text-text",
-                centre.length > CENTRE_LARGE ? "text-base" : "text-xl",
-              )}
-            >
-              {centre}
+            <span className="font-heading font-semibold leading-tight tabular-nums text-text">
+              <RollingNumber value={total}>
+                <span className={cn(centre.length > CENTRE_LARGE ? "text-base" : "text-xl")}>{centre}</span>
+              </RollingNumber>
             </span>
             <span className="mt-0.5 text-[11px] font-medium leading-tight text-text-muted">{totalLabel}</span>
           </div>

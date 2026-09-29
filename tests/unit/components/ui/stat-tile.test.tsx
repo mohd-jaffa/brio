@@ -59,4 +59,14 @@ describe("StatTile", () => {
     const { container } = tile({ label: "Orders", value: "24", trend: [1, 3, 2, 4] });
     expect(container.querySelector('.lg\\:block[aria-hidden="true"]')).toBeInTheDocument();
   });
+
+  it("rolls a figure in the direction its raw value moved", () => {
+    const { rerender } = tile({ label: "Orders", value: "24", motionValue: 24 });
+    rerender(
+      <dl>
+        <StatTile label="Orders" value="31" motionValue={31} />
+      </dl>,
+    );
+    expect(screen.getByText("31")).toHaveClass("animate-tick-up");
+  });
 });

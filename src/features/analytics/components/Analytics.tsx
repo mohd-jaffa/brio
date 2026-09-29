@@ -93,6 +93,7 @@ export function Analytics() {
                   <StatTile
                     label={text.totalSales}
                     value={formatPaise(data.kpis.sales.value)}
+                    motionValue={data.kpis.sales.value}
                     icon={TrendingUp}
                     tone="success"
                     headline
@@ -102,18 +103,21 @@ export function Analytics() {
                   <StatTile
                     label={text.totalOrders}
                     value={String(data.kpis.orders.value)}
+                    motionValue={data.kpis.orders.value}
                     icon={ShoppingBag}
                     delta={delta(data.kpis.orders)}
                   />
                   <StatTile
                     label={text.newCustomers}
                     value={String(data.kpis.newCustomers.value)}
+                    motionValue={data.kpis.newCustomers.value}
                     icon={UserPlus}
                     delta={delta(data.kpis.newCustomers)}
                   />
                   <StatTile
                     label={text.averageOrder}
                     value={formatPaise(data.kpis.averageOrder.value)}
+                    motionValue={data.kpis.averageOrder.value}
                     icon={Wallet}
                     headline
                     delta={delta(data.kpis.averageOrder)}

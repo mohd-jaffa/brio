@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 
 import { UI_TEXT } from "@/constants/messages";
 import { useElementSize } from "@/hooks/useElementSize";
+import { useAnimatedValues } from "@/hooks/useAnimatedValues";
 
 import { CATEGORY_GAP, CategoryAxis, ValueAxis, labelWidth, valueAxisWidth } from "./axes";
 import { ChartFrame, type ChartStateProps } from "./chart-frame";
@@ -47,8 +48,10 @@ export function BarTrend({
   const [plotRef, { width }] = useElementSize<HTMLDivElement>();
   const [active, setActive] = useState<number | null>(null);
   const units = CHART_UNITS[unit];
+  const moving = useAnimatedValues(points.map((point, index) => ({ key: String(index), value: point.value })));
+  const drawn = points.map((point, index) => ({ ...point, value: moving[index] ?? point.value }));
 
-  const max = Math.max(0, ...points.map((point) => point.value));
+  const max = Math.max(0, ...points.map((point) => point.value), ...drawn.map((point) => point.value));
   const ticks = niceTicks(max, { minStep: units.minStep });
   const tickLabels = ticks.map(units.axis);
   const axis = valueAxisWidth(tickLabels);
@@ -66,7 +69,7 @@ export function BarTrend({
   const strong = active ?? peak;
   const targets = points.map((point, index) => ({
     x: x(index),
-    y: y(point.value),
+    y: y(drawn[index].value),
     label: point.label,
     value: units.value(point.value),
   }));
@@ -103,7 +106,7 @@ export function BarTrend({
               y={height - 6}
               width={width}
             />
-            {points.map((point, index) => (
+            {drawn.map((point, index) => (
               <path
                 key={index}
                 data-strong={index === strong || undefined}

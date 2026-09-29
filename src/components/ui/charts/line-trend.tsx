@@ -4,6 +4,7 @@ import { useId, useState, type ReactNode } from "react";
 
 import { UI_TEXT } from "@/constants/messages";
 import { useElementSize } from "@/hooks/useElementSize";
+import { useAnimatedValues } from "@/hooks/useAnimatedValues";
 
 import { CategoryAxis, ValueAxis, valueAxisWidth } from "./axes";
 import { ChartFrame, type ChartStateProps } from "./chart-frame";
@@ -53,8 +54,23 @@ export function LineTrend({
   const fillId = `line-fill-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const units = CHART_UNITS[unit];
   const compared = previous?.slice(0, points.length);
+  const moving = useAnimatedValues([
+    ...points.map((point, index) => ({ key: `current-${index}`, value: point.value })),
+    ...(compared?.map((point, index) => ({ key: `previous-${index}`, value: point.value })) ?? []),
+  ]);
+  const drawn = points.map((point, index) => ({ ...point, value: moving[index] ?? point.value }));
+  const drawnBefore = compared?.map((point, index) => ({
+    ...point,
+    value: moving[points.length + index] ?? point.value,
+  }));
 
-  const max = Math.max(0, ...points.map((point) => point.value), ...(compared ?? []).map((point) => point.value));
+  const max = Math.max(
+    0,
+    ...points.map((point) => point.value),
+    ...(compared ?? []).map((point) => point.value),
+    ...drawn.map((point) => point.value),
+    ...(drawnBefore ?? []).map((point) => point.value),
+  );
   const ticks = niceTicks(max, { minStep: units.minStep });
   const tickLabels = ticks.map(units.axis);
   const axis = valueAxisWidth(tickLabels);
@@ -63,8 +79,8 @@ export function LineTrend({
   const span = Math.max(0, width - RIGHT - axis - INSET);
   const x = (index: number) => axis + INSET + (points.length > 1 ? (index * span) / (points.length - 1) : span / 2);
 
-  const line = points.map((point, index) => ({ x: x(index), y: y(point.value) }));
-  const before = compared?.map((point, index) => ({ x: x(index), y: y(point.value) }));
+  const line = drawn.map((point, index) => ({ x: x(index), y: y(point.value) }));
+  const before = drawnBefore?.map((point, index) => ({ x: x(index), y: y(point.value) }));
   const targets = points.map((point, index) => ({
     ...line[index],
     label: point.label,

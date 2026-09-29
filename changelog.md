@@ -3459,3 +3459,29 @@ The user: "complete phase 8 first then phase 6". Their answers: the device check
 
 ### Blockers
 - None.
+
+## 2026-09-29 — Living dashboard data motion
+
+### Changed
+- **Charts now move between datasets instead of snapping.** The shared line, bar and donut charts interpolate the values they were already showing to the next period or grouping over one 520 ms settle. Line and bar slots keep their place as dates change; donut segments transition by rank, which also keeps each chart colour in place.
+- **Interrupted updates continue from the visible value.** A second period change does not restart a chart from its earlier dataset, and a new slice grows from zero. The motion reads no layout and keeps final labels, tables and spoken summaries authoritative throughout.
+- **Dashboard and Analytics figures roll in their direction.** Home's due, sales, collection and low-stock figures and Analytics' four KPIs now use the existing till-count motion when their raw value changes. Donut totals use the same treatment.
+- **The existing choreography stays coherent.** Tabs still travel through `TabPanel`, and ranked or filtered rows still reflow through `useListMotion`; the new work adds only the missing data-geometry transition.
+
+### Accessibility and performance
+- Reduced-motion users receive the new figures and chart geometry immediately. A browser without animation frames does the same.
+- A chart's data table, tooltip words and accessible summary always contain the final values; only the visible SVG geometry interpolates.
+- The hook performs no layout reads. It updates only the small value set that drives each SVG and cancels an old frame before starting the next transition.
+
+### Validation
+- **Browser review:** Home and Analytics were exercised against local Supabase data at 390 × 844, 768 × 1024 and 1440 × 900. Period changes, Daily/Weekly regrouping, tabs, line charts, rings and KPI layouts settled without overflow or browser errors.
+- **Impeccable detector:** no findings across the changed interface files.
+- **Unit tests:** 356 files, 2,389 tests, pass. The new hook is covered for matched interpolation and reduced motion; `StatTile` is covered for directional rolling.
+- **Browser journeys:** 2 Playwright journeys pass against the production build and local Supabase.
+- **Checks:** ESLint, TypeScript and the production build pass. Prettier 3.9.9 reports every touched file formatted.
+
+### Existing repository check issue
+- `npm run format:check` cannot start because `package.json` names the script but does not install `prettier`. This change does not alter dependencies; the touched files were checked with the existing cached Prettier binary.
+
+### Blockers
+- None for this change.

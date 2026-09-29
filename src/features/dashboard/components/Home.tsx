@@ -135,10 +135,16 @@ export function Home() {
         </div>
         {data ? (
           <dl className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:gap-4">
-            <StatTile label={text.dueToday} value={String(data.dueToday)} icon={CalendarClock} />
+            <StatTile
+              label={text.dueToday}
+              value={String(data.dueToday)}
+              motionValue={data.dueToday}
+              icon={CalendarClock}
+            />
             <StatTile
               label={text.sales[data.period]}
               value={formatPaise(data.sales)}
+              motionValue={data.sales}
               icon={TrendingUp}
               tone="success"
               headline
@@ -147,11 +153,18 @@ export function Home() {
             <StatTile
               label={text.toCollect}
               value={formatPaise(data.toCollect)}
+              motionValue={data.toCollect}
               icon={Wallet}
               tone="warning"
               headline
             />
-            <StatTile label={text.lowStock} value={String(data.lowStockCount)} icon={PackageOpen} tone="danger" />
+            <StatTile
+              label={text.lowStock}
+              value={String(data.lowStockCount)}
+              motionValue={data.lowStockCount}
+              icon={PackageOpen}
+              tone="danger"
+            />
           </dl>
         ) : dashboard.error ? (
           <LoadFailed query={dashboard} loadFailed="DASHBOARD_LOAD_FAILED" />

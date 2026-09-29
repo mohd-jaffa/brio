@@ -5,6 +5,7 @@ import { UI_TEXT } from "@/constants/messages";
 import { Sparkline } from "./charts/sparkline";
 import { cn } from "./cn";
 import { Medallion, type MedallionTone } from "./medallion";
+import { RollingNumber } from "./rolling-number";
 
 /** How a figure moved against the previous period. */
 export interface StatDelta {
@@ -64,6 +65,7 @@ export function StatTile({
   headline = false,
   delta,
   trend,
+  motionValue,
 }: {
   label: string;
   /** Already formatted — "₹1,240" or "7" — so the tile never decides how money reads. */
@@ -76,6 +78,8 @@ export function StatTile({
   delta?: StatDelta;
   /** The period's values, drawn as a sparkline from 1024 px. */
   trend?: number[];
+  /** The unformatted figure, used only to give a changed value its direction. */
+  motionValue?: number;
 }) {
   return (
     <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] content-start gap-x-3 rounded-2xl border border-border bg-surface p-4 shadow-card">
@@ -94,7 +98,7 @@ export function StatTile({
           headline ? "font-heading font-medium" : "font-semibold",
         )}
       >
-        {value}
+        {motionValue === undefined ? value : <RollingNumber value={motionValue}>{value}</RollingNumber>}
       </dd>
       {delta && <DeltaLine delta={delta} />}
       {trend && (
