@@ -3729,3 +3729,22 @@ A whole-app `/impeccable critique` (two independent reviews: design, and the det
 
 ### Blockers
 - None.
+
+## 2026-09-29 — Settings shows its order reminders on a first visit
+
+### Fixed
+- **Settings' Notifications (order reminders) now shows on a first visit** (the user asked whether it had been removed).
+  - The cause: a built app installs its service worker as the page opens. Settings asked whether push could work before the worker had taken charge, got "no", and kept that answer until the tab was shown again.
+  - Now a built app waits for its worker to take charge, for up to 10 seconds (`WORKER_WAIT_MS`), before answering (`webPush.ts`, `worker()`). One that never takes charge counts as none, as before.
+  - Development has no worker, answers at once, and still shows no Notifications, as before.
+- The Settings screen itself waits for nothing. Measured on the built app at 390 px:
+  - fast connection: the screen at 0.14 s and Notifications at 0.23 s;
+  - throttled phone (4G, CPU slowed 4×): the screen at 0.98 s and Notifications at 2.8 s;
+  - every later visit: Notifications with the screen (0.08–0.17 s).
+
+### Validation
+- Unit tests: 2,463 pass. `webPush.ts` is fully covered, with new tests for the wait, for an active worker needing no wait, and for a worker that never takes charge.
+- Lint, the type check and the format check pass.
+
+### Blockers
+- None.

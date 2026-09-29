@@ -25,9 +25,30 @@ function supported(): boolean {
   );
 }
 
-/** The service worker in charge of the app, if any: only a built app has one. */
-async function worker(): Promise<ServiceWorkerRegistration | undefined> {
-  return supported() ? navigator.serviceWorker.getRegistration() : undefined;
+/** How long a built app waits for its service worker to take charge before counting it as none. */
+export const WORKER_WAIT_MS = 10_000;
+
+/**
+ * The service worker in charge of the app, if any: only a built app has one
+ * (`setUpServiceWorker`). On a first visit it is still installing when the
+ * page asks, so a built app waits for it to take charge — up to
+ * WORKER_WAIT_MS, and one that never does counts as none. Answering "none" at
+ * once was believed until the page was next shown, which hid Settings' order
+ * reminders on a first visit. Development has no worker, and answers at once.
+ */
+async function worker(production = process.env.NODE_ENV === "production") {
+  if (!supported()) return undefined;
+  const now = await navigator.serviceWorker.getRegistration();
+  if (now?.active || !production) return now;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const none = new Promise<undefined>((resolve) => {
+    timer = setTimeout(() => resolve(undefined), WORKER_WAIT_MS);
+  });
+  try {
+    return await Promise.race([navigator.serviceWorker.ready, none]);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /** A base64url key as the bytes `subscribe` takes. */

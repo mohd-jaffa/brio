@@ -4,7 +4,7 @@ const { api, key } = vi.hoisted(() => ({ api: { postJson: vi.fn() }, key: { valu
 vi.mock("@/lib/api/client", () => ({ postJson: api.postJson }));
 vi.mock("@/lib/env/public", () => ({ publicVapidKey: () => key.value }));
 
-import { renewWebPush, stopWebPush, turnOnWebPush, webPushPermission } from "@/lib/native/webPush";
+import { renewWebPush, stopWebPush, turnOnWebPush, webPushPermission, WORKER_WAIT_MS } from "@/lib/native/webPush";
 
 const subscription = {
   toJSON: () => ({ endpoint: "https://push.example/d-1", keys: { p256dh: "key", auth: "auth" } }),
@@ -52,7 +52,41 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
+  vi.useRealTimers();
   Reflect.deleteProperty(navigator, "serviceWorker");
+});
+
+/** A built app's browser: `now` is what is in charge as the page asks; `ready` settles when one takes charge. */
+function builtApp(now: object | undefined, ready: Promise<object>) {
+  vi.stubEnv("NODE_ENV", "production");
+  Object.defineProperty(navigator, "serviceWorker", {
+    configurable: true,
+    value: { getRegistration: vi.fn(async () => now), ready },
+  });
+}
+
+describe("a built app's first visit", () => {
+  it("waits for the service worker still installing, so Settings shows its reminders at once", async () => {
+    let takeCharge: (registration: object) => void = () => {};
+    builtApp(undefined, new Promise((resolve) => (takeCharge = resolve)));
+    const asked = webPushPermission();
+    takeCharge({ pushManager });
+    expect(await asked).toBe("OFF");
+  });
+
+  it("does not wait when a worker is already in charge", async () => {
+    builtApp({ active: {}, pushManager }, new Promise(() => {}));
+    expect(await webPushPermission()).toBe("OFF");
+  });
+
+  it("counts a worker that never takes charge as none, after a wait", async () => {
+    vi.useFakeTimers();
+    builtApp(undefined, new Promise(() => {}));
+    const asked = webPushPermission();
+    await vi.advanceTimersByTimeAsync(WORKER_WAIT_MS);
+    expect(await asked).toBe("UNSUPPORTED");
+  });
 });
 
 describe("where web push can work", () => {
