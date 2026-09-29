@@ -3717,3 +3717,15 @@ A whole-app `/impeccable critique` (two independent reviews: design, and the det
 
 ### Blockers
 - None.
+
+## 2026-09-29 — The bin beside a discount or charge sits on the field's line
+
+### Changed
+- **The remove (bin) button of a discount or a charge lines up with the amount field beside it** (the user). The button was aligned to the bottom of the field's whole block, so it sat about 3 px low. It fell further, halfway down the message, whenever "Amount needs a value." showed under the field. Now it sits past the label and is centred on the 46 px field, whatever is under it (`DetailsPanel`).
+
+### Validation
+- Measured on the built app at 390 and 1280 px, the bin's centre equals the field's to the pixel, with and without the message under the field.
+- The details step's tests pass.
+
+### Blockers
+- None.

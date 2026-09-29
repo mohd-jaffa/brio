@@ -287,7 +287,7 @@ export function DetailsPanel({
               <li
                 key={entry.key}
                 className={cn(
-                  "grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 @lg:grid-cols-[minmax(0,1fr)_8rem_auto]",
+                  "grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 @lg:grid-cols-[minmax(0,1fr)_8rem_auto]",
                   added(entry.key),
                 )}
               >
@@ -319,7 +319,9 @@ export function DetailsPanel({
                     )
                   }
                 />
-                <div className="pb-1">
+                {/* On the field's line whatever is under it: past the label
+                    (20 px and its 8 px gap), then centred on the 46 px well. */}
+                <div className="mt-[29px]">
                   <IconButton
                     icon={Trash2}
                     tone="danger"
