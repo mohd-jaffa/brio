@@ -1,6 +1,5 @@
 import { ArrowDown, ArrowUp, ChevronRight, type LucideIcon } from "lucide-react";
 import Link from "next/link";
-import type { ReactNode } from "react";
 
 import { UI_TEXT } from "@/constants/messages";
 
@@ -60,10 +59,9 @@ function DeltaLine({ delta }: { delta: StatDelta }) {
  * with one is exactly as tall as a tile without.
  *
  * A tile with `href` opens where its figure is looked into: the whole tile is
- * the target, named by its label, with a chevron as a row has one. `note` and
- * `control` take the line under the figure that `delta` would — a tile has one
- * of the three: what needs seeing ("6 late"), or what chooses what the figure
- * covers (the period).
+ * the target, named by its label, with a chevron as a row has one. `note`
+ * takes the line under the figure that `delta` would — a tile has one of the
+ * two: what needs seeing there ("6 late").
  */
 export function StatTile({
   label,
@@ -76,7 +74,6 @@ export function StatTile({
   motionValue,
   href,
   note,
-  control,
 }: {
   label: string;
   /** Already formatted — "₹1,240" or "7" — so the tile never decides how money reads. */
@@ -95,8 +92,6 @@ export function StatTile({
   href?: string;
   /** What needs seeing beside the figure — "6 late" — in the danger tone. */
   note?: string;
-  /** Chooses what the figure covers; it names itself. */
-  control?: ReactNode;
 }) {
   return (
     <div
@@ -134,11 +129,7 @@ export function StatTile({
         {motionValue === undefined ? value : <RollingNumber value={motionValue}>{value}</RollingNumber>}
       </dd>
       {delta && <DeltaLine delta={delta} />}
-      {(note || control) && (
-        <dd className={cn("col-span-2 row-start-3 mt-2 lg:row-start-4", note && "text-xs font-semibold text-danger")}>
-          {note ?? control}
-        </dd>
-      )}
+      {note && <dd className="col-span-2 row-start-3 mt-2 text-xs font-semibold text-danger lg:row-start-4">{note}</dd>}
       {trend && (
         <Sparkline
           values={trend}

@@ -21,14 +21,10 @@ describe("StatTile", () => {
     expect(link.closest("dl > div")).toHaveClass("relative");
   });
 
-  it("says what needs seeing under the figure in the danger tone, or holds a control there", () => {
-    const { unmount } = tile({ label: "Due today", value: "0", note: "6 late" });
+  it("says what needs seeing under the figure, in the danger tone", () => {
+    tile({ label: "Due today", value: "0", note: "6 late" });
     expect(screen.getAllByRole("definition")[1]).toHaveTextContent("6 late");
     expect(screen.getByText("6 late")).toHaveClass("text-danger");
-    unmount();
-
-    tile({ label: "Sales", value: "₹2,530", control: <button type="button">Today</button> });
-    expect(screen.getAllByRole("definition")[1]).toContainElement(screen.getByRole("button", { name: "Today" }));
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 

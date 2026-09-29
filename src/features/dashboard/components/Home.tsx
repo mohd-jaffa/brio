@@ -14,7 +14,7 @@ import { QuoteBlock } from "@/components/ui/quote-block";
 import { Row, RowList } from "@/components/ui/row";
 import { FilterButton } from "@/components/ui/search-field";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { SelectMenu } from "@/components/ui/select-menu";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { StatTile } from "@/components/ui/stat-tile";
 import { UI_TEXT } from "@/constants/messages";
@@ -75,10 +75,10 @@ function OrdersDue({ dashboard, filtered, now }: { dashboard: Dashboard; filtere
  * Home (plan §139.10, §20). What needs attention comes first: the orders due,
  * overdue at the top, and what is running low; then how the period is going.
  *
- * - **Phone:** the greeting on the hero plate; four tiles — due today, with
- *   how many are late; sales, with its own Today / This week / This month;
- *   to collect; low stock — each but sales opening its screen; the orders due,
- *   with their filters (§116); low stock; the quote; and the + for a new order.
+ * - **Phone:** the greeting on the hero plate; four tiles with a Today / Week /
+ *   Month switch — due today, with how many are late, sales, to collect, low
+ *   stock — each but sales opening its screen; the orders due, with their
+ *   filters (§116); low stock; the quote; and the + for a new order.
  * - **Desktop:** a greeting row with the date and the quote; the tiles, sales
  *   with its sparkline; then the sales by day, the orders by status, the top
  *   products and the recent customers beside the lists.
@@ -127,9 +127,11 @@ export function Home() {
         </div>
       </header>
 
-      <section aria-label={text.figures} className="space-y-3">
-        {/* The round + floats on a phone; the worded one heads the figures from 768 px. */}
-        <div className="contents md:flex md:justify-end">
+      <section aria-label={text.period} className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="w-full max-w-xs">
+            <SegmentedControl label={text.period} value={period} options={PERIODS} onChange={setPeriod} />
+          </div>
           <Fab label={text.newOrder} href="/orders/new" />
         </div>
         {data ? (
@@ -144,23 +146,13 @@ export function Home() {
               note={data.late > 0 ? text.late(data.late) : undefined}
             />
             <StatTile
-              label={text.sales}
+              label={text.sales[data.period]}
               value={formatPaise(data.sales)}
               motionValue={data.sales}
               icon={TrendingUp}
               tone="success"
               headline
               trend={data.salesByDay.map((day) => day.total)}
-              // Only sales has a period: the other figures are now, whatever it is.
-              control={
-                <SelectMenu
-                  label={text.period}
-                  value={period}
-                  options={PERIODS}
-                  onChange={(value) => setPeriod(value as HomePeriod)}
-                  variant="compact"
-                />
-              }
             />
             <StatTile
               label={text.toCollect}

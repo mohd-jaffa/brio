@@ -3703,3 +3703,17 @@ A whole-app `/impeccable critique` (two independent reviews: design, and the det
 
 ### Blockers
 - None.
+
+## 2026-09-29 — Home's period switch back as it was
+
+### Changed
+- **Home's Today / Week / Month switch is back above the four tiles, as before** (the user: "keep how it was before… that one change alone"). The polish pass had moved it onto the Sales tile as a small menu. The Sales tile reads "Sales today", "Sales this week" or "Sales this month" again.
+- The other Home changes stay: "6 late" under Due today, and the tiles that open Orders, Customers and Stock.
+- `StatTile` loses the `control` slot, which only the moved switch used.
+- Plan §139.10 (Home) and DESIGN.md (Stat Tile) say the same.
+
+### Validation
+- Unit tests pass. Lint, the type check and the format check pass.
+
+### Blockers
+- None.

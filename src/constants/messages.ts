@@ -429,13 +429,11 @@ export const UI_TEXT = {
     partsOfDay: { morning: "Good morning", afternoon: "Good afternoon", evening: "Good evening" },
     neutralLine: "Here’s what needs you today.",
     loading: "Loading your day",
-    figures: "At a glance",
-    /** The Sales tile's own choice of period (the chart and lists beside it follow it on a desktop). */
-    period: "Sales period",
+    period: "Period",
     dueToday: "Due today",
     /** Under Due today: open orders from a day already gone (IMP-05). */
     late: (count: number) => `${count} late`,
-    sales: "Sales",
+    sales: { TODAY: "Sales today", WEEK: "Sales this week", MONTH: "Sales this month" },
     toCollect: "To collect",
     lowStock: "Low stock",
     ordersDue: "Orders due",

@@ -443,7 +443,7 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 - A medallion, the figure (the serif for money), and its label.
 - On a phone the label sits beside the medallion. From 1024 px the label drops under the figure and a sparkline takes the medallion's row, so every tile is the same height.
 - **A tile that goes somewhere** is a target as a row is: the whole tile, named by its label, with a chevron beside it. Home's Due today, To collect and Low stock open their screens.
-- **Under the figure**, one of: how it moved, what needs seeing in brick ("6 late" under Due today, so a zero today never hides late orders), or a compact choice of what it covers (Sales' own Today · This week · This month; the other figures are now, whatever the period).
+- **Under the figure**, one of: how it moved, or what needs seeing in brick ("6 late" under Due today, so a zero today never hides late orders).
 
 ### Navigation
 - **Bottom bar:** five places in equal columns, the current one on a Caramel Cream pill with a semibold caramel label. It is measured in px, like a native tab bar, so a larger text size cannot push the last place off the edge.
