@@ -9,6 +9,15 @@ const app = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/native/platform", () => ({ hasPlugins: (name: string) => state.app && name === "App" }));
 vi.mock("@/lib/native/back", () => ({ goBack: vi.fn(() => state.step) }));
+const reminders = vi.hoisted(() => ({ open: undefined as ((url: string) => void) | undefined, stop: vi.fn() }));
+vi.mock("@/lib/native/reminders", () => ({
+  onReminderTapped: (open: (url: string) => void) => {
+    reminders.open = open;
+    return reminders.stop;
+  },
+}));
+const router = vi.hoisted(() => ({ push: vi.fn() }));
+vi.mock("next/navigation", () => ({ useRouter: () => router }));
 vi.mock("@capacitor/app", () => ({
   App: {
     addListener: vi.fn(async (_event: string, handler: (event: { canGoBack: boolean }) => void) => {
@@ -28,6 +37,9 @@ beforeEach(() => {
   app.handler = undefined;
   app.remove.mockClear();
   app.exitApp.mockClear();
+  reminders.open = undefined;
+  reminders.stop.mockClear();
+  router.push.mockClear();
 });
 
 describe("NativeSetup", () => {
@@ -51,6 +63,14 @@ describe("NativeSetup", () => {
     const { unmount } = render(<NativeSetup />);
     unmount();
     await waitFor(() => expect(app.remove).toHaveBeenCalledOnce());
+  });
+
+  it("opens the order a tapped reminder is about, and stops listening when taken down", () => {
+    const { unmount } = render(<NativeSetup />);
+    reminders.open!("/orders/o-1");
+    expect(router.push).toHaveBeenCalledWith("/orders/o-1");
+    unmount();
+    expect(reminders.stop).toHaveBeenCalledOnce();
   });
 
   it("does nothing in a browser", () => {

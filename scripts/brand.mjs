@@ -30,6 +30,8 @@
 //   mipmap-*/ic_launcher.png, _round.png     the whole icon, for Android 7
 //   drawable-xxhdpi/splash_icon.png          the icon the splash centres on
 //                                            cream before Android 12
+//   drawable-*/ic_stat_brio.png              the mark in white, for the status
+//                                            bar and an order reminder (R8.6)
 //
 // A white ground becomes see-through by colour-to-alpha against white: from
 // the border inwards for the icon, whose "b" is cream and must stay; over the
@@ -221,6 +223,8 @@ const written = {
 const DENSITIES = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 };
 // An adaptive icon is 108 dp, of which only the middle 66 dp is sure to show.
 const ADAPTIVE_SHARE = 0.4;
+// A status-bar icon is 24 dp, its shape inside the middle 20 dp.
+const STATUS_SHARE = 20 / 24;
 const RES = "android/app/src/main/res";
 
 /** The mark alone, centred on a see-through square `size` px, `share` of it tall — in one colour if `solid`. */
@@ -239,6 +243,27 @@ async function markOnly(size, share, { mark }, solid = false) {
     .toBuffer();
 }
 
+/**
+ * The status-bar icon: the mark's visible shape — cut to where it is more than
+ * half opaque, since the lifted mark keeps a faint edge the launcher can
+ * spare but 24 dp cannot — in white, filling the middle of `size` px.
+ */
+async function statusIcon(size, { mark }) {
+  const { data, info } = await sharp(mark.data).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  let [left, top, right, bottom] = [info.width, info.height, 0, 0];
+  for (let p = 0; p < info.width * info.height; p++) {
+    if (data[p * 4 + 3] < 128) continue;
+    const x = p % info.width;
+    const y = (p - x) / info.width;
+    [left, top, right, bottom] = [Math.min(left, x), Math.min(top, y), Math.max(right, x), Math.max(bottom, y)];
+  }
+  const shape = await sharp(mark.data)
+    .extract({ left, top, width: right - left + 1, height: bottom - top + 1 })
+    .png()
+    .toBuffer({ resolveWithObject: true });
+  return markOnly(size, STATUS_SHARE, { mark: shape }, true);
+}
+
 if (fs.existsSync(RES)) {
   const circle = (size) =>
     Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${size / 2}"/></svg>`);
@@ -252,6 +277,7 @@ if (fs.existsSync(RES)) {
       .toBuffer();
     written[`${RES}/mipmap-${bucket}/ic_launcher_foreground.png`] = await markOnly(adaptive, ADAPTIVE_SHARE, lifted);
     written[`${RES}/mipmap-${bucket}/ic_launcher_monochrome.png`] = await markOnly(adaptive, ADAPTIVE_SHARE, lifted, true);
+    written[`${RES}/drawable-${bucket}/ic_stat_brio.png`] = await statusIcon(Math.round(24 * scale), lifted);
   }
   written[`${RES}/drawable-xxhdpi/splash_icon.png`] = await sharp(rounded).resize(288, 288).png(PNG).toBuffer();
   written[`${RES}/drawable/ic_launcher_background.xml`] = Buffer.from(`<?xml version="1.0" encoding="utf-8"?>

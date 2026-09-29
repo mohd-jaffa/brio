@@ -8178,7 +8178,7 @@ A profile card (the owner's profile picture, tapped to choose another — §139.
 quote). Then **Business details**; **Account** (name, email, the sign-in number,
 change password); **Appearance** (Golden or Peach); **Notifications** (the
 Android permission); **About** (the version, the privacy policy, and **Crafted by · jaFFa** — the user, 2026-09-26, in place of the illustration credit); **Sign out**.
-The Notifications row — the Android permission — joins with push (R8.6). **Account** ends with **Delete account** (R8.10), in red, under Change password; **About** shows the version, the maker and **Privacy policy**.
+**Notifications** — the Android app's order reminders and Android's permission for them (R8.6) — shows in the Android app only. **Account** ends with **Delete account** (R8.10), in red, under Change password; **About** shows the version, the maker and **Privacy policy**.
 The reference's separate Profile screen is folded in here.
 
 ### Business details
@@ -8596,6 +8596,10 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
   bell asks again every minute. A business is looked at once a minute at most,
   so a notice arrives within a minute of the app being open. Orders left open
   long past their day when this arrived were taken as known.
+- **The Android app reminds of them itself** (R8.6; the user, 2026-09-29:
+  "cant push notification without workers … if it will work implement it for
+  the android app"). A push needs a sender awake at the time, and none is; so
+  the phone schedules its own notifications — §139.17.4.
 - **Paused**: an order placed, an order moved, a payment, a customer added,
   stock running low. The database holds them back at the queue, so nothing
   piles up there, and the app queues none. The inbox's tabs stay as they are.
@@ -8996,7 +9000,8 @@ add native capabilities when they support existing product requirements"):
   events drive the offline banner as in a browser.
 - **Waiting for their first caller:** `haptic` (the milestones, R9.8),
   `keyboard` (if the device check, R8.4, finds the page covered), deep links
-  (R8.5's App Links) and `push` (R8.6, which waits on the worker).
+  (R8.5's App Links) and `push` (FCM, which waits on the worker). Order
+  reminders the phone sets itself are built (R8.6, §139.17.4).
 ### 139.17.3 Behaviour on the device
 
 - **Edge to edge:** the safe-area system (§139.8). **Verify on real devices that the WebView reports the insets;** if one does not, the native layer writes them into `--safe-*`.
@@ -9009,10 +9014,43 @@ add native capabilities when they support existing product requirements"):
 
 ### 139.17.4 Push notifications (§133.5 E2, E3)
 
-A `device_tokens` table (business, profile, token, platform, last seen). Tokens
-are registered on sign-in and removed on sign-out. The NotificationWorker sends
-through FCM HTTP v1, with its service-account key as a secret. The mock token is
-removed (E3).
+**With a worker:** a `device_tokens` table (business, profile, token, platform,
+last seen). Tokens are registered on sign-in and removed on sign-out. The
+NotificationWorker sends through FCM HTTP v1, with its service-account key as a
+secret. The mock token is removed (E3).
+
+**While no worker runs (R8.6, built 2026-09-29): reminders the phone sets
+itself.** Nothing is awake to send a push, so the Android app schedules its own
+notifications (`@capacitor/local-notifications`) for the only notices there
+are now: orders due soon and overdue (§139.11.15). No server, token, Firebase
+project or table is added.
+
+- **What is set:** `GET /api/notifications/reminders` (`listReminders`) reads
+  the business's open orders due from yesterday on, soonest first, 100 at most,
+  and words each one's reminders as the inbox words its notices, by 0023's
+  rule: *due soon* at 8 AM in the business's day the day before it is due (or,
+  once that has passed, the day itself), and *overdue* at 8 AM the day after.
+  Only what is still ahead is set, and a notice the inbox has already given is
+  not set again.
+- **When:** the signed-in frame (`OrderReminders`) reads it as the app opens,
+  whenever it comes back into view, and every minute while it is open, as the
+  bell does, and hands the phone the whole set; an order delivered, cancelled
+  or moved is taken off or moved within a minute. An order added on another
+  device joins when the phone next opens the app — the one limit of setting
+  them on the phone.
+- **On the phone** (`src/lib/native/reminders.ts`): the set replaces what
+  waits. None is an exact alarm, so Android may hold one a few minutes, and no
+  exact-alarm permission is asked for (it is removed from the manifest). They
+  go on their own channel, "Order reminders", kept private on a locked screen,
+  with the brand's mark in the status bar (`ic_stat_brio`, `scripts/brand.mjs`).
+  Tapping one opens its order, even when it started the app.
+- **The permission:** Settings → **Notifications** → Order reminders, in the
+  Android app only. Off, the row asks Android; refused there, it says to turn
+  them on in Android's settings. Nothing is set without it.
+- **Signing out, or deleting the account,** cancels those waiting and takes
+  down those shown.
+- **The installable web app** gets none: a closed web app can only be woken by
+  a push, which needs a sender. It keeps the inbox and the bell.
 
 ### 139.17.5 Release
 
@@ -9216,7 +9254,7 @@ Phase 5 closed on 2026-09-26 with R5.10.
 | R8.3 | The native capability layer | §139.17.2; IMP-09 | — | DONE (2026-09-28 · share, save, the back button, platform checks; the rest waits for its caller — §139.17.2) |
 | R8.4 | Insets and edge-to-edge verified on devices | §139.17.3 | — | TODO |
 | R8.5 | The back button and App Links | §139.17.3 | — | DOING (2026-09-28: the back button is done; App Links wait for the domain and the signing key's fingerprint) |
-| R8.6 | Push: device tokens, FCM, the worker | §133.5 E2, E3 | — | TODO |
+| R8.6 | Push: device tokens, FCM, the worker | §133.5 E2, E3 | — | DOING (2026-09-29 · while no worker runs, the Android app sets its own reminders of orders due soon and overdue — §139.17.4; FCM push waits on the worker) |
 | R8.7 | Native bill sharing, PNG and PDF | §139.17.2 | — | DONE (2026-09-28 · Filesystem + Share; the PDF saves through the share sheet) |
 | R8.8 | Splash screen and adaptive icon | §139.17.3 | — | DONE (2026-09-28 · adaptive and themed icons, the system splash on cream; seen on a device with R8.12) |
 | R8.9 | The offline screen | IMP-08 | — | DONE (2026-09-28 · `server.errorPath`, built by `scripts/android-shell.mjs`) |

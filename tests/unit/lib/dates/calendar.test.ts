@@ -4,6 +4,7 @@ import {
   addDaysKey,
   addMonthsKey,
   bakeryHour,
+  dayHour,
   dayKey,
   dayStart,
   daysFrom,
@@ -72,6 +73,11 @@ describe("the bakery's calendar arithmetic", () => {
 
   it("starts a day at India's midnight", () => {
     expect(dayStart("2026-09-22")).toBe("2026-09-21T18:30:00.000Z");
+  });
+
+  it("finds an hour of a day in India: its morning, for a reminder", () => {
+    expect(dayHour("2026-09-22", 8)).toBe("2026-09-22T02:30:00.000Z");
+    expect(dayHour("2026-09-22", 23)).toBe("2026-09-22T17:30:00.000Z");
   });
 
   it("finds the Monday of a week and the first of a month", () => {

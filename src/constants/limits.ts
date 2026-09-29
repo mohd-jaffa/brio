@@ -42,6 +42,12 @@ export const NOTIFICATION_BADGE_MAX = 9;
  */
 export const DUE_NOTICE_FROM_HOUR = 8;
 
+/**
+ * The most open orders the Android app sets reminders for (R8.6), soonest due
+ * first: two each at most, well inside the 500 alarms Android lets an app hold.
+ */
+export const REMINDER_ORDERS_MAX = 100;
+
 /** An expense category's name: a tile's label, not a sentence (`0020_expense_categories`). */
 export const MAX_EXPENSE_CATEGORY_NAME = 40;
 

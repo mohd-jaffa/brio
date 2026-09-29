@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useMemo, type ReactNode } from 
 import { SWRConfig, useSWRConfig } from "swr";
 
 import { accountDeletedPath, AUTH_ROUTES } from "@/constants/routes";
+import { clearReminders } from "@/lib/native";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiQuery } from "@/lib/query/useApiQuery";
 import { clearUserItems } from "@/lib/storage/userStorage";
@@ -100,8 +101,10 @@ export function AuthProvider({
       // Nobody, said outright and last: an emptied session would fall back to
       // the one the page arrived with.
       await mutate(null, { revalidate: false });
-      // So is anything kept on the device for it — an order half built.
+      // So is anything kept on the device for it — an order half built, and
+      // the Android app's reminders of its orders.
       clearUserItems();
+      await clearReminders().catch(() => undefined);
       // And a new page, so nothing else of it stays in memory either.
       loadPage(url);
     },

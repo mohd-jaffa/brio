@@ -44,7 +44,12 @@ export function nextDayKey(key: string): string {
 
 /** The instant a day begins in the bakery's timezone, for a query's bounds. */
 export function dayStart(key: string): string {
-  return new Date(`${key}T00:00:00${BAKERY_UTC_OFFSET}`).toISOString();
+  return dayHour(key, 0);
+}
+
+/** The instant an hour of a day begins in the bakery's timezone: 8 AM on "2026-09-22". */
+export function dayHour(key: string, hour: number): string {
+  return new Date(`${key}T${String(hour).padStart(2, "0")}:00:00${BAKERY_UTC_OFFSET}`).toISOString();
 }
 
 /** The Monday of the week a day falls in. */

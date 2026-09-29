@@ -19,6 +19,10 @@ const { auth, business, changeAvatar, resendConfirmation, resendEmailChange } = 
 vi.mock("@/features/auth/AuthProvider", () => ({ useAuth: () => auth.current }));
 vi.mock("@/features/auth/api.client", () => ({ AuthClient: { changeAvatar, resendConfirmation, resendEmailChange } }));
 vi.mock("@/features/business/hooks/useBusiness", () => ({ useBusiness: () => business.current }));
+// The Android app's reminders have their own tests; here, only where they sit.
+vi.mock("@/features/notifications/components/ReminderSettings", () => ({
+  ReminderSettings: () => <section aria-label="Notifications" />,
+}));
 
 const render = (ui: ReactElement) =>
   renderBare(ui, {
@@ -170,6 +174,15 @@ describe("Settings", () => {
     expect(within(about).getByText("Crafted by").closest("li")).toHaveTextContent("jaFFa");
     expect(within(about).getByRole("link", { name: /^Privacy policy/ })).toHaveAttribute("href", "/privacy");
     expect(about).not.toHaveTextContent("Vecteezy");
+  });
+
+  it("puts Notifications between the look of the app and About, as the plan orders them", () => {
+    render(<Settings />);
+    const [appearance, notifications, about] = ["Appearance", "Notifications", "About"].map((name) =>
+      screen.getByRole("region", { name }),
+    );
+    expect(appearance.compareDocumentPosition(notifications) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(notifications.compareDocumentPosition(about) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("signs out", async () => {

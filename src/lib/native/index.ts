@@ -4,4 +4,13 @@
 export { goBack, type BackStep } from "./back";
 export { NativeSetup } from "./NativeSetup";
 export { hasPlugins, isAndroidApp } from "./platform";
+export {
+  clearReminders,
+  onReminderTapped,
+  remindersSupported,
+  scheduleReminders,
+  type Reminder,
+  type ReminderPermission,
+} from "./reminders";
 export { saveFile, share, type ShareOutcome } from "./share";
+export { useReminderPermission } from "./useReminderPermission";

@@ -32,6 +32,7 @@ import { UI_TEXT } from "@/constants/messages";
 import { ROLE_LABELS } from "@/constants/roles";
 import { AUTH_ROUTES, DELETE_ACCOUNT_ROUTE, PRIVACY_ROUTE } from "@/constants/routes";
 import { useBusiness } from "@/features/business/hooks/useBusiness";
+import { ReminderSettings } from "@/features/notifications/components/ReminderSettings";
 import { dayKey } from "@/lib/dates/calendar";
 import { changeReopensAt } from "@/lib/dates/cooldown";
 import { publicAppVersion } from "@/lib/env/public";
@@ -114,7 +115,8 @@ const ACCOUNT_ICONS = { name: User, phone: Smartphone, email: Mail } as const;
  * (R8.10) — the theme, About with the version, who made the app (the user,
  * 2026-09-26, in place of Q16's illustration credit) and the privacy policy
  * (R8.10), and Sign out. The profile stays beside the rest on a desktop.
- * Notifications joins with its screen (R5.10).
+ * In the Android app, Notifications sits between the theme and About: its
+ * order reminders, and Android's permission for them (R8.6).
  */
 export function Settings() {
   const { profile } = useAuth();
@@ -246,6 +248,8 @@ export function Settings() {
               </div>
             </div>
           </section>
+
+          <ReminderSettings />
 
           <section aria-labelledby="settings-about">
             <SectionHeading id="settings-about" title={text.about} />

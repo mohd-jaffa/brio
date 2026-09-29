@@ -11,6 +11,7 @@ import { BOTTOM_NAV, isActivePath, NAV_GROUPS } from "@/constants/navigation";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { RequireAuth } from "@/features/auth/components/RequireAuth";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
+import { OrderReminders } from "@/features/notifications/components/OrderReminders";
 import { useNavigationPending } from "@/hooks/useNavigationPending";
 import { useSettle } from "@/hooks/useSettle";
 
@@ -176,6 +177,7 @@ function AppFrame({ children }: { children: ReactNode }) {
       </nav>
 
       <MoreSheet isOpen={moreOpen} onClose={closeMore} />
+      <OrderReminders />
     </div>
   );
 }

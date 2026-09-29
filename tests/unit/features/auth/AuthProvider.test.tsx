@@ -14,8 +14,9 @@ const { fetcher, client, router } = vi.hoisted(() => ({
 }));
 
 // Signing in, out, or confirming an email loads a new page: nothing of the last account stays.
-const { loadPage } = vi.hoisted(() => ({ loadPage: vi.fn() }));
+const { loadPage, clearReminders } = vi.hoisted(() => ({ loadPage: vi.fn(), clearReminders: vi.fn() }));
 vi.mock("@/lib/navigation/url", () => ({ loadPage }));
+vi.mock("@/lib/native", () => ({ clearReminders }));
 vi.mock("@/lib/api/client", () => ({ fetcher }));
 vi.mock("@/features/auth/api.client", () => ({ AuthClient: client }));
 vi.mock("next/navigation", () => ({
@@ -45,6 +46,7 @@ beforeEach(() => {
   fetcher.mockReset();
   fetcher.mockResolvedValue(undefined);
   client.signOut.mockResolvedValue({ signedOut: true });
+  clearReminders.mockResolvedValue(undefined);
 });
 
 describe("who is signed in", () => {
@@ -181,6 +183,26 @@ describe("signing in and out", () => {
     expect(localStorage.getItem("brio_user:u-1:order_draft")).toBeNull();
     expect(localStorage.getItem("brio_theme")).toBe("peach");
     localStorage.clear();
+  });
+
+  it("takes the Android app's reminders of the account's orders off the phone before the new page", async () => {
+    fetcher.mockResolvedValue(TEST_SESSION);
+    const { result } = session();
+    await waitFor(() => expect(result.current.status).toBe("authenticated"));
+    await result.current.signOut();
+
+    expect(clearReminders).toHaveBeenCalledOnce();
+    expect(clearReminders.mock.invocationCallOrder[0]).toBeLessThan(loadPage.mock.invocationCallOrder[0]);
+  });
+
+  it("leaves even when the reminders could not be taken off", async () => {
+    fetcher.mockResolvedValue(TEST_SESSION);
+    clearReminders.mockRejectedValue(new Error("plugin gone"));
+    const { result } = session();
+    await waitFor(() => expect(result.current.status).toBe("authenticated"));
+    await result.current.signOut();
+
+    expect(loadPage).toHaveBeenCalledWith("/login");
   });
 
   it("forgets it even when the server could not be told", async () => {

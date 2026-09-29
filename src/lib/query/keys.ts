@@ -67,6 +67,8 @@ export const apiRoutes = {
     unread: "/api/notifications/unread",
     readAll: "/api/notifications/read-all",
     read: (id: string) => `/api/notifications/${id}/read`,
+    /** What the Android app sets as reminders (R8.6). */
+    reminders: "/api/notifications/reminders",
   },
   business: {
     profile: "/api/business",

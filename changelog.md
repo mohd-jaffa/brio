@@ -3113,3 +3113,42 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - No blocker to the audit. Four findings remain open for the next implementation pass.
+
+## 2026-09-29 — Phase 8: order reminders on Android, with no worker
+
+### Added
+- **R8.6, reminders the Android app sets itself** (the user: "cant push notification without workers as we are not hosting workers separately, if it will work implement it for the android app"). A push needs a sender awake at the time, and no worker runs. So the phone schedules its own notifications for the only notices there are now: orders due soon and overdue. No server process, token, Firebase project or table is added.
+  - **`GET /api/notifications/reminders`** (`listReminders`, `src/features/notifications/reminders.ts`):
+    - it reads the business's open orders due from yesterday on, soonest first, 100 at most (`REMINDER_ORDERS_MAX`);
+    - it words each order's reminders as the inbox does, by 0023's rule. *Due soon* is set for 8 AM on the day before the order is due, or for that day once the day before has passed. *Overdue* is set for 8 AM the day after.
+    - Only what is still ahead is set, and a notice the inbox has already given is not set again.
+  - **`OrderReminders`**, in the signed-in frame, reads the set as the app opens, when it comes back into view, and every minute while it is open, as the bell does. It hands the phone the whole set, so an order delivered or moved is taken off or moved within a minute.
+  - **`src/lib/native/reminders.ts`** (`@capacitor/local-notifications` 8.3):
+    - The set replaces what was waiting, and a read that changed nothing sets nothing.
+    - They go on their own channel, "Order reminders", kept private on a locked screen, with the brand's mark in the status bar.
+    - Tapping one opens its order, even when the tap starts the app.
+  - **None is an exact alarm.** Otherwise the plugin would open Android's "Alarms & reminders" screen, so the exact-alarm permission it adds is removed from the manifest. Android may hold a reminder a few minutes.
+  - **Settings → Notifications → Order reminders**, in the Android app only, between Appearance and About as the plan orders them. When off, the row asks Android and says so once allowed. When refused, it says to turn reminders on in Android's settings. The permission is read again each time the app comes back into view.
+  - **Signing out, or deleting the account,** cancels the waiting reminders and takes down those already shown.
+  - **`ic_stat_brio`**, the status-bar icon: the mark in white, 20 dp on 24 dp, built by `scripts/brand.mjs` like the other icons.
+  - **`dayHour`** (`src/lib/dates/calendar.ts`): an hour of a day in the business's timezone.
+
+### Decided
+- **The installable web app gets no reminders.** A closed web app can only be woken by a push, and a push needs a sender on a schedule: the worker, or a scheduler calling the app. It keeps the inbox and the bell.
+- **FCM push (device tokens, the NotificationWorker) stays as planned** for when a worker runs. R8.6 stays open for it.
+- **A limit of setting reminders on the phone:** an order added on another device joins the phone's reminders when the phone next opens the app. Settings says so.
+
+### Validation
+- **Unit tests** cover:
+  - the rule: day before or the day itself, overdue, only what is ahead, not what the inbox has told, Guest, and India's day wherever the server runs;
+  - the query;
+  - the native layer: permission states, replacing the set, no exact alarms, nothing without permission, clearing, and taps only to the app's own screens;
+  - the permission hook, `OrderReminders`, the Settings row and its place, signing out, and the tap opening the order.
+  - The new code is at 100 %.
+- **Against the local stack:** the endpoint answered an order due on 1 October with *due tomorrow* at 8 AM on 30 September and *overdue* at 8 AM on 2 October. It refused a signed-out caller.
+- **In a browser:** Settings is unchanged (no Notifications), the web app never asks for reminders, and no errors appeared.
+- **The Android project:** synced (four plugins), Gradle configures it with the plugin, and the manifest is well formed.
+- **Checks:** `tsc` and `eslint` pass, and the full suite passes (2,288 tests).
+
+### Blockers
+- **Seen on a device (R8.4, R8.12):** needs Android Studio or a phone. That includes the permission prompt, a reminder arriving, and a tap from a cold start.

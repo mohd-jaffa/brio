@@ -1060,6 +1060,9 @@ export const UI_TEXT = {
     bell: (unread: number) => (unread > 0 ? `Notifications, ${unread} unread` : "Notifications"),
     /** The bell's count once it passes what the badge shows: "9+". */
     moreThan: (most: number) => `${most}+`,
+    /** The Android app's reminders (R8.6), as Android's own settings name them. */
+    channel: "Order reminders",
+    channelDescription: "Orders due soon, and overdue",
   },
 
   /** Business details (plan §139.10, §139.11.2). */
@@ -1127,6 +1130,18 @@ export const UI_TEXT = {
     privacyPolicyHint: "What Brio keeps, and why",
     deleteAccount: "Delete account",
     deleteAccountHint: "Deletes everything, for good",
+    // R8.6 (the user, 2026-09-29): the Android app's reminders, and Android's permission for them.
+    notifications: "Notifications",
+    reminders: "Order reminders",
+    remindersState: { ON: "On", OFF: "Off", BLOCKED: "Off" } as Record<"ON" | "OFF" | "BLOCKED", string>,
+    remindersHint: {
+      ON: "Orders due soon, and overdue, each morning",
+      OFF: "Tap to be reminded of orders due soon and overdue",
+      BLOCKED: "Turned off in Android’s settings for Brio",
+    } as Record<"ON" | "OFF" | "BLOCKED", string>,
+    remindersNote: "Set on this phone for the orders it has seen. An order added elsewhere joins them when you next open the app.",
+    remindersOn: "Reminders on",
+    remindersOnBody: "You will be reminded of orders due soon, and overdue, each morning.",
     // The owner's profile picture, an animal or a person (the user, 2026-09-27, 2026-09-28).
     changePicture: "Change profile picture",
     pictureTitle: "Choose a profile picture",

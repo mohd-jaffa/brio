@@ -602,6 +602,14 @@ Running a worker again is `WORKER_ENABLED = true`, a migration making
 Notifications should be worker-based. For now none is, and only orders due
 soon and overdue are told of (§17, plan §139.11.15).
 
+**The Android app reminds of those itself** (R8.6, plan §139.17.4). With no
+worker to send a push, the phone schedules its own notifications: the signed-in
+frame (`OrderReminders`) reads `GET /api/notifications/reminders` (worded by the
+server, by the inbox's rule) and hands the phone the whole set through
+`scheduleReminders`. Signing out clears them (`clearReminders`). Settings →
+Notifications asks Android's permission, in the Android app only. The web app
+has no reminders: waking a closed one needs a push.
+
 Android uses Capacitor native capabilities where appropriate.
 
 Web/PWA uses browser capabilities where supported.
@@ -658,8 +666,9 @@ capacitor.config.ts    the app id, name, hosted address (ANDROID_APP_URL) and pl
 ```
 
 The native layer holds only capabilities something calls (plan §139.17.2):
-`share` and `saveFile` (the bill), the back button (`NativeSetup`), and
-`isAndroidApp` / `hasPlugins`. Every Android half checks its plugin is in the
+`share` and `saveFile` (the bill), the back button (`NativeSetup`), order
+reminders (`reminders.ts`, `useReminderPermission`), and `isAndroidApp` /
+`hasPlugins`. Every Android half checks its plugin is in the
 installed build and falls back to the web half: the app loads the hosted web
 app, so a deploy can be newer than the install.
 
