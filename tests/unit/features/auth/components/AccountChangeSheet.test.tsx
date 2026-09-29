@@ -54,7 +54,7 @@ describe("AccountChangeSheet", () => {
     await waitFor(() => expect(client.changeName).toHaveBeenCalledWith({ name: "Asha B" }));
     expect(auth.current.reload).toHaveBeenCalledOnce();
     expect(onClose).toHaveBeenCalled();
-    expect(await screen.findByRole("status")).toHaveTextContent("Name changed");
+    expect(await screen.findByText(/./, { selector: "[role=status]" })).toHaveTextContent("Name changed");
   });
 
   it("starts empty when there is no account to fill it from", () => {
@@ -98,7 +98,7 @@ describe("AccountChangeSheet", () => {
     await waitFor(() =>
       expect(client.changePhone).toHaveBeenCalledWith({ phone: "+919000022222", password: "Password123!" }),
     );
-    expect(await screen.findByRole("status")).toHaveTextContent(
+    expect(await screen.findByText(/./, { selector: "[role=status]" })).toHaveTextContent(
       "Sign-in number changed. Sign in with +91 90000 22222 from now on.",
     );
   });
@@ -134,7 +134,7 @@ describe("AccountChangeSheet", () => {
     await waitFor(() =>
       expect(client.changeEmail).toHaveBeenCalledWith({ email: "asha.new@example.com", password: "Password123!" }),
     );
-    expect(await screen.findByRole("status")).toHaveTextContent(
+    expect(await screen.findByText(/./, { selector: "[role=status]" })).toHaveTextContent(
       "Check your new inbox. A link is on its way to asha.new@example.com. Your email changes once you follow it.",
     );
   });
@@ -145,7 +145,7 @@ describe("AccountChangeSheet", () => {
     await userEvent.type(screen.getByLabelText(/New email address/), "taken@example.com");
     await userEvent.type(screen.getByLabelText(/Current password/), "Password123!");
     await userEvent.click(screen.getByRole("button", { name: "Save" }));
-    expect(await screen.findByRole("status")).toHaveTextContent("A link is on its way to .");
+    expect(await screen.findByText(/./, { selector: "[role=status]" })).toHaveTextContent("A link is on its way to .");
 
     client.changeEmail.mockRejectedValueOnce(
       refusal("AUTH_EMAIL_ALREADY_EXISTS", "An account with this email address already exists."),

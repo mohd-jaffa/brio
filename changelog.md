@@ -3569,3 +3569,49 @@ The user: "complete phase 8 first then phase 6". Their answers: the device check
 
 ### Blockers
 - None.
+
+## 2026-09-29 — Notices over sheets, and the history's new movement
+
+### Fixed
+- **A notice shown while a sheet was open was hidden, unreachable and unannounced** (`top-layer.ts`, `Modal`, `ResponseProvider`). Examples are Stock recorded over a product's history, and Bill saved or PDF saved over the bill.
+  - A modal `<dialog>` makes everything outside it inert. The notice sat behind the sheet on a phone, and dimmed under its backdrop on a desktop.
+  - A tap on it would have landed on the backdrop, which closes the sheet.
+  - The page's live region dropped out of the accessibility tree, so the notice was never read out. This was checked in Chrome's tree.
+  - A popover above the sheet is inert too. That was tested in Chromium and WebKit, so it could not be the fix.
+- **The fix:**
+  - Each sheet now holds a place for a notice and a polite live region of its own, and is on top while open (`openLayer`, from a layout effect).
+  - A notice is drawn in one holder, which goes inside the sheet on top, or, with none open, above the page as a popover. It moves before the screen is drawn, with no React state and no remount. Any running animation keeps the time it had reached, so a notice following its sheet away keeps its countdown and does not rise in again.
+  - Its announcement goes to the live region on top.
+- **Escape** closes the notice when it is over a sheet, and leaves the sheet for the next press. Under a sheet opened after it, Escape is the sheet's. Before, one Escape closed both.
+- **The notice's close button is named for it**, `Close “Stock recorded”` (`UI_TEXT.response.closeNotice`), so it is not a second "Close" inside a sheet.
+
+### Added
+- **The history's new movement opens into place.** This is the user's approach: the history keeps its ledger, and so its size, while Record stock is over it (`useKept`; `useApiPages` now keeps its joined rows the same array until a page changes).
+  - Once the form has left, the movement opens from nothing (`useListMotion`, `arrival: "open"`, 260 ms), so the sheet grows smoothly.
+  - Deferring alone would only have moved the sheet's jump to where it can be seen. Opening the row is what removes it.
+  - Measured on the built app:
+    - at 390 px, the sheet's top edge went 568 → 547 → 523 → 514 → 507 px, and the movement below stayed at 751 px throughout;
+    - at 1280 px, the dialog grew evenly from its centre;
+    - under reduced motion, the row fades in and the sheet takes its size at once.
+
+### Changed
+- **The test setup's dialog stand-in** now handles Escape once the key has been through the page, and not at all when a listener prevented it, as browsers do (`tests/support/setup.ts`).
+- Tests that read "the" status region while a sheet is open now read the one saying something, since each open sheet has its own.
+
+### Validation
+- Unit tests: 361 files, 2,443 tests, pass.
+  - `top-layer.ts`, `modal.tsx`, `response-card.tsx`, `useListMotion`, `StockLedgerSheet` and `useApiPages` are fully covered.
+  - This includes older gaps: a notice with facts, the order-placed card's medallion, and Shift+Tab round a sheet.
+- A temporary browser check on the built app (Chromium, not committed) confirmed each of the following:
+  - the notice is inside the history and takes taps;
+  - its close button and Escape close only it;
+  - with the history closed under it, it moves to the page as a popover, stays tappable and above the sliding sheet, and keeps its countdown (1,667 → 1,783 ms) without a second entrance.
+- WebKit, probed directly, since its Playwright build will not keep the app's `Secure` cookies on plain http, behaves as Chromium does:
+  - a notice inside the sheet on top can be tapped;
+  - a prevented Escape leaves the sheet open;
+  - a popover over a closing sheet is on top and takes clicks.
+- Both browser journeys pass. The journey now finds the bill's own Close exactly. Lint, the type check and the format check pass.
+
+### Blockers
+- None.
+

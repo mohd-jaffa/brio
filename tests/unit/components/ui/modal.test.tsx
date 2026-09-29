@@ -4,6 +4,7 @@ import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { Modal } from "@/components/ui/modal";
+import { topLayer } from "@/components/ui/top-layer";
 
 describe("Modal", () => {
   it("stays open to Escape and the backdrop when nothing dismisses it", async () => {
@@ -109,5 +110,53 @@ describe("Modal", () => {
     const dialog = screen.getByRole("alertdialog", { name: "Done" });
     expect(dialog).toHaveClass("modal-rise");
     expect(dialog).not.toHaveClass("modal-slide");
+  });
+
+  it("keeps Tab going round inside it, both ways", async () => {
+    // jsdom lays nothing out; here every control is drawn.
+    vi.spyOn(Element.prototype, "getClientRects").mockReturnValue([{}] as unknown as DOMRectList);
+    render(
+      <Modal open labelledBy="title">
+        <h2 id="title">Choose</h2>
+        <button type="button">First</button>
+        <button type="button">Last</button>
+      </Modal>,
+    );
+    expect(screen.getByRole("button", { name: "First" })).toHaveFocus();
+    await userEvent.tab({ shift: true });
+    expect(screen.getByRole("button", { name: "Last" })).toHaveFocus();
+    await userEvent.tab();
+    expect(screen.getByRole("button", { name: "First" })).toHaveFocus();
+    vi.restoreAllMocks();
+  });
+
+  it("is the layer on top while it is open, with a place for a notice and a live region inside it", () => {
+    const { rerender, unmount } = render(
+      <Modal open labelledBy="title">
+        <h2 id="title">Record stock</h2>
+      </Modal>,
+    );
+    const dialog = screen.getByRole("dialog", { name: "Record stock" });
+    const layer = topLayer()!;
+    expect(dialog).toContainElement(layer.notices);
+    expect(dialog).toContainElement(layer.status);
+    expect(layer.status).toHaveAttribute("role", "status");
+    expect(layer.status).toHaveAttribute("aria-live", "polite");
+
+    rerender(
+      <Modal open={false} labelledBy="title">
+        <h2 id="title">Record stock</h2>
+      </Modal>,
+    );
+    expect(topLayer()).toBeUndefined();
+
+    rerender(
+      <Modal open labelledBy="title">
+        <h2 id="title">Record stock</h2>
+      </Modal>,
+    );
+    expect(topLayer()).toBeDefined();
+    unmount();
+    expect(topLayer()).toBeUndefined();
   });
 });

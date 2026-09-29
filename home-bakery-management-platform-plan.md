@@ -7835,7 +7835,8 @@ a shared component** (AGENTS §5).
 - **Stock** (2026-09-29, `/impeccable animate`; `StockLevel.tsx`):
   - **Recording stock:** a product's history keeps its figure on the shelf while Record stock is open over it, and until that has left (`useLeaving`, 200 ms). Then the figure rolls the way the stock moved, where it can be seen rather than behind the form.
   - **The list:** the stock list waits the same way for the history to leave. Then a row's count rolls, and the row travels to its new place. **Low stock** pops in when stock falls to the mark, and shrinks away (`animate-pop-out`) when it is filled again. While it leaves, a screen reader no longer hears it.
-  - **What stays still:** a product's first count. The history's new movement is already in place as the form leaves: joining later, it would make the sheet jump as it grew.
+  - **The history's new movement** (2026-09-29, the user's approach): the history keeps its ledger, and so its size, while the form is over it. Once the form has left, the movement opens its room at the top (`useListMotion`, `arrival: "open"`, 260 ms). The sheet grows smoothly to hold it: on a phone its top edge glides up and the movements below stay where they are; on a desktop the dialog grows evenly from its centre.
+  - **What stays still:** a product's first count.
   - Under reduced motion the roll is a short fade, and Low stock fades in and out.
 - **Taking an order** (the user, 2026-09-29; `src/features/orders/choreography.ts`):
   - **Adding:** the pressed + flies into the cart on a phone, or into its line on the desktop's order panel, which answers with a small pulse. Under reduced motion only the cart or the line answers, with a short fade.
@@ -7884,6 +7885,13 @@ happened?", on the web and in the Android app. The model is the reference's
 - **Placement:** a bottom sheet on phones (thumb reach, clear of the safe area), a centred card (max 420 px) from tablet up.
 - **Focus** moves to the primary action, is **trapped** inside the card and **returns** to the control that caused it. The rest of the app is `inert`. Escape closes success, info and error cards and means *No* for a confirmation.
 - **Auto-close** shows a hairline progress bar and **pauses** on hover, focus or touch (WCAG 2.2.1).
+- **Over an open sheet** (2026-09-29, `top-layer.ts`). A sheet makes everything outside it inert: unseen under its backdrop, out of reach, and silent to a screen reader. A tap there lands on the backdrop and closes the sheet. Even a popover drawn above a sheet is inert (tested in Chromium and WebKit). So a card that closes itself goes where it can be seen, reached and heard:
+  - **With a sheet open:** it is drawn inside the sheet on top, and announced through that sheet's own live region. Before, it sat hidden behind the sheet on a phone, dimmed and unreachable on a desktop, and unannounced.
+  - **A form that closes as it saves** is already gone, so the card goes over the sheet that stays, such as Stock recorded over a product's history.
+  - **A sheet opened after it** covers it. If its own sheet closes first, it steps down to what is open, clock and all.
+  - **With no sheet open:** it is shown as a popover, so it stays above a sheet still sliding away.
+  - **Escape** closes what is on top: the card over a sheet, the sheet over the card.
+  - **Its close button is named for it**, such as `Close “Stock recorded”`, since a sheet has a Close of its own.
 - **One at a time.** A newer card replaces an older one of lower severity, and identical cards are not stacked.
 - **Motion:** rises in 240 ms with an exponential ease-out; under reduced motion it only fades.
 - **Android:** a haptic tick for success, warning and error, through the native layer (§139.17.2).

@@ -1,8 +1,10 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
+import { renderToString } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
+import { Modal } from "@/components/ui/modal";
 import { ResponseProvider, useResponse, type Respond } from "@/components/ui/response-card";
 import { ERROR_MESSAGES } from "@/constants/messages";
 import { ApiError } from "@/lib/api/client";
@@ -54,6 +56,24 @@ describe("a card with nothing to do next", () => {
     expect(screen.getByRole("status")).toHaveTextContent("");
   });
 
+  it("shows up to three facts, and says them", () => {
+    const respond = mount();
+    act(() =>
+      respond.success({
+        title: "Payment recorded",
+        facts: [
+          { label: "Paid", value: "₹500" },
+          { label: "Left", value: "₹250" },
+          { label: "By", value: "UPI" },
+          { label: "Note", value: "Kept out" },
+        ],
+      }),
+    );
+    expect(notice()).toHaveTextContent("Paid₹500Left₹250ByUPI");
+    expect(notice()).not.toHaveTextContent("Kept out");
+    expect(screen.getByRole("status")).toHaveTextContent("Payment recorded. Paid ₹500. Left ₹250. By UPI");
+  });
+
   it("stops its clock while a pointer or focus rests on it", () => {
     sizeCharts();
     const respond = mount();
@@ -62,19 +82,20 @@ describe("a card with nothing to do next", () => {
     expect(countdown().style.animationPlayState).toBe("paused");
     fireEvent.pointerLeave(notice()!);
     expect(countdown().style.animationPlayState).toBe("running");
-    fireEvent.focus(screen.getByRole("button", { name: "Close" }));
+    const close = screen.getByRole("button", { name: "Close “You were signed out”" });
+    fireEvent.focus(close);
     expect(countdown().style.animationPlayState).toBe("paused");
-    fireEvent.blur(screen.getByRole("button", { name: "Close" }));
-    fireEvent.blur(screen.getByRole("button", { name: "Close" }));
+    fireEvent.blur(close);
+    fireEvent.blur(close);
     expect(countdown().style.animationPlayState).toBe("running");
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
 
-  it("closes from its close button, and on Escape", async () => {
+  it("closes from its close button, named for it, and on Escape", async () => {
     const respond = mount();
     act(() => respond.success({ title: "Stock recorded" }));
-    await userEvent.click(screen.getByRole("button", { name: "Close" }));
+    await userEvent.click(screen.getByRole("button", { name: "Close “Stock recorded”" }));
     expect(notice()).toBeNull();
 
     act(() => respond.success({ title: "Stock recorded" }));
@@ -121,6 +142,19 @@ describe("a card with a next step", () => {
     await userEvent.click(within(card).getByRole("button", { name: "New order" }));
     expect(onNew).toHaveBeenCalledOnce();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("names its medallion as where Place order lands, for the order placed", () => {
+    const respond = mount();
+    act(() =>
+      respond.success({
+        title: "Order placed",
+        motion: "order-placed",
+        primary: { label: "View bill", onClick: vi.fn() },
+      }),
+    );
+    const card = screen.getByRole("dialog", { name: "Order placed" });
+    expect(card.querySelector(".order-confirm-destination")).not.toBeNull();
   });
 
   it("puts focus on its primary action, which closes it", async () => {
@@ -301,7 +335,7 @@ describe("a card on its way out", () => {
     leaveWithMotion();
     const respond = mount();
     act(() => respond.success({ title: "Stock recorded" }));
-    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    fireEvent.click(screen.getByRole("button", { name: "Close “Stock recorded”" }));
     expect(notice()).toHaveClass("animate-leave", "pointer-events-none");
     act(() => vi.advanceTimersByTime(200));
     expect(notice()).toBeNull();
@@ -336,12 +370,158 @@ describe("a card on its way out", () => {
     leaveWithMotion();
     const respond = mount();
     act(() => respond.success({ title: "Stock recorded" }));
-    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    fireEvent.click(screen.getByRole("button", { name: "Close “Stock recorded”" }));
     act(() => respond.success({ title: "Stock recorded" }));
     expect(notice()).not.toHaveClass("animate-leave");
     expect(notice()).toHaveTextContent("Stock recorded");
     act(() => vi.advanceTimersByTime(200));
     expect(notice()).toHaveTextContent("Stock recorded");
     settle();
+  });
+});
+
+// A product's history, and Record stock over it, as Inventory opens them.
+interface Stage {
+  respond: Respond;
+  history: (open: boolean) => void;
+  form: (open: boolean) => void;
+}
+
+function Sheets({ onReady }: { onReady: (stage: Stage) => void }) {
+  const respond = useResponse();
+  const [history, setHistory] = useState(false);
+  const [form, setForm] = useState(false);
+  useState(() => onReady({ respond, history: setHistory, form: setForm }));
+  return (
+    <>
+      <Modal open={history} onDismiss={() => setHistory(false)} labelledBy="history">
+        <h2 id="history">History</h2>
+        <button type="button">Record stock</button>
+      </Modal>
+      <Modal open={form} onDismiss={() => setForm(false)} labelledBy="form">
+        <h2 id="form">Record stock for Rose tart</h2>
+        <button type="button">Save</button>
+      </Modal>
+    </>
+  );
+}
+
+function stage() {
+  let ready!: Stage;
+  const view = render(
+    <ResponseProvider>
+      <Sheets onReady={(value) => (ready = value)} />
+    </ResponseProvider>,
+  );
+  return { ...ready, unmount: view.unmount };
+}
+
+const dialog = (name: string) => screen.getByRole("dialog", { name });
+const said = (element: HTMLElement) => within(element).getByRole("status").textContent;
+const page = () => document.querySelector<HTMLElement>("body > div > p[role=status]")!;
+
+describe("a notice over a sheet", () => {
+  it("is drawn inside the sheet on top, where it can be seen and reached, and said from there", () => {
+    const { respond, history } = stage();
+    act(() => history(true));
+    act(() => respond.success({ title: "Stock recorded" }));
+    expect(dialog("History")).toContainElement(notice());
+    expect(said(dialog("History"))).toBe("Stock recorded");
+    // The page's own region is inert under the sheet, and says nothing.
+    expect(page()).toHaveTextContent("");
+
+    fireEvent.animationEnd(countdown());
+    expect(said(dialog("History"))).toBe("");
+  });
+
+  it("goes over the sheet that stays when a form over it closes as it saves", () => {
+    const { respond, history, form } = stage();
+    act(() => history(true));
+    act(() => form(true));
+    act(() => {
+      form(false);
+      respond.success({ title: "Stock recorded" });
+    });
+    expect(dialog("History")).toContainElement(notice());
+    expect(said(dialog("History"))).toBe("Stock recorded");
+  });
+
+  it("stays under a sheet opened after it; when its own closes, it goes to what is open, and then the page", () => {
+    const { respond, history, form } = stage();
+    act(() => history(true));
+    act(() => respond.success({ title: "Stock recorded" }));
+    act(() => form(true));
+    expect(dialog("History")).toContainElement(notice());
+
+    act(() => history(false));
+    expect(dialog("Record stock for Rose tart")).toContainElement(notice());
+    act(() => form(false));
+    expect(notice()!.closest("dialog")).toBeNull();
+    expect(notice()).toHaveTextContent("Stock recorded");
+  });
+
+  it("is on the page, and said there, with no sheet open", () => {
+    const { respond, history } = stage();
+    act(() => respond.success({ title: "Customer saved" }));
+    expect(notice()!.closest("dialog")).toBeNull();
+    expect(page()).toHaveTextContent("Customer saved");
+    // A sheet opened after it leaves it where it was.
+    act(() => history(true));
+    expect(notice()!.closest("dialog")).toBeNull();
+  });
+
+  it("closes first on Escape, and the sheet under it on the next", async () => {
+    const { respond, history } = stage();
+    act(() => history(true));
+    act(() => respond.success({ title: "Stock recorded" }));
+    await userEvent.keyboard("{Shift}");
+    expect(notice()).toBeInTheDocument();
+    await userEvent.keyboard("{Escape}");
+    expect(notice()).toBeNull();
+    expect(dialog("History")).toBeInTheDocument();
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog", { name: "History" })).not.toBeInTheDocument();
+  });
+
+  it("leaves Escape to a sheet opened over it", async () => {
+    const { respond, history, form } = stage();
+    act(() => history(true));
+    act(() => respond.success({ title: "Stock recorded" }));
+    act(() => form(true));
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog", { name: "Record stock for Rose tart" })).not.toBeInTheDocument();
+    expect(notice()).toHaveTextContent("Stock recorded");
+  });
+
+  it("rises in once, and not again when it follows its sheet away", () => {
+    const { respond, history } = stage();
+    act(() => history(true));
+    act(() => respond.success({ title: "Stock recorded" }));
+    expect(notice()).toHaveClass("animate-response");
+    // The countdown's own end is not the entrance's.
+    fireEvent.animationEnd(countdown(), { bubbles: true });
+    act(() => respond.success({ title: "Stock recorded again" }));
+    expect(notice()).toHaveClass("animate-response");
+    fireEvent.animationEnd(notice()!);
+    expect(notice()).not.toHaveClass("animate-response");
+    act(() => history(false));
+    expect(notice()).not.toHaveClass("animate-response");
+  });
+
+  it("draws on the server, where there is no page to hold a notice", () => {
+    vi.stubGlobal("document", undefined);
+    try {
+      expect(renderToString(<ResponseProvider>Screen</ResponseProvider>)).toContain('role="status"');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("takes its holder off the page when it goes", () => {
+    const { respond, unmount } = stage();
+    act(() => respond.success({ title: "Customer saved" }));
+    const holder = notice()!.parentElement!;
+    unmount();
+    expect(holder).not.toBeInTheDocument();
   });
 });

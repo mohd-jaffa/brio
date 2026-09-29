@@ -8,12 +8,14 @@ import {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type ReactNode,
   type Ref,
 } from "react";
+import { createPortal } from "react-dom";
 
 import { UI_TEXT, type ErrorMessageCode } from "@/constants/messages";
 import { ApiError } from "@/lib/api/client";
@@ -23,6 +25,7 @@ import { EXIT_MS, canAnimate } from "@/lib/motion";
 import { cn } from "./cn";
 import { Medallion, type MedallionTone } from "./medallion";
 import { Modal } from "./modal";
+import { isOpenLayer, lower, onLayersChange, raise, topLayer } from "./top-layer";
 
 export type ResponseKind = "success" | "info" | "warning" | "error" | "confirm";
 
@@ -184,27 +187,64 @@ export function ResponseProvider({ children }: { children: ReactNode }) {
   );
 
   const current = cards[0];
+  const notice = current && closesItself(current) ? current : undefined;
+
+  // A notice is drawn in a holder of its own, which goes wherever it can be
+  // seen and reached (`raise`): inside the modal on top when one is open,
+  // since the page outside it is inert, and above the page otherwise. Made in
+  // the browser only; there is never a notice while the page is drawn on the
+  // server.
+  const [holder] = useState(() => {
+    if (typeof document === "undefined") return null;
+    const div = document.createElement("div");
+    div.className = "notice-holder";
+    return div;
+  });
+  useLayoutEffect(() => () => holder?.remove(), [holder]);
+  const noticeId = notice?.id;
+  useLayoutEffect(() => {
+    if (!holder || noticeId === undefined) return;
+    // A new notice goes on top — over the sheet that stays open once a form
+    // over it has saved and closed.
+    raise(holder);
+    // It stays there while it lasts, under a sheet opened after it; if its
+    // own sheet closes, it steps down to what is open now, clock and all.
+    const stop = onLayersChange(() => {
+      if (holder.parentElement !== document.body && !isOpenLayer(holder.parentElement)) raise(holder);
+    });
+    return () => {
+      stop();
+      lower(holder);
+    };
+  }, [holder, noticeId]);
+
+  // Announced, as it never takes focus, through the live region on top: the
+  // page's own is inert, and silent, while a modal is open.
+  const pageStatus = useRef<HTMLParagraphElement>(null);
+  const spoken = notice
+    ? [notice.title, notice.message, ...(notice.facts ?? []).slice(0, 3).map((fact) => `${fact.label} ${fact.value}`)]
+        .filter(Boolean)
+        .join(". ")
+    : "";
+  useLayoutEffect(() => {
+    const region = topLayer()?.status ?? pageStatus.current;
+    if (!spoken || !region) return;
+    region.textContent = spoken;
+    return () => {
+      region.textContent = "";
+    };
+  }, [spoken]);
+
   return (
     <ResponseContext.Provider value={respond}>
       {children}
-      {current &&
-        (closesItself(current) ? (
-          <ResponseNotice key={current.id} card={current} onClose={() => close(current)} />
-        ) : (
-          <ResponseCard key={current.id} card={current} onClose={(answer) => close(current, answer)} />
-        ))}
-      {/* Announces a card that closes itself, which never takes focus. */}
-      <p role="status" aria-live="polite" className="sr-only">
-        {current && closesItself(current)
-          ? [
-              current.title,
-              current.message,
-              ...(current.facts ?? []).slice(0, 3).map((fact) => `${fact.label} ${fact.value}`),
-            ]
-              .filter(Boolean)
-              .join(". ")
-          : ""}
-      </p>
+      {notice &&
+        holder &&
+        createPortal(<ResponseNotice key={notice.id} card={notice} onClose={() => close(notice)} />, holder)}
+      {current && !notice && (
+        <ResponseCard key={current.id} card={current} onClose={(answer) => close(current, answer)} />
+      )}
+      <p ref={pageStatus} role="status" aria-live="polite" className="sr-only" />
     </ResponseContext.Provider>
   );
 }
@@ -353,11 +393,22 @@ function ResponseCard({ card, onClose }: { card: Card; onClose: (answer?: boolea
  */
 function ResponseNotice({ card, onClose }: { card: Card; onClose: () => void }) {
   const [held, setHeld] = useState(0);
+  // Its entrance plays once: taken off when done, so a notice that follows
+  // its sheet away does not rise in again.
+  const [entered, setEntered] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
   const { icon, tone } = MEDALLIONS[card.kind];
 
   useEffect(() => {
+    // Escape closes what is on top. Over a sheet the notice is, so it closes
+    // and the sheet stays for the next Escape; under a sheet opened after it,
+    // the sheet is, and the notice is left alone.
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key !== "Escape") return;
+      const top = topLayer();
+      if (top && !top.notices.contains(root.current)) return;
+      if (top) event.preventDefault();
+      onClose();
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
@@ -368,13 +419,17 @@ function ResponseNotice({ card, onClose }: { card: Card; onClose: () => void }) 
 
   return (
     <div
+      ref={root}
       data-response-notice=""
+      onAnimationEnd={(event) => {
+        if (event.target === event.currentTarget) setEntered(true);
+      }}
       onPointerEnter={hold}
       onPointerLeave={letGo}
       onFocus={hold}
       onBlur={letGo}
       className={cn(
-        card.leaving ? "animate-leave pointer-events-none" : "animate-response",
+        card.leaving ? "animate-leave pointer-events-none" : !entered && "animate-response",
         "fixed inset-x-4 bottom-[calc(var(--bottom-bar-offset)+var(--safe-bottom)+0.75rem)] z-50 mx-auto max-w-[420px] overflow-hidden rounded-2xl border border-border bg-surface shadow-elevated md:bottom-6",
       )}
     >
@@ -397,7 +452,7 @@ function ResponseNotice({ card, onClose }: { card: Card; onClose: () => void }) 
         <button
           type="button"
           onClick={onClose}
-          aria-label={UI_TEXT.actions.close}
+          aria-label={UI_TEXT.response.closeNotice(card.title)}
           className="touch-target -m-2 flex items-center justify-center rounded-full p-2 text-text-muted transition-colors hover:bg-surface-hover hover:text-text"
         >
           <X size={18} strokeWidth={1.75} aria-hidden="true" />

@@ -89,7 +89,7 @@ describe("CustomerPicker", () => {
     render(<Screen />);
     await userEvent.type(search(), "zzz");
     expect(choices()).toHaveLength(1);
-    expect(screen.getByRole("status")).toHaveTextContent("No customer matches that");
+    expect(screen.getByText("No customer matches that")).toHaveAttribute("role", "status");
   });
 
   it("holds the list's place until the first page comes, with Guest already on offer", () => {

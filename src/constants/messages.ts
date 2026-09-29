@@ -253,6 +253,8 @@ export const UI_TEXT = {
   /** The response card (plan §139.6). */
   response: {
     reference: (requestId: string) => `Reference: ${requestId}`,
+    /** A notice's own close button, named for it: over a sheet, the sheet has a Close of its own. */
+    closeNotice: (title: string) => `Close “${title}”`,
   },
 
   /**

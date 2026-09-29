@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import useSWRInfinite from "swr/infinite";
 
 import { fetcher } from "@/lib/api/client";
@@ -23,6 +24,9 @@ import { useSeeded } from "./useSeeded";
  * A route whose page carries more than its rows — Guest sales' count and
  * total — names its shape as `P`, and reads it from `first`.
  *
+ * The joined rows are the same array until a page changes, so a screen can
+ * hold them while something covers them (`useKept`).
+ *
  * A first page the page arrived with (`ServerData`) is shown at once and not
  * asked for again on mount.
  */
@@ -38,9 +42,10 @@ export function useApiPages<T, P extends Page<T> = Page<T>>(key: string | null) 
     { revalidateAll: true, keepPreviousData: true, ...(seeded && { revalidateOnMount: false }) },
   );
 
+  const rows = useMemo(() => data?.flatMap((page) => page.items), [data]);
   const hasMore = Boolean(data?.[data.length - 1]?.nextCursor);
   return {
-    data: data?.flatMap((page) => page.items),
+    data: rows,
     first: data?.[0],
     error,
     isLoading,

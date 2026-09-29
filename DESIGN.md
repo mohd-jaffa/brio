@@ -453,6 +453,7 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 ### Response Card
 - The one way an outcome is reported, on the web and in the app: a medallion, a serif title, the message, up to three facts in a strip, and at most two actions.
 - It rises as a sheet on a phone and as a dialog on a desktop. Plain successes close themselves after 3 seconds.
+- **A plain success over an open sheet** is drawn inside that sheet, above its content, where it can be tapped and is read out. With no sheet open it floats above everything, even a sheet still sliding away. Its close button is named for it (`Close “Stock recorded”`).
 - **A confirm card** stands before anything that cannot be undone: marking an order Delivered or Completed, cancelling it, deleting, clearing an order being built, signing out. The safe answer ("Not yet", "Keep order", "Stay signed in") is always offered; on a destructive one the confirm is brick and focus rests on the safe answer, so Enter cannot destroy anything.
 
 ### Photographic Band and Quote Block
@@ -468,6 +469,7 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
   - content that replaces a placeholder fades in over 200 ms.
 - **Figures** roll the way they moved, up or down, over 220 ms; a pill that comes pops in, and one that goes shrinks away in 200 ms.
 - **A change made under a sheet** plays once the sheet has left, where it can be seen.
+- **A row that joins a list in a sheet** opens from nothing over 260 ms, so the sheet grows smoothly to hold it instead of jumping.
 - **Reduced motion:** every movement becomes a short fade.
 
 ## Do's and Don'ts

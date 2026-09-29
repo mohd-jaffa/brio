@@ -584,6 +584,23 @@ main[data-navigating] > :not([data-screen-skeleton]) {
   }
 }
 
+/* Where a notice that closes itself is held (response-card.tsx, top-layer.ts):
+   inside the modal on top, or, with none open, shown as a popover so it is
+   drawn above a sheet still sliding away. It is only a place, of no size; the
+   notice inside places itself on the screen. */
+.notice-holder {
+  position: fixed;
+  inset: 0 auto auto 0;
+  width: 0;
+  height: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+  color: inherit;
+}
+
 /* A notice that has closed drops away the way it rose, in 200 ms (EXIT_MS),
    and stays gone until it is taken off the screen. */
 @keyframes response-leave {

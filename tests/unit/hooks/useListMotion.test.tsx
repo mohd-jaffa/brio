@@ -1,7 +1,7 @@
 import { act, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useListMotion } from "@/hooks/useListMotion";
+import { useListMotion, type ListMotionOptions } from "@/hooks/useListMotion";
 
 interface Item {
   key: string;
@@ -10,12 +10,22 @@ interface Item {
 }
 
 /** A list laid out by hand, since jsdom lays nothing out: each item where its data says. */
-function List({ items, hidden = false, height }: { items: Item[]; hidden?: boolean; height?: number }) {
-  const list = useListMotion<HTMLUListElement>();
+function List({
+  items,
+  hidden = false,
+  height,
+  arrival,
+}: {
+  items: Item[];
+  hidden?: boolean;
+  height?: number;
+  arrival?: ListMotionOptions["arrival"];
+}) {
+  const list = useListMotion<HTMLUListElement>({ arrival });
   return (
     <ul ref={list} data-h={height ?? items.length * 50} data-hidden={hidden || undefined}>
       {items.map((item) => (
-        <li key={item.key} data-x={item.x ?? 0} data-y={item.y}>
+        <li key={item.key} data-x={item.x ?? 0} data-y={item.y} data-h={50} style={{ padding: "12px 0" }}>
           {item.key}
         </li>
       ))}
@@ -217,6 +227,72 @@ describe("useListMotion", () => {
     expect(played.find((one) => one.keyframes[0].height !== undefined)).toBeUndefined();
     expect(arrivals()[0].keyframes).toEqual([{ opacity: 0 }, { opacity: 1 }]);
     expect(arrivals()[0].options).toMatchObject({ duration: 160, delay: 0 });
+  });
+
+  it("opens a newcomer from nothing where its holder sizes to it, and moves none of the others", () => {
+    const { rerender, getByText } = render(<List items={rows("b", "c")} arrival="open" />);
+    rerender(<List items={rows("a", "b", "c")} arrival="open" />);
+
+    expect(moves()).toEqual([]);
+    expect(played).toHaveLength(1);
+    const [opened] = played;
+    expect(opened.element).toBe(getByText("a"));
+    expect(opened.keyframes[0]).toMatchObject({
+      height: "0px",
+      paddingTop: "0px",
+      paddingBottom: "0px",
+      borderTopWidth: "0px",
+      borderBottomWidth: "0px",
+      opacity: 0,
+      clipPath: "inset(0)",
+    });
+    expect(opened.keyframes[1]).toMatchObject({
+      height: "50px",
+      paddingTop: "12px",
+      paddingBottom: "12px",
+      opacity: 1,
+      clipPath: "inset(0)",
+    });
+    expect(opened.options).toMatchObject({ duration: 260, id: "list-motion" });
+  });
+
+  it("only fades a newcomer in under reduced motion, where the holder simply takes its size", () => {
+    reduceMotion();
+    const { rerender } = render(<List items={rows("b")} arrival="open" />);
+    rerender(<List items={rows("a", "b")} arrival="open" />);
+    expect(played.map((one) => one.keyframes)).toEqual([[{ opacity: 0 }, { opacity: 1 }]]);
+    expect(played[0].options).toMatchObject({ duration: 160 });
+  });
+
+  it("handles an item going as ever, even where newcomers open", () => {
+    const { rerender } = render(<List items={rows("a", "b", "c")} arrival="open" />);
+    rerender(<List items={rows("a", "c")} arrival="open" />);
+    expect(moves().map((one) => one.element.textContent)).toEqual(["c"]);
+  });
+
+  it("leaves a newcomer its own arrival where newcomers open", () => {
+    function Arriving({ items }: { items: Item[] }) {
+      const list = useListMotion<HTMLUListElement>({ arrival: "open" });
+      return (
+        <ul ref={list} data-h={items.length * 50}>
+          {items.map((item) => (
+            <li
+              key={item.key}
+              data-y={item.y}
+              ref={(element) => {
+                if (element && item.key === "new") element.animate([], { id: "drop-in" });
+              }}
+            >
+              {item.key}
+            </li>
+          ))}
+        </ul>
+      );
+    }
+    const { rerender } = render(<Arriving items={rows("a")} />);
+    played = [];
+    rerender(<Arriving items={rows("new", "a")} />);
+    expect(played.filter((one) => one.options.id === "list-motion")).toEqual([]);
   });
 
   it("forgets a list that is not drawn, so it does not travel from nowhere when it next is", () => {

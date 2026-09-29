@@ -12,6 +12,7 @@ import { INVENTORY_TRANSACTION_LABELS } from "@/constants/statuses";
 import type { Product } from "@/features/products/types";
 import { useKept } from "@/hooks/useKept";
 import { useLeaving } from "@/hooks/useLeaving";
+import { useListMotion } from "@/hooks/useListMotion";
 import { formatDateTime } from "@/lib/format/date";
 import { formatQuantity } from "@/lib/format/quantity";
 import { apiRoutes, withQuery } from "@/lib/query/keys";
@@ -25,14 +26,53 @@ function signed(quantity: number, unit: string): string {
 }
 
 /**
+ * The ledger, newest first. A movement recorded while the sheet is open opens
+ * its own room at the top (`useListMotion`, `open`), so the sheet — sized to
+ * its ledger — grows smoothly rather than jumping. It is made anew for each
+ * product, so opening another is a first showing, not a change.
+ */
+function Movements({ label, unit, items }: { label: string; unit: string; items: readonly InventoryTransaction[] }) {
+  const text = UI_TEXT.inventory;
+  const list = useListMotion<HTMLUListElement>({ arrival: "open" });
+  return (
+    <ul ref={list} role="list" aria-label={label} className="relative divide-y divide-border">
+      {items.map((movement) => (
+        <li key={movement.id} className="flex items-center justify-between gap-3 py-3">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-text">{INVENTORY_TRANSACTION_LABELS[movement.type]}</p>
+            <p className="text-xs text-text-muted">
+              {formatDateTime(movement.createdAt)}
+              {movement.referenceType === "ORDER" && movement.referenceId && (
+                <>
+                  {" · "}
+                  <Link
+                    href={`/orders/${movement.referenceId}`}
+                    className="hit-area-line rounded font-medium text-primary hover:underline"
+                  >
+                    {text.viewOrder}
+                  </Link>
+                </>
+              )}
+            </p>
+          </div>
+          <p className="shrink-0 text-sm font-semibold tabular-nums text-text">{signed(movement.quantity, unit)}</p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
  * One product's stock (plan §139.10, §14): what is on the shelf now, and the
  * ledger that made it, newest first a page at a time — what came in, what
  * orders reserved, used or released, each order's line opening that order,
  * and what was adjusted or wasted. **Record stock** adds a movement.
  *
  * While Record stock is open over it (`covered`), and until that has left,
- * the figure on the shelf keeps what it showed; then it rolls to the new
- * stock the way it moved, where it can be seen rather than behind the form.
+ * the sheet keeps what it showed: its size too, so it does not grow unseen
+ * behind the form. Then it takes the new stock where it can be seen: the
+ * figure on the shelf rolls the way it moved, and the movement opens its room
+ * at the top of the ledger as the sheet grows to hold it.
  */
 export function StockLedgerSheet({
   product,
@@ -53,10 +93,12 @@ export function StockLedgerSheet({
   // It leaves showing the product it opened for, its ledger with it.
   const shown = useKept(product, product !== undefined);
   const uncovering = useLeaving(covered);
-  const stock = useKept(level, product !== undefined && !covered && !uncovering);
+  const live = !covered && !uncovering;
+  const stock = useKept(level, product !== undefined && live);
   const movements = useApiPages<InventoryTransaction>(
     shown ? withQuery(apiRoutes.inventory.transactions, { product: shown.id }) : null,
   );
+  const entries = useKept(movements.data, live);
 
   return (
     <Sheet open={product !== undefined} onClose={onClose} title={shown?.name ?? text.history}>
@@ -86,35 +128,10 @@ export function StockLedgerSheet({
           <ListScreen
             query={movements}
             loadFailed="INVENTORY_LOAD_FAILED"
-            data={movements.data}
+            data={entries}
             empty={<p className="py-6 text-center text-sm text-text-muted">{text.noMovements}</p>}
             renderList={(items) => (
-              <ul role="list" aria-label={text.movements(shown.name)} className="divide-y divide-border">
-                {items.map((movement) => (
-                  <li key={movement.id} className="flex items-center justify-between gap-3 py-3">
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-text">{INVENTORY_TRANSACTION_LABELS[movement.type]}</p>
-                      <p className="text-xs text-text-muted">
-                        {formatDateTime(movement.createdAt)}
-                        {movement.referenceType === "ORDER" && movement.referenceId && (
-                          <>
-                            {" · "}
-                            <Link
-                              href={`/orders/${movement.referenceId}`}
-                              className="hit-area-line rounded font-medium text-primary hover:underline"
-                            >
-                              {text.viewOrder}
-                            </Link>
-                          </>
-                        )}
-                      </p>
-                    </div>
-                    <p className="shrink-0 text-sm font-semibold tabular-nums text-text">
-                      {signed(movement.quantity, shown.unit)}
-                    </p>
-                  </li>
-                ))}
-              </ul>
+              <Movements key={shown.id} label={text.movements(shown.name)} unit={shown.unit} items={items} />
             )}
           />
         </div>

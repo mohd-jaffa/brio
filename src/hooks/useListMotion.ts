@@ -13,6 +13,7 @@ const ARRIVE_MS = 240;
 const FADE_MS = 160;
 const STAGGER_MS = 30;
 const MOST_STAGGERED = 4;
+const OPEN_MS = 260;
 
 interface Layout {
   /** Where the layout puts each item, from the list's own corner — a scroll is not a move. */
@@ -31,6 +32,47 @@ function measure(list: HTMLElement): Layout {
 const ours = (element: Element) => element.getAnimations().filter((animation) => animation.id === MOTION);
 
 /**
+ * An item opening from nothing to the room it takes: its height, padding and
+ * borders grow together, so what holds the list grows with it, and what it
+ * holds is clipped to it on the way (`clip-path`, which, unlike `overflow`,
+ * animates, and is gone once it has opened).
+ */
+function opening(item: HTMLElement): Keyframe[] {
+  const style = getComputedStyle(item);
+  const clip = "inset(0)";
+  return [
+    {
+      height: "0px",
+      paddingTop: "0px",
+      paddingBottom: "0px",
+      borderTopWidth: "0px",
+      borderBottomWidth: "0px",
+      opacity: 0,
+      clipPath: clip,
+    },
+    {
+      height: `${item.offsetHeight}px`,
+      paddingTop: style.paddingTop,
+      paddingBottom: style.paddingBottom,
+      borderTopWidth: style.borderTopWidth,
+      borderBottomWidth: style.borderBottomWidth,
+      opacity: 1,
+      clipPath: clip,
+    },
+  ];
+}
+
+export interface ListMotionOptions {
+  /**
+   * How a new item comes in. `drop`, the default, drops it into its place
+   * while the others travel to theirs. `open` is for a list whose holder sizes
+   * to it — a sheet: the item opens from nothing, so the sheet grows smoothly
+   * rather than jumping, and the items after it are carried along by it.
+   */
+  arrival?: "drop" | "open";
+}
+
+/**
  * A list whose items keep their places as it changes (plan §139.5): when one
  * leaves, those after it close the gap rather than jump, and the list's edge
  * follows them up; when the order changes, each travels to its new place; one
@@ -44,7 +86,9 @@ const ours = (element: Element) => element.getAnimations().filter((animation) =>
  * item that brings its own arrival (`Row arriving`) keeps it. Under reduced
  * motion nothing travels; new items fade.
  */
-export function useListMotion<T extends HTMLElement>(): RefObject<T | null> {
+export function useListMotion<T extends HTMLElement>({
+  arrival = "drop",
+}: ListMotionOptions = {}): RefObject<T | null> {
   const list = useRef<T>(null);
   const last = useRef<Layout | null>(null);
 
@@ -82,6 +126,20 @@ export function useListMotion<T extends HTMLElement>(): RefObject<T | null> {
 
     if (added.length + gone > MOST_CHANGES) {
       added.forEach((item) => item.animate(fade, { duration: FADE_MS, easing: "ease-out", id: MOTION }));
+      return;
+    }
+
+    // Only arrivals: each opens its own room, and the items after it are
+    // carried along by the layout as it grows, so none of them is moved.
+    if (arrival === "open" && gone === 0 && added.length > 0) {
+      for (const item of added) {
+        if (item.getAnimations().length > 0) continue;
+        item.animate(reduce ? fade : opening(item as HTMLElement), {
+          duration: reduce ? FADE_MS : OPEN_MS,
+          easing: EASE_OUT_EXPO,
+          id: MOTION,
+        });
+      }
       return;
     }
 

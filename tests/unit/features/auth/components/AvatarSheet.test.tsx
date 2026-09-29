@@ -99,7 +99,7 @@ describe("AvatarSheet", () => {
     await waitFor(() => expect(client.changeAvatar).toHaveBeenCalledWith({ avatar: "tiger" }));
     expect(auth.current.reload).toHaveBeenCalledOnce();
     expect(onClose).toHaveBeenCalled();
-    expect(await screen.findByRole("status")).toHaveTextContent("Profile picture changed");
+    expect(await screen.findByText(/./, { selector: "[role=status]" })).toHaveTextContent("Profile picture changed");
   });
 
   it("shows the picture being saved as busy, and takes no second tap meanwhile", async () => {

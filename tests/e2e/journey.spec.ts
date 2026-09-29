@@ -136,7 +136,7 @@ test("an owner takes an order from sign-in to Completed", async ({ page }) => {
     expect((await readFile(await file.path())).subarray(0, 5).toString()).toBe("%PDF-");
     await expectOutcome(page, UI_TEXT.bill.pdfSaved);
 
-    await bill.getByRole("button", { name: UI_TEXT.actions.close }).click();
+    await bill.getByRole("button", { name: UI_TEXT.actions.close, exact: true }).click();
     await expect(bill).toBeHidden();
   });
 

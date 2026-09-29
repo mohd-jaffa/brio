@@ -1,5 +1,6 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useSWRConfig } from "swr";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { StockLedgerSheet } from "@/features/inventory/components/StockLedgerSheet";
@@ -33,7 +34,18 @@ const move = (changes: Partial<InventoryTransaction>): InventoryTransaction => (
   ...changes,
 });
 
-let page: unknown;
+let page: { items: InventoryTransaction[]; nextCursor: string | null };
+
+// Reads everything again, as a recorded movement does.
+const configs: ReturnType<typeof useSWRConfig>[] = [];
+function Refresher() {
+  configs.push(useSWRConfig());
+  return null;
+}
+async function refresh() {
+  const { cache, mutate } = configs.at(-1)!;
+  await act(async () => void (await Promise.all([...cache.keys()].map((key) => mutate(key)))));
+}
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -104,6 +116,28 @@ describe("StockLedgerSheet", () => {
     rerender(sheet({ level: { ...level, balance: 14 } }));
     expect(screen.getByRole("dialog")).toHaveTextContent("On the shelf9 boxes");
     expect(await screen.findByText("14 boxes")).toHaveClass("animate-tick-up");
+  });
+
+  it("keeps its ledger, and so its size, while Record stock is over it, then shows the new movement", async () => {
+    const sheet = (changes: { covered?: boolean }) => (
+      <>
+        <Refresher />
+        <StockLedgerSheet product={brownies} level={level} onClose={vi.fn()} onRecord={vi.fn()} {...changes} />
+      </>
+    );
+    const { rerender } = render(sheet({}), { wrapper: Providers });
+    const list = await screen.findByRole("list", { name: "Movements of Fudgy brownie box" });
+    rerender(sheet({ covered: true }));
+
+    page = { items: [move({ id: "t-3", quantity: 5 }), ...page.items], nextCursor: null };
+    await refresh();
+    expect(within(list).getAllByRole("listitem")).toHaveLength(2);
+
+    // Uncovered: still as it was while the form leaves, then the movement joins at the top.
+    rerender(sheet({}));
+    expect(within(list).getAllByRole("listitem")).toHaveLength(2);
+    await waitFor(() => expect(within(list).getAllByRole("listitem")).toHaveLength(3));
+    expect(within(list).getAllByRole("listitem")[0]).toHaveTextContent("+5 boxes");
   });
 
   it("opens another product's stock still, rather than rolling from the last one's", () => {

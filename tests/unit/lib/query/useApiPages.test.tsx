@@ -42,6 +42,14 @@ describe("useApiPages", () => {
     expect(result.current.loadingMore).toBe(false);
   });
 
+  it("hands back the same rows until a page changes, so a screen can hold them", async () => {
+    const { result, rerender } = renderHook(() => useApiPages<string>("/api/orders?status=PENDING"), { wrapper });
+    await waitFor(() => expect(result.current.data).toEqual(["a", "b"]));
+    const rows = result.current.data;
+    rerender();
+    expect(result.current.data).toBe(rows);
+  });
+
   it("hands back the first page whole, for a route that sends more than its rows", async () => {
     pages["/api/guest-sales"] = { items: ["g"], nextCursor: null, orders: 1 } as never;
     const { result } = renderHook(

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useRef, type ReactNode, type RefObject } from "react";
 
 import { cn } from "./cn";
+import { openLayer } from "./top-layer";
 
 // What can take focus inside the modal, in the order Tab would reach it.
 // What Tab stops at: a control out of the Tab order — a radio group's other
@@ -29,6 +30,9 @@ const FOCUSABLE = ["input", "select", "textarea", "button", "a[href]", "[tabinde
  *   (`--keyboard-inset`), and the page does not scroll behind it.
  * - **It leaves as it came.** Closing is immediate — focus is back and the
  *   page live at once — while the browser plays it out on top.
+ * - **It carries what is said over it.** Everything outside it is inert, so
+ *   while it is on top a notice that closes itself is drawn, reached and read
+ *   out from inside it (`top-layer.ts`).
  */
 export function Modal({
   open,
@@ -60,6 +64,16 @@ export function Modal({
   children: ReactNode;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const notices = useRef<HTMLDivElement>(null);
+  const status = useRef<HTMLParagraphElement>(null);
+
+  // On top from the moment it opens, and off the moment it closes: a layout
+  // effect, so a form that closes as its outcome appears is already off when
+  // the notice looks for where to go.
+  useLayoutEffect(() => {
+    if (!open || !notices.current || !status.current) return;
+    return openLayer({ notices: notices.current, status: status.current });
+  }, [open]);
 
   useEffect(() => {
     const element = dialog.current;
@@ -128,6 +142,8 @@ export function Modal({
       )}
     >
       {children}
+      <div ref={notices} data-modal-notices="" />
+      <p ref={status} role="status" aria-live="polite" className="sr-only" />
     </dialog>
   );
 }

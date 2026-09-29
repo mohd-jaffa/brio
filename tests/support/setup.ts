@@ -12,19 +12,21 @@ afterEach(cleanup);
 // real focus behaviour are checked in a browser. A test that runs in Node — the
 // bill's PDF, which pdfkit makes from Node's own buffers — has no DOM at all.
 if (typeof HTMLDialogElement !== "undefined" && !HTMLDialogElement.prototype.showModal) {
-  const escapable = new WeakSet<HTMLDialogElement>();
+  const modal = new WeakSet<HTMLDialogElement>();
   HTMLDialogElement.prototype.showModal = function showModal(this: HTMLDialogElement) {
     this.setAttribute("open", "");
-    if (escapable.has(this)) return;
-    escapable.add(this);
-    // Escape in a modal dialog fires `cancel`, and closes it unless that is
-    // prevented — only the one on top, not a dialog it was opened from.
-    this.addEventListener("keydown", (event) => {
-      if (event.key !== "Escape" || !this.hasAttribute("open")) return;
-      if ((event.target as Element).closest("dialog[open]") !== this) return;
-      if (this.dispatchEvent(new Event("cancel", { cancelable: true }))) this.close();
-    });
+    modal.add(this);
   };
+  // Escape in a modal dialog fires `cancel`, and closes it unless that is
+  // prevented — only the one on top, not a dialog it was opened from. As in a
+  // browser, that happens once the key has been through the page, and not at
+  // all when a listener prevented it (a notice over a sheet, closing first).
+  window.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || event.defaultPrevented) return;
+    const dialog = (event.target as Element | null)?.closest?.("dialog[open]");
+    if (!(dialog instanceof HTMLDialogElement) || !modal.has(dialog)) return;
+    if (dialog.dispatchEvent(new Event("cancel", { cancelable: true }))) dialog.close();
+  });
   HTMLDialogElement.prototype.close = function close(this: HTMLDialogElement) {
     if (!this.hasAttribute("open")) return;
     this.removeAttribute("open");
