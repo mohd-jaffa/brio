@@ -3094,3 +3094,22 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - None. The Play developer account (Q10) is still to come.
+
+## 2026-09-29 — Impeccable technical audit
+
+### Added
+- Recorded the requested audit in `docs/audits/2026-09-29-impeccable-audit.md`: a provisional 15/20 score, one major and three minor findings, reproduction evidence, owning components and recommendations within the existing plan.
+- Findings cover editable-field boundary contrast, Home's chart-summary total, keyboard navigation in the customer/illustration pickers, and incomplete custom-range loading states. Application fixes are follow-up work; this change documents the audit only.
+
+### Validation
+- Inspected 11 owner screens at 360, 390, 414, 768, 1024 and 1440 px in Golden and Peach: 132 baseline-state samples with no page-level horizontal overflow or unlabelled visible text inputs.
+- Verified picker keyboard behavior, nested-sheet Escape/focus return, calendar placement, theme switching and the Analytics custom-range state in the local browser.
+- Calculated contrast from source tokens and confirmed field colors through rendered browser styles in both themes.
+- Reviewed all ten Impeccable detector advisories in context; masks and the approved branded splash explain them.
+- Focused shared UI, navigation and Home component tests passed: 380 tests in 64 files. The report records the production, device and full-accessibility checks not repeated.
+
+### Migration notes
+- None. No application code or database schema changed for this audit.
+
+### Blockers
+- No blocker to the audit. Four findings remain open for the next implementation pass.
