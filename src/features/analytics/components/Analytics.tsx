@@ -72,7 +72,7 @@ export function Analytics() {
       <PageHeader title={text.title} subtitle={text.subtitle}>
         <RangePicker value={range} onChange={choose} />
       </PageHeader>
-      <Hero variant="band" lines={text.bandLines} tagline={text.bandTagline} plate="cake-table" />
+      <Hero variant="band" lines={text.bandLines} tagline={text.bandTagline} plate="cake-table" priority />
 
       <Tabs
         id="analytics"

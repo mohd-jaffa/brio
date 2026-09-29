@@ -37,6 +37,12 @@ afterEach(() => {
 const open = () => render(<Analytics />, { wrapper: Providers });
 
 describe("Analytics", () => {
+  it("loads its above-the-fold photographic band with high priority", () => {
+    const { container } = open();
+    expect(container.querySelector('img[alt=""]')).toHaveAttribute("loading", "eager");
+    expect(container.querySelector('img[alt=""]')).toHaveAttribute("fetchpriority", "high");
+  });
+
   it("shows the four figures with how each moved on the period before (IMP-10)", async () => {
     open();
     expect(screen.getByRole("heading", { level: 1, name: "Analytics" })).toBeInTheDocument();
