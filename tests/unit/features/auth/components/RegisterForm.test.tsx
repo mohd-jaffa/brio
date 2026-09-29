@@ -66,6 +66,13 @@ beforeEach(() => {
 });
 
 describe("creating an account", () => {
+  it("posts if sent before the page has loaded, so nothing typed lands in the address", () => {
+    render(<RegisterForm />, { wrapper: Providers });
+    const form = next().closest("form");
+    expect(form).toHaveAttribute("method", "post");
+    expect(form).not.toHaveAttribute("action");
+  });
+
   it("starts with you: step 1 of 2, and nothing about the business yet", () => {
     render(<RegisterForm />, { wrapper: Providers });
 

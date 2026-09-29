@@ -56,7 +56,7 @@ export function SignInForm() {
   });
 
   return (
-    <form onSubmit={handleSubmit((values) => submit(values))} className="space-y-4" noValidate>
+    <form method="post" onSubmit={handleSubmit((values) => submit(values))} className="space-y-4" noValidate>
       {deleted && <ScreenNotice tone="info">{UI_TEXT.deleteAccount.deleted}</ScreenNotice>}
 
       <TextField

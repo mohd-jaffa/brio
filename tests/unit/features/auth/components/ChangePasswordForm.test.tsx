@@ -36,6 +36,13 @@ async function type(password: string, confirmation = password) {
 }
 
 describe("replacing a password", () => {
+  it("posts if sent before the page has loaded, so nothing typed lands in the address", () => {
+    render(<ChangePasswordForm />, { wrapper: Providers });
+    const form = save().closest("form");
+    expect(form).toHaveAttribute("method", "post");
+    expect(form).not.toHaveAttribute("action");
+  });
+
   it("says why a baker has been sent here", () => {
     render(<ChangePasswordForm />, { wrapper: Providers });
 

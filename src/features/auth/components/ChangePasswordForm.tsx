@@ -57,7 +57,7 @@ export function ChangePasswordForm() {
   );
 
   return (
-    <form onSubmit={handleSubmit((values) => submit(values))} className="space-y-4" noValidate>
+    <form method="post" onSubmit={handleSubmit((values) => submit(values))} className="space-y-4" noValidate>
       {/* Why the screen is here, not the outcome of anything done on it. */}
       {requiresPasswordChange && (
         <ScreenNotice tone="info">{UI_TEXT.auth.temporaryPasswordNotice}</ScreenNotice>

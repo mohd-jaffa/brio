@@ -130,6 +130,7 @@ export function DeleteAccount() {
         </div>
 
         <form
+          method="post"
           aria-labelledby="delete-confirm"
           onSubmit={handleSubmit(askThenDelete)}
           noValidate

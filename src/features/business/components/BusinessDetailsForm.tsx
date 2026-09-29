@@ -72,6 +72,7 @@ export function BusinessDetailsForm({ business }: { business: BusinessProfile })
       <div className="min-w-0 space-y-6">
         <form
           id={formId}
+          method="post"
           aria-label={text.title}
           onSubmit={handleSubmit((values) => save.submit(values))}
           noValidate

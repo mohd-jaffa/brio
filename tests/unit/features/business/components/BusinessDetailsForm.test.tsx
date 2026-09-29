@@ -37,6 +37,12 @@ function form(profile = business) {
 beforeEach(() => vi.clearAllMocks());
 
 describe("BusinessDetailsForm", () => {
+  it("posts if sent before the page has loaded, so nothing typed lands in the address", () => {
+    const details = form().name.closest("form");
+    expect(details).toHaveAttribute("method", "post");
+    expect(details).not.toHaveAttribute("action");
+  });
+
   it("starts from the saved profile, the number shown without its +91", () => {
     const fields = form();
     expect(fields.name).toHaveValue("Sweet Delights");

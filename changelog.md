@@ -3152,3 +3152,19 @@ The user's list, following the audit and the loading measurements: remove the 0.
 
 ### Blockers
 - **Seen on a device (R8.4, R8.12):** needs Android Studio or a phone. That includes the permission prompt, a reminder arriving, and a tap from a cold start.
+
+## 2026-09-29 — Forms post, so nothing typed lands in the address
+
+### Fixed
+- **A form sent before the page had loaded put what was typed in the address** (the user asked for the fix). With no method, a browser sends a form as a GET, so a sign-in submitted before the page's scripts ran put the password into the URL, and from there into the history and server logs. Every form now says `method="post"`:
+  - sign in, register, forgot password, change password, and delete account;
+  - business details, and the shared sheet form (`FormSheet`), which carries the password when the sign-in number or the email changes.
+- Once the scripts run nothing changes, since each form's own handler sends it. Before they run, a POST to the page draws it again, with nothing in its address.
+
+### Validation
+- Each form's suite checks it posts to its own page.
+- **In a browser with scripts off:** pressing Enter on sign-in sent `POST /login`, and the address stayed `http://localhost:3000/login`.
+- `tsc` and `eslint` pass.
+
+### Blockers
+- None.

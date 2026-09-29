@@ -54,6 +54,7 @@ export function FormSheet({
     >
       <form
         id={formId}
+        method="post"
         onSubmit={(event) => {
           event.preventDefault();
           onSubmit();

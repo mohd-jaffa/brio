@@ -33,6 +33,13 @@ beforeEach(() => {
 const signIn = () => screen.getByRole("button", { name: UI_TEXT.auth.signIn });
 
 describe("signing in", () => {
+  it("posts if sent before the page has loaded, so nothing typed lands in the address", () => {
+    render(<SignInForm />, { wrapper: Providers });
+    const form = signIn().closest("form");
+    expect(form).toHaveAttribute("method", "post");
+    expect(form).not.toHaveAttribute("action");
+  });
+
   it("asks for the two things an account is identified by", () => {
     render(<SignInForm />, { wrapper: Providers });
 

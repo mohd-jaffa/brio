@@ -18,6 +18,13 @@ beforeEach(() => {
 });
 
 describe("asking for a temporary password", () => {
+  it("posts if sent before the page has loaded, so nothing typed lands in the address", () => {
+    render(<ForgotPasswordForm />, { wrapper: Providers });
+    const form = ask().closest("form");
+    expect(form).toHaveAttribute("method", "post");
+    expect(form).not.toHaveAttribute("action");
+  });
+
   it("asks for the address the account was registered with", () => {
     render(<ForgotPasswordForm />, { wrapper: Providers });
 

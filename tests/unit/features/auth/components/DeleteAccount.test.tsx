@@ -71,6 +71,13 @@ describe("DeleteAccount", () => {
     expect(screen.getByRole("region", { name: "Before you go" })).toHaveTextContent("Sign out instead");
   });
 
+  it("posts if sent before the page has loaded, so nothing typed lands in the address", () => {
+    render(<DeleteAccount />);
+    const form = deleteButton().closest("form");
+    expect(form).toHaveAttribute("method", "post");
+    expect(form).not.toHaveAttribute("action");
+  });
+
   it("asks for every field before anything else", async () => {
     render(<DeleteAccount />);
     await userEvent.click(deleteButton());

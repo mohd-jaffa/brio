@@ -107,6 +107,7 @@ export function RegisterForm() {
 
   return (
     <form
+      method="post"
       noValidate
       className="space-y-4"
       onSubmit={(event) => {

@@ -34,6 +34,13 @@ describe("FormSheet", () => {
     expect(container.querySelector("input")).toBeInTheDocument();
   });
 
+  it("posts if sent before the page has loaded, so nothing typed lands in the address", () => {
+    open();
+    const form = screen.getByLabelText("Full Name").closest("form");
+    expect(form).toHaveAttribute("method", "post");
+    expect(form).not.toHaveAttribute("action");
+  });
+
   it("is a dialog named by its heading", () => {
     open();
     const dialog = screen.getByRole("dialog");
