@@ -3537,3 +3537,35 @@ The user: "complete phase 8 first then phase 6". Their answers: the device check
 
 ### Blockers
 - None.
+
+## 2026-09-29 — Motion on stock, expenses and Guest sales
+
+### Added
+- **Recording stock** (`StockLedgerSheet`, Inventory). A product's history keeps its figure on the shelf while Record stock is open over it. After the form has closed (200 ms), the figure rolls up or down the way the stock moved.
+  - Before this, the new figure arrived while the form still covered it, and the form only uncovered it after the roll had played.
+- **The stock list** waits the same way for the history to close. Then a row's count rolls, the row moves to its new place in the list, and **Low stock** pops in, or shrinks away when stock is filled again (`StockLevel.tsx`).
+- **`useLeaving`** (`src/hooks`). This reports that something which has just gone is still on its way out, for 200 ms (`EXIT_MS`), so it can play an exit (`animate-pop-out`, `globals.css`).
+  - It counts time rather than waiting for the animation to end, because a pill hidden at this width never plays an animation.
+- **Expenses and Guest sales.** Their figures roll when the period changes or an expense is added, as Home's and Analytics' already do.
+
+### Not done
+- The history's new movement does not slide in. If it joined after the form had closed, the sheet would grow and its top edge would jump; while the form closes, that growth stays hidden.
+
+### Found, not changed
+- On a phone, the "Stock recorded" card stays behind the open history sheet, so it cannot be seen there. On a desktop it shows below the dialog. This predates this change.
+
+### Validation
+- Unit tests: 360 files, 2,417 tests, pass.
+  - `StockLevel`, `useLeaving`, `Inventory` and `StockLedgerSheet` are fully covered.
+  - The history test shows the figure held while covered and while the form closes, then rolling up.
+  - The Inventory test shows the list held until the history has closed, then the count rolling and Low stock leaving, hidden from screen readers.
+- A temporary browser check on the built app, not committed, recorded each frame:
+  - at 390 px, the figure changed about 200 ms after the form closed, with `tick-up` running;
+  - the row's count and Low stock changed 200 ms after the history closed, playing `tick-up` and `pop-out`;
+  - under reduced motion, the roll was `fade-only`;
+  - at 1280 px, the roll showed in the dialog in plain view.
+- The browser journey now checks that the history shows the new stock after Record stock closes. Both browser journeys pass, and no test account is left behind.
+- Lint, the type check and the format check pass. The Impeccable detector finds nothing in the changed code; its ten advisories are on existing lines (the `#000` masks and the splash's own colours).
+
+### Blockers
+- None.

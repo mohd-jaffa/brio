@@ -5,11 +5,13 @@ import { PackagePlus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ListScreen } from "@/components/ui/list-screen";
+import { RollingNumber } from "@/components/ui/rolling-number";
 import { Sheet } from "@/components/ui/sheet";
 import { UI_TEXT } from "@/constants/messages";
 import { INVENTORY_TRANSACTION_LABELS } from "@/constants/statuses";
 import type { Product } from "@/features/products/types";
 import { useKept } from "@/hooks/useKept";
+import { useLeaving } from "@/hooks/useLeaving";
 import { formatDateTime } from "@/lib/format/date";
 import { formatQuantity } from "@/lib/format/quantity";
 import { apiRoutes, withQuery } from "@/lib/query/keys";
@@ -27,23 +29,31 @@ function signed(quantity: number, unit: string): string {
  * ledger that made it, newest first a page at a time — what came in, what
  * orders reserved, used or released, each order's line opening that order,
  * and what was adjusted or wasted. **Record stock** adds a movement.
+ *
+ * While Record stock is open over it (`covered`), and until that has left,
+ * the figure on the shelf keeps what it showed; then it rolls to the new
+ * stock the way it moved, where it can be seen rather than behind the form.
  */
 export function StockLedgerSheet({
   product,
   level,
   onClose,
   onRecord,
+  covered = false,
 }: {
   /** The product whose stock is open; none while the sheet is closed. */
   product: Product | undefined;
   level: InventoryBalance | undefined;
   onClose: () => void;
   onRecord: (product: Product) => void;
+  /** Whether Record stock is open over it. */
+  covered?: boolean;
 }) {
   const text = UI_TEXT.inventory;
   // It leaves showing the product it opened for, its ledger with it.
   const shown = useKept(product, product !== undefined);
-  const stock = useKept(level, product !== undefined);
+  const uncovering = useLeaving(covered);
+  const stock = useKept(level, product !== undefined && !covered && !uncovering);
   const movements = useApiPages<InventoryTransaction>(
     shown ? withQuery(apiRoutes.inventory.transactions, { product: shown.id }) : null,
   );
@@ -56,7 +66,13 @@ export function StockLedgerSheet({
             <div>
               <p className="text-xs text-text-muted">{text.onShelf}</p>
               <p className="font-heading text-2xl font-medium tabular-nums text-text">
-                {stock?.stocked ? formatQuantity(stock.balance, shown.unit) : text.notCounted}
+                {stock?.stocked ? (
+                  <RollingNumber key={shown.id} value={stock.balance}>
+                    {formatQuantity(stock.balance, shown.unit)}
+                  </RollingNumber>
+                ) : (
+                  text.notCounted
+                )}
               </p>
             </div>
             <Button

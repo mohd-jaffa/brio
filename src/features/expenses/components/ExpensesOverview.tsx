@@ -56,6 +56,7 @@ export function ExpensesOverview({
         <StatTile
           label={text.total}
           value={total}
+          motionValue={summary.total.value}
           icon={Wallet}
           headline
           delta={delta(summary.total)}
@@ -64,6 +65,7 @@ export function ExpensesOverview({
         <StatTile
           label={text.dailyAverage}
           value={formatPaise(summary.dailyAverage.value)}
+          motionValue={summary.dailyAverage.value}
           icon={ReceiptText}
           headline
           delta={delta(summary.dailyAverage)}

@@ -466,6 +466,8 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
   - exits take 200 ms;
   - a row that joins a list drops in over 240 ms, and the gap one leaves closes;
   - content that replaces a placeholder fades in over 200 ms.
+- **Figures** roll the way they moved, up or down, over 220 ms; a pill that comes pops in, and one that goes shrinks away in 200 ms.
+- **A change made under a sheet** plays once the sheet has left, where it can be seen.
 - **Reduced motion:** every movement becomes a short fade.
 
 ## Do's and Don'ts

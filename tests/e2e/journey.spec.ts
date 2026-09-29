@@ -80,6 +80,8 @@ test("an owner takes an order from sign-in to Completed", async ({ page }) => {
     await sheet.getByLabel(UI_TEXT.inventory.form.quantityIn(pluralUnit(unit))).fill("12");
     await sheet.getByRole("button", { name: UI_TEXT.inventory.form.save }).click();
     await expectOutcome(page, UI_TEXT.outcomes.stockRecorded);
+    // The history under the form takes the new stock once the form has gone.
+    await expect(page.getByRole("dialog", { name: product, exact: true })).toContainText(formatQuantity(12, unit));
     await page.goto("/inventory");
     await expect(stockRow(12)).toBeVisible();
   });

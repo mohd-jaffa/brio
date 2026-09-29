@@ -54,8 +54,20 @@ export function GuestSales() {
         <RangePrompt />
       ) : summary ? (
         <dl className="grid grid-cols-2 gap-3 lg:max-w-2xl lg:gap-4">
-          <StatTile label={text.orders} value={String(summary.orders)} icon={ShoppingBag} />
-          <StatTile label={text.sales} value={formatPaise(summary.sales)} icon={TrendingUp} tone="success" headline />
+          <StatTile
+            label={text.orders}
+            value={String(summary.orders)}
+            motionValue={summary.orders}
+            icon={ShoppingBag}
+          />
+          <StatTile
+            label={text.sales}
+            value={formatPaise(summary.sales)}
+            motionValue={summary.sales}
+            icon={TrendingUp}
+            tone="success"
+            headline
+          />
         </dl>
       ) : (
         !sales.error && (

@@ -91,6 +91,30 @@ describe("StockLedgerSheet", () => {
     expect(onRecord).toHaveBeenCalledWith(brownies);
   });
 
+  it("keeps its figure while Record stock is over it and leaving, then rolls it the way the stock moved", async () => {
+    const sheet = (changes: { level: InventoryBalance; covered?: boolean }) => (
+      <StockLedgerSheet product={brownies} onClose={vi.fn()} onRecord={vi.fn()} {...changes} />
+    );
+    const { rerender } = render(sheet({ level }), { wrapper: Providers });
+    rerender(sheet({ level, covered: true }));
+    // Five came in, recorded behind the form.
+    rerender(sheet({ level: { ...level, balance: 14 }, covered: true }));
+    expect(screen.getByRole("dialog")).toHaveTextContent("On the shelf9 boxes");
+
+    rerender(sheet({ level: { ...level, balance: 14 } }));
+    expect(screen.getByRole("dialog")).toHaveTextContent("On the shelf9 boxes");
+    expect(await screen.findByText("14 boxes")).toHaveClass("animate-tick-up");
+  });
+
+  it("opens another product's stock still, rather than rolling from the last one's", () => {
+    const sheet = (product: Product, balance: number) => (
+      <StockLedgerSheet product={product} level={{ ...level, balance }} onClose={vi.fn()} onRecord={vi.fn()} />
+    );
+    const { rerender } = render(sheet(brownies, 9), { wrapper: Providers });
+    rerender(sheet({ ...brownies, id: "p-2", name: "Lemon tart" }, 3));
+    expect(screen.getByText("3 boxes")).not.toHaveClass("animate-tick-down");
+  });
+
   it("reads nothing while closed", () => {
     open({ product: undefined, level: undefined });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

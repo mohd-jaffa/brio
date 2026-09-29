@@ -36,6 +36,23 @@ describe("ExpensesOverview", () => {
     expect(average).toHaveTextContent("Down 20%");
   });
 
+  it("rolls each figure the way it moved when the expenses change", () => {
+    const props = { iconOf: () => null, onInterval: vi.fn(), onOpen: vi.fn(), onViewAll: vi.fn() };
+    const { rerender } = render(<ExpensesOverview {...props} summary={aSummary()} />);
+    const total = screen.getByText("Total expenses", { selector: "dt" }).parentElement!;
+    const average = screen.getByText("Daily average").parentElement!;
+    expect(within(total).getByText("₹4,000")).not.toHaveClass("animate-tick-up");
+
+    rerender(
+      <ExpensesOverview
+        {...props}
+        summary={aSummary({ total: { value: 520000, previous: 320000 }, dailyAverage: { value: 90000, previous: 0 } })}
+      />,
+    );
+    expect(within(total).getByText("₹5,200")).toHaveClass("animate-tick-up");
+    expect(within(average).getByText("₹900")).toHaveClass("animate-tick-down");
+  });
+
   it("leaves the change out when there was nothing before", () => {
     open(aSummary({ total: { value: 400000, previous: 0 } }));
     expect(screen.getByText("Total expenses", { selector: "dt" }).parentElement).not.toHaveTextContent("%");

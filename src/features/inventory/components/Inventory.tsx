@@ -11,16 +11,18 @@ import { PageHeader } from "@/components/ui/page-header";
 import { ProductTile } from "@/components/ui/product-tile";
 import { Row, RowList } from "@/components/ui/row";
 import { SearchField } from "@/components/ui/search-field";
-import { StatusPill } from "@/components/ui/status-pill";
 import { LOW_STOCK_THRESHOLD } from "@/constants/inventory";
 import { UI_TEXT } from "@/constants/messages";
 import type { Product } from "@/features/products/types";
 import { useDisclosure } from "@/hooks/useDisclosure";
-import { formatQuantity } from "@/lib/format/quantity";
+import { useKept } from "@/hooks/useKept";
+import { useLeaving } from "@/hooks/useLeaving";
 import { apiRoutes } from "@/lib/query/keys";
 import { useApiQuery } from "@/lib/query/useApiQuery";
 
 import type { InventoryBalance } from "../types";
+
+import { InStock, LowStock } from "./StockLevel";
 
 /** Kept out of the screen's first download, and fetched once it is idle (`lazySheet`). */
 const InventoryAdjustmentSheet = lazySheet(
@@ -85,7 +87,12 @@ export function Inventory() {
       void balances.mutate();
     },
   };
-  const lines = products.data && balances.data ? stockLines(products.data, balances.data, search) : undefined;
+  // Stock recorded from a product's history changes this list behind the
+  // sheet. It is shown once the sheet has left, where it can be seen: the
+  // count rolls, Low stock comes or goes, and the row travels to its new place.
+  const uncovering = useLeaving(open !== undefined);
+  const listed = useKept(balances.data, open === undefined && !uncovering);
+  const lines = products.data && listed ? stockLines(products.data, listed, search) : undefined;
   const level = (product: Product | undefined) => balances.data?.find((entry) => entry.productId === product?.id);
 
   return (
@@ -115,20 +122,22 @@ export function Inventory() {
                 subtitle={
                   <span className={cn("flex items-center gap-2", line.level?.stocked && "lg:hidden")}>
                     <span className="min-w-0 truncate">
-                      {line.level?.stocked
-                        ? text.inStock(formatQuantity(line.level.balance, line.product.unit))
-                        : text.notCounted}
+                      {line.level?.stocked ? (
+                        <InStock balance={line.level.balance} unit={line.product.unit} />
+                      ) : (
+                        text.notCounted
+                      )}
                     </span>
-                    {low(line) && <StatusPill label={text.low} tone="cancelled" />}
+                    <LowStock low={low(line)} />
                   </span>
                 }
                 trailing={
                   line.level?.stocked ? (
                     <span className="hidden flex-col items-end gap-1.5 lg:flex">
                       <span className="tabular-nums">
-                        {text.inStock(formatQuantity(line.level.balance, line.product.unit))}
+                        <InStock balance={line.level.balance} unit={line.product.unit} />
                       </span>
-                      {low(line) && <StatusPill label={text.low} tone="cancelled" />}
+                      <LowStock low={low(line)} />
                     </span>
                   ) : undefined
                 }
@@ -143,6 +152,7 @@ export function Inventory() {
         level={level(open)}
         onClose={() => setOpen(undefined)}
         onRecord={(product) => record.open(product)}
+        covered={record.isOpen}
       />
       <InventoryAdjustmentSheet isOpen={record.isOpen} onClose={record.close} product={record.subject} />
     </div>

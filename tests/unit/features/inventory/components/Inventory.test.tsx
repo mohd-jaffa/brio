@@ -1,5 +1,6 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useSWRConfig } from "swr";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Inventory } from "@/features/inventory/components/Inventory";
@@ -81,8 +82,25 @@ beforeEach(() => {
   });
 });
 
+// Reads everything again, as a recorded movement does.
+const configs: ReturnType<typeof useSWRConfig>[] = [];
+function Refresher() {
+  configs.push(useSWRConfig());
+  return null;
+}
+async function refresh() {
+  const { cache, mutate } = configs.at(-1)!;
+  await act(async () => void (await Promise.all([...cache.keys()].map((key) => mutate(key)))));
+}
+
 function open() {
-  return render(<Inventory />, { wrapper: Providers });
+  return render(
+    <>
+      <Refresher />
+      <Inventory />
+    </>,
+    { wrapper: Providers },
+  );
 }
 
 const rows = () => screen.findByRole("list", { name: "Stock" }).then((list) => within(list).getAllByRole("listitem"));
@@ -112,6 +130,35 @@ describe("Inventory", () => {
     expect(await screen.findByRole("dialog", { name: "Record stock for Truffle cake" })).toBeInTheDocument();
     await userEvent.click(within(history).getByRole("button", { name: "Close" }));
     expect(screen.queryByRole("dialog", { name: "History of Truffle cake" })).not.toBeInTheDocument();
+  });
+
+  it("shows stock recorded from a product's history as the history closes, where it can be seen", async () => {
+    open();
+    await rows();
+    await userEvent.click(screen.getByRole("button", { name: /Brownie box/ }));
+    const history = await screen.findByRole("dialog", { name: "History of Brownie box" });
+
+    answers["/api/inventory/balance"] = [
+      ...(answers["/api/inventory/balance"] as InventoryBalance[]).filter((level) => level.productId !== "p-brownie"),
+      { productId: "p-brownie", balance: 20, stocked: true, lastMovedAt: "2026-09-29T05:00:00Z" },
+    ];
+    await refresh();
+    // The history has the new stock; the list behind it keeps its own until it closes.
+    expect(history).toHaveTextContent("Balance 20");
+    expect((await rows())[0]).toHaveTextContent("Brownie box2 boxes in stockLow stock");
+
+    await userEvent.click(within(history).getByRole("button", { name: "Close" }));
+    // Once the sheet has left.
+    await waitFor(async () => expect((await rows())[2]).toHaveTextContent("Brownie box20 boxes in stock"));
+    const [bun, cake, brownie] = await rows();
+    expect(bun).toHaveTextContent("Cinnamon bun");
+    expect(cake).toHaveTextContent("Truffle cake");
+    // It rolls up to its new count, and Low stock shrinks away, already gone to a screen reader.
+    for (const count of within(brownie).getAllByText("20 boxes")) expect(count).toHaveClass("animate-tick-up");
+    for (const pill of within(brownie).getAllByText("Low stock")) {
+      expect(pill.parentElement).toHaveClass("animate-pop-out");
+      expect(pill.parentElement).toHaveAttribute("aria-hidden", "true");
+    }
   });
 
   it("opens the history of a product with no movements yet", async () => {

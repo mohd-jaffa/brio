@@ -7831,6 +7831,12 @@ a shared component** (AGENTS §5).
   - **Figures:** Home's four figures, Analytics' four and a ring's total roll the way they moved, up or down, like the order flow's till (`RollingNumber`). Under reduced motion the roll is a short fade.
   - **Charts:** a line, bar or ring moves from the values it showed to the next period's or grouping's over 520 ms, instead of snapping (`useAnimatedValues`). A new point or slice grows from nothing. An interrupted move carries on from where it had reached. Under reduced motion the new values show at once.
   - **What stays still:** a chart's first showing, which keeps its own entrance, and its words. The table, the tooltip and the summary always hold the final values.
+  - **Also** (2026-09-29, `/impeccable animate`): Expenses' total and daily average, and Guest sales' count and total, roll the same way.
+- **Stock** (2026-09-29, `/impeccable animate`; `StockLevel.tsx`):
+  - **Recording stock:** a product's history keeps its figure on the shelf while Record stock is open over it, and until that has left (`useLeaving`, 200 ms). Then the figure rolls the way the stock moved, where it can be seen rather than behind the form.
+  - **The list:** the stock list waits the same way for the history to leave. Then a row's count rolls, and the row travels to its new place. **Low stock** pops in when stock falls to the mark, and shrinks away (`animate-pop-out`) when it is filled again. While it leaves, a screen reader no longer hears it.
+  - **What stays still:** a product's first count. The history's new movement is already in place as the form leaves: joining later, it would make the sheet jump as it grew.
+  - Under reduced motion the roll is a short fade, and Low stock fades in and out.
 - **Taking an order** (the user, 2026-09-29; `src/features/orders/choreography.ts`):
   - **Adding:** the pressed + flies into the cart on a phone, or into its line on the desktop's order panel, which answers with a small pulse. Under reduced motion only the cart or the line answers, with a short fade.
   - **Steps, on a phone:** a View Transition carries the order from one step to the next, forward from the right and back from the left. Where the browser has none, or the step changes by Back, the step slides in as before (`useTravelMotion`); never both. From 1024 px, where every step shows at once, nothing moves.

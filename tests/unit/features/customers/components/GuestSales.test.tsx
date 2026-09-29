@@ -60,7 +60,12 @@ describe("GuestSales", () => {
     await screen.findByText("₹1,140");
     answers["/api/guest-sales?range=LAST_7_DAYS"] = sales({ orders: 1, sales: 38000 });
     await choose("Period", "Last 7 days");
-    expect(await screen.findByText("₹380")).toBeInTheDocument();
+    // The figures roll down to the shorter period's, rather than snap.
+    expect(await screen.findByText("₹380")).toHaveClass("animate-tick-down");
+    expect(screen.getByText("Guest orders").nextSibling).toHaveTextContent("1");
+    expect(within(screen.getByText("Guest orders").nextSibling as HTMLElement).getByText("1")).toHaveClass(
+      "animate-tick-down",
+    );
     expect(localStorage.getItem("brio_range_guest-sales")).toContain("LAST_7_DAYS");
   });
 
