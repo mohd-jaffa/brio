@@ -3403,3 +3403,33 @@ The user: "complete phase 8 first then phase 6". Their answers: the device check
 
 ### Blockers
 - None.
+
+## 2026-09-29 — Phase 6: browser journeys with Playwright (R6.5)
+
+### Added
+- **Playwright** (`@playwright/test`, `playwright.config.ts`), run with `npm run build && npm run test:e2e`.
+  - It serves the built app with `next start` on port 3100, at a phone's width (390 × 844).
+  - It uses the local Supabase from `.env.local`, refuses any other address, and leaves mail unset.
+  - `npm test` leaves the journeys out.
+- **The critical journey** (`tests/e2e/journey.spec.ts`), each step through the screens as an owner takes it:
+  - signs in;
+  - adds a customer, then a product;
+  - counts in 12;
+  - takes an order of two for the customer, unpaid;
+  - opens the bill from the placed card, and checks the business, customer, item and total;
+  - Share, with no share sheet, downloads the image. Download PDF saves a real PDF, named for the order and the business;
+  - opens the order from Orders, and moves it Preparing → Ready → Completed, through the confirm card;
+  - checks that 10 are left on the shelf.
+- **Tenant isolation in the browser** (`tests/e2e/tenant-isolation.spec.ts`). Owner B, signed in:
+  - sees none of business A's orders or customers in B's lists;
+  - is told "not found" at A's order and customer addresses;
+  - is answered 404 by the API for A's order, bill, bill PDF and customer, and an empty list for its payments.
+- `@tests/support/e2e`: `signInAs` and `expectOutcome`. The businesses are made and deleted by `@tests/support/integration`.
+- `test-results/` and `playwright-report/` are git-ignored.
+
+### Validation
+- `npm run test:e2e`: 2 journeys pass. None of the test accounts is left behind afterwards.
+- `tsc`, `eslint`, `prettier --check` and `npm test` (2,386 tests) pass.
+
+### Blockers
+- None.

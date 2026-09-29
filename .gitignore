@@ -46,3 +46,7 @@ next-env.d.ts
 
 # The Android app's bundled pages, built by `npm run android:sync`
 /.capacitor/
+
+# Playwright's reports and traces
+/test-results/
+/playwright-report/

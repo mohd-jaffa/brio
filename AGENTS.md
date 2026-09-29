@@ -903,6 +903,10 @@ tests/
   - Each file registers businesses of its own through the app's `register` and `login` (`@tests/support/integration`), acts through the feature functions as a route would, and deletes the accounts after.
   - `npm test` leaves them out.
   - A new table owned by a business gets a row in the tenant-isolation test.
+- **Browser journeys** (`tests/e2e`, R6.5) run with `npm run build && npm run test:e2e`: Playwright drives the built app (`next start`, port 3100) at a phone's width, against the same local Supabase, and refuses a hosted one.
+  - Businesses are made and deleted as the integration tests make them; the owner then signs in through the sign-in screen (`@tests/support/e2e`).
+  - A step finds a control by its role and its words from `UI_TEXT`, never by a class or a test id.
+  - A success with nothing next closes itself: `expectOutcome` reads it from the status region.
 
 ## Frontend UI
 - 100% test case coverage is mandatory for all frontend UI components, custom hooks, and client services.
