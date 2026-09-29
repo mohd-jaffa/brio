@@ -461,13 +461,14 @@ main[data-navigating] > :not([data-screen-skeleton]) {
 
 /* ------------------------------------------------------------
    Sheets and cards (the kit's Modal)
-   A sheet slides up from the bottom edge of a phone and goes back
-   down it; from 768 px, where it is a centred card, it rises a
-   little and settles. The page dims in step. A closing one leaves
-   in 200 ms — faster than it came — where the browser can keep it
-   on top while it goes (the overlay property); elsewhere it closes
-   at once, as it always has. A response card (`modal-rise`) rises
-   and drops away the same short distance.
+   On a phone a sheet slides up from the bottom edge and goes back
+   down it, and a response card (`modal-rise`) rises a short way and
+   drops away. From 768 px, where each is a centred card, it zooms in
+   from the middle of the screen and shrinks back there, whatever
+   opened it (the user, 2026-09-29). The page dims in step. A closing
+   one leaves in 200 ms — faster than it came — where the browser can
+   keep it on top while it goes (the overlay property); elsewhere it
+   closes at once, as it always has.
    ------------------------------------------------------------ */
 @keyframes sheet-in {
   from {
@@ -475,10 +476,12 @@ main[data-navigating] > :not([data-screen-skeleton]) {
   }
 }
 
+/* From the middle: the card grows about its own centre, which is the
+   screen's, and never travels. */
 @keyframes dialog-in {
   from {
     opacity: 0;
-    transform: translateY(12px) scale(0.97);
+    transform: scale(0.9);
   }
 }
 
@@ -486,15 +489,15 @@ main[data-navigating] > :not([data-screen-skeleton]) {
   animation: sheet-in 320ms var(--ease-out-expo);
 }
 
-@media (min-width: 48rem) {
-  .modal-slide {
-    animation-name: dialog-in;
-    animation-duration: 260ms;
-  }
-}
-
 .modal-rise {
   animation: response-rise 240ms var(--ease-out-expo);
+}
+
+@media (min-width: 48rem) {
+  :is(.modal-slide, .modal-rise) {
+    transform-origin: center;
+    animation: dialog-in 280ms var(--ease-out-expo);
+  }
 }
 
 :is(.modal-slide, .modal-rise)[open]::backdrop {
@@ -528,9 +531,9 @@ main[data-navigating] > :not([data-screen-skeleton]) {
   }
 
   @media (min-width: 48rem) {
-    .modal-slide:not([open]) {
+    :is(.modal-slide, .modal-rise):not([open]) {
       opacity: 0;
-      transform: translateY(8px) scale(0.98);
+      transform: scale(0.95);
     }
   }
 }

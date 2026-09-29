@@ -54,9 +54,10 @@ export function Modal({
   /** Where to look for the first field or control; the whole modal by default. */
   focusScope?: RefObject<HTMLElement | null>;
   /**
-   * `slide` comes up from a phone's bottom edge and goes back down it (a
-   * centred card rises and settles); `rise` is the response card's shorter
-   * move. Each leaves as it came, and only fades under reduced motion
+   * On a phone, `slide` comes up from the bottom edge and goes back down it;
+   * `rise` is the response card's shorter move. From 768 px either is a
+   * centred card that zooms in from the middle of the screen and shrinks back
+   * there. Each leaves as it came, and only fades under reduced motion
    * (`globals.css`, Sheets and cards).
    */
   motion?: "slide" | "rise";

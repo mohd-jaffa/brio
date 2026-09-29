@@ -455,7 +455,7 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 
 ### Response Card
 - The one way an outcome is reported, on the web and in the app: a medallion, a serif title, the message, up to three facts in a strip, and at most two actions.
-- It rises as a sheet on a phone and as a dialog on a desktop. Plain successes close themselves after 3 seconds.
+- It rises a short way as a sheet on a phone, and zooms in from the middle of the screen as a dialog on a desktop. Plain successes close themselves after 3 seconds.
 - **A plain success over an open sheet** is drawn inside that sheet, above its content, where it can be tapped and is read out. With no sheet open it floats above everything, even a sheet still sliding away. Its close button is named for it (`Close “Stock recorded”`).
 - **A confirm card** stands before anything that cannot be undone: marking an order Delivered or Completed, cancelling it, deleting, clearing an order being built, signing out. The safe answer ("Not yet", "Keep order", "Stay signed in") is always offered; on a destructive one the confirm is brick and focus rests on the safe answer, so Enter cannot destroy anything.
 
@@ -466,7 +466,8 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 ### Motion
 - **Easing:** one arrival curve, `cubic-bezier(0.16, 1, 0.3, 1)`.
 - **Durations:**
-  - sheets slide up over 320 ms, and dialogs rise 12 px and scale from 0.97 over 260 ms;
+  - on a phone, sheets slide up from the bottom edge over 320 ms and go back down it;
+  - from 768 px, every sheet and card is a centred dialog that zooms in from the middle of the screen, from 90 % over 280 ms, whatever opened it, and shrinks back there;
   - exits take 200 ms;
   - a row that joins a list drops in over 240 ms, and the gap one leaves closes;
   - content that replaces a placeholder fades in over 200 ms.

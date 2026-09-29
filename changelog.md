@@ -3680,3 +3680,26 @@ A whole-app `/impeccable critique` (two independent reviews: design, and the det
 
 ### Blockers
 - None.
+
+## 2026-09-29 — Sheets rise on a phone, and zoom from the middle on a big screen
+
+### Changed
+- **The user's word:** on a phone, a sheet should open "down to up… unlike the zoom in from the click which only looks good on devices with big screen". On larger screens it should "zoom from middle of the screen, not bottom", everywhere: the bill, Select customer, add products, add customers.
+- **On a phone** every sheet slides up from the bottom edge over 320 ms and goes back down it. This is the kit's own motion, which it had before.
+- **From 768 px** every sheet, form and card is a centred dialog. It zooms in from the middle of the screen, from 90 % over 280 ms, whatever opened it, and shrinks back there in 200 ms.
+  - Before, it rose 12 px as it settled.
+  - A response card does the same from 768 px, and on a phone keeps its short rise.
+- **Removed before it shipped:** another session had written, but not committed, a motion that grew each sheet out of the control that opened it (`modal-motion.ts`). It was tried on the built app and dropped at the user's word. `Modal`, its tests and `globals.css` are back to their committed state, apart from the zoom.
+  - A copy of that work is kept outside the repository, in this session's scratch folder.
+- **Reduced motion** is unchanged at every size: a short fade, with no travel.
+- Plan §139.5 (Motion, Sheets and cards) and DESIGN.md (Motion, Response Card) say the same.
+
+### Validation
+- Unit tests pass.
+- Lint, the type check and the format check pass.
+- The built app was checked in Chromium, reading each dialog's box frame by frame as it opened:
+  - at 390 px, Select customer, a bill and the orders filter rise from the bottom edge (the sheet's top went 844 → 332 → 247 → 233 px, full width);
+  - at 1280 px, dialogs grow about their own centre, which stays fixed.
+
+### Blockers
+- None.

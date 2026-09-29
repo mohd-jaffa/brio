@@ -7817,8 +7817,8 @@ a shared component** (AGENTS §5).
 **Motion** (2026-09-26). The kit moves only on a change, never because a screen loaded. Under reduced motion nothing travels; each move becomes a short fade.
 
 - **Sheets and cards** (`Modal`):
-  - **Arrive:** a sheet slides up from a phone's bottom edge. From 768 px it is a centred card that rises a little and settles. The page dims in step.
-  - **Leave:** the way it came, in 200 ms, faster than it arrived. This is a progressive enhancement: where the browser can keep a closing dialog on top (the `overlay` property), it plays; elsewhere the sheet closes at once.
+  - **Arrive:** a sheet slides up from a phone's bottom edge. From 768 px it is a centred card that zooms in from the middle of the screen, whatever opened it — the bill, Select customer, Add product, New customer and every form alike (the user, 2026-09-29; growing out of the pressed control was tried and dropped the same day: it read badly on a phone, and a big screen's dialog belongs in the middle). A response card does the same from 768 px, and on a phone rises its short way. The page dims in step.
+  - **Leave:** the way it came, in 200 ms, faster than it arrived: back down the phone's edge, or shrinking back to the middle. This is a progressive enhancement: where the browser can keep a closing dialog on top (the `overlay` property), it plays; elsewhere the sheet closes at once.
   - **While leaving:** focus returns and the page is live straight away, and a sheet keeps showing its record (`useKept`).
   - **Response cards and notices:** the same exit, and the next card follows.
 - **Tabs:** one underline slides to the chosen tab. The tab's view comes in 8 px from that side.
