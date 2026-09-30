@@ -7,18 +7,28 @@ import type { AuthProfile } from "@/features/auth/types";
 import { AppError } from "@/lib/errors";
 import type { Tenant } from "@/lib/supabase/tenant";
 
-const { sendMail, createJob, logActionSafe, logger, signInWithPassword, signOut, removeBusinessFiles, mode } =
-  vi.hoisted(() => ({
-    sendMail: vi.fn(),
-    createJob: vi.fn(),
-    logActionSafe: vi.fn(),
-    logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
-    signInWithPassword: vi.fn(),
-    signOut: vi.fn(),
-    removeBusinessFiles: vi.fn(),
-    // Whether a worker runs (WORKER_ENABLED): none for now, and each path is kept.
-    mode: { worker: false },
-  }));
+const {
+  sendMail,
+  createJob,
+  logActionSafe,
+  logger,
+  captureError,
+  signInWithPassword,
+  signOut,
+  removeBusinessFiles,
+  mode,
+} = vi.hoisted(() => ({
+  sendMail: vi.fn(),
+  captureError: vi.fn(),
+  createJob: vi.fn(),
+  logActionSafe: vi.fn(),
+  logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+  signInWithPassword: vi.fn(),
+  signOut: vi.fn(),
+  removeBusinessFiles: vi.fn(),
+  // Whether a worker runs (WORKER_ENABLED): none for now, and each path is kept.
+  mode: { worker: false },
+}));
 vi.mock("@/constants/jobs", async (original) => ({
   ...(await original<typeof import("@/constants/jobs")>()),
   get WORKER_ENABLED() {
@@ -32,6 +42,7 @@ vi.mock("@/lib/env/server", () => ({ getServerEnv: () => ({ NEXT_PUBLIC_APP_URL:
 vi.mock("@/lib/jobs/queue", () => ({ createJob }));
 vi.mock("@/lib/audit/auditLog", () => ({ logActionSafe }));
 vi.mock("@/lib/logger", () => ({ logger }));
+vi.mock("@/lib/audit/errorLog", () => ({ captureError }));
 vi.mock("@/features/business/api", () => ({ removeBusinessFiles }));
 vi.mock("@/lib/supabase/server", () => ({
   createSupabaseAnonClient: () => ({ auth: { signInWithPassword, signOut } }),
@@ -323,11 +334,15 @@ describe("changePhone", () => {
     const { admin, updateUserById } = fakeAdmin(failing);
     expect((await refusal(changePhone(admin, tenant, profile(), input))).code).toBe("PROFILE_CHANGE_TOO_SOON");
     expect(updateUserById).toHaveBeenLastCalledWith("u-1", { phone: "+919876543210", phone_confirm: true });
-    expect(logger.error).not.toHaveBeenCalled();
+    expect(captureError).not.toHaveBeenCalled();
 
     const worse = fakeAdmin(failing, [null, { message: "down" }]);
     await refusal(changePhone(worse.admin, tenant, profile(), input));
-    expect(logger.error).toHaveBeenCalledOnce();
+    expect(captureError).toHaveBeenCalledExactlyOnceWith({
+      message: "Could not put the sign-in number back after a failed change",
+      error: { message: "down" },
+      userId: "u-1",
+    });
   });
 });
 
@@ -359,9 +374,10 @@ describe("requestEmailChange", () => {
     await expect(requestEmailChange(admin, tenant, profile(), input)).resolves.toMatchObject({
       pendingEmail: input.email,
     });
-    expect(logger.error).toHaveBeenCalledWith("Could not send the new email's link", {
+    expect(captureError).toHaveBeenCalledWith({
+      message: "Could not send the new email's link",
+      error: new Error("SMTP refused"),
       userId: "u-1",
-      reason: "SMTP refused",
     });
     expect(logActionSafe).toHaveBeenCalled();
 
@@ -372,9 +388,10 @@ describe("requestEmailChange", () => {
       profile(),
       input,
     );
-    expect(logger.error).toHaveBeenLastCalledWith("Could not send the new email's link", {
+    expect(captureError).toHaveBeenLastCalledWith({
+      message: "Could not send the new email's link",
+      error: "offline",
       userId: "u-1",
-      reason: "offline",
     });
   });
 
@@ -422,9 +439,8 @@ describe("requestEmailChange", () => {
     await expect(requestEmailChange(admin, tenant, profile(), input)).resolves.toMatchObject({
       pendingEmail: input.email,
     });
-    expect(logger.error).toHaveBeenCalledWith(
-      "Could not send the new email's link",
-      expect.objectContaining({ userId: "u-1" }),
+    expect(captureError).toHaveBeenCalledWith(
+      expect.objectContaining({ message: "Could not send the new email's link", userId: "u-1" }),
     );
   });
 });
@@ -569,7 +585,11 @@ describe("confirmEmailChange", () => {
 
     const worse = fakeAdmin(failing, [null, { message: "down" }]);
     await refusal(confirmEmailChange(worse.admin, { token: TOKEN }));
-    expect(logger.error).toHaveBeenCalledOnce();
+    expect(captureError).toHaveBeenCalledExactlyOnceWith({
+      message: "Could not put the email back after a failed change",
+      error: { message: "down" },
+      userId: "u-1",
+    });
   });
 });
 

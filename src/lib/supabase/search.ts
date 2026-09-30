@@ -6,11 +6,26 @@
  * anything but the words typed.
  */
 const UNSAFE = /[%_\\"(),*:]/g;
+/** The same, less the underscore: see `referencePattern`. */
+const UNSAFE_IN_REFERENCE = /[%\\"(),*:]/g;
+
+function anywhere(search: string, unsafe: RegExp): string | null {
+  const term = search.replace(unsafe, " ").replace(/\s+/g, " ").trim();
+  return term === "" ? null : `%${term}%`;
+}
 
 /** "Priya" → `%Priya%`, to match anywhere in a column; null when nothing is left to look for. */
 export function containsPattern(search: string): string | null {
-  const term = search.replace(UNSAFE, " ").replace(/\s+/g, " ").trim();
-  return term === "" ? null : `%${term}%`;
+  return anywhere(search, UNSAFE);
+}
+
+/**
+ * A reference the app hands out — a request's `req_…`, or a screen's digest —
+ * as a pattern. It keeps the underscore `containsPattern` drops: LIKE reads
+ * one as any single character, and that includes an underscore.
+ */
+export function referencePattern(search: string): string | null {
+  return anywhere(search, UNSAFE_IN_REFERENCE);
 }
 
 /**

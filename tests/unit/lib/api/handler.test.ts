@@ -1,13 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
-import { validationError } from "@/lib/errors";
+import { AppError, internalError, validationError } from "@/lib/errors";
+import { logger } from "@/lib/logger";
 
 import { createRequestId, normalizeApiError, readBody, readJson, readQuery, withApiHandler } from "@/lib/api/handler";
 
 vi.mock("@/lib/logger", () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
+const captureError = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/audit/errorLog", () => ({ captureError }));
 
 function post(body: unknown, headers: Record<string, string> = {}) {
   return new Request("https://x.test/api/thing", {
@@ -178,5 +181,59 @@ describe("withApiHandler", () => {
     expect(response.status).toBe(500);
     const body = await response.json();
     expect(JSON.stringify(body)).not.toContain("orders");
+  });
+
+  it("writes a fault of the server's own to the error log, under the reference the person is shown", async () => {
+    captureError.mockClear();
+    const driver = new Error("connection terminated");
+    const request = new Request("https://x.test/api/orders?search=Anu", {
+      method: "POST",
+      headers: { "x-request-id": "req_9" },
+    });
+    await withApiHandler(request, async () => {
+      throw internalError("INTERNAL_ERROR", undefined, driver);
+    });
+    expect(captureError).toHaveBeenCalledExactlyOnceWith({
+      source: "API",
+      message: "API request failed",
+      error: driver,
+      reference: "req_9",
+      code: "INTERNAL_ERROR",
+      kind: "INTERNAL",
+      httpStatus: 500,
+      method: "POST",
+      path: "/api/orders",
+      userId: undefined,
+      bakeryId: undefined,
+      context: { traceId: expect.any(String), details: undefined },
+    });
+  });
+
+  it("names who was asking once the route knows, and keeps the failure itself when it has no cause", async () => {
+    captureError.mockClear();
+    const failure = internalError("INTERNAL_ERROR");
+    await withApiHandler(post({}), async (context) => {
+      context.asker = { userId: "u-1", bakeryId: "b-1" };
+      throw failure;
+    });
+    expect(captureError).toHaveBeenCalledWith(
+      expect.objectContaining({ error: failure, userId: "u-1", bakeryId: "b-1" }),
+    );
+  });
+
+  it("leaves a refused request out of the error log, and says its cause in the output only", async () => {
+    captureError.mockClear();
+    await withApiHandler(post({}), async () => {
+      throw validationError("VALIDATION_ERROR");
+    });
+    await withApiHandler(post({}, { "x-request-id": "req_409" }), async () => {
+      throw new AppError({ kind: "CONFLICT", code: "CONFLICT", cause: new Error("duplicate key value") });
+    });
+    expect(captureError).not.toHaveBeenCalled();
+    expect(logger.error).toHaveBeenLastCalledWith(
+      "API request failed",
+      expect.objectContaining({ httpStatus: 409, cause: "duplicate key value" }),
+      "req_409",
+    );
   });
 });

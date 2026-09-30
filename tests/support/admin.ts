@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 
-import type { AdminAccount, AdminAuditEntry, AdminOverview } from "@/features/admin/types";
+import type { AdminAccount, AdminAuditEntry, AdminErrorEntry, AdminOverview } from "@/features/admin/types";
 import { authStub, TEST_PROFILE } from "@tests/support/auth";
 
 /** The developer signed in to the console: no business (0028). */
@@ -21,6 +21,7 @@ export const anOverview = (): AdminOverview => ({
   users: { total: 5, owners: 4, developers: 1 },
   businesses: 4,
   audit: { total: 120, lastDay: 9 },
+  errors: { total: 3, lastDay: 1 },
 });
 
 export const anAccount = (id: string, overrides: Partial<AdminAccount> = {}): AdminAccount => ({
@@ -47,6 +48,25 @@ export const anAuditEntry = (id: string, overrides: Partial<AdminAuditEntry> = {
   business: "Sweet Delights",
   before: { status: "PENDING" },
   after: { status: "READY" },
+  createdAt: "2026-09-27T10:00:00Z",
+  ...overrides,
+});
+
+export const anErrorEntry = (id: string, overrides: Partial<AdminErrorEntry> = {}): AdminErrorEntry => ({
+  id,
+  source: "API",
+  message: "API request failed",
+  reference: "req_5e1d7c1a-2b3c-4d5e-8f90-1a2b3c4d5e6f",
+  code: "INTERNAL_ERROR",
+  kind: "INTERNAL",
+  httpStatus: 500,
+  method: "POST",
+  path: "/api/orders",
+  user: "Priya Baker",
+  business: "Sweet Delights",
+  detail: "connection terminated unexpectedly",
+  stack: "Error: connection terminated unexpectedly\n    at createOrder (orders/api.ts:88:11)",
+  context: { traceId: "trace-1" },
   createdAt: "2026-09-27T10:00:00Z",
   ...overrides,
 });

@@ -60,6 +60,11 @@ export function assertPasswordChanged(session: AuthenticatedSession) {
   if (session.requiresPasswordChange) throw authorizationError("AUTH_PASSWORD_CHANGE_REQUIRED");
 }
 
+/** Who is asking, for the error log should the request fail. */
+function askerOf(session: AuthenticatedSession): NonNullable<ApiContext["asker"]> {
+  return { userId: session.profile.id, bakeryId: session.profile.bakeryId };
+}
+
 /** The session behind a request, refused when there is none or the role may not act. */
 export async function requireAuth(
   request: Request,
@@ -95,11 +100,12 @@ export function withBakeryRoute<TData>(
 ) {
   return withApiHandler(
     request,
-    async ({ requestId }) => {
+    async (api) => {
       const session = await requireAuth(request, options.roles ?? BUSINESS_ROLES);
+      api.asker = askerOf(session);
       assertPasswordChanged(session);
       return handler({
-        requestId,
+        requestId: api.requestId,
         session,
         supabase: createSupabaseAnonClient(session.accessToken),
         bakeryId: businessOf(session.profile),
@@ -124,11 +130,12 @@ export interface AccountContext extends BakeryContext {
  * functions use on the session's own account and nothing else.
  */
 export function withAccountRoute<TData>(request: Request, handler: (context: AccountContext) => Promise<TData>) {
-  return withApiHandler(request, async ({ requestId }) => {
+  return withApiHandler(request, async (api) => {
     const session = await requireAuth(request);
+    api.asker = askerOf(session);
     assertPasswordChanged(session);
     return handler({
-      requestId,
+      requestId: api.requestId,
       session,
       supabase: createSupabaseAnonClient(session.accessToken),
       bakeryId: businessOf(session.profile),
@@ -153,9 +160,10 @@ export interface DeveloperContext extends ApiContext {
  * console route does writes (the user, 2026-09-27).
  */
 export function withDevRoute<TData>(request: Request, handler: (context: DeveloperContext) => Promise<TData>) {
-  return withApiHandler(request, async ({ requestId }) => {
+  return withApiHandler(request, async (api) => {
     const session = await requireAuth(request, DEVELOPER_ROLES);
+    api.asker = askerOf(session);
     assertPasswordChanged(session);
-    return handler({ requestId, session, admin: createSupabaseServiceRoleClient() });
+    return handler({ requestId: api.requestId, session, admin: createSupabaseServiceRoleClient() });
   });
 }

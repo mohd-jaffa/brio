@@ -5,6 +5,7 @@
  * failure.
  */
 
+import { LOG_KEEP_DAYS } from "./logs";
 import type { NotificationTab } from "./statuses";
 
 export const ERROR_MESSAGES = {
@@ -64,6 +65,7 @@ export const ERROR_MESSAGES = {
   ADMIN_OVERVIEW_LOAD_FAILED: "Could not load the overview. Please try again.",
   ADMIN_USERS_LOAD_FAILED: "Could not load the accounts. Please try again.",
   ADMIN_AUDIT_LOAD_FAILED: "Could not load the audit log. Please try again.",
+  ADMIN_LOGS_LOAD_FAILED: "Could not load the error log. Please try again.",
   EXPENSES_LOAD_FAILED: "Could not load your expenses. Please try again.",
   ANALYTICS_LOAD_FAILED: "Could not load your analytics. Please try again.",
   DASHBOARD_LOAD_FAILED: "Could not load your dashboard. Please try again.",
@@ -1237,8 +1239,9 @@ export const UI_TEXT = {
   },
 
   /**
-   * The developer console (plan §5, §37; the user, 2026-09-27): read-only, in
-   * white and blue, for DEV only. It shows what the app already keeps.
+   * The developer console (plan §5, §37; the user, 2026-09-27 and 2026-09-30):
+   * read-only, in white and blue, for DEV only. It shows what the app keeps,
+   * the audit trail and the error log for seven days.
    */
   admin: {
     product: "Brio",
@@ -1247,6 +1250,7 @@ export const UI_TEXT = {
     places: {
       overview: "Overview",
       users: "Users",
+      logs: "Error log",
       audit: "Audit log",
     },
     signedInAs: "Signed in as",
@@ -1257,10 +1261,11 @@ export const UI_TEXT = {
       `${owners} ${owners === 1 ? "owner" : "owners"} · ${developers} ${developers === 1 ? "developer" : "developers"}`,
     businesses: "Businesses",
     auditEntries: "Audit entries",
-    auditLastDay: (count: number) => `${count} in the last 24 hours`,
-    // What is kept, said plainly: server errors are written to the server's output only.
-    keptNote:
-      "This console shows what the app keeps: accounts and the audit trail. Server errors are not stored; they are in the server's own output.",
+    errorEntries: "Errors",
+    auditLastDay: (count: number) => `${count} audit ${count === 1 ? "entry" : "entries"} in the last 24 hours`,
+    errorsLastDay: (count: number) => `${count} ${count === 1 ? "error" : "errors"} in the last 24 hours`,
+    // What is kept, and for how long, said plainly.
+    keptNote: `This console shows what the app keeps: the accounts, the audit trail and the error log. Audit and error entries are removed after ${LOG_KEEP_DAYS} days.`,
     usersTitle: "Users",
     usersSubtitle: "Every account, newest first.",
     usersEmpty: "No accounts yet.",
@@ -1274,10 +1279,20 @@ export const UI_TEXT = {
     emailUnconfirmed: "Email not confirmed",
     owesPasswordChange: "Owes a password change",
     auditTitle: "Audit log",
-    auditSubtitle: "What changed in every business, who changed it, and when.",
+    auditSubtitle: `What changed in every business, who changed it, and when. Kept for ${LOG_KEEP_DAYS} days.`,
     auditEmpty: "Nothing has been recorded yet.",
     by: (actor: string) => `by ${actor}`,
     unknownActor: "someone no longer here",
+    logsTitle: "Error log",
+    logsSubtitle: `What failed on the server, newest first. Kept for ${LOG_KEEP_DAYS} days.`,
+    logsEmpty: `Nothing has failed in the last ${LOG_KEEP_DAYS} days.`,
+    logsSearch: "Find a reference or a message",
+    reference: "Reference",
+    signedOut: "no one signed in",
+    detailAndStack: "What was thrown",
+    detail: "Detail",
+    stack: "Stack",
+    context: "Context",
     beforeAndAfter: "Before and after",
     before: "Before",
     after: "After",

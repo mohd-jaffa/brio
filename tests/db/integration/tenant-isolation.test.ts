@@ -4,6 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { getCustomerById, listCustomers, updateCustomer } from "@/features/customers/api";
 import { getProductById } from "@/features/products/api";
 import { createOrder } from "@/features/orders/checkout";
+import { captureError } from "@/lib/audit/errorLog";
 import { getOrderById } from "@/features/orders/queries";
 import { updateOrderStatus } from "@/features/orders/status";
 import { createSupabaseAnonClient } from "@/lib/supabase/server";
@@ -130,6 +131,18 @@ describe("straight at the database's API, with B's token", () => {
 
     const { error: devices } = await b.tenant.supabase.from("device_tokens").select("id");
     expect(devices?.code).toBe("42501");
+  });
+
+  it("reads no error log, not even its own business's, and writes none (0036)", async () => {
+    await captureError({ message: "Isolation check", bakeryId: b.bakeryId, userId: b.userId });
+    for (const owner of [a, b]) {
+      const { error: read } = await owner.tenant.supabase.from("error_logs").select("id");
+      expect(read?.code).toBe("42501");
+    }
+    const { error: written } = await b.tenant.supabase
+      .from("error_logs")
+      .insert({ source: "SERVER", message: "Planted", bakery_id: a.bakeryId });
+    expect(written?.code).toBe("42501");
   });
 
   it("shows a visitor with no session nothing at all", async () => {

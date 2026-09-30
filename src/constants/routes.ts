@@ -31,6 +31,7 @@ export const ACCOUNT_DELETED_PARAM = "deleted";
 export const ADMIN_ROUTES = {
   overview: "/admin",
   users: "/admin/users",
+  logs: "/admin/logs",
   audit: "/admin/audit",
 } as const;
 

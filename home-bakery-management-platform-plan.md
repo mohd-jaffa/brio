@@ -8693,6 +8693,8 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
 - **Only what is kept:** no new logging. Server errors are written to the
   server's output only, so §37's `/admin/logs` and §103's `error_logs` are not
   built. `/admin/workers` waits for a worker.
+  *Changed 2026-09-30 (§139.11.21): the error log is built, at `/admin/logs`,
+  and the audit trail and the error log are kept seven days.*
 - **Look:** white and blue, sans throughout (`data-theme="dev"`), on the
   page only while the console is open.
 - **Accounts:** a developer owns no business (`profiles.bakery_id` may be null
@@ -8778,6 +8780,45 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
   The phone with a shopping cart (Brio takes no orders online) and the box
   printed "Brio" (the business's name leads, not ours) are left out.
 
+### 139.11.21 The error log, and seven days for every log (the user, 2026-09-30)
+
+- **Asked for:** "like audit logs, let there be proper error logs too. and
+  only dev can see it, also both error logs and audit logs will be cleared in
+  7 days, like the expire time will be 7 days." It builds §103's `error_logs`,
+  §104's central helper and §37's `/admin/logs`, which §139.11.16 had left
+  out while nothing kept errors.
+- **What is kept:** what failed on the server, in `error_logs`
+  (`0036_error_logs`): where (`API`, `SCREEN`, `SERVER`, `WORKER`), the words,
+  the reference the person was shown (a request's id, or a screen's digest),
+  the catalogue code, kind and status, the method and the path (never the
+  query), who was asking and for which business, and the thrown value's own
+  message and stack, each bounded (`ERROR_LOG_LIMITS`), with the logger's
+  redaction on the rest.
+- **What goes in:** one helper, `captureError` (`src/lib/audit/errorLog.ts`),
+  which also writes the line to the server's output as before, and never
+  throws.
+  - `withApiHandler`: a request that failed with 500 or above, with who was
+    asking once a guard knew. A refused request (4xx) is not an error of the
+    server's and stays in the output only.
+  - `src/instrumentation.ts` (`onRequestError`): a screen the server could not
+    draw, the proxy, and anything a route threw before it could answer.
+  - The work beside a request that failed without failing it: a mail not
+    sent, an audit line not written, an undo that did not take, a look for
+    orders due, a notification not queued; and a job or a sweep, once a
+    worker runs.
+- **Who sees it:** DEV only, in the developer console's **Error log**
+  (`/admin/logs`, `GET /api/admin/logs`, `withDevRoute`), newest first,
+  searchable by reference or words, with what was thrown on request. The
+  Overview counts it. No policy lets an owner read or write a row; the server
+  writes through the service role.
+- **Seven days:** `clean_up_logs()` drops audit and error rows older than
+  seven days (`LOG_KEEP_DAYS`), run every hour by pg_cron, worker or not. The
+  audit trail was kept for the life of the business before; nothing in the
+  app reads it but the console. A deleted account takes its business's error
+  rows with it (`on delete cascade`).
+- **The privacy policy** says both are kept seven days, and what the error
+  log holds.
+
 ---
 
 ## 139.12 Data model and migrations
@@ -8809,6 +8850,8 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `…_audit_writes` | Revoke `INSERT` on `audit_logs` from `authenticated`; audit is written by the server with the acting user (§133.7 G1, BUG-20). | 2 |
 | `…_device_tokens` | The push-token registry (§133.5 E2). Built as `0031_web_push` for web push, with the scheduler's call (2026-09-29). | 8 |
 | `…_service_role_functions` | *Added 2026-09-30 as `0034_service_role_functions` (CI).* The service role runs every function in `public`, and every one added later: 0004 made later tables and sequences its own but not later functions, which newer Supabase images no longer grant by default. On a database made fresh, registration failed on `random_avatar()`. `authenticated` and `anon` gain nothing. | 6 |
+| `…_welcome` | *Added 2026-09-30 as `0035_welcome` (the user).* `profiles.welcomed_at`: every account then existing taken as welcomed, a new one without it (§139.11.20). | 6 |
+| `…_error_logs` | *Added 2026-09-30 as `0036_error_logs` (the user).* **`error_logs`**: what failed on the server, who was asking, and what was thrown — no policy, `authenticated` and `anon` revoked, the service role's alone. **`clean_up_logs()`**: audit and error rows older than seven days go, every hour by pg_cron (§139.11.21). | 6 |
 | `…_profile_theme` *(if Q14)* | `profiles.theme`. | 1 |
 
 ---

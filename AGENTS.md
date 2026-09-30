@@ -155,7 +155,7 @@ src/
 ├── proxy.ts                  # the signed-in/signed-out gate (§9)
 └── lib/
     ├── api/                  # route handler, response envelope, browser client
-    ├── audit/                # the central audit logger (§11)
+    ├── audit/                # the audit logger and the error log (§11)
     ├── dates/                # the bakery's calendar
     ├── errors/               # AppError and the kind factories (§10)
     ├── format/               # currency, date
@@ -245,8 +245,8 @@ or written to, Supabase `user_metadata` — users can edit their own metadata
 (BUG-17, `0009_role_out_of_metadata.sql`).
 
 **DEV has the developer console** (`/admin`, plan §139.11.16) and nothing else:
-read-only, behind `withDevRoute` (`DEVELOPER_ROLES`), showing the accounts and
-the audit trail. A developer owns no business (`0028_developer_accounts.sql`),
+read-only, behind `withDevRoute` (`DEVELOPER_ROLES`), showing the accounts, the
+error log and the audit trail. A developer owns no business (`0028_developer_accounts.sql`),
 is sent to `/admin` from every business screen, and is added from the Supabase
 dashboard, never by registering. The console shows only what the app already
 keeps.
@@ -381,6 +381,19 @@ may read their business's rows and insert none (BUG-20,
 `0011_audit_writes.sql`).
 
 Do not log sensitive credentials.
+
+**What fails on the server goes to the error log** (plan §103 – §104,
+§139.11.21, `0036_error_logs.sql`) through one helper, `captureError`
+(`src/lib/audit/errorLog.ts`), which also writes the output line and never
+throws. `withApiHandler` sends a request that failed with 500 or above, with
+who was asking; `src/instrumentation.ts` sends a screen the server could not
+draw; work beside a request that fails without failing it (a mail, an audit
+line, an undo) calls it itself. A refused request (4xx) is not logged there.
+Only the developer console reads it (`/admin/logs`); no owner can read or
+write a row.
+
+**Both logs are kept seven days** (`LOG_KEEP_DAYS`, `src/constants/logs.ts`):
+`clean_up_logs()` drops older audit and error rows every hour, by pg_cron.
 
 ---
 
@@ -978,7 +991,7 @@ Push / PR
 
 **SonarQube and BugSnag are kept for later** (the user, 2026-09-28; plan
 §139.18). The pipeline runs without them, and errors go to the server's own
-structured logs (§11).
+structured logs and the error log (§11).
 
 **The pipeline is `.github/workflows/ci.yml`** (R6.4), on every push to main and every pull request:
 

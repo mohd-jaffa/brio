@@ -7,12 +7,14 @@ import type { AuthProfile, AuthenticatedSession } from "@/features/auth/types";
 
 // The guard reaches for a session and for Supabase clients; neither is what
 // these cases are about, and neither should need configuration to run.
-const { getSession, anonClient, serviceClient } = vi.hoisted(() => ({
+const { getSession, anonClient, serviceClient, captureError } = vi.hoisted(() => ({
   getSession: vi.fn(),
+  captureError: vi.fn(),
   anonClient: { anon: true },
   serviceClient: { service: true },
 }));
 vi.mock("@/features/auth/api", () => ({ getSession }));
+vi.mock("@/lib/audit/errorLog", () => ({ captureError }));
 vi.mock("@/lib/supabase/server", () => ({
   createSupabaseAnonClient: vi.fn(() => anonClient),
   createSupabaseServiceRoleClient: vi.fn(() => serviceClient),
@@ -195,6 +197,22 @@ describe("a developer console route (plan §37)", () => {
       request: context.requestId.startsWith("req_"),
     }));
     expect(await response.json()).toMatchObject({ success: true, data: { who: "u-1", server: true, request: true } });
+  });
+
+  it("names who was asking in the error log when a route fails", async () => {
+    getSession.mockResolvedValue(signedIn("DEV"));
+    await withDevRoute(call(), async () => {
+      throw new Error("down");
+    });
+    expect(captureError).toHaveBeenLastCalledWith(expect.objectContaining({ userId: "u-1", bakeryId: null }));
+
+    getSession.mockResolvedValue(signedIn("USER"));
+    for (const route of [withBakeryRoute, withAccountRoute]) {
+      await route(call(), async () => {
+        throw new Error("down");
+      });
+      expect(captureError).toHaveBeenLastCalledWith(expect.objectContaining({ userId: "u-1", bakeryId: "b-1" }));
+    }
   });
 
   it("refuses an owner, and a developer still owing a password change", async () => {

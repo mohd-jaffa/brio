@@ -52,6 +52,7 @@ describe("the developer console's frame", () => {
     expect(links.map((link) => [link.textContent, link.getAttribute("href")])).toEqual([
       ["Overview", "/admin"],
       ["Users", "/admin/users"],
+      ["Error log", "/admin/logs"],
       ["Audit log", "/admin/audit"],
     ]);
     expect(within(nav).getByRole("link", { name: "Audit log" })).toHaveAttribute("aria-current", "page");

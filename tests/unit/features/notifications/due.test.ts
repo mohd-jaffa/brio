@@ -6,8 +6,8 @@ import { UI_TEXT } from "@/constants/messages";
 import { fakeSupabase } from "@tests/support/supabase";
 import { tenantOf } from "@tests/support/tenant";
 
-const { rpc, devices, pushToBusiness, countUnread, listNotifications, recordNotification, logger, mode } = vi.hoisted(
-  () => ({
+const { rpc, devices, pushToBusiness, countUnread, listNotifications, recordNotification, logger, captureError, mode } =
+  vi.hoisted(() => ({
     rpc: vi.fn(),
     devices: { rows: [] as { id: string; bakery_id: string }[], from: undefined as unknown },
     pushToBusiness: vi.fn(),
@@ -15,10 +15,10 @@ const { rpc, devices, pushToBusiness, countUnread, listNotifications, recordNoti
     listNotifications: vi.fn(),
     recordNotification: vi.fn(),
     logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+    captureError: vi.fn(),
     // Whether a worker runs (WORKER_ENABLED): none for now, and each path is kept.
     mode: { worker: false },
-  }),
-);
+  }));
 vi.mock("@/constants/jobs", async (original) => ({
   ...(await original<typeof import("@/constants/jobs")>()),
   get WORKER_ENABLED() {
@@ -29,6 +29,7 @@ vi.mock("@/lib/supabase/server", () => ({ createSupabaseServiceRoleClient: () =>
 vi.mock("@/features/notifications/api", () => ({ countUnread, listNotifications, recordNotification }));
 vi.mock("@/features/notifications/push", () => ({ pushToBusiness }));
 vi.mock("@/lib/logger", () => ({ logger }));
+vi.mock("@/lib/audit/errorLog", () => ({ captureError }));
 
 const { checkDueOrders, countUnreadAfterDue, listNotificationsAfterDue, sweepDueOrders } =
   await import("@/features/notifications/due");
@@ -155,17 +156,19 @@ describe("checkDueOrders", () => {
     const tenant = nextTenant();
     rpc.mockResolvedValueOnce({ data: null, error: { code: "08006", message: "connection lost" } });
     await expect(countUnreadAfterDue(tenant)).resolves.toEqual({ unread: 2 });
-    expect(logger.error).toHaveBeenCalledWith("Could not look for orders due", {
+    expect(captureError).toHaveBeenCalledWith({
+      message: "Could not look for orders due",
+      error: expect.anything(),
       bakeryId: tenant.bakeryId,
-      reason: expect.any(String),
     });
 
     const other = nextTenant();
     rpc.mockRejectedValueOnce("offline");
     await checkDueOrders(other);
-    expect(logger.error).toHaveBeenLastCalledWith("Could not look for orders due", {
+    expect(captureError).toHaveBeenLastCalledWith({
+      message: "Could not look for orders due",
+      error: "offline",
       bakeryId: other.bakeryId,
-      reason: "offline",
     });
   });
 

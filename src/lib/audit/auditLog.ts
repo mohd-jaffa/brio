@@ -1,4 +1,4 @@
-import { logger } from "@/lib/logger";
+import { captureError } from "@/lib/audit/errorLog";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server";
 import type { Tenant } from "@/lib/supabase/tenant";
 
@@ -20,12 +20,12 @@ export async function logActionSafe(tenant: Tenant, entry: AuditEntry): Promise<
     .insert({ ...entry, bakery_id: tenant.bakeryId, user_id: tenant.actorId });
 
   if (error) {
-    logger.error("Failed to write audit log", {
+    await captureError({
+      message: "Failed to write audit log",
+      error,
+      userId: tenant.actorId,
       bakeryId: tenant.bakeryId,
-      action: entry.action,
-      entityType: entry.entity_type,
-      entityId: entry.entity_id,
-      code: error.code,
+      context: { action: entry.action, entityType: entry.entity_type, entityId: entry.entity_id },
     });
   }
 }

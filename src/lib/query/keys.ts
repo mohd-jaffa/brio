@@ -81,6 +81,7 @@ export const apiRoutes = {
   admin: {
     overview: "/api/admin/overview",
     users: "/api/admin/users",
+    logs: "/api/admin/logs",
     audit: "/api/admin/audit",
   },
 } as const;

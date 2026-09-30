@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, ScrollText, Users } from "lucide-react";
+import { Building2, ScrollText, TriangleAlert, Users } from "lucide-react";
 
 import { LoadFailed } from "@/components/ui/list-screen";
 import { PageHeader } from "@/components/ui/page-header";
@@ -43,10 +43,9 @@ function SignedInCard() {
 
 /**
  * The console's first page (plan §37): who is signed in, and the platform at
- * a glance — how many accounts, owners and developers, businesses and audit
- * entries. It says plainly what is kept
- * and what is not (the user, 2026-09-27: "show whatever log is being saved
- * now").
+ * a glance — how many accounts, owners and developers, businesses, errors
+ * and audit entries. It says plainly what is kept, and for how long (the
+ * user, 2026-09-27: "show whatever log is being saved now"; 2026-09-30).
  */
 export function Overview() {
   const overview = useApiQuery<AdminOverview>(apiRoutes.admin.overview);
@@ -57,9 +56,10 @@ export function Overview() {
       <PageHeader title={text.overviewTitle} subtitle={text.overviewSubtitle} />
       <SignedInCard />
       {data ? (
-        <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <StatTile icon={Users} label={text.totalUsers} value={String(data.users.total)} />
           <StatTile icon={Building2} label={text.businesses} value={String(data.businesses)} />
+          <StatTile icon={TriangleAlert} label={text.errorEntries} value={String(data.errors.total)} />
           <StatTile icon={ScrollText} label={text.auditEntries} value={String(data.audit.total)} />
         </dl>
       ) : overview.error ? (
@@ -71,7 +71,8 @@ export function Overview() {
       )}
       {data && (
         <p className="text-sm text-text-muted">
-          {text.usersBreakdown(data.users.owners, data.users.developers)} · {text.auditLastDay(data.audit.lastDay)}
+          {text.usersBreakdown(data.users.owners, data.users.developers)} · {text.errorsLastDay(data.errors.lastDay)} ·{" "}
+          {text.auditLastDay(data.audit.lastDay)}
         </p>
       )}
       <ScreenNotice tone="info">{text.keptNote}</ScreenNotice>

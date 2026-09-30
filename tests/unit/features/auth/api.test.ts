@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { AuthProfile } from "@/features/auth/types";
 
-const { sendAccountConfirmationMail, createJob, logger, mode } = vi.hoisted(() => ({
+const { sendAccountConfirmationMail, createJob, logger, captureError, mode } = vi.hoisted(() => ({
+  captureError: vi.fn(),
   sendAccountConfirmationMail: vi.fn(),
   createJob: vi.fn(),
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
@@ -21,6 +22,7 @@ vi.mock("@/lib/mail/nodemailer.provider", () => ({
 }));
 vi.mock("@/lib/env/server", () => ({ getServerEnv: () => ({ NEXT_PUBLIC_APP_URL: "https://app.test" }) }));
 vi.mock("@/lib/logger", () => ({ logger }));
+vi.mock("@/lib/audit/errorLog", () => ({ captureError }));
 vi.mock("@/lib/jobs/queue", () => ({ createJob }));
 
 import {
@@ -187,9 +189,10 @@ describe("register", () => {
 
     await expect(register(client, registration)).resolves.toMatchObject({ userId: "u-1", bakeryId: "b-1" });
     expect(deletedUsers).toEqual([]);
-    expect(logger.error).toHaveBeenCalledWith("Could not send the confirmation email", {
+    expect(captureError).toHaveBeenCalledWith({
+      message: "Could not send the confirmation email",
+      error: new Error("SMTP refused"),
       userId: "u-1",
-      reason: "SMTP refused",
     });
   });
 
@@ -209,9 +212,10 @@ describe("register", () => {
 
     await expect(register(client, registration)).resolves.toMatchObject({ userId: "u-1", bakeryId: "b-1" });
     expect(deletedUsers).toEqual([]);
-    expect(logger.error).toHaveBeenCalledWith("Could not send the confirmation email", {
+    expect(captureError).toHaveBeenCalledWith({
+      message: "Could not send the confirmation email",
+      error: new Error("queue down"),
       userId: "u-1",
-      reason: "queue down",
     });
   });
 

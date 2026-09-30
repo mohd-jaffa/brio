@@ -19,8 +19,8 @@ vi.mock("@/constants/jobs", async (original) => ({
 vi.mock("@/features/orders/api", () => ({ findOrderById }));
 vi.mock("@/lib/audit/auditLog", () => ({ logActionSafe }));
 vi.mock("@/lib/jobs/queue", () => ({ createJob }));
-const logger = vi.hoisted(() => ({ info: vi.fn(), warn: vi.fn(), error: vi.fn() }));
-vi.mock("@/lib/logger", () => ({ logger }));
+const captureError = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/audit/errorLog", () => ({ captureError }));
 
 import { processPayment } from "@/features/payments/api";
 import { tenantOf } from "@tests/support/tenant";
@@ -204,10 +204,12 @@ describe("processPayment", () => {
     createJob.mockRejectedValue(new Error("queue down"));
     const { client } = fakeClient();
     await expect(processPayment(tenantOf(client), payment, KEY)).resolves.toMatchObject({ id: "p-1" });
-    expect(logger.error).toHaveBeenCalledWith("Could not queue the payment notification", {
+    expect(captureError).toHaveBeenCalledWith({
+      message: "Could not queue the payment notification",
+      error: new Error("queue down"),
+      userId: "u-1",
       bakeryId: "b-1",
-      orderNumber: "ORD-1001",
-      reason: "queue down",
+      context: { orderNumber: "ORD-1001" },
     });
   });
 });

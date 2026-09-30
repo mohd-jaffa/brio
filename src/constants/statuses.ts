@@ -245,3 +245,19 @@ export const NOTIFICATION_TAB_FILTERS: Record<
   CUSTOMERS: { kinds: ["CUSTOMER"] },
   SYSTEM: { kinds: ["STOCK", "SYSTEM"] },
 };
+
+/**
+ * Where a failure in the error log happened (`error_logs.source`,
+ * 0036_error_logs.sql): a request the API could not serve, a screen the
+ * server could not draw, the server's own work beside a request (a mail, an
+ * audit line), or a job.
+ */
+export const ERROR_SOURCES = ["API", "SCREEN", "SERVER", "WORKER"] as const;
+export type ErrorSource = (typeof ERROR_SOURCES)[number];
+
+export const ERROR_SOURCE_LABELS: Record<ErrorSource, string> = {
+  API: "Request",
+  SCREEN: "Screen",
+  SERVER: "Server",
+  WORKER: "Job",
+};

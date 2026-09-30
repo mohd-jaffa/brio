@@ -35,20 +35,33 @@ describe("the console's overview", () => {
     expect(me).toHaveTextContent("Developer · +91 91234 56789 · dev@brio.local");
   });
 
-  it("counts the platform: accounts, businesses and audit entries", async () => {
+  it("counts the platform: accounts, businesses, errors and audit entries", async () => {
     open();
     expect(await screen.findByText("Total users")).toBeInTheDocument();
     const figure = (label: string) => screen.getByText(label).closest("div")!;
     expect(figure("Total users")).toHaveTextContent("5");
     expect(figure("Businesses")).toHaveTextContent("4");
+    expect(figure("Errors")).toHaveTextContent("3");
     expect(figure("Audit entries")).toHaveTextContent("120");
     expect(screen.queryByText(/Jobs/)).not.toBeInTheDocument();
-    expect(screen.getByText("4 owners · 1 developer · 9 in the last 24 hours")).toBeInTheDocument();
+    expect(
+      screen.getByText("4 owners · 1 developer · 1 error in the last 24 hours · 9 audit entries in the last 24 hours"),
+    ).toBeInTheDocument();
   });
 
-  it("says plainly what is kept, and that server errors are not", () => {
+  it("says plainly what is kept, and for how long", () => {
     open();
-    expect(screen.getByText(/Server errors are not stored/)).toBeInTheDocument();
+    expect(screen.getByText(/the audit trail and the error log/)).toHaveTextContent(
+      "Audit and error entries are removed after 7 days.",
+    );
+  });
+
+  it("counts one error and one audit entry as one", async () => {
+    answering(fetcher, {
+      "/api/admin/overview": { ...anOverview(), audit: { total: 1, lastDay: 1 }, errors: { total: 2, lastDay: 2 } },
+    });
+    open();
+    expect(await screen.findByText(/2 errors in the last 24 hours · 1 audit entry in the last 24 hours/)).toBeVisible();
   });
 
   it("says when the counts could not be read, and tries again", async () => {
@@ -66,6 +79,6 @@ describe("the console's overview", () => {
     auth.current = authStub({ status: "loading", profile: null });
     open();
     expect(screen.queryByRole("region", { name: "Signed in as" })).not.toBeInTheDocument();
-    expect(within(document.body).getByText(/Server errors are not stored/)).toBeInTheDocument();
+    expect(within(document.body).getByText(/Audit and error entries are removed/)).toBeInTheDocument();
   });
 });

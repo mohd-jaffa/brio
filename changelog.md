@@ -3856,3 +3856,28 @@ A second `/impeccable optimize` pass, on the built app at 390 px, with a throttl
 
 ### Blockers
 - None.
+
+## 2026-09-30 — The error log, and seven days for every log
+
+### Added
+- **An error log, for developers only** (the user: "like audit logs, let there be proper error logs too. and only dev can see it"; plan §103, §104, §37, §139.11.21).
+  - `error_logs` (`0036_error_logs`): what failed on the server, where (a request, a screen, the server's own work, a job), the reference the person was shown, the code, kind and status, the method and path (never the query), who was asking and for which business, and the thrown value's message and stack, each bounded, the rest redacted as the logger redacts. No policy: no owner reads or writes a row.
+  - One helper, `captureError` (`src/lib/audit/errorLog.ts`), writes the row through the service role and the line to the output, and never throws.
+  - What goes in: a request that failed with 500 or above (`withApiHandler`, with who was asking once a guard knew); a screen the server could not draw, the proxy, a route that threw before answering (`src/instrumentation.ts`, `onRequestError`); a mail not sent, an audit line not written, an undo that did not take, a look for orders due, a notification not queued; a job or sweep, once a worker runs. A refused request (4xx) stays in the output only.
+  - **The console's Error log** (`/admin/logs`, `GET /api/admin/logs`, DEV only): newest first, searchable by a quoted reference or words of the message, with what was thrown on request. The Overview counts errors beside the rest.
+- **Seven days for every log** (the user: "both error logs and audit logs will be cleared in 7 days"): `clean_up_logs()` drops audit and error rows older than seven days (`LOG_KEEP_DAYS`), every hour, by pg_cron. The audit trail was kept for the life of the business before; only the console reads it.
+
+### Changed
+- The privacy policy says the history of changes and the record of faults are kept seven days, and what the record of faults holds. The console's notes say the same.
+- The plan records §139.11.21 and the missing `…_welcome` row; AGENTS.md §8, §11 and §27 name the error log.
+
+### Migration notes
+- `0036_error_logs.sql`: a new table (no rows), a function, and a pg_cron job `log-cleanup` at 23 minutes past every hour. Applied to the local database. On a hosted database, audit rows older than seven days go within the hour of applying it.
+
+### Validation
+- Unit tests pass, with `captureError`, the console's Error log, `onRequestError`, `referencePattern` and the migration's contract covered; the handler's and the guards' logging, and each call site's, are tested.
+- Integration tests (36) pass on the local database: a failure is kept with who was asking and found by its reference; an owner can neither read nor write the log, nor run the sweep; rows past seven days go and newer ones stay, in both logs; a deleted account takes its error rows.
+- Lint, the type check and the format check pass.
+
+### Blockers
+- None.
