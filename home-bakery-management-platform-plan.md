@@ -8848,6 +8848,10 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
   draws the phone round it (`PhoneFrame`: titanium band, black border,
   Dynamic Island, buttons). The desktop shot sits in a laptop
   (`LaptopFrame`).
+- **Motion** (the user: "animate about page"): one sequence as the page
+  arrives, the order book opening — the headline rises line by line, the
+  laptop's lid swings up and its screen wakes, the phone steps up in front,
+  the words settle in. Inside 1.5 s, CSS only; with reduced motion it fades.
 
 ---
 

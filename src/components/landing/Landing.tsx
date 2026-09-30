@@ -151,7 +151,7 @@ export function Landing({ signedIn, year }: { signedIn: boolean; year: number })
           aria-labelledby="landing-title"
           className={cn(
             FRAME,
-            "grid items-center gap-14 pt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-12 lg:pt-20",
+            "landing-hero grid items-center gap-14 pt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-12 lg:pt-20",
           )}
         >
           <div className="max-w-xl">
@@ -159,17 +159,24 @@ export function Landing({ signedIn, year }: { signedIn: boolean; year: number })
               id="landing-title"
               className="font-display text-[clamp(2.75rem,1.75rem+4.4vw,4.25rem)] font-semibold leading-[1.02] tracking-[-0.035em] text-text lg:text-[clamp(3rem,4.4vw,4.25rem)]"
             >
-              <span className="block whitespace-nowrap">{madeBy}</span>
-              <span className="block whitespace-nowrap text-primary">{managed}</span>
+              {/* Each line rises out of its own line; the window keeps room for descenders. */}
+              <span className="-mb-[0.14em] block overflow-hidden pb-[0.14em]">
+                <span className="landing-line block whitespace-nowrap [--line:0]">{madeBy}</span>
+              </span>
+              <span className="-mb-[0.14em] block overflow-hidden pb-[0.14em]">
+                <span className="landing-line block whitespace-nowrap text-primary [--line:1]">{managed}</span>
+              </span>
             </h1>
-            <p className="mt-6 max-w-[34rem] text-lg leading-relaxed text-text-muted text-pretty">{text.heroLead}</p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <p className="landing-settle mt-6 max-w-[34rem] text-lg leading-relaxed text-text-muted text-pretty [--settle:0]">
+              {text.heroLead}
+            </p>
+            <div className="landing-settle mt-8 flex flex-wrap items-center gap-3 [--settle:1]">
               <Start signedIn={signedIn} size="lg" />
               {!signedIn && (
                 <LinkButton href={AUTH_ROUTES.signIn} label={text.signIn} variant="secondary" size="lg" shape="pill" />
               )}
             </div>
-            <p className="mt-7 flex items-center gap-2.5 text-sm text-text-muted">
+            <p className="landing-settle mt-7 flex items-center gap-2.5 text-sm text-text-muted [--settle:2]">
               <Image src={BRAND.leaf.src} alt="" width={brandWidth("leaf", 16)} height={16} className="shrink-0" />
               {text.heroFor}
             </p>
@@ -178,6 +185,7 @@ export function Landing({ signedIn, year }: { signedIn: boolean; year: number })
           {/* The laptop, with the phone stood in front of its left corner. */}
           <div className="relative pb-[4%] pl-[19%] sm:pl-[13%]">
             <LaptopFrame
+              className="landing-laptop"
               src={LANDING_SHOTS["desktop-home"]}
               alt={ALT["desktop-home"]}
               sizes="(min-width: 1024px) 620px, 86vw"
@@ -188,7 +196,7 @@ export function Landing({ signedIn, year }: { signedIn: boolean; year: number })
               alt={ALT.home}
               sizes="(min-width: 1024px) 170px, 30vw"
               lead
-              className="absolute bottom-0 left-0 w-[31%] sm:w-[25%]"
+              className="landing-phone absolute bottom-0 left-0 w-[31%] sm:w-[25%]"
             />
           </div>
         </section>

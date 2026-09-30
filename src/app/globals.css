@@ -1577,3 +1577,93 @@ html[data-launch="leaving"] .launch-splash {
     background: rgb(0 0 0 / 0.12);
   }
 }
+
+/* ============================================================
+   The landing page's arrival (Landing; plan §139.11.22 — the
+   user, 2026-09-30: "animate about page"). One sequence, once,
+   as the page arrives, and then nothing on the page moves: the
+   order book opens. The headline's two lines rise out of their
+   own line, one after the other; the laptop's lid swings up from
+   its hinge and its screen wakes onto Home; the phone steps up in
+   front of it; the words under the headline settle in behind.
+   All of it inside 1.5 s, in transforms and opacity. With reduced
+   motion the hero only fades in.
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  .landing-line {
+    animation: landing-line 820ms var(--ease-out-expo) both;
+    animation-delay: calc(var(--line, 0) * 120ms);
+  }
+
+  .landing-settle {
+    animation: landing-settle 700ms var(--ease-out-expo) both;
+    animation-delay: calc(380ms + var(--settle, 0) * 90ms);
+  }
+
+  .landing-laptop .device-laptop-lid {
+    transform-origin: 50% 100%;
+    animation: landing-lid 1000ms var(--ease-out-expo) 150ms both;
+  }
+
+  /* The screen is off while the lid comes up, and wakes as it settles. */
+  .landing-laptop .device-laptop-screen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--device-glass);
+    pointer-events: none;
+    animation: landing-wake 520ms ease-out 600ms both;
+  }
+
+  .landing-phone {
+    transform-origin: 50% 100%;
+    animation: landing-phone 820ms var(--ease-out-expo) 640ms both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-hero {
+    animation: landing-fade 240ms ease-out both;
+  }
+}
+
+@keyframes landing-line {
+  from {
+    transform: translateY(108%);
+  }
+}
+
+@keyframes landing-settle {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+}
+
+@keyframes landing-lid {
+  from {
+    transform: perspective(1400px) rotateX(-74deg);
+  }
+  to {
+    transform: perspective(1400px) rotateX(0deg);
+  }
+}
+
+@keyframes landing-wake {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes landing-phone {
+  from {
+    opacity: 0;
+    transform: translateY(16%) rotate(-4deg);
+  }
+}
+
+@keyframes landing-fade {
+  from {
+    opacity: 0;
+  }
+}

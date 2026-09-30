@@ -3900,3 +3900,18 @@ A second `/impeccable optimize` pass, on the built app at 390 px, with a throttl
 
 ### Blockers
 - None.
+
+## 2026-09-30 — The landing page opens like an order book
+
+### Changed
+- **The landing page's arrival is animated** (the user: "/impeccable animate about page"; plan §139.11.22). One sequence, once, as the page arrives: the headline's two lines rise out of their own line; the laptop's lid swings up from its hinge with its screen dark, and the screen wakes onto Home; the phone steps up in front of it; the words under the headline settle in behind. Inside 1.5 s, on the app's arrival curve, in CSS transforms and opacity only; nothing else on the page moves.
+- With reduced motion the hero only fades in, over 240 ms.
+- DESIGN.md records the page's motion and its own type steps.
+
+### Validation
+- Frames frozen at 0, 250, 500, 750, 1,000 and 1,600 ms at 1440 × 900 and 390 × 844, and with reduced motion: every stage reads, and the page rests as it was.
+- The design detector: advisories only — the devices' own colours and radii, and the page's type steps, now written into DESIGN.md.
+- Unit tests, lint, the type check and the format check pass; the landing journey passes on the build.
+
+### Blockers
+- None.
