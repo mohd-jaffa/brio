@@ -3881,3 +3881,22 @@ A second `/impeccable optimize` pass, on the built app at 390 px, with a throttl
 
 ### Blockers
 - None.
+
+## 2026-09-30 — The landing page, with the app on a phone and a laptop
+
+### Added
+- **A landing page at `/about`** (the user: "create a landing hero page for the app also, informative, explaining the use cases of the app and if possible with screenshots or demonstrations"; plan §139.11.22). Open to anyone, signed in or not; the proxy does not run for it, as for `/privacy`.
+  - The brand's line as the headline; what Brio is and who it is for; a day's work — taking an order, what is due, the bill, customers, stock and the numbers — each beside the screen that does it; where it runs; what stays private, with the policy a link away; and the way in. Someone signed in is offered **Open Brio** instead of an account.
+  - It says only what the app does: no prices, no numbers of users, no quotes.
+- **The screenshots are the app itself** (`scripts/landing-shots.mts` → `src/assets/landing/`, 48–85 KB each): a demo business made through the app's own functions against the local Supabase, with no mail sent, given a month of orders, photographed in the built app, then deleted.
+- **Framed like a current Pro phone** (the user: "add with a phone like framed screenshot like with iphone 18 pro"): each phone shot is a whole 402 × 874 screen, its status bar (time, signal, Wi-Fi, battery) and home indicator drawn in the screen's own colours; `PhoneFrame` draws the titanium band, the black border, the Dynamic Island and the buttons in CSS, sized as a share of its own width. The desktop shot sits in `LaptopFrame`.
+- **"See what Brio does"** under the sign-in screen's promise leads to it.
+
+### Validation
+- Seen at 1440 × 900, 1024 × 768, 820 × 1180, 390 × 844 and 360 × 640: the headline holds its two lines, nothing scrolls sideways, every picture loads.
+- Unit tests: the page, its frames, its route and the sign-in link fully covered; the pictures' files and sizes; the proxy leaves `/about` alone.
+- A browser journey: from sign-in to the landing page, every part of a day shown, a screenshot loaded, and on to making an account.
+- Lint, the type check and the format check pass.
+
+### Blockers
+- None.

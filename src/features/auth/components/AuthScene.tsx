@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 import { BRAND, brandWidth } from "@/assets/brand";
 import { PLATES, PLATE_FOCUS, PLATE_QUALITY } from "@/assets/plates";
 import { UI_TEXT } from "@/constants/messages";
+import { ABOUT_ROUTE } from "@/constants/routes";
 
 const WORDMARK_HEIGHT = 44;
 
@@ -134,6 +135,20 @@ export function AuthScene({
         </div>
       </div>
     </main>
+  );
+}
+
+/** The way to the landing page, under the promise, for someone meeting Brio for the first time (§139.11.22). */
+export function AuthAbout() {
+  return (
+    <p className="mt-2 text-center text-sm">
+      <Link
+        href={ABOUT_ROUTE}
+        className="touch-target inline-flex min-h-11 items-center font-medium text-primary underline decoration-primary/40 underline-offset-4 transition-colors hover:decoration-primary"
+      >
+        {UI_TEXT.auth.seeWhatBrioDoes}
+      </Link>
+    </p>
   );
 }
 

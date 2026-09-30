@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { UI_TEXT } from "@/constants/messages";
 import { AUTH_ROUTES } from "@/constants/routes";
 import { Pending } from "@/components/ui/pending";
-import { AuthPromise, AuthScene } from "@/features/auth/components/AuthScene";
+import { AuthAbout, AuthPromise, AuthScene } from "@/features/auth/components/AuthScene";
 import { RedirectWhenSignedIn } from "@/features/auth/components/RedirectWhenSignedIn";
 import { SignInForm } from "@/features/auth/components/SignInForm";
 
@@ -24,7 +24,12 @@ export default function SignInPage() {
             label: UI_TEXT.auth.createAccount,
             href: AUTH_ROUTES.register,
           }}
-          footer={<AuthPromise>{UI_TEXT.auth.promise}</AuthPromise>}
+          footer={
+            <>
+              <AuthPromise>{UI_TEXT.auth.promise}</AuthPromise>
+              <AuthAbout />
+            </>
+          }
         >
           <SignInForm />
         </AuthScene>

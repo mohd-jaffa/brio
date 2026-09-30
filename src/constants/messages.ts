@@ -214,6 +214,8 @@ export const UI_TEXT = {
     registerHeadline: ["Grow what", "you make", "at home."],
     registerIntro: "Two short steps, and you are ready for orders",
     promise: "Made at home, run with care.",
+    // The way to the landing page (§139.11.22), under the promise.
+    seeWhatBrioDoes: "See what Brio does",
 
     // The three screens behind the front door (plan §138.6). Same voice: a
     // serif line that says where you are, then one sentence of why.
@@ -1225,6 +1227,100 @@ export const UI_TEXT = {
     sureCancel: "Keep my account",
     notDeleted: "Account not deleted",
     deleted: "Your account and your business have been deleted. Thank you for using Brio.",
+  },
+
+  /**
+   * The landing page (`/about`, plan §139.11.22; the user, 2026-09-30): what
+   * Brio is and who it is for, shown on its own screens. It says only what
+   * the app does — no prices, no numbers of users, no quotes.
+   */
+  landing: {
+    metaTitle: "Brio — the order book for home businesses",
+    metaDescription:
+      "Brio keeps the orders, customers, stock and money of a home business in one place, for home bakers, hamper makers, florists and gift makers.",
+    signIn: "Sign in",
+    createAccount: "Create account",
+    openApp: "Open Brio",
+    start: "Create your account",
+    heroLead:
+      "The order book for businesses run from home. Take orders as they come in on WhatsApp or a call, see what is due today, send a proper bill and know what you really made — on your phone, tablet or computer.",
+    heroFor: "For home bakers, hamper makers, florists and gift makers.",
+    whoTitle: "Made for work done at home",
+    who: {
+      bakers: { title: "Home bakers", body: "Cakes, cupcakes and brownies, made to order." },
+      hampers: { title: "Hamper makers", body: "Festive hampers and gift sets, by the set." },
+      florists: { title: "Florists", body: "Bouquets and arrangements, by the bunch." },
+      gifts: { title: "Gift makers", body: "Boxes, keepsakes and gifts made to order." },
+    },
+    dayTitle: "A day’s work, kept in order",
+    dayLead: "From the message that brings an order to the money that settles it.",
+    features: {
+      order: {
+        title: "Take an order as fast as it comes in",
+        body: "An order from a WhatsApp message or a phone call goes in with a few taps. Pick from what you sell or add something made to order, choose the customer or keep it as a guest, and note what was paid.",
+        points: [
+          "Stock is set aside the moment an order is placed, so nothing is promised twice.",
+          "Pickup or delivery, with the day and time it is due.",
+        ],
+      },
+      due: {
+        title: "Know what is due before it is late",
+        body: "Home opens on what needs you now: orders running late, due today and due tomorrow, money still to collect and stock running low.",
+        points: [
+          "Move each order along: Pending, Preparing, Ready, Delivered.",
+          "Reminders on your phone or in your browser as orders come due.",
+        ],
+      },
+      bill: {
+        title: "A proper bill in seconds",
+        body: "Every order has a clean bill with your business’s name, logo, address and catch phrase. Share it from your phone to WhatsApp or anywhere else, or save it as a PDF.",
+        points: ["Paid, part paid or still owed, said plainly.", "Made when you ask for it, and never stored."],
+      },
+      customers: {
+        title: "Every customer, remembered",
+        body: "Each customer keeps their orders, what they have spent and what they still owe, with Call and WhatsApp a tap away.",
+        points: ["Regulars, new faces and balances due, each on a tab.", "A guest order needs no customer at all."],
+      },
+      numbers: {
+        title: "Know where you stand",
+        body: "Stock counts itself as orders are placed and handed over. Analytics shows sales, orders, best sellers and customers for any stretch of time, and expenses sit beside sales, so you see what you really made.",
+        points: [
+          "Low stock is flagged before you run out.",
+          "Expenses by category: ingredients, packaging, delivery and more.",
+        ],
+      },
+    },
+    shots: {
+      desktop:
+        "Brio’s Home on a computer: orders due today and one running late, the day’s sales, money to collect and stock running low.",
+      home: "Brio’s Home on a phone: orders due today, the day’s sales, money to collect and stock running low.",
+      order: "Creating an order on a phone: products to pick from, and the order adding up at the foot.",
+      bill: "An order’s bill on a phone, with the business’s name, the items, what was paid, and Share and Download PDF.",
+      customer:
+        "A customer on a phone: what they still owe, what they have spent and their orders, with Call and WhatsApp.",
+      inventory: "Stock on a phone: each product with how much is left, one marked low.",
+      analytics: "Analytics on a phone: sales, orders, new customers and the average order for the last 30 days.",
+    },
+    devicesTitle: "In your apron pocket, and on the desk",
+    devices: {
+      android: { title: "Android", body: "An app for Android phones, with reminders for orders coming due." },
+      iphone: { title: "iPhone and iPad", body: "Added to the home screen from Safari, and opened like an app." },
+      computer: { title: "Computer", body: "Any browser, with a sidebar, wider lists and room for the numbers." },
+    },
+    looks: "Two looks to choose from, Golden and Peach.",
+    trustTitle: "Your business stays yours",
+    trust: [
+      "Each business sees only its own records. The database checks, not only the screen.",
+      "Bills are made when you ask for them, and never kept on our side.",
+      "No adverts, no tracking tools, and your data is never sold.",
+      "Delete your account from Settings whenever you like, and it goes at once.",
+    ],
+    privacyLink: "Read the privacy policy",
+    closingTitle: "Start with your next order",
+    closingBody: "Make your account in two short steps, add what you sell, and your next order goes straight in.",
+    haveAccount: "Already using Brio?",
+    privacy: "Privacy policy",
+    copyright: (year: number) => `© ${year} Brio`,
   },
 
   /** The privacy policy's page (R8.10); its words are in src/constants/privacy.ts. */

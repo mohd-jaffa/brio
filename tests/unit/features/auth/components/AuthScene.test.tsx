@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { UI_TEXT } from "@/constants/messages";
-import { AuthPromise, AuthScene } from "@/features/auth/components/AuthScene";
+import { AuthAbout, AuthPromise, AuthScene } from "@/features/auth/components/AuthScene";
 
 function scene(props: Partial<Parameters<typeof AuthScene>[0]> = {}) {
   return render(
@@ -68,5 +68,12 @@ describe("AuthPromise", () => {
   it("closes the sheet on the promise", () => {
     render(<AuthPromise>{UI_TEXT.auth.promise}</AuthPromise>);
     expect(screen.getByText("Made at home, run with care.")).toBeInTheDocument();
+  });
+});
+
+describe("AuthAbout", () => {
+  it("leads someone meeting Brio for the first time to what it does", () => {
+    render(<AuthAbout />);
+    expect(screen.getByRole("link", { name: UI_TEXT.auth.seeWhatBrioDoes })).toHaveAttribute("href", "/about");
   });
 });

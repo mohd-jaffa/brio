@@ -1429,3 +1429,151 @@ html[data-launch="leaving"] .launch-splash {
     animation-duration: 200ms;
   }
 }
+
+/* ============================================================
+   The landing page's devices (PhoneFrame, LaptopFrame; plan
+   §139.11.22 — the user, 2026-09-30: "a phone like framed
+   screenshot like with iphone 18 pro"). A current Pro phone: a
+   titanium band, an even black border, the Dynamic Island over
+   the status bar its screenshot carries, and its buttons; and a
+   laptop with a thin black border and an aluminium base. Every
+   measure is a share of the frame's own width (cqw), so a frame
+   is the same object at any size. These are the devices' own
+   colours, as the launch splash has its own, whatever the theme.
+   ============================================================ */
+/* In the components layer, so a frame's own size is set by the page's
+   utilities (w-[25%]) and not by its default width here. */
+@layer components {
+  .device-phone,
+  .device-laptop {
+    --device-titanium: linear-gradient(135deg, #a9a39c 0%, #57524d 22%, #d4cec6 48%, #5e5954 74%, #9d9790 100%);
+    --device-glass: #0a0a0b;
+    --device-aluminium: linear-gradient(180deg, #e6e3de 0%, #cbc7c1 55%, #a19c95 100%);
+    --device-rim: #c9c4bd;
+    container-type: inline-size;
+    position: relative;
+    width: 100%;
+  }
+
+  .device-phone-body {
+    position: relative;
+    padding: 1cqw;
+    border-radius: 16.4cqw;
+    background: var(--device-titanium);
+    box-shadow:
+      0 2.5cqw 5cqw -2cqw rgb(var(--shadow-tone) / 0.32),
+      0 12cqw 20cqw -10cqw rgb(var(--shadow-tone) / 0.42);
+  }
+
+  .device-phone-glass {
+    padding: 2.3cqw;
+    border-radius: 15.4cqw;
+    background: var(--device-glass);
+    box-shadow: inset 0 0 0 0.35cqw rgb(255 255 255 / 0.07);
+  }
+
+  /* 402 × 874: the screen in points, as the screenshots are taken. */
+  .device-phone-screen {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 402 / 874;
+    border-radius: 13cqw;
+    background: var(--device-glass);
+  }
+
+  /* 126 × 37 points, 11 from the top, on a screen 93.4 % of the frame. */
+  .device-phone-island {
+    position: absolute;
+    top: 2.56cqw;
+    left: 50%;
+    width: 29.3cqw;
+    height: 8.6cqw;
+    translate: -50% 0;
+    border-radius: 999px;
+    background: #000;
+  }
+
+  .device-phone-button {
+    position: absolute;
+    width: 1.1cqw;
+    border-radius: 0.6cqw;
+    background: var(--device-titanium);
+  }
+  .device-phone-button[data-button="action"] {
+    left: -0.7cqw;
+    top: 17%;
+    height: 6%;
+  }
+  .device-phone-button[data-button="volume-up"] {
+    left: -0.7cqw;
+    top: 26%;
+    height: 10%;
+  }
+  .device-phone-button[data-button="volume-down"] {
+    left: -0.7cqw;
+    top: 38%;
+    height: 10%;
+  }
+  .device-phone-button[data-button="side"] {
+    right: -0.7cqw;
+    top: 28%;
+    height: 15%;
+  }
+  .device-phone-button[data-button="camera"] {
+    right: -0.7cqw;
+    top: 58%;
+    height: 8%;
+  }
+
+  .device-laptop-lid {
+    position: relative;
+    width: 86%;
+    margin-inline: auto;
+    padding: 1.5cqw 1.5cqw 2.3cqw;
+    border-radius: 2.4cqw 2.4cqw 0.6cqw 0.6cqw;
+    background: var(--device-glass);
+    box-shadow:
+      0 0 0 0.3cqw var(--device-rim),
+      0 4cqw 8cqw -4cqw rgb(var(--shadow-tone) / 0.35);
+  }
+
+  .device-laptop-camera {
+    position: absolute;
+    top: 0.5cqw;
+    left: 50%;
+    width: 0.55cqw;
+    height: 0.55cqw;
+    translate: -50% 0;
+    border-radius: 50%;
+    background: #202024;
+  }
+
+  /* 1440 × 900: the app on a desktop, as the screenshot is taken. */
+  .device-laptop-screen {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 1440 / 900;
+    border-radius: 0.5cqw;
+  }
+
+  .device-laptop-base {
+    position: relative;
+    height: 2.1cqw;
+    border-radius: 0.3cqw 0.3cqw 2.4cqw 2.4cqw / 0.3cqw 0.3cqw 1.7cqw 1.7cqw;
+    background: var(--device-aluminium);
+    box-shadow: 0 3cqw 5cqw -2.5cqw rgb(var(--shadow-tone) / 0.45);
+  }
+
+  /* The notch the lid is lifted by. */
+  .device-laptop-base::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 14%;
+    height: 0.8cqw;
+    translate: -50% 0;
+    border-radius: 0 0 1cqw 1cqw;
+    background: rgb(0 0 0 / 0.12);
+  }
+}

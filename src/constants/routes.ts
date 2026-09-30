@@ -21,6 +21,12 @@ export const HOME_ROUTE = "/";
  */
 export const PRIVACY_ROUTE = "/privacy";
 
+/**
+ * The landing page (plan §139.11.22): what Brio is, for anyone, signed in or
+ * not, so the proxy does not run for it either.
+ */
+export const ABOUT_ROUTE = "/about";
+
 /** Where an owner deletes their account; the privacy policy links here for the web. */
 export const DELETE_ACCOUNT_ROUTE = "/settings/delete-account";
 

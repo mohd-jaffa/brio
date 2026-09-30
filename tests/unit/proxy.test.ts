@@ -113,6 +113,13 @@ describe("what the proxy runs on", () => {
     expect(pattern.test("/settings/delete-account")).toBe(true);
   });
 
+  it("leaves the landing page alone, for anyone to read (§139.11.22)", () => {
+    const [matcher] = config.matcher;
+    const pattern = new RegExp(`^${matcher}$`);
+
+    expect(pattern.test("/about")).toBe(false);
+  });
+
   it("leaves /.well-known/ alone, so Android reads the App Links statement without a redirect", () => {
     const [matcher] = config.matcher;
     const pattern = new RegExp(`^${matcher}$`);

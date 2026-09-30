@@ -8819,6 +8819,36 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
 - **The privacy policy** says both are kept seven days, and what the error
   log holds.
 
+### 139.11.22 The landing page (the user, 2026-09-30)
+
+- **Asked for:** "under a new route like /about or /hero or whatever
+  production uses, create a landing hero page for the app also, informative,
+  explaining the use cases of the app and if possible with screenshots or
+  demonstrations", and "add with a phone like framed screenshot like with
+  iphone 18 pro".
+- **Where:** `/about`, open to anyone, signed in or not; the proxy does not run
+  for it, as for `/privacy`. The app keeps `/` for Home. The sign-in screen
+  leads to it under its promise ("See what Brio does").
+- **What it says** (`UI_TEXT.landing`), only what the app does — no prices, no
+  counts of users, no quotes:
+  - the brand's line as the headline, what Brio is, and who it is for (home
+    bakers, hamper makers, florists, gift makers);
+  - a day's work in order: taking an order, what is due, the bill, customers,
+    stock and the numbers, each beside the screen that does it;
+  - where it runs (Android app, iPhone and iPad from Safari, a computer), the
+    two looks, and what stays private, with the policy a link away;
+  - the way in: Create your account, or Sign in; Open Brio for someone
+    signed in.
+- **The screenshots** are the app itself: `scripts/landing-shots.mts` makes a
+  demo business through the app's own functions (local Supabase only, no
+  mail), gives it a month of orders, photographs it in the built app and
+  deletes it again, into `src/assets/landing/` (committed). A phone shot is a
+  whole screen of a current Pro phone (402 × 874 points): the status bar and
+  the home indicator are drawn on in the screen's own colours, and the page
+  draws the phone round it (`PhoneFrame`: titanium band, black border,
+  Dynamic Island, buttons). The desktop shot sits in a laptop
+  (`LaptopFrame`).
+
 ---
 
 ## 139.12 Data model and migrations
