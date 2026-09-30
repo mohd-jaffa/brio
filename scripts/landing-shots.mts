@@ -474,6 +474,17 @@ async function photograph(shots: { customerId: string; orderId: string }) {
     await settle(phonePage);
     await phonePage.screenshot({ path: join(WORK, "bill.png") });
 
+    // Expenses, scrolled to where the month's costs split by category.
+    await settle(phonePage, "/expenses");
+    await phonePage.evaluate(() => {
+      const chart = [...document.querySelectorAll("h2, h3")].find(
+        (heading) => heading.textContent === "Expenses by category",
+      );
+      if (chart) window.scrollTo(0, chart.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.42);
+    });
+    await settle(phonePage);
+    await phonePage.screenshot({ path: join(WORK, "expenses.png") });
+
     const desk = await signedIn(browser, 1440, 900, 1.5);
     await settle(desk, "/");
     await desk.screenshot({ path: join(WORK, "desktop-home.png") });
@@ -482,7 +493,7 @@ async function photograph(shots: { customerId: string; orderId: string }) {
   }
 
   await mkdir(OUT, { recursive: true });
-  for (const name of ["home", "analytics", "customer", "inventory", "new-order", "bill"]) {
+  for (const name of ["home", "analytics", "customer", "inventory", "new-order", "bill", "expenses"]) {
     await sharp(await asPhoneScreen(join(WORK, `${name}.png`)))
       .webp({ quality: 80, effort: 6 })
       .toFile(join(OUT, `${name}.webp`));

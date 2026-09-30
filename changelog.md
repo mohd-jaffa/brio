@@ -3974,3 +3974,26 @@ A second `/impeccable optimize` pass, on the built app at 390 px, with a throttl
 
 ### Blockers
 - None.
+
+## 2026-09-30 — The day on a phone as before, Expenses in it, and the page measured
+
+### Changed
+- **On a phone, each step keeps its own screens again** (the user: "for mobile keep it like before with multiple screenshots like before one down the other, for larger screens like ipad or laptop this looks way good"). Below 768 px the day is the earlier layout: each step's words, then its screens rising out of their well, the stock and the numbers side by side. From 768 px the phone is held beside the steps as before. Neither layout fetches the other's pictures.
+- **Expenses in the demo** (the user: "add expenses page also in the demo of the about page"): a sixth step, **Every cost, beside every sale**, with the Expenses screen scrolled to the month's costs by category, and its ring on the chart. Know where you stand now keeps to the stock and analytics. `scripts/landing-shots.mts` photographs `/expenses` too.
+- **The held phone's screens wait for the day** (from the performance check): after the first, they are drawn once the day comes into view, not at page load. On a laptop the page's first images fell from 267 KB to 115 KB, on an iPad from 279 KB to 127 KB.
+
+### Validation
+- Measured on the build, cold, with the page scrolled all the way down and back up:
+
+  | | First paint | Largest paint | Layout shift | Blocking | Scrolling | Blank screens at a turn |
+  |---|---|---|---|---|---|---|
+  | Phone, 4× slower CPU, slow 4G | 1.0 s | 1.6 s | 0 | 45 ms | 60 fps, slowest frame 18 ms | — |
+  | Laptop | 0.04 s | 0.04 s | 0 | 0 ms | 60 fps, slowest frame 18 ms | 0 |
+  | iPad, 4× slower CPU, slow 4G | 0.9 s | 1.3 s | 0 | 9 ms | 60 fps, slowest frame 18 ms | 0 |
+
+  The page's JavaScript is 199 KB and its fonts 114 KB, both the app's own; a phone fetches 67 KB of images to open and 282 KB after scrolling everything.
+- Seen: the phone's stacked steps, and the laptop's held phone through all six steps, Expenses last.
+- Unit tests: `DayOnOnePhone` and the landing page fully covered; lint, the type check and the format check pass; the journeys pass on the build.
+
+### Blockers
+- None.

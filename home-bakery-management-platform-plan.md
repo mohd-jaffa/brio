@@ -8858,11 +8858,13 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
   hero steps back, the closing photograph settles. Still without scroll
   timelines or with reduced motion.
 - **A day on one phone** ("overdrive for about page"; the direction the user
-  chose of three): the day's five steps pass beside one phone that stays put
-  (pinned above them on a phone), and its screen changes as each step comes
-  up, the way the app moves — a push from the side, the bill rising as a
-  sheet — with a ring on what the step is about. It replaces the five
-  alternating rows (`DayOnOnePhone`).
+  chose of three): from 768 px the day's six steps pass beside one phone that
+  stays put, and its screen changes as each step comes up, the way the app
+  moves — a push from the side, the bill rising as a sheet — with a ring on
+  what the step is about (`DayOnOnePhone`). On a phone, as the user asked,
+  each step keeps its own screens under its words instead. The sixth step,
+  "Every cost, beside every sale", shows Expenses ("add expenses page also in
+  the demo").
 
 ### 139.11.23 Releases, and Vercel (the user, 2026-09-30)
 

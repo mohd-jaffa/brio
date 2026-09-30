@@ -1283,10 +1283,18 @@ export const UI_TEXT = {
       },
       numbers: {
         title: "Know where you stand",
-        body: "Stock counts itself as orders are placed and handed over. Analytics shows sales, orders, best sellers and customers for any stretch of time, and expenses sit beside sales, so you see what you really made.",
+        body: "Stock counts itself as orders are placed and handed over. Analytics shows sales, orders, best sellers and customers for any stretch of time.",
         points: [
           "Low stock is flagged before you run out.",
-          "Expenses by category: ingredients, packaging, delivery and more.",
+          "Sales, orders and the average order, day by day or month by month.",
+        ],
+      },
+      expenses: {
+        title: "Every cost, beside every sale",
+        body: "Note what you spend as you spend it: ingredients, packaging, delivery, gas. Brio adds it up by where it went and sets it beside your sales, so you see what you really made.",
+        points: [
+          "Expenses by category, with categories of your own.",
+          "The month’s costs at a glance: the total, the daily average and where they went.",
         ],
       },
     },
@@ -1300,6 +1308,7 @@ export const UI_TEXT = {
         "A customer on a phone: what they still owe, what they have spent and their orders, with Call and WhatsApp.",
       inventory: "Stock on a phone: each product with how much is left, one marked low.",
       analytics: "Analytics on a phone: sales, orders, new customers and the average order for the last 30 days.",
+      expenses: "Expenses on a phone: the month’s total, the daily average and the costs by category.",
     },
     devicesTitle: "In your apron pocket, and on the desk",
     devices: {

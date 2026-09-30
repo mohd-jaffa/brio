@@ -12,14 +12,19 @@ let frames: FrameRequestCallback[] = [];
 beforeEach(() => {
   wide = true;
   frames = [];
+  // The component keeps the query it asked for, and reads it as the screen changes.
   vi.stubGlobal(
     "matchMedia",
-    vi.fn(() => ({ matches: wide })),
+    vi.fn(() => ({
+      get matches() {
+        return wide;
+      },
+    })),
   );
   vi.spyOn(window, "requestAnimationFrame").mockImplementation((frame) => frames.push(frame));
   vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => undefined);
   // Every marker starts below the screen, as it does when the page opens.
-  vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({ top: 10_000, bottom: 400 } as DOMRect);
+  vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({ top: 10_000 } as DOMRect);
 });
 
 afterEach(() => {
@@ -27,18 +32,22 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-/** The page scrolled so each marker's top is where given; then the frame the scroll asked for runs. */
-function scrollTo(tops: number[], stageBottom = 400) {
+const runFrames = () => act(() => frames.splice(0).forEach((frame) => frame(0)));
+
+/** The page scrolled so each marker's top is where given, the day with them; then the frame the scroll asked for runs. */
+function scrollTo(tops: number[]) {
+  document.querySelector<HTMLElement>(".day")!.getBoundingClientRect = () => ({ top: tops[0] - 200 }) as DOMRect;
   document.querySelectorAll<HTMLElement>("[data-stop]").forEach((marker, at) => {
     marker.getBoundingClientRect = () => ({ top: tops[at] }) as DOMRect;
   });
-  document.querySelector<HTMLElement>(".day-stage")!.getBoundingClientRect = () => ({ bottom: stageBottom }) as DOMRect;
   fireEvent.scroll(window);
-  act(() => frames.splice(0).forEach((frame) => frame(0)));
+  runFrames();
 }
 
 const screens = () => [...document.querySelectorAll<HTMLElement>(".day-screen")].map((each) => each.dataset.state);
 const steps = () => screen.getAllByRole("listitem").filter((item) => item.classList.contains("day-step"));
+const shelfOf = (title: string) =>
+  screen.getByRole("listitem", { name: title }).querySelector<HTMLElement>(".day-shelf")!;
 
 describe("stopAt", () => {
   it("is the last stop whose marker has crossed the line, and the first before any has", () => {
@@ -60,7 +69,7 @@ describe("screenState", () => {
 });
 
 describe("DayOnOnePhone", () => {
-  it("lays out the day's five steps, with every point, beside a phone on its first screen", () => {
+  it("lays out the day's six steps, with every point, and each step's own screens below it", () => {
     render(<DayOnOnePhone />);
     expect(steps().map((step) => step.getAttribute("aria-labelledby"))).toEqual([
       "landing-order",
@@ -68,20 +77,49 @@ describe("DayOnOnePhone", () => {
       "landing-bill",
       "landing-customers",
       "landing-numbers",
+      "landing-expenses",
     ]);
     for (const [at, feature] of Object.values(text.features).entries()) {
       const step = screen.getByRole("listitem", { name: feature.title });
       expect(step).toHaveAttribute("data-state", at === 0 ? "current" : "next");
       for (const point of feature.points) expect(within(step).getByText(point)).toBeInTheDocument();
     }
-    expect(screens()).toEqual(["current", "after", "after", "after", "after", "after"]);
-    expect(screen.getByRole("img", { name: text.shots.order })).toBeInTheDocument();
-    expect(screen.queryByRole("img", { name: text.shots.home })).not.toBeInTheDocument();
-    expect(screen.getByRole("img", { name: text.shots.home, hidden: true })).toBeInTheDocument();
+    expect(within(shelfOf(text.features.bill.title)).getByRole("img", { name: text.shots.bill })).toBeInTheDocument();
+    // Knowing where you stand shows the stock and the numbers side by side.
+    const numbers = within(shelfOf(text.features.numbers.title)).getAllByRole("img");
+    expect(numbers.map((image) => image.getAttribute("alt"))).toEqual([text.shots.inventory, text.shots.analytics]);
+    expect(numbers[0]).toHaveAttribute("loading", "lazy");
+  });
+
+  it("holds the phone beside the steps on a wide screen, every screen on hand by the time the day is near", () => {
+    render(<DayOnOnePhone />);
+    // Far down the page, only the first screen is drawn, and fetched when near.
+    expect(screens()).toEqual(["current"]);
+    scrollTo([700, 1200, 1700, 2200, 2700, 3200, 3700]);
+    expect(screens()).toEqual(["current", "after", "after", "after", "after", "after", "after"]);
+    const stage = document.querySelector<HTMLElement>(".day-stage")!;
+    expect(within(stage).getByRole("img", { name: text.shots.order })).toHaveAttribute("loading", "lazy");
+    expect(within(stage).queryByRole("img", { name: text.shots.home })).not.toBeInTheDocument();
+    expect(within(stage).getByRole("img", { name: text.shots.home, hidden: true })).toHaveAttribute("loading", "eager");
+  });
+
+  it("draws only the first of the held phone's screens on a narrow screen, and none turns", () => {
+    wide = false;
+    render(<DayOnOnePhone />);
+    expect(screens()).toEqual(["current"]);
+    scrollTo([-600, -500, -400, -300, -200, -100, 0]);
+    expect(screens()).toEqual(["current"]);
+    expect(steps()[0]).toHaveAttribute("data-state", "current");
+
+    // Turned on its side, or a window made wider: the rest come.
+    wide = true;
+    scrollTo([-600, -500, -400, -300, -200, -100, 0]);
+    expect(screens()).toHaveLength(DAY_STOPS.length);
   });
 
   it("marks what each screen is about, the bill's buttons with a pill", () => {
     const { container } = render(<DayOnOnePhone />);
+    scrollTo([700, 1200, 1700, 2200, 2700, 3200, 3700]);
     const spots = [...container.querySelectorAll<HTMLElement>(".day-spot")];
     expect(spots).toHaveLength(DAY_STOPS.length);
     expect(spots.map((spot) => spot.hasAttribute("data-pill"))).toEqual(
@@ -92,30 +130,28 @@ describe("DayOnOnePhone", () => {
 
   it("turns the phone to each step as it crosses the middle of the screen, and back as the page scrolls up", () => {
     render(<DayOnOnePhone />);
-    scrollTo([-500, 100, 300, 900, 1200, 1500]);
-    expect(screens()).toEqual(["before", "under", "current", "after", "after", "after"]);
-    expect(steps().map((step) => step.dataset.state)).toEqual(["done", "done", "current", "next", "next"]);
-    expect(screen.getByRole("img", { name: text.shots.bill })).toBeInTheDocument();
-    const dots = [...document.querySelectorAll(".day-dot")].map((dot) => dot.hasAttribute("data-current"));
-    expect(dots).toEqual([false, false, true, false, false]);
+    scrollTo([-500, 100, 300, 900, 1200, 1500, 1800]);
+    expect(screens()).toEqual(["before", "under", "current", "after", "after", "after", "after"]);
+    expect(steps().map((step) => step.dataset.state)).toEqual(["done", "done", "current", "next", "next", "next"]);
+    const stage = document.querySelector<HTMLElement>(".day-stage")!;
+    expect(within(stage).getByRole("img", { name: text.shots.bill })).toBeInTheDocument();
 
-    scrollTo([-2000, -1500, -1000, -600, -200, 100]);
-    expect(screens()).toEqual(["before", "before", "before", "before", "before", "current"]);
+    // The numbers' two screens: the stock as the step comes, analytics as its lines are read.
+    scrollTo([-2000, -1500, -1000, -600, 100, 500, 900]);
+    expect(screens()).toEqual(["before", "before", "before", "before", "current", "after", "after"]);
+    scrollTo([-2000, -1500, -1000, -600, -200, 100, 900]);
+    expect(screens().at(5)).toBe("current");
+    expect(steps().at(4)).toHaveAttribute("data-state", "current");
+
+    scrollTo([-2400, -2000, -1500, -1000, -600, -300, 100]);
+    expect(screens()).toEqual(["before", "before", "before", "before", "before", "before", "current"]);
     expect(steps().at(-1)).toHaveAttribute("data-state", "current");
+    expect(
+      within(document.querySelector<HTMLElement>(".day-stage")!).getByRole("img", { name: text.shots.expenses }),
+    ).toBeInTheDocument();
 
-    scrollTo([200, 900, 1200, 1500, 1800, 2100]);
-    expect(screens()).toEqual(["current", "after", "after", "after", "after", "after"]);
-  });
-
-  it("on a phone, measures from the middle of the part under the pinned phone", () => {
-    wide = false;
-    render(<DayOnOnePhone />);
-    // The screen is 768 high and the pinned phone ends at 400: the line is at 584.
-    scrollTo([0, 500, 560, 700, 800, 900]);
-    expect(screens()[2]).toBe("current");
-    wide = true;
-    scrollTo([0, 500, 560, 700, 800, 900]);
-    expect(screens()[0]).toBe("current");
+    scrollTo([200, 900, 1200, 1500, 1800, 2100, 2400]);
+    expect(screens()).toEqual(["current", "after", "after", "after", "after", "after", "after"]);
   });
 
   it("measures once a frame however much the page scrolls, and on a resize", () => {
@@ -123,7 +159,7 @@ describe("DayOnOnePhone", () => {
     fireEvent.scroll(window);
     fireEvent.scroll(window);
     expect(window.requestAnimationFrame).toHaveBeenCalledTimes(1);
-    act(() => frames.splice(0).forEach((frame) => frame(0)));
+    runFrames();
     fireEvent(window, new Event("resize"));
     expect(window.requestAnimationFrame).toHaveBeenCalledTimes(2);
   });

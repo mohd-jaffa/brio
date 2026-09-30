@@ -11,5 +11,6 @@ export const SHOT_ALT: Record<LandingShot, string> = {
   customer: text.shots.customer,
   inventory: text.shots.inventory,
   analytics: text.shots.analytics,
+  expenses: text.shots.expenses,
   "desktop-home": text.shots.desktop,
 };

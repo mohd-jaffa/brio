@@ -4,6 +4,7 @@ import analytics from "./analytics.webp";
 import bill from "./bill.webp";
 import customer from "./customer.webp";
 import desktopHome from "./desktop-home.webp";
+import expenses from "./expenses.webp";
 import home from "./home.webp";
 import inventory from "./inventory.webp";
 import newOrder from "./new-order.webp";
@@ -22,6 +23,7 @@ export const LANDING_SHOTS = {
   customer,
   inventory,
   analytics,
+  expenses,
   "desktop-home": desktopHome,
 } as const satisfies Record<string, StaticImageData>;
 
