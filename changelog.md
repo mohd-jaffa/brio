@@ -3915,3 +3915,21 @@ A second `/impeccable optimize` pass, on the built app at 390 px, with a throttl
 
 ### Blockers
 - None.
+
+## 2026-09-30 — The landing page moves as it scrolls, both ways
+
+### Changed
+- **Motion tied to the scroll** (the user: "give animation while scrolling down and up also"; plan §139.11.22), in CSS scroll timelines, so scrolling back up plays it backwards:
+  - titles rise out of their own line as they come into view, as the headline does as the page arrives;
+  - each day's phones rise out of their sunken well as it opens, and drift on as they leave;
+  - each point's check is drawn as it comes in, as a job is ticked off in an order book (the privacy points too);
+  - the pictures of who it is for are set down one after another; the three devices slide in;
+  - the hero's laptop and phone step back as the page moves on; the closing photograph settles into its band.
+- Transforms, opacity and a check's stroke only, run by the browser beside the scroll. A browser without scroll timelines, and a visitor who asks for reduced motion, see the page still, every word in place.
+
+### Validation
+- Frames at set scroll positions, down and back up, at 1440 × 900 and 390 × 844: each stage reads, and the frame on the way back up matches the one on the way down.
+- Unit tests, lint, the type check and the format check pass; the landing journey passes on the build.
+
+### Blockers
+- None.

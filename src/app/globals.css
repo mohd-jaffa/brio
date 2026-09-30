@@ -1667,3 +1667,157 @@ html[data-launch="leaving"] .launch-splash {
     opacity: 0;
   }
 }
+
+/* ============================================================
+   The landing page as it scrolls (the user, 2026-09-30: "give
+   animation while scrolling down and up also"). Tied to the
+   scroll itself, so scrolling back up plays it backwards. Titles
+   rise out of their own line as they come into view, as the
+   headline does; each day's phones rise out of their well as it
+   opens, and drift on as they leave; each point is ticked as it
+   comes in, as a job is ticked off in an order book; the
+   pictures of who it is for are set down one after another; the
+   hero's devices step back as the page moves on; the closing
+   photograph settles into its band. Transforms, opacity and a
+   check's stroke only. A browser without scroll timelines, or a
+   visitor who asks for reduced motion, sees the page still.
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .landing-rise-title {
+      view-timeline-name: --title;
+    }
+    .landing-rise-title > span {
+      animation: landing-line linear both;
+      animation-timeline: --title;
+      animation-range: entry 20% cover 30%;
+    }
+
+    .landing-words {
+      animation: landing-settle linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 30%;
+    }
+
+    .landing-shelf {
+      view-timeline-name: --shelf;
+    }
+    .landing-well {
+      animation: landing-well linear both;
+      animation-timeline: --shelf;
+      animation-range: entry 0% cover 40%;
+    }
+    .landing-shelf-phone {
+      animation:
+        landing-shelf-rise linear both,
+        landing-shelf-drift linear forwards;
+      animation-timeline: --shelf, --shelf;
+      animation-range:
+        entry calc(5% + var(--i, 0) * 15%) cover calc(42% + var(--i, 0) * 6%),
+        exit 0% exit 100%;
+    }
+
+    .landing-point {
+      view-timeline-name: --point;
+    }
+    .landing-tick path {
+      stroke-dasharray: 24;
+      animation: landing-tick linear both;
+      animation-timeline: --point;
+      animation-range: entry 60% cover 30%;
+    }
+
+    .landing-who {
+      view-timeline-name: --who;
+    }
+    .landing-sticker {
+      animation: landing-sticker linear both;
+      animation-timeline: --who;
+      animation-range: entry calc(10% + var(--i, 0) * 12%) cover calc(28% + var(--i, 0) * 5%);
+    }
+
+    .landing-devices {
+      view-timeline-name: --devices;
+    }
+    .landing-device {
+      animation: landing-device linear both;
+      animation-timeline: --devices;
+      animation-range: entry calc(20% + var(--i, 0) * 15%) cover calc(35% + var(--i, 0) * 6%);
+    }
+
+    .landing-hero {
+      view-timeline-name: --hero;
+    }
+    .landing-stage {
+      animation: landing-stage linear both;
+      animation-timeline: --hero;
+      animation-range: exit 0% exit 100%;
+    }
+
+    .landing-band {
+      view-timeline-name: --band;
+    }
+    .landing-plate {
+      transform-origin: 100% 50%;
+      animation: landing-plate linear both;
+      animation-timeline: --band;
+      animation-range: entry 0% cover 50%;
+    }
+  }
+}
+
+@keyframes landing-well {
+  from {
+    opacity: 0.3;
+    transform: scaleY(0.55);
+  }
+}
+
+@keyframes landing-shelf-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18%);
+  }
+}
+
+@keyframes landing-shelf-drift {
+  to {
+    transform: translateY(-6%);
+  }
+}
+
+@keyframes landing-tick {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes landing-sticker {
+  from {
+    opacity: 0;
+    transform: scale(0.7) rotate(-10deg);
+  }
+}
+
+@keyframes landing-device {
+  from {
+    opacity: 0;
+    transform: translateX(-1rem);
+  }
+}
+
+@keyframes landing-stage {
+  to {
+    opacity: 0.35;
+    transform: translateY(-6%) scale(0.95);
+  }
+}
+
+@keyframes landing-plate {
+  from {
+    transform: scale(1.14);
+  }
+}

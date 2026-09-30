@@ -8852,6 +8852,12 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
   arrives, the order book opening — the headline rises line by line, the
   laptop's lid swings up and its screen wakes, the phone steps up in front,
   the words settle in. Inside 1.5 s, CSS only; with reduced motion it fades.
+  And as it scrolls ("give animation while scrolling down and up also"),
+  tied to the scroll so scrolling up plays it back: titles rise out of their
+  line, each day's phones rise out of their well and drift on, each point's
+  check is drawn, the pictures are set down in turn, the hero steps back, the
+  closing photograph settles. Still without scroll timelines or with
+  reduced motion.
 
 ---
 

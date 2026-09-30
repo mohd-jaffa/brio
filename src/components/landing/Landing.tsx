@@ -1,6 +1,7 @@
 import { Check, Monitor, ShieldCheck, Smartphone, TabletSmartphone, type LucideIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 
 import { BRAND, brandWidth } from "@/assets/brand";
 import { LANDING_SHOTS, type LandingShot } from "@/assets/landing";
@@ -69,10 +70,41 @@ function Start({ signedIn, size }: { signedIn: boolean; size: "sm" | "lg" }) {
   );
 }
 
+/** Where an item stands in its row, for the scroll to set each down in turn. */
+const nth = (at: number) => ({ "--i": at }) as CSSProperties;
+
+/**
+ * A title that rises out of its own line as it scrolls into view, as the
+ * headline does as the page arrives; the window keeps room for descenders.
+ */
+function RisingTitle({
+  as: Tag,
+  id,
+  className,
+  children,
+}: {
+  as: "h2" | "h3";
+  id: string;
+  className: string;
+  children: string;
+}) {
+  return (
+    <Tag id={id} className={cn(className, "landing-rise-title -mb-[0.14em] overflow-hidden pb-[0.14em]")}>
+      <span className="block">{children}</span>
+    </Tag>
+  );
+}
+
+/** One point, its check drawn as it scrolls into view, as a job is ticked off. */
 function Point({ children }: { children: string }) {
   return (
-    <li className="flex gap-3 text-[0.9375rem] leading-relaxed text-text">
-      <Check size={18} strokeWidth={2.25} aria-hidden="true" className="mt-[0.2rem] shrink-0 text-primary" />
+    <li className="landing-point flex gap-3 text-[0.9375rem] leading-relaxed text-text">
+      <Check
+        size={18}
+        strokeWidth={2.25}
+        aria-hidden="true"
+        className="landing-tick mt-[0.2rem] shrink-0 text-primary"
+      />
       <span>{children}</span>
     </li>
   );
@@ -84,13 +116,14 @@ function Feature({ feature, flip }: { feature: (typeof FEATURES)[number]; flip: 
   return (
     <article aria-labelledby={`landing-${feature.id}`} className="grid items-center gap-10 md:grid-cols-2 md:gap-16">
       <div className={cn("max-w-md", flip && "md:order-2 md:justify-self-end")}>
-        <h3
+        <RisingTitle
+          as="h3"
           id={`landing-${feature.id}`}
           className="font-display text-[1.75rem] font-medium leading-[1.15] tracking-[-0.025em] text-text text-balance sm:text-[2rem]"
         >
           {words.title}
-        </h3>
-        <p className="mt-4 text-base leading-relaxed text-text-muted text-pretty">{words.body}</p>
+        </RisingTitle>
+        <p className="landing-words mt-4 text-base leading-relaxed text-text-muted text-pretty">{words.body}</p>
         <ul className="mt-6 space-y-3">
           {words.points.map((point) => (
             <Point key={point}>{point}</Point>
@@ -98,15 +131,29 @@ function Feature({ feature, flip }: { feature: (typeof FEATURES)[number]; flip: 
         </ul>
       </div>
       {/* The phones rise out of a well of the page's own sunken ground. */}
-      <div className={cn("relative isolate flex items-start justify-center gap-4 py-6 sm:gap-6", flip && "md:order-1")}>
-        <span aria-hidden="true" className="absolute inset-x-0 inset-y-[16%] -z-10 rounded-[2rem] bg-sunken" />
+      <div
+        className={cn(
+          "landing-shelf relative isolate flex items-start justify-center gap-4 py-6 sm:gap-6",
+          flip && "md:order-1",
+        )}
+      >
+        <span
+          aria-hidden="true"
+          className="landing-well absolute inset-x-0 inset-y-[16%] -z-10 rounded-[2rem] bg-sunken"
+        />
         {feature.shots.map((shot, at) => (
           <PhoneFrame
             key={shot}
             src={LANDING_SHOTS[shot]}
             alt={ALT[shot]}
             sizes={pair ? "(min-width: 768px) 240px, 44vw" : "(min-width: 768px) 290px, 68vw"}
-            className={cn(pair ? "max-w-[240px]" : "max-w-[290px]", pair ? "w-[46%]" : "w-[68%]", at === 1 && "mt-12")}
+            className={cn(
+              "landing-shelf-phone",
+              pair ? "max-w-[240px]" : "max-w-[290px]",
+              pair ? "w-[46%]" : "w-[68%]",
+              at === 1 && "mt-12",
+            )}
+            style={nth(at)}
           />
         ))}
       </div>
@@ -183,7 +230,7 @@ export function Landing({ signedIn, year }: { signedIn: boolean; year: number })
           </div>
 
           {/* The laptop, with the phone stood in front of its left corner. */}
-          <div className="relative pb-[4%] pl-[19%] sm:pl-[13%]">
+          <div className="landing-stage relative pb-[4%] pl-[19%] sm:pl-[13%]">
             <LaptopFrame
               className="landing-laptop"
               src={LANDING_SHOTS["desktop-home"]}
@@ -202,12 +249,12 @@ export function Landing({ signedIn, year }: { signedIn: boolean; year: number })
         </section>
 
         <section aria-labelledby="landing-who" className={cn(FRAME, "pt-24 sm:pt-32")}>
-          <h2 id="landing-who" className={SECTION_TITLE}>
+          <RisingTitle as="h2" id="landing-who" className={SECTION_TITLE}>
             {text.whoTitle}
-          </h2>
-          <ul className="mt-10 grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-4">
-            {WHO.map(({ id, picture }) => (
-              <li key={id} className="flex flex-col items-start gap-3">
+          </RisingTitle>
+          <ul className="landing-who mt-10 grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-4">
+            {WHO.map(({ id, picture }, at) => (
+              <li key={id} className="landing-sticker flex flex-col items-start gap-3" style={nth(at)}>
                 <span className="grid size-24 place-items-center rounded-full bg-sunken">
                   <Illustration name={picture} fallback="default-product" size={72} />
                 </span>
@@ -220,10 +267,10 @@ export function Landing({ signedIn, year }: { signedIn: boolean; year: number })
 
         <section aria-labelledby="landing-day" className={cn(FRAME, "pt-24 sm:pt-32")}>
           <div className="max-w-2xl">
-            <h2 id="landing-day" className={SECTION_TITLE}>
+            <RisingTitle as="h2" id="landing-day" className={SECTION_TITLE}>
               {text.dayTitle}
-            </h2>
-            <p className="mt-4 text-lg leading-relaxed text-text-muted">{text.dayLead}</p>
+            </RisingTitle>
+            <p className="landing-words mt-4 text-lg leading-relaxed text-text-muted">{text.dayLead}</p>
           </div>
           <div className="mt-14 space-y-20 md:space-y-28">
             {FEATURES.map((feature, at) => (
@@ -233,12 +280,12 @@ export function Landing({ signedIn, year }: { signedIn: boolean; year: number })
         </section>
 
         <section aria-labelledby="landing-devices" className={cn(FRAME, "pt-24 sm:pt-32")}>
-          <h2 id="landing-devices" className={SECTION_TITLE}>
+          <RisingTitle as="h2" id="landing-devices" className={SECTION_TITLE}>
             {text.devicesTitle}
-          </h2>
-          <ul className="mt-10 grid gap-8 sm:grid-cols-3">
-            {DEVICES.map(({ id, icon }) => (
-              <li key={id} className="flex gap-4">
+          </RisingTitle>
+          <ul className="landing-devices mt-10 grid gap-8 sm:grid-cols-3">
+            {DEVICES.map(({ id, icon }, at) => (
+              <li key={id} className="landing-device flex gap-4" style={nth(at)}>
                 <Medallion icon={icon} />
                 <div>
                   <h3 className="text-base font-semibold text-text">{text.devices[id].title}</h3>
@@ -254,9 +301,9 @@ export function Landing({ signedIn, year }: { signedIn: boolean; year: number })
           <div className={cn(FRAME, "grid gap-10 py-16 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-16 lg:py-20")}>
             <div>
               <Medallion icon={ShieldCheck} size="lg" />
-              <h2 id="landing-trust" className={cn(SECTION_TITLE, "mt-5")}>
+              <RisingTitle as="h2" id="landing-trust" className={cn(SECTION_TITLE, "mt-5")}>
                 {text.trustTitle}
-              </h2>
+              </RisingTitle>
               <Link
                 href={PRIVACY_ROUTE}
                 className="touch-target mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-primary underline decoration-primary/40 underline-offset-4 transition-colors hover:decoration-primary"
@@ -274,8 +321,11 @@ export function Landing({ signedIn, year }: { signedIn: boolean; year: number })
 
         <section aria-labelledby="landing-closing" className={cn(FRAME, "pt-24 sm:pt-32")}>
           {/* The app's picture band: words on the well, a plate fading in on the right. */}
-          <div className="relative isolate overflow-hidden rounded-[1.5rem] bg-sunken">
-            <div aria-hidden="true" className="absolute inset-y-0 right-0 -z-10 hidden w-3/5 max-w-2xl sm:block">
+          <div className="landing-band relative isolate overflow-hidden rounded-[1.5rem] bg-sunken">
+            <div
+              aria-hidden="true"
+              className="landing-plate absolute inset-y-0 right-0 -z-10 hidden w-3/5 max-w-2xl sm:block"
+            >
               <Image
                 src={PLATES["cake-table"]}
                 alt=""
@@ -287,9 +337,9 @@ export function Landing({ signedIn, year }: { signedIn: boolean; year: number })
               />
             </div>
             <div className="max-w-lg p-7 sm:p-12">
-              <h2 id="landing-closing" className={SECTION_TITLE}>
+              <RisingTitle as="h2" id="landing-closing" className={SECTION_TITLE}>
                 {text.closingTitle}
-              </h2>
+              </RisingTitle>
               <p className="mt-4 text-base leading-relaxed text-text-muted text-pretty">{text.closingBody}</p>
               <div className="mt-7">
                 <Start signedIn={signedIn} size="lg" />

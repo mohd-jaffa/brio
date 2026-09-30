@@ -1,4 +1,5 @@
 import Image, { type StaticImageData } from "next/image";
+import type { CSSProperties } from "react";
 
 import { cn } from "@/components/ui/cn";
 
@@ -10,6 +11,7 @@ interface Shot {
   /** The first thing the page shows: fetched first, never lazily. */
   lead?: boolean;
   className?: string;
+  style?: CSSProperties;
 }
 
 const PHONE_BUTTONS = ["action", "volume-up", "volume-down", "side", "camera"] as const;
@@ -22,9 +24,9 @@ const PHONE_BUTTONS = ["action", "volume-up", "volume-down", "side", "camera"] a
  * in the screenshot itself (scripts/landing-shots.mts). The frame is the
  * picture's, so only the picture is named.
  */
-export function PhoneFrame({ src, alt, sizes, lead = false, className }: Shot) {
+export function PhoneFrame({ src, alt, sizes, lead = false, className, style }: Shot) {
   return (
-    <div className={cn("device-phone", className)}>
+    <div className={cn("device-phone", className)} style={style}>
       <div className="device-phone-body">
         {PHONE_BUTTONS.map((button) => (
           <span key={button} aria-hidden="true" data-button={button} className="device-phone-button" />
