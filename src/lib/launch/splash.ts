@@ -74,3 +74,24 @@ if(d.fonts&&d.fonts.ready)d.fonts.ready.then(function(){reach("fonts");},functio
 w.requestAnimationFrame(frame);
 }catch(e){r.removeAttribute("data-launch");}})(${config});`;
 }
+
+/**
+ * Runs `then` once the launch splash has gone — at once when there is none —
+ * and hands back what stops waiting. Something that must stand in the top
+ * layer, over the splash's `z-index`, waits for it (the welcome, plan
+ * §139.11.20), so a launch still shows its splash first.
+ */
+export function afterLaunch(then: () => void): () => void {
+  const root = document.documentElement;
+  if (!root.hasAttribute("data-launch")) {
+    then();
+    return () => undefined;
+  }
+  const watch = new MutationObserver(() => {
+    if (root.hasAttribute("data-launch")) return;
+    watch.disconnect();
+    then();
+  });
+  watch.observe(root, { attributes: true, attributeFilter: ["data-launch"] });
+  return () => watch.disconnect();
+}

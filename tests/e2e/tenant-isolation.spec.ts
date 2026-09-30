@@ -5,7 +5,7 @@ import { expect, test } from "@playwright/test";
 import { createOrder } from "@/features/orders/checkout";
 import type { Order } from "@/features/orders/types";
 import { apiRoutes } from "@/lib/query/keys";
-import { signInAs } from "@tests/support/e2e";
+import { signInAs, skipWelcome } from "@tests/support/e2e";
 import {
   aCustomer,
   anOrder,
@@ -45,6 +45,7 @@ test.afterAll(async () => {
 
 test("an owner sees nothing of another business", async ({ page }) => {
   await signInAs(page, b);
+  await skipWelcome(page);
 
   await test.step("not in their own lists", async () => {
     await page.goto("/orders");

@@ -44,6 +44,7 @@ const profile = (role: AuthProfile["role"]): AuthProfile => ({
   phoneChangedAt: null,
   emailChangedAt: null,
   pendingEmail: null,
+  welcomedAt: null,
 });
 
 function requestWith(headers: Record<string, string>) {

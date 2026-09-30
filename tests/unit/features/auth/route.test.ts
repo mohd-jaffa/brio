@@ -35,6 +35,7 @@ const session: AuthenticatedSession = {
     phoneChangedAt: null,
     emailChangedAt: null,
     pendingEmail: null,
+    welcomedAt: null,
   },
   requiresPasswordChange: false,
 };

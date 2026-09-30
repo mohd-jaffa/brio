@@ -22,6 +22,7 @@ export const TEST_PROFILE: AuthProfile = {
   phoneChangedAt: null,
   emailChangedAt: null,
   pendingEmail: null,
+  welcomedAt: "2026-01-01T00:00:00.000Z",
 };
 
 export const TEST_SESSION: AuthSessionView = {

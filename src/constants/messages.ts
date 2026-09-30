@@ -1303,6 +1303,38 @@ export const UI_TEXT = {
   },
 
   /**
+   * The welcome (plan §139.11.20; the user, 2026-09-30): four slides, once,
+   * for a new account's owner, whichever way they first come in.
+   */
+  welcome: {
+    label: "Welcome to Brio",
+    skip: "Skip",
+    back: "Back",
+    next: "Next",
+    start: "Get started",
+    slides: "Slides",
+    slideOf: (slide: number, total: number) => `${slide} of ${total}`,
+    yourBusiness: "your business",
+    hello: {
+      title: (firstName: string) => (firstName ? `Welcome, ${firstName}` : "Welcome to Brio"),
+      body: (business: string) =>
+        `Orders, customers, stock and money for ${business}, kept in one place so nothing slips on a busy day.`,
+    },
+    orders: {
+      title: "Every order, by when it’s due",
+      body: "Key in an order from a WhatsApp message or a call in a few taps. Home puts what’s late, due today and due tomorrow first.",
+    },
+    bills: {
+      title: "A proper bill in seconds",
+      body: "Every bill carries your business’s name. Share it to WhatsApp as a picture or a PDF, and see who has paid and who still owes.",
+    },
+    numbers: {
+      title: "Know where you stand",
+      body: "Stock is set aside as each order is placed, so nothing is promised twice. Costs sit beside sales, so you see what you really made.",
+    },
+  },
+
+  /**
    * Installing the app (plan §139.19 R7.3; the user, 2026-09-27): a place
    * among the other menus, and short steps for this device. Hidden once
    * the app is running installed.

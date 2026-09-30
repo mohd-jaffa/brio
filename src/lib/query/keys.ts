@@ -17,6 +17,7 @@ export const apiRoutes = {
     resendConfirmation: "/api/auth/resend-confirmation",
     name: "/api/auth/name",
     avatar: "/api/auth/avatar",
+    welcome: "/api/auth/welcome",
     phone: "/api/auth/phone",
     email: "/api/auth/email",
     emailResend: "/api/auth/email/resend",

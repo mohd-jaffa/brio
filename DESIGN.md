@@ -381,6 +381,12 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 - **In the middle:** the wordmark (48 vmin, 170 – 380 px), the line "Made by you. Managed simply." in the sans, green `#0e2d1b`, 0.04em; and a pill bar (28 vmin, 112 – 220 px wide), deep green `#03351d` on warm sand `#efdec6`, filling from the left as the launch goes.
 - **It leaves** once full, fading over 300 ms, at least 0.9 s after it came; under reduced motion it just goes. These colours are the splash's own, whatever the theme.
 
+### Welcome
+- **Once, for a new account** (the user, 2026-09-30): four slides over the screen the owner first comes in to, drawn with the page, so that screen never shows first. Paper (`surface`) to every edge.
+- **A slide:** a drawing from the supplied sheet, cut out along its paper so it sits on either theme; a title in the heading serif (30 px on a phone, 36 from 768 px, 40 from 1024, 26 on a short screen); a line in muted Inter at 16 px. Upright, the drawing sits above the words, resting on them; on a screen turned on its side, a tablet's or a computer's, it stands to the left and the words are set left.
+- **Controls:** the wordmark (26 px) and a small ghost **Skip** pill at the top; dots under the words, the current one a 24 px caramel pill; then **Next** as the screen's one espresso pill, full width, which reads **Get started** on the last slide. From the second slide a ghost **Back** pill with an arrow makes room for itself beside it.
+- **Motion:** only a change moves. A turn sends the slide out one way as the next comes in from the other, the drawing tilting a little (3°) and the words a beat behind; a finger carries the slide, held back past either end. Ending, the whole lifts away (fades, growing to 103 %) over 420 ms and the screen is there. Under reduced motion the slides and the leaving fade.
+
 ### Installing the app
 - **Install app** stands with the other menus: a row of its own in More, above Sign out, with a download medallion and "Add Brio to your home screen"; the sidebar's last place on a tablet and a desktop. It is not there inside the installed app.
 - **The sheet:** the app's icon at 56 px beside a line on what installing gives, then **Install** where the browser offers it (full width, primary), then three numbered steps. Each is a Flour Well card with a caramel number disc on the left and, on the right, the mark the device shows for that step (Safari's Share, Chrome's three dots, an add-to-home square). The heading names the device ("On iPhone or iPad"). A muted line ends it.

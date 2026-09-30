@@ -8750,6 +8750,34 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
 - **On Android** the system's own splash (the icon on cream) shows first; the
   Android work (Phase 8) hides it as this one appears.
 
+### 139.11.20 The welcome (the user, 2026-09-30)
+
+- **Asked for:** "create an onboarding splash screens with small introduction
+  slides for newly registered user on first login … make it look good for all
+  device sizes", from two supplied sheets of drawings. This is the new
+  account's onboarding §139.11.19 left waiting for the user's content.
+- **When:** a new account's owner, once, the first time they come in — by
+  signing in, or through the email's link — on whichever device, until they
+  finish or skip it. Never a developer, never while a temporary password is
+  owed, never an account made before it (all taken as welcomed).
+- **What:** four slides over the screen they came in to, each a drawing, a
+  title and a line: **Welcome, {first name}** — orders, customers, stock and
+  money for the business, in one place; **Every order, by when it's due**;
+  **A proper bill in seconds**; **Know where you stand** (stock set aside as
+  orders are placed, costs beside sales). **Skip** at the top, **Next** and
+  **Back**, **Get started** on the last; the arrow keys and a swipe turn it,
+  and Escape ends it.
+- **Kept:** `profiles.welcomed_at` (`0035_welcome`), set by the server when it
+  ends (`POST /api/auth/welcome`, `markWelcomed`). Not audited: it changes
+  nothing of the business or the account's security. The privacy policy
+  names it.
+- **The drawings** are cut from the larger sheet by `scripts/onboarding.mjs`
+  into `src/assets/onboarding/` (committed); the sheets stay in
+  `design-references/onboarding/` (not committed). Four of its scenes: the
+  maker piping a cake, the desk calendar, the bouquet, the maker at her laptop.
+  The phone with a shopping cart (Brio takes no orders online) and the box
+  printed "Brio" (the business's name leads, not ours) are left out.
+
 ---
 
 ## 139.12 Data model and migrations

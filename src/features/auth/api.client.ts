@@ -56,6 +56,9 @@ export const AuthClient = {
   changeAvatar: (payload: ChangeAvatarInput) =>
     fetcher<AuthProfile>(apiRoutes.auth.avatar, { method: "PATCH", body: JSON.stringify(payload) }),
 
+  /** The welcome finished or skipped, so it is not shown again (plan §139.11.20). */
+  markWelcomed: () => postJson<AuthProfile>(apiRoutes.auth.welcome),
+
   changePhone: (payload: ChangePhoneInput) =>
     fetcher<AuthProfile>(apiRoutes.auth.phone, { method: "PATCH", body: JSON.stringify(payload) }),
 

@@ -133,6 +133,12 @@ describe("AuthClient", () => {
     );
   });
 
+  it("records the welcome finished with POST", async () => {
+    answers({ welcomedAt: "2026-09-30T04:00:00.000Z" });
+    await expect(AuthClient.markWelcomed()).resolves.toEqual({ welcomedAt: "2026-09-30T04:00:00.000Z" });
+    expect(mockFetch).toHaveBeenLastCalledWith(apiRoutes.auth.welcome, expect.objectContaining({ method: "POST" }));
+  });
+
   it("sends a new email's link again, and confirms it with the token from the link", async () => {
     answers({ queued: true });
     await expect(AuthClient.resendEmailChange()).resolves.toEqual({ queued: true });

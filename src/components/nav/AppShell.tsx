@@ -10,6 +10,7 @@ import { UI_TEXT } from "@/constants/messages";
 import { BOTTOM_NAV, isActivePath, NAV_GROUPS } from "@/constants/navigation";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { RequireAuth } from "@/features/auth/components/RequireAuth";
+import { Welcome } from "@/features/auth/components/Welcome";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
 import { OrderReminders } from "@/features/notifications/components/OrderReminders";
 import { useNavigationPending } from "@/hooks/useNavigationPending";
@@ -38,7 +39,9 @@ import { SIDEBAR_LABEL_CLASSES, sidebarItemClasses } from "./navStyles";
  * decision, 2026-09-25).
  *
  * Every screen is drawn inside this, so the session gate lives here too: no
- * page has to remember to ask whether anyone is signed in.
+ * page has to remember to ask whether anyone is signed in. So does the
+ * welcome, which a new account's owner meets over whichever screen they first
+ * come in to (plan §139.11.20).
  */
 export function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -182,6 +185,7 @@ function AppFrame({ children }: { children: ReactNode }) {
 
       <MoreSheet isOpen={moreOpen} onClose={closeMore} />
       <OrderReminders />
+      <Welcome />
     </div>
   );
 }

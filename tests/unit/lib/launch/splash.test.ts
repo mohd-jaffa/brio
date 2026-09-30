@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { assetUrl, LAUNCH, launchBootScript } from "@/lib/launch/splash";
+import { afterLaunch, assetUrl, LAUNCH, launchBootScript } from "@/lib/launch/splash";
 
 const SCRIPT = launchBootScript({ portrait: "/p.webp", landscape: "/l.webp", wordmark: "/w.webp" });
 const root = document.documentElement;
@@ -191,5 +191,36 @@ describe("the launch script", () => {
     );
     boot({ standalone: true });
     expect(root).not.toHaveAttribute("data-launch");
+  });
+});
+
+describe("afterLaunch", () => {
+  afterEach(() => document.documentElement.removeAttribute("data-launch"));
+
+  it("goes on at once when there is no splash", () => {
+    const then = vi.fn();
+    afterLaunch(then)();
+    expect(then).toHaveBeenCalledOnce();
+  });
+
+  it("waits while the splash shows and fades, and goes on once it has gone", async () => {
+    document.documentElement.setAttribute("data-launch", "on");
+    const then = vi.fn();
+    afterLaunch(then);
+    document.documentElement.setAttribute("data-launch", "leaving");
+    await Promise.resolve();
+    expect(then).not.toHaveBeenCalled();
+    document.documentElement.removeAttribute("data-launch");
+    await Promise.resolve();
+    expect(then).toHaveBeenCalledOnce();
+  });
+
+  it("stops waiting when told to", async () => {
+    document.documentElement.setAttribute("data-launch", "on");
+    const then = vi.fn();
+    afterLaunch(then)();
+    document.documentElement.removeAttribute("data-launch");
+    await Promise.resolve();
+    expect(then).not.toHaveBeenCalled();
   });
 });

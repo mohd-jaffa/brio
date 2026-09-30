@@ -6,6 +6,7 @@ import { UI_TEXT } from "@/constants/messages";
 import { orderStatusLabel } from "@/constants/statuses";
 import { formatPaise } from "@/lib/format/currency";
 import { formatQuantity, pluralUnit } from "@/lib/format/quantity";
+import { apiRoutes } from "@/lib/query/keys";
 import { expectOutcome, signInAs } from "@tests/support/e2e";
 import { aMobileNumber, registerBusiness, removeBusinesses, type TestBusiness } from "@tests/support/integration";
 
@@ -46,6 +47,26 @@ test("an owner takes an order from sign-in to Completed", async ({ page }) => {
 
   await test.step("Login", async () => {
     await signInAs(page, owner);
+  });
+
+  // A new account is welcomed once (plan §139.11.20): four slides, then the
+  // screen it came in to, and never again.
+  await test.step("Welcome", async () => {
+    const welcome = page.getByRole("dialog", { name: UI_TEXT.welcome.label });
+    // `registerBusiness` names every owner Test Owner.
+    await expect(welcome.getByRole("heading", { name: UI_TEXT.welcome.hello.title("Test") })).toBeVisible();
+    await expect(welcome.getByText(BUSINESS, { exact: false })).toBeVisible();
+    for (const title of [UI_TEXT.welcome.orders.title, UI_TEXT.welcome.bills.title, UI_TEXT.welcome.numbers.title]) {
+      await welcome.getByRole("button", { name: UI_TEXT.welcome.next }).click();
+      await expect(welcome.getByRole("heading", { name: title })).toBeVisible();
+    }
+    const recorded = page.waitForResponse((response) => response.url().endsWith(apiRoutes.auth.welcome));
+    await welcome.getByRole("button", { name: UI_TEXT.welcome.start }).click();
+    await expect(welcome).toBeHidden();
+    await recorded;
+    await page.reload();
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(page.getByRole("dialog", { name: UI_TEXT.welcome.label })).toHaveCount(0);
   });
 
   await test.step("Customer", async () => {

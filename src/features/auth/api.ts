@@ -29,7 +29,7 @@ import { type AuthProfile, type AuthSessionView, type AuthenticatedSession, type
 export const EMAIL_CONFIRMATION_PATH = "/confirm-email";
 
 export const PROFILE_COLUMNS =
-  "id, phone, email, name, avatar, role, bakery_id, is_active, must_change_password, email_confirmed_at, name_changed_at, phone_changed_at, email_changed_at, pending_email";
+  "id, phone, email, name, avatar, role, bakery_id, is_active, must_change_password, email_confirmed_at, name_changed_at, phone_changed_at, email_changed_at, pending_email, welcomed_at";
 
 export interface ProfileRow {
   id: string;
@@ -46,6 +46,7 @@ export interface ProfileRow {
   phone_changed_at: string | null;
   email_changed_at: string | null;
   pending_email: string | null;
+  welcomed_at: string | null;
 }
 
 // ------------------------------------------------------------------
@@ -207,6 +208,7 @@ export function mapProfile(row: ProfileRow): AuthProfile {
     phoneChangedAt: row.phone_changed_at,
     emailChangedAt: row.email_changed_at,
     pendingEmail: row.pending_email,
+    welcomedAt: row.welcomed_at,
   };
 }
 

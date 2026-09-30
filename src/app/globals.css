@@ -1165,3 +1165,267 @@ html[data-launch="leaving"] .launch-splash {
     transition: none;
   }
 }
+
+/* ============================================================
+   The welcome (Welcome; plan §139.11.20, the user, 2026-09-30)
+   Four slides, once, for a new account. It is paper to every edge
+   — the pictures are cut out on it — and drawn with the page, so it
+   does not arrive: a slide turns when asked, and the whole lifts
+   away when it ends. The picture above the words on a screen held
+   upright; beside them on one turned on its side, a tablet's or a
+   computer's. Under reduced motion nothing travels: the slides and
+   the leaving fade.
+   ============================================================ */
+.welcome {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+/* The first title takes focus as the welcome opens, so a screen reader
+   starts there. It is not a control, so it draws no ring. */
+.welcome-title:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Nothing of the screen under it shows round its edges, even as the
+   on-screen keyboard or a browser's bars come and go. */
+.welcome::backdrop {
+  background: var(--color-surface);
+}
+
+.welcome-frame {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 72rem;
+  min-height: 100%;
+  margin-inline: auto;
+}
+
+.welcome-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1rem, 4dvh, 2.5rem);
+  padding-block: 1rem;
+  touch-action: pan-y;
+}
+
+.welcome-body[data-dragging] {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.welcome-stage {
+  position: relative;
+  width: min(100%, 26rem, 44dvh);
+  aspect-ratio: 1;
+  flex-shrink: 0;
+}
+
+.welcome-copy {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.25rem, 3dvh, 2rem);
+  width: 100%;
+  max-width: 26rem;
+  text-align: center;
+}
+
+.welcome-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.welcome-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* A short phone: the picture gives way, so Next is always in view. */
+@media (orientation: portrait) and (max-height: 44rem) {
+  .welcome-body {
+    gap: 0.75rem;
+    padding-block: 0.5rem;
+  }
+
+  .welcome-stage {
+    width: min(100%, 34dvh);
+  }
+
+  .welcome-copy,
+  .welcome-controls {
+    gap: 1rem;
+  }
+}
+
+@media (orientation: landscape) {
+  .welcome-body {
+    flex-direction: row;
+    gap: clamp(1.5rem, 6vw, 6rem);
+  }
+
+  .welcome-stage {
+    width: min(46%, 34rem, 72dvh);
+  }
+
+  .welcome-copy {
+    flex: 1;
+    max-width: 28rem;
+    text-align: left;
+  }
+
+  .welcome-dots {
+    justify-content: flex-start;
+  }
+}
+
+/* A slide's picture and its words. The one shown is in place; one
+   already passed waits to the left, one to come to the right, and a
+   turn sends one out as the next comes in, a beat behind. */
+.welcome-art,
+.welcome-text {
+  transition:
+    opacity 360ms var(--ease-out-expo),
+    transform 560ms var(--ease-out-expo);
+}
+
+.welcome-art {
+  position: absolute;
+  inset: 0;
+}
+
+.welcome-art[data-state="current"],
+.welcome-text[data-state="current"] {
+  transition-delay: 90ms;
+}
+
+.welcome-art[data-state="current"] {
+  transform: translateX(var(--welcome-drag, 0px));
+}
+
+.welcome-text[data-state="current"] {
+  transform: translateX(calc(var(--welcome-drag, 0px) * 0.6));
+}
+
+.welcome-art[data-state="before"] {
+  opacity: 0;
+  transform: translateX(-14%) scale(0.92) rotate(-3deg);
+}
+
+.welcome-art[data-state="after"] {
+  opacity: 0;
+  transform: translateX(14%) scale(0.92) rotate(3deg);
+}
+
+.welcome-text[data-state="before"] {
+  opacity: 0;
+  transform: translateX(-1.5rem);
+}
+
+.welcome-text[data-state="after"] {
+  opacity: 0;
+  transform: translateX(1.5rem);
+}
+
+/* While a finger carries the slide, it follows at once. */
+.welcome-body[data-dragging] :is(.welcome-art, .welcome-text) {
+  transition: none;
+}
+
+.welcome-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--color-text-muted) 40%, transparent);
+  transition:
+    width 420ms var(--ease-out-expo),
+    background-color 420ms var(--ease-out-expo);
+}
+
+.welcome-dot[data-current] {
+  width: 1.5rem;
+  background: var(--color-primary);
+}
+
+/* Back makes room for itself beside Next from the second slide, and
+   gives it back on the first; the button fades in once there is room. */
+.welcome-back {
+  position: relative;
+  flex-shrink: 0;
+  width: 0;
+  margin-right: 0;
+  opacity: 0;
+  transition:
+    width 360ms var(--ease-out-expo),
+    margin 360ms var(--ease-out-expo),
+    opacity 160ms ease-out;
+}
+
+.welcome-back[data-shown] {
+  width: 4.25rem;
+  margin-right: 0.75rem;
+  opacity: 1;
+  transition:
+    width 360ms var(--ease-out-expo),
+    margin 360ms var(--ease-out-expo),
+    opacity 240ms ease-out 120ms;
+}
+
+/* Ending: it lifts away and the screen under it is there. */
+@keyframes welcome-leave {
+  to {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+}
+
+.welcome[data-leaving] {
+  pointer-events: none;
+  animation: welcome-leave 420ms var(--ease-out-expo) forwards;
+}
+
+.welcome[data-leaving]::backdrop {
+  animation: fade-out 420ms var(--ease-out-expo) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome-art[data-state],
+  .welcome-text[data-state] {
+    transform: none;
+    transition: opacity 200ms ease-out;
+  }
+
+  .welcome-dot,
+  .welcome-back,
+  .welcome-back[data-shown] {
+    transition: none;
+  }
+
+  @keyframes welcome-leave {
+    to {
+      opacity: 0;
+    }
+  }
+
+  .welcome[data-leaving] {
+    animation-duration: 200ms;
+  }
+}

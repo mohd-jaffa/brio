@@ -134,6 +134,17 @@ export async function changeAvatar(
 }
 
 /**
+ * The welcome finished or skipped (POST /api/auth/welcome; plan §139.11.20),
+ * so it is not shown again, on this device or any other. An account already
+ * welcomed keeps its first time, and writes nothing. It is not audited: it
+ * changes nothing of the business or the account's security.
+ */
+export async function markWelcomed(adminClient: SupabaseClient, profile: AuthProfile): Promise<AuthProfile> {
+  if (profile.welcomedAt) return profile;
+  return writeProfile(adminClient, profile.id, { welcomed_at: new Date().toISOString() });
+}
+
+/**
  * The sign-in number (PATCH /api/auth/phone). Auth's copy changes first, since
  * it is the one signing in reads; if the profile then cannot follow, Auth's is
  * put back, so the two never disagree about the number.

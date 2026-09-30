@@ -3816,3 +3816,30 @@ A second `/impeccable optimize` pass, on the built app at 390 px, with a throttl
 
 ### Blockers
 - None.
+
+## 2026-09-30 — The welcome: four slides, once, for a new account
+
+### Added
+- **A welcome for a new account's owner** (the user: "create an onboarding splash screens with small introduction slides for newly regitered user on first login … make it look good for all device sizes"; plan §139.11.20). It is the onboarding §139.11.19 left waiting for the user's content.
+  - Once, the first time the owner comes in — by signing in or through the email's link, on any device — until they finish or skip it. Never for a developer, while a temporary password is owed, or for an account made before today.
+  - Four slides, each a drawing, a title and a line: **Welcome, {first name}** (orders, customers, stock and money for the business, in one place), **Every order, by when it's due**, **A proper bill in seconds**, **Know where you stand**. **Skip**, **Next**, **Back** and **Get started**; the arrow keys and a swipe turn it; Escape ends it.
+  - It stands over the screen the owner came in to, drawn with the page so that screen never shows first, and lifts away when it ends. It waits for a launch splash to go before it takes the top layer (`afterLaunch`).
+  - A modal dialog named "Welcome to Brio": focus starts on the first title, each new slide is read out, and the slides not shown are out of reach.
+  - Phone, tablet and desktop: the drawing above the words when upright, beside them when turned on its side; a short phone gives the drawing less room, so Next stays in view.
+- **The drawings** (`scripts/onboarding.mjs` → `src/assets/onboarding/`, 47–91 KB each): four scenes cut from the larger supplied sheet, along the paper round each, so they sit on either theme. The sheets are kept in `design-references/onboarding/`, which is not committed; the originals at the repository's root are untouched and not committed either.
+- **`profiles.welcomed_at`** (`0035_welcome`): every account there is now is taken as welcomed; a new one starts without it. Set by the server (`POST /api/auth/welcome`, `markWelcomed`) once, and kept at its first time. Not audited: it changes nothing of the business or the account's security.
+- **The privacy policy** names it among what an account keeps, and is dated 2026-09-30.
+
+### Migration notes
+- `0035_welcome.sql`: one nullable column on `profiles`, filled for existing rows by a default that is then dropped (no update, so no trigger fires and `updated_at` is untouched). Applied to the local database.
+
+### Validation
+- In a browser, on a build against a database made fresh (CI's way): a new account meets the welcome after signing in; a swipe and the arrow keys turn it, each turn read out; Skip records it once and lifts away onto Home; a reload, another screen, and Escape on a second new account do not bring it back; an existing account never sees it.
+- Screens checked at 360 × 640, 390 × 844, 667 × 375, 844 × 390, 768 × 1024, 1024 × 768 and 1440 × 900, in Golden and Peach.
+- Unit tests: 2,498 pass. `Welcome.tsx` is fully covered; `markWelcomed`, `afterLaunch`, the client, the pictures and the migration have tests of their own.
+- Integration tests (31) pass on the fresh database, with the welcome recorded once and refused to the owner's own client.
+- Both browser journeys pass: the critical journey walks all four slides and Get started, and the welcome does not return on a reload; the tenant-isolation journey skips it.
+- Lint, the type check and the format check pass.
+
+### Blockers
+- None.

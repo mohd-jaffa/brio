@@ -319,6 +319,7 @@ describe("mapProfile", () => {
       phone_changed_at: null,
       email_changed_at: null,
       pending_email: null,
+      welcomed_at: null,
     };
     expect(mapProfile(row as Parameters<typeof mapProfile>[0]).avatar).toBe("tiger");
     expect(mapProfile({ ...row, avatar: "dragon" } as Parameters<typeof mapProfile>[0]).avatar).toBe("pomeranian");

@@ -43,6 +43,7 @@ const {
   changePhone,
   confirmEmailChange,
   deleteAccount,
+  markWelcomed,
   requestEmailChange,
   resendEmailChange,
   sendEmailChangeConfirmation,
@@ -65,6 +66,7 @@ const profile = (changes: Partial<AuthProfile> = {}): AuthProfile => ({
   phoneChangedAt: null,
   emailChangedAt: null,
   pendingEmail: null,
+  welcomedAt: "2026-01-01T00:00:00.000Z",
   ...changes,
 });
 
@@ -83,6 +85,7 @@ const row = (changes: Record<string, unknown> = {}) => ({
   phone_changed_at: null,
   email_changed_at: null,
   pending_email: null,
+  welcomed_at: "2026-01-01T00:00:00.000Z",
   ...changes,
 });
 
@@ -233,6 +236,32 @@ describe("changeAvatar", () => {
       "EXTERNAL_SERVICE_ERROR",
     );
     expect(logActionSafe).not.toHaveBeenCalled();
+  });
+});
+
+describe("markWelcomed", () => {
+  it("records when a new account's owner was welcomed, and audits nothing", async () => {
+    const { admin, queries } = fakeAdmin(ordinary({ welcomed_at: "2026-09-30T04:00:00.000Z" }));
+    const saved = await markWelcomed(admin, profile({ welcomedAt: null }));
+    expect(saved.welcomedAt).toBe("2026-09-30T04:00:00.000Z");
+    const [changes] = updateOf(queries) as [{ welcomed_at: string }];
+    expect(Object.keys(changes)).toEqual(["welcomed_at"]);
+    expect(Number.isNaN(Date.parse(changes.welcomed_at))).toBe(false);
+    expect(logActionSafe).not.toHaveBeenCalled();
+  });
+
+  it("keeps the first time for an account already welcomed, and writes nothing", async () => {
+    const { admin, queries } = fakeAdmin(ordinary());
+    const current = profile();
+    await expect(markWelcomed(admin, current)).resolves.toBe(current);
+    expect(queries).toEqual([]);
+  });
+
+  it("says a failed write as an outage", async () => {
+    const broken = fakeAdmin(() => ({ error: { code: "08006", message: "connection lost" } }));
+    expect((await refusal(markWelcomed(broken.admin, profile({ welcomedAt: null })))).code).toBe(
+      "EXTERNAL_SERVICE_ERROR",
+    );
   });
 });
 

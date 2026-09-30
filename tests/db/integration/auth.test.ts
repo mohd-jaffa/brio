@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { markWelcomed } from "@/features/auth/account";
 import { login, register } from "@/features/auth/api";
 import { createSupabaseAnonClient, createSupabaseServiceRoleClient } from "@/lib/supabase/server";
 import { loginSchema } from "@/lib/validation";
@@ -48,6 +49,40 @@ describe("registering", () => {
     await expect(register(admin, registration({ email: owner.email }))).rejects.toMatchObject({
       code: "AUTH_EMAIL_ALREADY_EXISTS",
     });
+  });
+});
+
+describe("the welcome", () => {
+  it("is owed by a new account, recorded once, and kept at its first time", async () => {
+    const admin = createSupabaseServiceRoleClient();
+    const session = await login(
+      createSupabaseAnonClient(),
+      loginSchema.parse({ phone: owner.phone, password: owner.password }),
+    );
+    expect(session.profile.welcomedAt).toBeNull();
+
+    const welcomed = await markWelcomed(admin, session.profile);
+    expect(Date.parse(welcomed.welcomedAt!)).toBeGreaterThan(Date.now() - 60_000);
+    expect(await markWelcomed(admin, welcomed)).toBe(welcomed);
+
+    const again = await login(
+      createSupabaseAnonClient(),
+      loginSchema.parse({ phone: owner.phone, password: owner.password }),
+    );
+    expect(again.profile.welcomedAt).toBe(welcomed.welcomedAt);
+  });
+
+  it("is not the owner's to record: profiles are the server's to write", async () => {
+    const read = async () =>
+      (await owner.tenant.supabase.from("profiles").select("welcomed_at").single()).data?.welcomed_at;
+    const before = await read();
+    const { data } = await owner.tenant.supabase
+      .from("profiles")
+      .update({ welcomed_at: "2030-01-01T00:00:00.000Z" })
+      .eq("id", owner.userId)
+      .select("id");
+    expect(data ?? []).toEqual([]);
+    expect(await read()).toBe(before);
   });
 });
 

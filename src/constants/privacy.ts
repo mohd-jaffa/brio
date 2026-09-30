@@ -28,7 +28,7 @@ export interface PrivacySection {
 
 export const PRIVACY_POLICY = {
   /** The day this text last changed, as a day key. */
-  updated: "2026-09-29",
+  updated: "2026-09-30",
   intro: [
     `${app} helps you run a home business: your orders, customers, products, stock, expenses and bills. This policy says what ${app} keeps, why it keeps it, who can see it, and how you delete it.`,
     `It covers ${app} on the web, installed from the browser, and the Android app.`,
@@ -46,7 +46,7 @@ export const PRIVACY_POLICY = {
       id: "what",
       heading: "What we keep",
       points: [
-        "Your account: your name, the mobile number you sign in with, your email address, the profile picture you chose, and your password — kept only as a one-way hash, which no one can read back, not even us.",
+        "Your account: your name, the mobile number you sign in with, your email address, the profile picture you chose, whether you have seen the welcome, and your password — kept only as a one-way hash, which no one can read back, not even us.",
         "Your business: its name, catch phrase, city, address, phone number and logo.",
         "What you record: customers (names, phone numbers, addresses and notes), products and stock, orders with their items, charges and discounts, payments (the amount, the method and any reference you type), and expenses.",
         "A history of the changes made in your business — who changed what, and when — and notifications about orders that are due.",

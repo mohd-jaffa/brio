@@ -22,6 +22,8 @@ export interface AuthProfile {
   emailChangedAt: string | null;
   /** A new email address waiting for its confirmation; `email` stays in use until then. */
   pendingEmail: string | null;
+  /** When the owner finished or skipped the welcome; none for a new account, which is shown it (0035). */
+  welcomedAt: string | null;
 }
 
 /**
