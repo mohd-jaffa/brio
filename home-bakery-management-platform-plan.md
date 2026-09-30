@@ -8859,6 +8859,29 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
   closing photograph settles. Still without scroll timelines or with
   reduced motion.
 
+### 139.11.23 Releases, and Vercel (the user, 2026-09-30)
+
+- **Asked for:** "a md file which will explain me what to do to make a v1.0.0
+  release tag and ci which will build it to vercel when i set it up … include
+  what to do in github, even give what release note to put for this v1.0.0
+  version".
+- **A release is a published GitHub release** tagged `vX.Y.Z`, matching
+  `package.json`. `.github/workflows/release.yml` then: checks the tag;
+  runs every CI gate again on it (`ci.yml`, now also callable, with `ref`);
+  applies the new migrations to the hosted Supabase (`supabase db push`); and
+  builds and deploys that tag to Vercel as production (`vercel pull`,
+  `vercel build --prod`, `vercel deploy --prebuilt --prod`), in the
+  `production` environment, which can be made to wait for approval. It can be
+  run again by hand for a released tag. A push deploys nothing.
+- **Until it is set up** (Vercel's token and ids, Supabase's token, password
+  and project reference, as GitHub secrets and a variable), the migrate and
+  deploy jobs say so and change nothing.
+- **`docs/RELEASE.md`** is the guide: what a release is and how versions are
+  numbered; the one-time setup in Vercel, Supabase and GitHub; each release's
+  steps; checking it is live; rolling back; and the v1.0.0 release notes.
+- The version is `package.json`'s: Settings → About shows it, and it is the
+  Android app's version name. It stays 0.1.0 until the release is made.
+
 ---
 
 ## 139.12 Data model and migrations
@@ -9407,7 +9430,7 @@ Phase 5 closed on 2026-09-26 with R5.10.
 | R6.1 | Jobs enqueued with the service role; exponential backoff; the Menu and Cleanup workers | §133.6 F6–F8 | — | DONE (2026-09-29 · `0032_queue_hardening`: only the server queues; 1, 2, 4, 8 minutes between tries; the CleanupWorker, with pg_cron standing in while no worker runs. The MenuBuildWorker waits with the menu builder, outside the roadmap) |
 | R6.2 | Rate limiting | §133.11 K6 | — | NOT BUILT (2026-09-29, the user's decision: no limiter in the app; Supabase Auth's own limits and Cloudflare's rules stand in — changelog) |
 | R6.3 | OpenAPI and Swagger | §133.11 K1 | — | LATER (2026-09-28, the user: not needed for now; §119 – §120 kept) |
-| R6.4 | CI pipeline ~~with SonarQube~~ — SonarQube kept for later (2026-09-28) | §133.11 K3 | — | DONE (2026-09-29 · `.github/workflows/ci.yml`, on each push to main and each pull request: lint, format, types, unit tests, then the local Supabase, integration tests, the build and the journeys. No staging, smoke or production step: nothing is deployed from CI yet) |
+| R6.4 | CI pipeline ~~with SonarQube~~ — SonarQube kept for later (2026-09-28) | §133.11 K3 | — | DONE (2026-09-29 · `.github/workflows/ci.yml`, on each push to main and each pull request: lint, format, types, unit tests, then the local Supabase, integration tests, the build and the journeys. No staging, smoke or production step: nothing is deployed from CI yet. *2026-09-30: a published release deploys to Vercel, §139.11.23*) |
 | R6.5 | Playwright journeys, tenant isolation included | §133.11 K4 | — | DONE (2026-09-29 · `tests/e2e`, `npm run test:e2e`: the critical journey, sign-in to Completed, through the screens; and tenant isolation, on the screens and at the API) |
 | R6.6 | Database integration tests against local Supabase | §133.11 K5 | — | DONE (2026-09-29 · `tests/db/integration`, `npm run test:integration`: authentication, tenant isolation, orders and stock, notifications and the queue; found the ledger's unchecked signs, now `0033_ledger_signs`) |
 | R6.7 | BugSnag | §133.11 K2 | — | LATER (2026-09-28, the user: not for now; §123 kept) |

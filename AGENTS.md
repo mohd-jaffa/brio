@@ -998,7 +998,7 @@ structured logs and the error log (§11).
 - `checks`: install, lint, format check, type check and unit tests.
 - `app`, after it: the local Supabase, with every migration applied (the same CLI version as development), then the integration tests, the build and the browser journeys on that build.
 
-There is no staging, smoke test or production step yet: nothing is deployed from CI. `npm run typecheck` generates Next's types first (`next typegen`), so a fresh checkout checks as a working copy does.
+**A release deploys; a push does not** (`.github/workflows/release.yml`, plan §139.11.23). Publishing a GitHub release tagged `vX.Y.Z`, the same as `package.json`'s version, checks the tag, runs every CI gate again on it (`ci.yml` is also callable), applies the new migrations to the hosted Supabase, and deploys that tag to Vercel as production. `docs/RELEASE.md` is the guide: the one-time setup, each release's steps, rolling back, and the v1.0.0 notes. There is no staging step. `npm run typecheck` generates Next's types first (`next typegen`), so a fresh checkout checks as a working copy does.
 
 **Formatting is Prettier's** (`.prettierrc.json`: 120 columns, otherwise its
 defaults). `npm run format` writes it and `npm run format:check` is the gate.

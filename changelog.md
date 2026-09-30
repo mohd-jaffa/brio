@@ -3933,3 +3933,25 @@ A second `/impeccable optimize` pass, on the built app at 390 px, with a throttl
 
 ### Blockers
 - None.
+
+## 2026-09-30 — Releases: a published GitHub release deploys to Vercel
+
+### Added
+- **`docs/RELEASE.md`** (the user: "a md file which will explain me what to do to make a v1.0.0 release tag and ci which will build it to vercel … include what to do in github, even give what release note to put for this v1.0.0 version"; plan §139.11.23):
+  - what a release is, and how versions are numbered;
+  - the one-time setup in Vercel (project, region, environment, domain, token), Supabase (project, authentication settings, migrations, the reminder scheduler's Vault secrets, a developer account) and GitHub (secrets, the `production` environment, rules for `main` and for tags);
+  - each release's steps, from setting the version to checking it is live, and building the Android app from the same tag;
+  - what to do when a release goes wrong: rolling back on Vercel, and releasing a patch;
+  - the v1.0.0 release notes, ready to paste.
+- **`.github/workflows/release.yml`**: publishing a release tagged `vX.Y.Z` checks the tag against `package.json`, runs every CI gate again on it, applies the new migrations to the hosted Supabase, and deploys that tag to Vercel as production. It can be run again by hand for a released tag. Until its secrets exist, the migrate and deploy jobs leave a note and change nothing.
+
+### Changed
+- **`ci.yml` can be called** by the release, with the tag to check (`ref`); a release's run has its own concurrency group, so it never cancels a push's.
+- AGENTS.md §27 and plan R6.4 say a release deploys and a push does not.
+
+### Validation
+- Both workflows parse, with the jobs and triggers intended. The bill PDF's fonts are already traced into its route by the build (`route.js.nft.json`), so it needs nothing more to work on Vercel.
+- The workflow cannot run here: it needs GitHub, Vercel and a hosted Supabase. Its first run is the first release.
+
+### Blockers
+- None. The version stays 0.1.0 until the release is made (`docs/RELEASE.md`, C1).
