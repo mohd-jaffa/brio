@@ -8780,6 +8780,7 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `…_people_avatars` | *Added 2026-09-28 as `0029_people_avatars` (the user).* `avatar_keys()` takes the 24 people's keys after the nine animals'. Nothing else: the draw, the column and its check are 0026's. | 5 |
 | `…_audit_writes` | Revoke `INSERT` on `audit_logs` from `authenticated`; audit is written by the server with the acting user (§133.7 G1, BUG-20). | 2 |
 | `…_device_tokens` | The push-token registry (§133.5 E2). Built as `0031_web_push` for web push, with the scheduler's call (2026-09-29). | 8 |
+| `…_service_role_functions` | *Added 2026-09-30 as `0034_service_role_functions` (CI).* The service role runs every function in `public`, and every one added later: 0004 made later tables and sequences its own but not later functions, which newer Supabase images no longer grant by default. On a database made fresh, registration failed on `random_avatar()`. `authenticated` and `anon` gain nothing. | 6 |
 | `…_profile_theme` *(if Q14)* | `profiles.theme`. | 1 |
 
 ---

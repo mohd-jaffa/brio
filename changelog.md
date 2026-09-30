@@ -3794,3 +3794,25 @@ A second `/impeccable optimize` pass, on the built app at 390 px, with a throttl
 
 ### Blockers
 - None.
+
+## 2026-09-30 — CI: a database made fresh lets the server register an account
+
+### Fixed
+- **CI's second job failed at the integration tests**: every `register` stopped at the `profiles` insert, reported as `EXTERNAL_SERVICE_ERROR`. On a database made the way CI makes it, the raw error was `permission denied for function random_avatar`.
+  - `random_avatar()` is the default of `profiles.avatar` (0026), and `avatar_keys()` checks every saved picture. The server writes profiles as the service role, which could run neither.
+  - `0004_api_role_grants` granted the service role every function there was, and made later tables and sequences its own, but not later functions. Supabase's own defaults used to grant each new function to the API roles. Newer Supabase images no longer do, so on a database made fresh the service role could run no function added after 0004.
+  - The local database was made on an older image and kept the old defaults, which is why it never showed. A hosted project made on a newer image would have refused every registration the same way.
+- **`0034_service_role_functions`** grants the service role every function in `public`, and every one added later. `authenticated` and `anon` gain nothing: a comparison of the two databases showed their effective rights were already the same. A database with the old defaults already had these grants, so there it changes nothing.
+
+### Migration notes
+- `0034_service_role_functions.sql`: grants only, no data. Applied to the local database.
+
+### Validation
+- On a second, fresh Supabase (the CI's CLI, 2.109.1, every migration from nothing, CI's services left out), before the fix: registration refused with the error above. After it:
+  - the integration tests pass (29);
+  - the build passes;
+  - both browser journeys pass on that build.
+- A contract test for 0034 (`tests/db/service-role-functions-migration.test.ts`) passes, with lint and the format check.
+
+### Blockers
+- None.
