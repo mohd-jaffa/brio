@@ -3843,3 +3843,16 @@ A second `/impeccable optimize` pass, on the built app at 390 px, with a throttl
 
 ### Blockers
 - None.
+
+## 2026-09-30 — The welcome keeps its keys and its focus as it turns
+
+### Fixed
+- **The arrow keys turned the welcome only once** (`Welcome.tsx`). Focus starts on the first slide's title; turning put that slide out of reach, focus fell out of the dialog, and the next key went nowhere. Back on the way to the first slide did the same.
+  - Focus on something about to go out of reach — the leaving slide's title, or Back as the first slide comes — now moves to the new slide's title. Focus on Next stays there.
+  - The arrow keys are heard wherever focus is, since nothing else takes keys while the welcome is open.
+
+### Validation
+- Seen on the screenshots taken for the user: at 1440 × 900 the arrow keys walked all four slides. Two unit tests added; `Welcome.tsx` stays fully covered.
+
+### Blockers
+- None.
