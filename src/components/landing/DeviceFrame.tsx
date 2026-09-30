@@ -1,5 +1,5 @@
 import Image, { type StaticImageData } from "next/image";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { cn } from "@/components/ui/cn";
 
@@ -17,14 +17,21 @@ interface Shot {
 const PHONE_BUTTONS = ["action", "volume-up", "volume-down", "side", "camera"] as const;
 
 /**
- * A screenshot on a current Pro phone (the user, 2026-09-30: "a phone like
- * framed screenshot like with iphone 18 pro"): the titanium band, the even
- * black border, the Dynamic Island and the buttons are drawn here
- * (globals.css, `.device-phone`); the status bar and the home indicator are
- * in the screenshot itself (scripts/landing-shots.mts). The frame is the
- * picture's, so only the picture is named.
+ * A current Pro phone (the user, 2026-09-30: "a phone like framed screenshot
+ * like with iphone 18 pro"): the titanium band, the even black border, the
+ * Dynamic Island and the buttons are drawn here (globals.css,
+ * `.device-phone`), round whatever the screen shows. The status bar and the
+ * home indicator are in each screenshot (scripts/landing-shots.mts).
  */
-export function PhoneFrame({ src, alt, sizes, lead = false, className, style }: Shot) {
+export function PhoneShell({
+  className,
+  style,
+  children,
+}: {
+  className?: string;
+  style?: CSSProperties;
+  children: ReactNode;
+}) {
   return (
     <div className={cn("device-phone", className)} style={style}>
       <div className="device-phone-body">
@@ -33,20 +40,29 @@ export function PhoneFrame({ src, alt, sizes, lead = false, className, style }: 
         ))}
         <div className="device-phone-glass">
           <div className="device-phone-screen">
-            <Image
-              src={src}
-              alt={alt}
-              fill
-              sizes={sizes}
-              loading={lead ? "eager" : "lazy"}
-              fetchPriority={lead ? "high" : undefined}
-              className="object-cover"
-            />
+            {children}
             <span aria-hidden="true" className="device-phone-island" />
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+/** One screenshot on the phone. The frame is the picture's, so only the picture is named. */
+export function PhoneFrame({ src, alt, sizes, lead = false, className, style }: Shot) {
+  return (
+    <PhoneShell className={className} style={style}>
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes={sizes}
+        loading={lead ? "eager" : "lazy"}
+        fetchPriority={lead ? "high" : undefined}
+        className="object-cover"
+      />
+    </PhoneShell>
   );
 }
 

@@ -1,10 +1,10 @@
-import { Check, Monitor, ShieldCheck, Smartphone, TabletSmartphone, type LucideIcon } from "lucide-react";
+import { Monitor, ShieldCheck, Smartphone, TabletSmartphone, type LucideIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { BRAND, brandWidth } from "@/assets/brand";
-import { LANDING_SHOTS, type LandingShot } from "@/assets/landing";
+import { LANDING_SHOTS } from "@/assets/landing";
 import { PLATES, PLATE_FOCUS, PLATE_QUALITY } from "@/assets/plates";
 import { LinkButton } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
@@ -13,7 +13,10 @@ import { Medallion } from "@/components/ui/medallion";
 import { UI_TEXT } from "@/constants/messages";
 import { AUTH_ROUTES, HOME_ROUTE, PRIVACY_ROUTE } from "@/constants/routes";
 
+import { DayOnOnePhone } from "./DayOnOnePhone";
 import { LaptopFrame, PhoneFrame } from "./DeviceFrame";
+import { SHOT_ALT } from "./shots";
+import { Point, RisingTitle } from "./Words";
 
 const text = UI_TEXT.landing;
 
@@ -22,32 +25,12 @@ const FRAME = "safe-x [--safe-px:1.25rem] md:[--safe-px:2rem] mx-auto w-full max
 const SECTION_TITLE =
   "font-display text-[2rem] font-semibold leading-[1.1] tracking-[-0.03em] text-text text-balance sm:text-[2.5rem]";
 
-const ALT: Record<LandingShot, string> = {
-  home: text.shots.home,
-  "new-order": text.shots.order,
-  bill: text.shots.bill,
-  customer: text.shots.customer,
-  inventory: text.shots.inventory,
-  analytics: text.shots.analytics,
-  "desktop-home": text.shots.desktop,
-};
-
 const WHO = [
   { id: "bakers", picture: "strawberry-cake" },
   { id: "hampers", picture: "gift-box-red" },
   { id: "florists", picture: "rose-bouquet" },
   { id: "gifts", picture: "heart-gift-box" },
 ] as const;
-
-// A day in the order it goes: the order comes in, is due, is handed over with
-// its bill, is paid for, and adds to what the business knows.
-const FEATURES = [
-  { id: "order", shots: ["new-order"] },
-  { id: "due", shots: ["home"] },
-  { id: "bill", shots: ["bill"] },
-  { id: "customers", shots: ["customer"] },
-  { id: "numbers", shots: ["inventory", "analytics"] },
-] as const satisfies readonly { id: keyof typeof text.features; shots: readonly LandingShot[] }[];
 
 const DEVICES: readonly { id: keyof typeof text.devices; icon: LucideIcon }[] = [
   { id: "android", icon: Smartphone },
@@ -74,98 +57,10 @@ function Start({ signedIn, size }: { signedIn: boolean; size: "sm" | "lg" }) {
 const nth = (at: number) => ({ "--i": at }) as CSSProperties;
 
 /**
- * A title that rises out of its own line as it scrolls into view, as the
- * headline does as the page arrives; the window keeps room for descenders.
- */
-function RisingTitle({
-  as: Tag,
-  id,
-  className,
-  children,
-}: {
-  as: "h2" | "h3";
-  id: string;
-  className: string;
-  children: string;
-}) {
-  return (
-    <Tag id={id} className={cn(className, "landing-rise-title -mb-[0.14em] overflow-hidden pb-[0.14em]")}>
-      <span className="block">{children}</span>
-    </Tag>
-  );
-}
-
-/** One point, its check drawn as it scrolls into view, as a job is ticked off. */
-function Point({ children }: { children: string }) {
-  return (
-    <li className="landing-point flex gap-3 text-[0.9375rem] leading-relaxed text-text">
-      <Check
-        size={18}
-        strokeWidth={2.25}
-        aria-hidden="true"
-        className="landing-tick mt-[0.2rem] shrink-0 text-primary"
-      />
-      <span>{children}</span>
-    </li>
-  );
-}
-
-function Feature({ feature, flip }: { feature: (typeof FEATURES)[number]; flip: boolean }) {
-  const words = text.features[feature.id];
-  const pair = feature.shots.length > 1;
-  return (
-    <article aria-labelledby={`landing-${feature.id}`} className="grid items-center gap-10 md:grid-cols-2 md:gap-16">
-      <div className={cn("max-w-md", flip && "md:order-2 md:justify-self-end")}>
-        <RisingTitle
-          as="h3"
-          id={`landing-${feature.id}`}
-          className="font-display text-[1.75rem] font-medium leading-[1.15] tracking-[-0.025em] text-text text-balance sm:text-[2rem]"
-        >
-          {words.title}
-        </RisingTitle>
-        <p className="landing-words mt-4 text-base leading-relaxed text-text-muted text-pretty">{words.body}</p>
-        <ul className="mt-6 space-y-3">
-          {words.points.map((point) => (
-            <Point key={point}>{point}</Point>
-          ))}
-        </ul>
-      </div>
-      {/* The phones rise out of a well of the page's own sunken ground. */}
-      <div
-        className={cn(
-          "landing-shelf relative isolate flex items-start justify-center gap-4 py-6 sm:gap-6",
-          flip && "md:order-1",
-        )}
-      >
-        <span
-          aria-hidden="true"
-          className="landing-well absolute inset-x-0 inset-y-[16%] -z-10 rounded-[2rem] bg-sunken"
-        />
-        {feature.shots.map((shot, at) => (
-          <PhoneFrame
-            key={shot}
-            src={LANDING_SHOTS[shot]}
-            alt={ALT[shot]}
-            sizes={pair ? "(min-width: 768px) 240px, 44vw" : "(min-width: 768px) 290px, 68vw"}
-            className={cn(
-              "landing-shelf-phone",
-              pair ? "max-w-[240px]" : "max-w-[290px]",
-              pair ? "w-[46%]" : "w-[68%]",
-              at === 1 && "mt-12",
-            )}
-            style={nth(at)}
-          />
-        ))}
-      </div>
-    </article>
-  );
-}
-
-/**
  * The landing page (`/about`; plan §139.11.22, the user, 2026-09-30): what
- * Brio is, who it is for, and a day's work in it, shown on the app's own
- * screens — a demo business photographed on a phone and a laptop
- * (scripts/landing-shots.mts). It is open to anyone, signed in or not, and
+ * Brio is, who it is for, and a day's work in it on one pinned phone
+ * (`DayOnOnePhone`), shown on the app's own screens — a demo business
+ * photographed on a phone and a laptop (scripts/landing-shots.mts). It is open to anyone, signed in or not, and
  * leads to making an account, or back into the app for someone signed in.
  * It says only what the app does.
  */
@@ -234,13 +129,13 @@ export function Landing({ signedIn, year }: { signedIn: boolean; year: number })
             <LaptopFrame
               className="landing-laptop"
               src={LANDING_SHOTS["desktop-home"]}
-              alt={ALT["desktop-home"]}
+              alt={SHOT_ALT["desktop-home"]}
               sizes="(min-width: 1024px) 620px, 86vw"
               lead
             />
             <PhoneFrame
               src={LANDING_SHOTS.home}
-              alt={ALT.home}
+              alt={SHOT_ALT.home}
               sizes="(min-width: 1024px) 170px, 30vw"
               lead
               className="landing-phone absolute bottom-0 left-0 w-[31%] sm:w-[25%]"
@@ -272,11 +167,7 @@ export function Landing({ signedIn, year }: { signedIn: boolean; year: number })
             </RisingTitle>
             <p className="landing-words mt-4 text-lg leading-relaxed text-text-muted">{text.dayLead}</p>
           </div>
-          <div className="mt-14 space-y-20 md:space-y-28">
-            {FEATURES.map((feature, at) => (
-              <Feature key={feature.id} feature={feature} flip={at % 2 === 1} />
-            ))}
-          </div>
+          <DayOnOnePhone />
         </section>
 
         <section aria-labelledby="landing-devices" className={cn(FRAME, "pt-24 sm:pt-32")}>

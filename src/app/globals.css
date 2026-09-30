@@ -1673,9 +1673,8 @@ html[data-launch="leaving"] .launch-splash {
    animation while scrolling down and up also"). Tied to the
    scroll itself, so scrolling back up plays it backwards. Titles
    rise out of their own line as they come into view, as the
-   headline does; each day's phones rise out of their well as it
-   opens, and drift on as they leave; each point is ticked as it
-   comes in, as a job is ticked off in an order book; the
+   headline does; each point is ticked as it comes in, as a job is
+   ticked off in an order book; the
    pictures of who it is for are set down one after another; the
    hero's devices step back as the page moves on; the closing
    photograph settles into its band. Transforms, opacity and a
@@ -1697,24 +1696,6 @@ html[data-launch="leaving"] .launch-splash {
       animation: landing-settle linear both;
       animation-timeline: view();
       animation-range: entry 10% cover 30%;
-    }
-
-    .landing-shelf {
-      view-timeline-name: --shelf;
-    }
-    .landing-well {
-      animation: landing-well linear both;
-      animation-timeline: --shelf;
-      animation-range: entry 0% cover 40%;
-    }
-    .landing-shelf-phone {
-      animation:
-        landing-shelf-rise linear both,
-        landing-shelf-drift linear forwards;
-      animation-timeline: --shelf, --shelf;
-      animation-range:
-        entry calc(5% + var(--i, 0) * 15%) cover calc(42% + var(--i, 0) * 6%),
-        exit 0% exit 100%;
     }
 
     .landing-point {
@@ -1766,26 +1747,6 @@ html[data-launch="leaving"] .launch-splash {
   }
 }
 
-@keyframes landing-well {
-  from {
-    opacity: 0.3;
-    transform: scaleY(0.55);
-  }
-}
-
-@keyframes landing-shelf-rise {
-  from {
-    opacity: 0;
-    transform: translateY(18%);
-  }
-}
-
-@keyframes landing-shelf-drift {
-  to {
-    transform: translateY(-6%);
-  }
-}
-
 @keyframes landing-tick {
   from {
     stroke-dashoffset: 24;
@@ -1819,5 +1780,249 @@ html[data-launch="leaving"] .launch-splash {
 @keyframes landing-plate {
   from {
     transform: scale(1.14);
+  }
+}
+
+/* ============================================================
+   A day on one phone (DayOnOnePhone; plan §139.11.22 — the user,
+   2026-09-30: "overdrive for about page"). The phone stays put
+   while the day's five steps pass beside it — on a phone, pinned
+   above them on the page's ground, the steps passing beneath —
+   and its screen changes as each step comes up, the way the app
+   moves: a screen pushes in from the side over the last, pushed
+   aside and dimmed; the bill rises as a sheet over Home. Once a
+   screen settles, a caramel ring marks what the step is about.
+   The rail beside the steps numbers the day. Under reduced motion
+   the screens fade.
+   ============================================================ */
+@layer components {
+  .day {
+    /* The phone as wide as fits three-quarters of the screen's height. */
+    --day-phone-w: min(290px, calc(74dvh / 2.12));
+    --day-pad: 14dvh;
+  }
+
+  .day-stage {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: 0.75rem;
+    background: var(--color-background);
+  }
+
+  /* The steps fade as they pass under the pinned phone. */
+  .day-stage::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    height: 2.5rem;
+    background: linear-gradient(var(--color-background), transparent);
+    pointer-events: none;
+  }
+
+  .day-phone {
+    width: min(44vw, calc(44dvh / 2.12));
+  }
+
+  .day-well {
+    display: none;
+  }
+
+  .day-screen {
+    position: absolute;
+    inset: 0;
+    transition:
+      transform 560ms var(--ease-out-expo),
+      opacity 380ms ease,
+      filter 420ms ease;
+  }
+  .day-screen[data-state="after"][data-enter="push"] {
+    transform: translateX(102%);
+  }
+  .day-screen[data-state="after"][data-enter="sheet"] {
+    opacity: 0;
+    transform: translateY(16%);
+  }
+  .day-screen[data-state="before"] {
+    filter: brightness(0.8);
+    transform: translateX(-28%);
+  }
+  .day-screen[data-state="under"] {
+    filter: brightness(0.8);
+  }
+
+  .day-spot {
+    position: absolute;
+    border-radius: 3.6cqw;
+    box-shadow:
+      0 0 0 0.55cqw var(--color-primary),
+      0 0 0 2.4cqw color-mix(in oklab, var(--color-primary) 18%, transparent);
+    opacity: 0;
+    transform: scale(1.06);
+    transition:
+      opacity 240ms ease,
+      transform 420ms var(--ease-out-expo);
+    pointer-events: none;
+  }
+  .day-spot[data-pill] {
+    border-radius: 999px;
+  }
+  .day-screen[data-state="current"] .day-spot {
+    opacity: 1;
+    transform: none;
+    transition-delay: 420ms;
+  }
+
+  .day-dots {
+    display: flex;
+    gap: 0.4rem;
+  }
+  .day-dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 999px;
+    background: var(--color-border);
+    transition:
+      width 300ms var(--ease-out-expo),
+      background-color 300ms ease;
+  }
+  .day-dot[data-current] {
+    width: 1.4rem;
+    background: var(--color-primary);
+  }
+
+  .day-step {
+    position: relative;
+    padding-block: var(--day-pad);
+    padding-left: 3.25rem;
+  }
+
+  /* The day's rail: a line down the steps, and each step's number on it. */
+  .day-step::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 1.1rem;
+    width: 1px;
+    background: var(--color-border);
+  }
+  .day-step:first-child::before {
+    top: calc(var(--day-pad) + 1.1rem);
+  }
+  .day-step:last-child::before {
+    bottom: auto;
+    height: calc(var(--day-pad) + 1.1rem);
+  }
+
+  .day-number {
+    position: absolute;
+    top: var(--day-pad);
+    left: 0;
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-background);
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    transition:
+      background-color 300ms ease,
+      border-color 300ms ease,
+      color 300ms ease;
+  }
+  .day-step[data-state="done"] .day-number {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+  .day-step[data-state="current"] .day-number {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    color: var(--color-primary-text);
+  }
+
+  .day-words {
+    transition: opacity 360ms ease;
+  }
+  .day-step:not([data-state="current"]) .day-words {
+    opacity: 0.4;
+  }
+
+  .day-marker {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+  }
+
+  @media (min-width: 768px) {
+    .day {
+      --day-pad: 22dvh;
+    }
+
+    /* Beside the steps, the phone is held in the middle of the screen, in its well. */
+    .day-stage {
+      top: calc(50dvh - var(--day-phone-w) * 1.06 - 1.5rem);
+      z-index: auto;
+      isolation: isolate;
+      align-self: start;
+      padding-block: 1.5rem;
+      background: none;
+    }
+    .day-stage::after {
+      display: none;
+    }
+    .day-phone {
+      width: var(--day-phone-w);
+    }
+    .day-well {
+      position: absolute;
+      inset: 16% 0;
+      z-index: -1;
+      display: block;
+      border-radius: 2rem;
+      background: var(--color-sunken);
+    }
+    .day-dots {
+      display: none;
+    }
+    .day-step {
+      padding-left: 4rem;
+    }
+    /* Room for the numbers to come up while the phone is still held. */
+    .day-step:last-child {
+      padding-bottom: calc(var(--day-pad) + 50dvh);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .day-screen {
+      transition: opacity 200ms ease;
+    }
+    .day-screen[data-state="before"],
+    .day-screen[data-state="after"] {
+      opacity: 0;
+      filter: none;
+      transform: none;
+    }
+    .day-screen[data-state="under"] {
+      filter: none;
+    }
+    .day-spot,
+    .day-screen[data-state="current"] .day-spot {
+      transform: none;
+      transition: opacity 200ms ease;
+    }
   }
 }

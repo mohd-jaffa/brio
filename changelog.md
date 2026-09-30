@@ -3955,3 +3955,22 @@ A second `/impeccable optimize` pass, on the built app at 390 px, with a throttl
 
 ### Blockers
 - None. The version stays 0.1.0 until the release is made (`docs/RELEASE.md`, C1).
+
+## 2026-09-30 — A day on one phone
+
+### Changed
+- **The landing page's day is told on one phone** (the user: "/impeccable overdrive for about page", choosing "A day on one phone" of three directions; plan §139.11.22). The five alternating rows become one phone that stays put while the day's five steps pass beside it (`DayOnOnePhone`):
+  - from 768 px it is held in the middle of the screen, in a sunken well, beside the steps; on a phone it is pinned above them on the page's ground, and they pass beneath it;
+  - its screen changes as each step reaches the middle, the way the app moves: a screen pushes in from the side over the last, the bill rises as a sheet over Home, and the last step shows the stock, then the numbers;
+  - once a screen settles, a caramel ring marks what the step is about;
+  - a rail numbers the steps; the one being read is filled, those read are outlined, the rest dim;
+  - scrolling back up plays it back. Under reduced motion the screens fade.
+- Which screen shows is worked out once a frame, from where the steps' markers stand against the middle of the screen (or, on a phone, of the part under the pinned phone), so it works in every browser. The per-row scroll motion it replaces is gone.
+
+### Validation
+- Stepped through at 1440 × 900 and 390 × 844, down and back up: each screen comes in order, Home stays under the rising bill, the numbers come up while the phone is still held, and the first screen returns at the top. The bill's step seen at 820 × 1180, 360 × 640, 844 × 390 and with reduced motion; nothing scrolls sideways.
+- Unit tests: `DayOnOnePhone` and the landing page fully covered; the landing journey passes on the build.
+- Lint, the type check and the format check pass.
+
+### Blockers
+- None.

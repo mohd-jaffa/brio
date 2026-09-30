@@ -1,11 +1,20 @@
 import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Landing } from "@/components/landing/Landing";
 import { UI_TEXT } from "@/constants/messages";
 
 const text = UI_TEXT.landing;
 const show = (signedIn = false) => render(<Landing signedIn={signedIn} year={2026} />);
+
+// The day's pinned phone asks the screen's width (DayOnOnePhone).
+beforeEach(() => {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn(() => ({ matches: true })),
+  );
+});
+afterEach(() => vi.unstubAllGlobals());
 
 describe("the landing page", () => {
   it("says what Brio is in its own line, and who it is for", () => {
@@ -24,12 +33,12 @@ describe("the landing page", () => {
     show();
     const day = screen.getByRole("region", { name: text.dayTitle });
     for (const feature of Object.values(text.features)) {
-      const article = within(day).getByRole("article", { name: feature.title });
-      for (const point of feature.points) expect(within(article).getByText(point)).toBeInTheDocument();
+      const step = within(day).getByRole("listitem", { name: feature.title });
+      for (const point of feature.points) expect(within(step).getByText(point)).toBeInTheDocument();
     }
-    // Home is shown twice: in front of the laptop, and beside what it is for.
+    // The day's phone shows one screen at a time; the rest wait, out of reach.
     for (const alt of Object.values(text.shots))
-      expect(screen.getAllByRole("img", { name: alt }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole("img", { name: alt, hidden: true }).length).toBeGreaterThan(0);
   });
 
   it("says where it runs, and what is kept private, with the policy a link away", () => {

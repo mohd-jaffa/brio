@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { UI_TEXT } from "@/constants/messages";
 
@@ -10,7 +10,13 @@ const { default: AboutPage, metadata } = await import("@/app/about/page");
 
 beforeEach(() => {
   session.current = null;
+  // The day's pinned phone asks the screen's width (DayOnOnePhone).
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn(() => ({ matches: true })),
+  );
 });
+afterEach(() => vi.unstubAllGlobals());
 
 describe("the landing page's route", () => {
   it("is named and described for a search or a shared link", () => {

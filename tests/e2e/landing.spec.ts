@@ -18,10 +18,13 @@ test("a visitor meets Brio on the landing page, and goes on to make an account",
   for (const feature of Object.values(text.features)) {
     await expect(page.getByRole("heading", { level: 3, name: feature.title })).toBeVisible();
   }
-  const bill = page.getByRole("img", { name: text.shots.bill });
-  await bill.scrollIntoViewIfNeeded();
-  await expect(bill).toHaveJSProperty("complete", true);
-  expect(await bill.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
+  // The day's phone opens on taking an order, its screen loaded; the bill comes up as its step does.
+  const order = page.getByRole("img", { name: text.shots.order });
+  await order.scrollIntoViewIfNeeded();
+  await expect(order).toHaveJSProperty("complete", true);
+  expect(await order.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
+  await page.getByRole("heading", { level: 3, name: text.features.bill.title }).scrollIntoViewIfNeeded();
+  await expect(page.getByRole("img", { name: text.shots.bill })).toBeVisible();
 
   await page.getByRole("link", { name: text.start }).first().click();
   await expect(page).toHaveURL(/\/register$/);

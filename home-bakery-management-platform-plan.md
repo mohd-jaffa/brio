@@ -8854,10 +8854,15 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
   the words settle in. Inside 1.5 s, CSS only; with reduced motion it fades.
   And as it scrolls ("give animation while scrolling down and up also"),
   tied to the scroll so scrolling up plays it back: titles rise out of their
-  line, each day's phones rise out of their well and drift on, each point's
-  check is drawn, the pictures are set down in turn, the hero steps back, the
-  closing photograph settles. Still without scroll timelines or with
-  reduced motion.
+  line, each point's check is drawn, the pictures are set down in turn, the
+  hero steps back, the closing photograph settles. Still without scroll
+  timelines or with reduced motion.
+- **A day on one phone** ("overdrive for about page"; the direction the user
+  chose of three): the day's five steps pass beside one phone that stays put
+  (pinned above them on a phone), and its screen changes as each step comes
+  up, the way the app moves — a push from the side, the bill rising as a
+  sheet — with a ring on what the step is about. It replaces the five
+  alternating rows (`DayOnOnePhone`).
 
 ### 139.11.23 Releases, and Vercel (the user, 2026-09-30)
 
