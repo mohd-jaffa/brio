@@ -20,7 +20,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("the landing page's route", () => {
   it("is named and described for a search or a shared link", () => {
-    expect(metadata).toEqual({ title: UI_TEXT.landing.metaTitle, description: UI_TEXT.landing.metaDescription });
+    expect(metadata).toEqual({ title: UI_TEXT.appTitle, description: UI_TEXT.landing.metaDescription });
   });
 
   it("offers an account to a visitor, and the app to someone signed in", async () => {

@@ -4078,3 +4078,29 @@ A second `/impeccable optimize` pass, on the built app at 390 px, with a throttl
 
 ### Blockers
 - None.
+
+## 2026-10-01 — The browser says Brio; the release guide and the README
+
+### Changed
+- **The site's name in the browser is Brio alone** (the user: "for the site name the browser just keep as Brio … no tag line required"). `UI_TEXT.appTitle` is "Brio". It is what a tab says on every screen of the app and on `/about`, and the installed app's name in the manifest; `/about`'s "the order book for home businesses" is gone (`metaTitle` removed). A page with a name of its own still says it first: "Sign in — Brio".
+- **`docs/RELEASE.md`** (the user: "update the release md file if needed, mention what needs to be added as release note"):
+  - **C2, What goes in the release notes:** how to collect what changed since the last tag (commits, new migrations, new settings, the changelog); the sections to write (New, Changed, Fixed, For developers, Setting it up, Before you update); what never goes in; and a template for a later release.
+  - **The v1.0.0 notes** describe the landing page as it is now.
+- **`README.md`** brought up to date:
+  - what Brio is for (home businesses, not only bakers);
+  - both seeded accounts, the developer console's included;
+  - the landing page, the privacy policy and `/admin`;
+  - that no worker runs for now, and what stands in for it;
+  - the error and audit logs, and their seven days;
+  - every check CI runs;
+  - releasing through a published GitHub release;
+  - the Android guide;
+  - how the landing page's screenshots are made.
+- Affected: `src/constants/messages.ts`, `src/app/about/page.tsx`, `src/app/manifest.ts` (through `appTitle`), their tests; docs.
+
+### Validation
+- The app's unit tests pass. The manifest names the app Brio, and `/about`'s title is Brio.
+- Lint, the type check and the format check pass.
+
+### Blockers
+- None.

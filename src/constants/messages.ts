@@ -137,8 +137,11 @@ export const UI_TEXT = {
   // app … change the app name and tagline").
   appName: "Brio",
   appTagline: "Made by you. Managed simply.",
-  /** What a browser tab, a search result and a shared link say of the app. */
-  appTitle: "Brio — Made by you. Managed simply.",
+  /**
+   * What a browser tab, a search result and a shared link call the app: its
+   * name alone, with no line (the user, 2026-10-01).
+   */
+  appTitle: "Brio",
   /** The name under the icon once the app is installed (plan §139.19 R7.1). */
   appShortName: "Brio",
   /** The line under a business's name in the header when it has no catch phrase of its own. */
@@ -1235,7 +1238,6 @@ export const UI_TEXT = {
    * the app does — no prices, no numbers of users, no quotes.
    */
   landing: {
-    metaTitle: "Brio — the order book for home businesses",
     metaDescription:
       "Brio keeps the orders, customers, stock and money of a home business in one place, for home bakers, hamper makers, florists and gift makers.",
     signIn: "Sign in",

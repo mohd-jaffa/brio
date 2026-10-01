@@ -238,8 +238,65 @@ npm version 1.0.0 --no-git-tag-version
    - None.
    ```
 
-2. Draft the release notes: for v1.0.0 they are part E; for a later release,
-   what changed since the last one.
+2. Draft the release notes: for v1.0.0 they are part E, ready to paste. For
+   a later release, write them as below.
+
+#### What goes in the release notes
+
+They are for the people who use Brio, and for you when you set it up. Write
+what changed for them, in plain words, not the commits.
+
+1. **Collect what changed** since the last release (here `v1.0.0`; use the
+   last tag you published):
+
+   ```bash
+   git log v1.0.0..HEAD --oneline                       # every commit since
+   git diff --name-only v1.0.0..HEAD -- supabase/migrations   # new migrations
+   git diff v1.0.0..HEAD -- .env.example                # new or changed settings
+   ```
+
+   and read the `changelog.md` entries dated after the last release. Each
+   entry says what changed, why, and what the database gets.
+
+2. **Write these sections**, leaving out any that are empty:
+
+   | Section | What goes in it |
+   |---|---|
+   | A one-line summary | What this release is about, under the title. |
+   | **New** | Each new thing someone can do, one line each, grouped by screen (Orders, Home, Bills, Customers, Products, stock and money, Reminders, Your account, Everywhere), as part E does. |
+   | **Changed** | What works or looks differently now, and why it is better. |
+   | **Fixed** | What was wrong, as the user saw it, now right. |
+   | **For developers** | Changes to the console, the logs, CI or the release itself. |
+   | **Setting it up** | Every new migration by number (the release applies them; say what each adds). Every new or changed environment variable or GitHub secret, and where to set it (B1, step 5; B3) — **set these before you publish**. Any one-time step, such as a new Vault secret (B2). |
+   | **Before you update** | Only if something breaks for someone already using Brio: what they must do. |
+
+3. **Leave out** secrets, keys, passwords, internal file paths and anything
+   about a private customer. Never promise what the release does not do.
+
+A later release's notes then look like this:
+
+```markdown
+**Brio 1.1.0**
+
+One line on what this release is about.
+
+### New
+- …
+
+### Changed
+- …
+
+### Fixed
+- …
+
+### Setting it up
+- The release applies migrations 0037 to 0039: …
+- New environment variable `…` in Vercel (Production), before publishing.
+```
+
+GitHub's **Generate release notes** button lists the commits and pull
+requests since the last tag. Use it as a reminder of what changed, then
+rewrite it as above.
 
 ### C3. Commit, push, and wait for green
 
@@ -446,7 +503,10 @@ one place, on a phone, a tablet or a computer.
 - A phone, a tablet and a computer, each laid out for its screen.
 - Install it on a phone's home screen from the browser, or use the Android
   app.
-- A landing page at `/about` shows what Brio does, on its own screens.
+- A landing page at `/about` shows what Brio does: a day's work, taking an
+  order to the month's costs, on Brio's own screens, on one phone held beside
+  the steps on a tablet or a computer, and step by step on a phone. The sign-in
+  screen links to it.
 
 ### For developers
 - A developer console at `/admin`: every account, an error log of what failed

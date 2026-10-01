@@ -5,7 +5,7 @@ import { UI_TEXT } from "@/constants/messages";
 import { readInitialSession } from "@/features/auth/session.server";
 
 export const metadata: Metadata = {
-  title: UI_TEXT.landing.metaTitle,
+  title: UI_TEXT.appTitle,
   description: UI_TEXT.landing.metaDescription,
 };
 
