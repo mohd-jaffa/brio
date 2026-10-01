@@ -116,7 +116,7 @@ export const TextField = forwardRef<
           <span
             id={prefixId}
             className={cn(
-              "pointer-events-none absolute inset-y-2 flex items-center border-r border-border pr-3 text-sm font-medium text-text",
+              "pointer-events-none absolute inset-y-2 flex items-center border-r border-border pr-3 text-base font-medium text-text",
               leading ? "left-12" : "left-4",
             )}
           >

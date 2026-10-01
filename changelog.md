@@ -4146,3 +4146,22 @@ A second `/impeccable optimize` pass, on the built app at 390 px, with a throttl
 
 ### Blockers
 - None.
+
+## 2026-10-01
+
+### Fixed
+- **Tapping a field no longer zooms the page on an iPhone** (the user: "When in mobile web, when i click any form field, keyboard opens as well as the page gets zoomed in. Fix that."). iOS zooms in on any field whose text is smaller than 16 px, and ours were 14 px.
+  - Typed text is now 16 px on every screen size: the field well (`FIELD_WELL`, shared with the select and the date picker), a field's `+91` prefix, the search box and the quantity stepper's number.
+  - The well keeps its height (46 px) with less padding, so no layout moves.
+- **A quick second tap on a control is a tap**, not a double-tap that zooms: buttons, links, fields and labels take `touch-action: manipulation` (globals.css).
+- **Pinch zoom is left on.** The viewport is not locked with `maximum-scale=1` or `user-scalable=no`:
+  - locking it fails WCAG 1.4.4 and Lighthouse's accessibility check;
+  - iOS Safari ignores it for pinching anyway.
+- Affected: `src/components/ui/field-styles.ts`, `text-field.tsx`, `search-field.tsx`, `quantity-stepper.tsx`, globals.css, DESIGN.md (Inputs) and `.impeccable/design.json`.
+
+### Validation
+- On the build at 390 px, every field on sign in, registration, Customers, Products, Stock and a new order measures 16 px, at its old height. The custom item sheet and the order details' stepper looked right.
+- The UI kit's unit tests pass. Lint and the format check pass.
+
+### Blockers
+- None.

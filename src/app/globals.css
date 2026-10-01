@@ -277,6 +277,20 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* A quick second tap on a control — the stepper's plus, a chip — is a tap,
+     not a double-tap that zooms the page. Pinching still zooms: the page is
+     never locked against it (WCAG 1.4.4). */
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  label,
+  summary,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+
   /* A default, not a verdict: unlayered, this beat every utility, so no
      heading could ever be given a different family by a class. */
   h1,

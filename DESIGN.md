@@ -452,7 +452,7 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 - **Action row** (`ActionRow`): a card-width row that opens something rather than naming a record: a mark, a title and a line under it, and a chevron. Add custom item above the product grid, and the customer on an order, are both one.
 
 ### Inputs / Fields
-- **Style:** Flour Well fill, a Field Edge border (Oat Field Edge, Blush Field Edge), 12 px corners, 12 × 16 px padding, 14 px medium text. The edge clears 3 : 1 against the page, the card and the well itself, so an empty field can be found before it is focused (WCAG 1.4.11; audit A1, 2026-09-29). A hairline stays for cards and dividers, never for something typed into; the search box and the quantity stepper take the edge too.
+- **Style:** Flour Well fill, a Field Edge border (Oat Field Edge, Blush Field Edge), 12 px corners, 10 × 16 px padding, 16 px medium text — never less, or an iPhone zooms the page in as the field is tapped; the search box and the stepper's number are 16 px too. The edge clears 3 : 1 against the page, the card and the well itself, so an empty field can be found before it is focused (WCAG 1.4.11; audit A1, 2026-09-29). A hairline stays for cards and dividers, never for something typed into; the search box and the quantity stepper take the edge too.
 - **Focus:** the border turns caramel with a 1 px caramel ring, and the caret is caramel.
 - **Error:** a brick border and ring, with the message beside the field.
 - **Read-only:** muted text, a hairline in place of the edge (there is nothing to type), and no focus ring.
