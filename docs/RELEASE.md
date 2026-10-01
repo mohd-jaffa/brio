@@ -335,6 +335,8 @@ The mail settings for B5:
    - Plan: Free.
    - Choose a strong database password and keep it. It is
      `SUPABASE_DB_PASSWORD`.
+   - **Security:** **Enable Data API** on; **Automatically expose new tables**
+     off (every migration grants its own access); **Enable automatic RLS** on.
 
 2. **Note its values**, from Project Settings → API Keys and the project's
    home page:
