@@ -1,28 +1,24 @@
-import { UI_TEXT } from "@/constants/messages";
+import { MAIL_TEXT } from "@/constants/messages";
+
+import { emailHtml, emailText, type EmailParts } from "./layout";
 
 interface AccountConfirmationTemplateInput {
+  appUrl: string;
   name: string;
   confirmationUrl: string;
 }
 
+/** A new account's email, to confirm the address it was made with. */
 export function accountConfirmationTemplate(input: AccountConfirmationTemplateInput) {
-  const subject = `Confirm your ${UI_TEXT.appName} account`;
-  const text = [
-    `Hi ${input.name},`,
-    "",
-    `Your ${UI_TEXT.appName} account has been created successfully.`,
-    "Please confirm your email address using this secure link:",
-    input.confirmationUrl,
-    "",
-    "If you did not create this account, you can ignore this email.",
-  ].join("\n");
-
-  const html = `
-    <p>Hi ${input.name},</p>
-    <p>Your ${UI_TEXT.appName} account has been created successfully.</p>
-    <p><a href="${input.confirmationUrl}">Confirm your email address</a></p>
-    <p>If you did not create this account, you can ignore this email.</p>
-  `;
-
-  return { subject, text, html };
+  const text = MAIL_TEXT.confirmation;
+  const parts: EmailParts = {
+    appUrl: input.appUrl,
+    subject: text.subject,
+    preheader: text.preheader,
+    heading: text.heading,
+    paragraphs: [MAIL_TEXT.greeting(input.name), text.body],
+    action: { label: text.action, url: input.confirmationUrl, fallback: MAIL_TEXT.linkFallback },
+    footnote: text.footnote,
+  };
+  return { subject: text.subject, text: emailText(parts), html: emailHtml(parts) };
 }

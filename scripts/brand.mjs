@@ -20,6 +20,9 @@
 //   src/assets/brand/leaf.webp               the leaf alone, the smallest mark
 //   public/icons/badge-96.png                the mark in white, which Android's
 //                                            status bar shows for a web push (R8.6)
+//   public/email/wordmark.png, leaf.png      the wordmark and the leaf for the
+//                                            emails, as PNG — what every mail app
+//                                            shows — at three times their size
 //
 // And, once the Android project exists (npx cap add android), its launcher
 // icons and splash in android/app/src/main/res/:
@@ -247,6 +250,9 @@ const written = {
     .resize({ height: 96 })
     .webp({ quality: 90, alphaQuality: 95, effort: 6 })
     .toBuffer(),
+  // An email draws the wordmark 36 px tall and the leaf 16 (src/lib/mail/templates/layout.ts).
+  "public/email/wordmark.png": await sharp(wordmark).resize({ height: 108 }).png(PNG).toBuffer(),
+  "public/email/leaf.png": await sharp(leaf).resize({ height: 48 }).png(PNG).toBuffer(),
 };
 // Android's densities, as multiples of a density-independent pixel.
 const DENSITIES = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 };

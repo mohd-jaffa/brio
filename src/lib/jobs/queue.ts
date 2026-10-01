@@ -1,6 +1,7 @@
 import { type SupabaseClient } from "@supabase/supabase-js";
 
 import { JOB_LEASE_MS, JOB_RETRY_BASE_MS, JOB_RETRY_MAX_MS, MAX_JOB_ATTEMPTS } from "@/constants/jobs";
+import { captureError } from "@/lib/audit/errorLog";
 import { internalError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server";
@@ -139,7 +140,7 @@ export async function runSweeps(client: SupabaseClient): Promise<void> {
     try {
       await sweep(client);
     } catch (error) {
-      logger.error("Sweep failed", { sweep: name, reason: error instanceof Error ? error.message : String(error) });
+      await captureError({ source: "WORKER", message: "Sweep failed", error, context: { sweep: name } });
     }
   }
 }
@@ -160,7 +161,12 @@ export async function processNextJob(client: SupabaseClient, workerId: string): 
     await markCompleted(client, job, workerId);
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
-    logger.error("Job failed", { jobId: job.id, type: job.type, attempt: job.attempts, reason });
+    await captureError({
+      source: "WORKER",
+      message: "Job failed",
+      error,
+      context: { jobId: job.id, type: job.type, attempt: job.attempts },
+    });
     await markFailed(client, job, workerId, reason);
   }
   return true;

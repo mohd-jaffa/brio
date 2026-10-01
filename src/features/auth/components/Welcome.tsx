@@ -2,7 +2,7 @@
 
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
 
 import { BRAND, brandWidth } from "@/assets/brand";
 import { WELCOME_SCENES, type WelcomeScene } from "@/assets/onboarding";
@@ -73,7 +73,8 @@ export function Welcome() {
  *   first slide's title.
  * - **One slide at a time:** a picture, a title and a line, with dots for
  *   where it stands. Next, Back, the arrow keys and a swipe move it; each new
- *   slide is read out. The slides not shown are out of reach.
+ *   slide is read out. The slides not shown are out of reach, and focus on
+ *   something about to go out of reach moves to the new slide's title.
  * - **Skip, Escape and Get started** all end it. It is recorded at once
  *   (`AuthClient.markWelcomed`) and lifts away; a failed record only means it
  *   is shown again on the next visit.
@@ -87,7 +88,9 @@ function WelcomeSlides({ profile, onDone }: { profile: AuthProfile; onDone: (wel
   const [leaving, setLeaving] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const body = useRef<HTMLDivElement>(null);
-  const firstTitle = useRef<HTMLHeadingElement>(null);
+  const back = useRef<HTMLDivElement>(null);
+  const titles = useRef<HTMLHeadingElement[]>([]);
+  const refocus = useRef(false);
   const drag = useRef<{ id: number; x: number; y: number; dragging: boolean } | null>(null);
 
   useEffect(() => {
@@ -98,7 +101,7 @@ function WelcomeSlides({ profile, onDone }: { profile: AuthProfile; onDone: (wel
       // Drawn open with the page, which is not yet modal: made so, in place.
       element.close();
       element.showModal();
-      firstTitle.current?.focus();
+      titles.current[0].focus();
     });
     return () => {
       stop();
@@ -110,9 +113,31 @@ function WelcomeSlides({ profile, onDone }: { profile: AuthProfile; onDone: (wel
   const go = (next: number) => {
     const to = Math.max(0, Math.min(last, next));
     if (to === index) return;
+    // The leaving slide's title, and Back as the first slide comes, are about
+    // to be put out of reach; focus there would fall out of the welcome.
+    const active = document.activeElement as HTMLElement;
+    refocus.current =
+      titles.current.includes(active as HTMLHeadingElement) || (to === 0 && back.current!.contains(active));
     setIndex(to);
     setMoved(true);
   };
+
+  useEffect(() => {
+    if (!refocus.current) return;
+    refocus.current = false;
+    titles.current[index].focus();
+  }, [index]);
+
+  // The arrow keys turn it wherever focus is: nothing else takes keys while it is open.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.altKey || event.ctrlKey || event.metaKey) return;
+      if (event.key === "ArrowRight") go(index + 1);
+      else if (event.key === "ArrowLeft") go(index - 1);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  });
 
   const finish = () => {
     if (leaving) return;
@@ -120,12 +145,6 @@ function WelcomeSlides({ profile, onDone }: { profile: AuthProfile; onDone: (wel
     void AuthClient.markWelcomed().catch(() => undefined);
     const welcomedAt = new Date().toISOString();
     window.setTimeout(() => onDone(welcomedAt), WELCOME_LEAVE_MS);
-  };
-
-  const onKeyDown = (event: KeyboardEvent<HTMLDialogElement>) => {
-    if (event.altKey || event.ctrlKey || event.metaKey) return;
-    if (event.key === "ArrowRight") go(index + 1);
-    else if (event.key === "ArrowLeft") go(index - 1);
   };
 
   // A swipe: the slide follows the finger, held back past either end, and
@@ -181,7 +200,6 @@ function WelcomeSlides({ profile, onDone }: { profile: AuthProfile; onDone: (wel
         event.preventDefault();
         finish();
       }}
-      onKeyDown={onKeyDown}
       className="welcome"
     >
       <div className="welcome-frame safe-top [--safe-pt:0.75rem] safe-x [--safe-px:1.25rem] safe-bottom [--safe-pb:1.25rem] md:[--safe-px:2.5rem] md:[--safe-pb:2rem]">
@@ -237,7 +255,9 @@ function WelcomeSlides({ profile, onDone }: { profile: AuthProfile; onDone: (wel
                   className="welcome-text [grid-area:1/1]"
                 >
                   <h2
-                    ref={at === 0 ? firstTitle : undefined}
+                    ref={(title) => {
+                      titles.current[at] = title!;
+                    }}
                     tabIndex={-1}
                     className="welcome-title text-balance font-heading text-[1.875rem] font-medium leading-[1.15] tracking-[-0.025em] text-text md:text-[2.25rem] lg:text-[2.5rem] [@media(max-height:44rem)]:text-[1.625rem]"
                   >
@@ -257,7 +277,7 @@ function WelcomeSlides({ profile, onDone }: { profile: AuthProfile; onDone: (wel
                 ))}
               </div>
               <div className="flex items-stretch">
-                <div data-shown={index > 0 || undefined} inert={index === 0} className="welcome-back">
+                <div ref={back} data-shown={index > 0 || undefined} inert={index === 0} className="welcome-back">
                   <div className="absolute inset-y-0 left-0 flex">
                     <Button
                       aria-label={text.back}

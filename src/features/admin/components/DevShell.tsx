@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, LogOut, ScrollText, Users, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, LogOut, ScrollText, TriangleAlert, Users, type LucideIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -22,6 +22,7 @@ const text = UI_TEXT.admin;
 const PLACES: { href: string; label: string; icon: LucideIcon }[] = [
   { href: ADMIN_ROUTES.overview, label: text.places.overview, icon: LayoutDashboard },
   { href: ADMIN_ROUTES.users, label: text.places.users, icon: Users },
+  { href: ADMIN_ROUTES.logs, label: text.places.logs, icon: TriangleAlert },
   { href: ADMIN_ROUTES.audit, label: text.places.audit, icon: ScrollText },
 ];
 
@@ -56,7 +57,7 @@ function SignedIn() {
  * The developer console's frame (plan §37; the user, 2026-09-27): plain
  * white and blue (`data-theme="dev"`, globals.css), a top bar with the app's
  * icon and the console's name and who is signed in, and its places as tabs — the
- * overview, the accounts and the audit log. Read-only. The job queue has no
+ * overview, the accounts, the error log and the audit log. Read-only. The job queue has no
  * page while no worker runs (WORKER_ENABLED): nothing new is queued.
  *
  * It lets in only a developer: anyone signed out goes to sign in, anyone

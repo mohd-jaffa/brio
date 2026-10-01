@@ -2,6 +2,7 @@ import { UI_TEXT } from "@/constants/messages";
 import { ORDER_STATUSES, type DeliveryType, type OrderStatus } from "@/constants/statuses";
 import { dayKey } from "@/lib/dates/calendar";
 import { bucketIndex, bucketStarts, type Interval, type Period } from "@/lib/dates/range";
+import { averagePaise } from "@/lib/money";
 
 import type { Figure, ProductSales, TopCustomer } from "./types";
 
@@ -57,8 +58,7 @@ export function headlineFigures(
 ): { sales: Figure; orders: Figure; newCustomers: Figure; averageOrder: Figure } {
   const now = counted(current);
   const then = counted(previous);
-  const average = (orders: readonly ReportOrder[]) =>
-    orders.length === 0 ? 0 : Math.round(sales(orders) / orders.length);
+  const average = (orders: readonly ReportOrder[]) => averagePaise(sales(orders), orders.length);
   return {
     sales: { value: sales(now), previous: sales(then) },
     orders: { value: now.length, previous: then.length },

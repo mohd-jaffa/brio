@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Where the landing page's day holds its phone beside the steps: a screen wide
+   enough for both, and tall enough for the phone (DayOnOnePhone). */
+@custom-variant held (@media (min-width: 768px) and (min-height: 600px));
+
 /* ============================================================
    BRIO DESIGN TOKENS — Golden and Peach (plan §139.4)
 
@@ -271,6 +275,20 @@
     -webkit-tap-highlight-color: transparent;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* A quick second tap on a control — the stepper's plus, a chip — is a tap,
+     not a double-tap that zooms the page. Pinching still zooms: the page is
+     never locked against it (WCAG 1.4.4). */
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  label,
+  summary,
+  [role="button"] {
+    touch-action: manipulation;
   }
 
   /* A default, not a verdict: unlayered, this beat every utility, so no
@@ -1427,5 +1445,690 @@ html[data-launch="leaving"] .launch-splash {
 
   .welcome[data-leaving] {
     animation-duration: 200ms;
+  }
+}
+
+/* ============================================================
+   The landing page's devices (PhoneFrame, LaptopFrame; plan
+   §139.11.22 — the user, 2026-09-30: "a phone like framed
+   screenshot like with iphone 18 pro"). A current Pro phone: a
+   titanium band, an even black border, the Dynamic Island over
+   the status bar its screenshot carries, and its buttons; and a
+   laptop with a thin black border and an aluminium base. Every
+   measure is a share of the frame's own width (cqw), so a frame
+   is the same object at any size. These are the devices' own
+   colours, as the launch splash has its own, whatever the theme.
+   ============================================================ */
+/* In the components layer, so a frame's own size is set by the page's
+   utilities (w-[25%]) and not by its default width here. */
+@layer components {
+  .device-phone,
+  .device-laptop {
+    --device-titanium: linear-gradient(135deg, #a9a39c 0%, #57524d 22%, #d4cec6 48%, #5e5954 74%, #9d9790 100%);
+    --device-glass: #0a0a0b;
+    --device-aluminium: linear-gradient(180deg, #e6e3de 0%, #cbc7c1 55%, #a19c95 100%);
+    --device-rim: #c9c4bd;
+    container-type: inline-size;
+    position: relative;
+    width: 100%;
+  }
+
+  .device-phone-body {
+    position: relative;
+    padding: 1cqw;
+    border-radius: 16.4cqw;
+    background: var(--device-titanium);
+    box-shadow:
+      0 2.5cqw 5cqw -2cqw rgb(var(--shadow-tone) / 0.32),
+      0 12cqw 20cqw -10cqw rgb(var(--shadow-tone) / 0.42);
+  }
+
+  .device-phone-glass {
+    padding: 2.3cqw;
+    border-radius: 15.4cqw;
+    background: var(--device-glass);
+    box-shadow: inset 0 0 0 0.35cqw rgb(255 255 255 / 0.07);
+  }
+
+  /* 402 × 874: the screen in points, as the screenshots are taken. */
+  .device-phone-screen {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    aspect-ratio: 402 / 874;
+    border-radius: 13cqw;
+    background: var(--device-glass);
+  }
+
+  /* 126 × 37 points, 11 from the top, on a screen 93.4 % of the frame. */
+  .device-phone-island {
+    position: absolute;
+    z-index: 30;
+    top: 2.56cqw;
+    left: 50%;
+    width: 29.3cqw;
+    height: 8.6cqw;
+    translate: -50% 0;
+    border-radius: 999px;
+    background: #000;
+  }
+
+  .device-phone-button {
+    position: absolute;
+    width: 1.1cqw;
+    border-radius: 0.6cqw;
+    background: var(--device-titanium);
+  }
+  .device-phone-button[data-button="action"] {
+    left: -0.7cqw;
+    top: 17%;
+    height: 6%;
+  }
+  .device-phone-button[data-button="volume-up"] {
+    left: -0.7cqw;
+    top: 26%;
+    height: 10%;
+  }
+  .device-phone-button[data-button="volume-down"] {
+    left: -0.7cqw;
+    top: 38%;
+    height: 10%;
+  }
+  .device-phone-button[data-button="side"] {
+    right: -0.7cqw;
+    top: 28%;
+    height: 15%;
+  }
+  .device-phone-button[data-button="camera"] {
+    right: -0.7cqw;
+    top: 58%;
+    height: 8%;
+  }
+
+  .device-laptop-lid {
+    position: relative;
+    width: 86%;
+    margin-inline: auto;
+    padding: 1.5cqw 1.5cqw 2.3cqw;
+    border-radius: 2.4cqw 2.4cqw 0.6cqw 0.6cqw;
+    background: var(--device-glass);
+    box-shadow:
+      0 0 0 0.3cqw var(--device-rim),
+      0 4cqw 8cqw -4cqw rgb(var(--shadow-tone) / 0.35);
+  }
+
+  .device-laptop-camera {
+    position: absolute;
+    top: 0.5cqw;
+    left: 50%;
+    width: 0.55cqw;
+    height: 0.55cqw;
+    translate: -50% 0;
+    border-radius: 50%;
+    background: #202024;
+  }
+
+  /* 1440 × 900: the app on a desktop, as the screenshot is taken. */
+  .device-laptop-screen {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 1440 / 900;
+    border-radius: 0.5cqw;
+  }
+
+  .device-laptop-base {
+    position: relative;
+    height: 2.1cqw;
+    border-radius: 0.3cqw 0.3cqw 2.4cqw 2.4cqw / 0.3cqw 0.3cqw 1.7cqw 1.7cqw;
+    background: var(--device-aluminium);
+    box-shadow: 0 3cqw 5cqw -2.5cqw rgb(var(--shadow-tone) / 0.45);
+  }
+
+  /* The notch the lid is lifted by. */
+  .device-laptop-base::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 14%;
+    height: 0.8cqw;
+    translate: -50% 0;
+    border-radius: 0 0 1cqw 1cqw;
+    background: rgb(0 0 0 / 0.12);
+  }
+}
+
+/* ============================================================
+   The landing page's arrival (Landing; plan §139.11.22 — the
+   user, 2026-09-30: "animate about page"). One sequence, once,
+   as the page arrives, and then nothing on the page moves: the
+   order book opens. The headline's two lines rise out of their
+   own line, one after the other; the laptop's lid swings up from
+   its hinge and its screen wakes onto Home; the phone steps up in
+   front of it; the words under the headline settle in behind.
+   All of it inside 1.5 s, in transforms and opacity. With reduced
+   motion the hero only fades in.
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  .landing-line {
+    animation: landing-line 820ms var(--ease-out-expo) both;
+    animation-delay: calc(var(--line, 0) * 120ms);
+  }
+
+  .landing-settle {
+    animation: landing-settle 700ms var(--ease-out-expo) both;
+    animation-delay: calc(380ms + var(--settle, 0) * 90ms);
+  }
+
+  .landing-laptop .device-laptop-lid {
+    transform-origin: 50% 100%;
+    animation: landing-lid 1000ms var(--ease-out-expo) 150ms both;
+  }
+
+  /* The screen is off while the lid comes up, and wakes as it settles. */
+  .landing-laptop .device-laptop-screen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--device-glass);
+    pointer-events: none;
+    animation: landing-wake 520ms ease-out 600ms both;
+  }
+
+  .landing-phone {
+    transform-origin: 50% 100%;
+    animation: landing-phone 820ms var(--ease-out-expo) 640ms both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-hero {
+    animation: landing-fade 240ms ease-out both;
+  }
+}
+
+@keyframes landing-line {
+  from {
+    transform: translateY(108%);
+  }
+}
+
+@keyframes landing-settle {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+}
+
+@keyframes landing-lid {
+  from {
+    transform: perspective(1400px) rotateX(-74deg);
+  }
+  to {
+    transform: perspective(1400px) rotateX(0deg);
+  }
+}
+
+@keyframes landing-wake {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes landing-phone {
+  from {
+    opacity: 0;
+    transform: translateY(16%) rotate(-4deg);
+  }
+}
+
+@keyframes landing-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ============================================================
+   The landing page as it scrolls (the user, 2026-09-30: "give
+   animation while scrolling down and up also"). Tied to the
+   scroll itself, so scrolling back up plays it backwards. Titles
+   rise out of their own line as they come into view, as the
+   headline does; on a phone, each step's screens rise out of their
+   well one by one, and drift on as they leave; each point is
+   ticked as it comes in, as a job is ticked off in an order book;
+   the
+   pictures of who it is for are set down one after another; the
+   hero's devices step back as the page moves on; the closing
+   photograph settles into its band. Transforms, opacity and a
+   check's stroke only. A browser without scroll timelines, or a
+   visitor who asks for reduced motion, sees the page still.
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .landing-rise-title {
+      view-timeline-name: --title;
+    }
+    .landing-rise-title > span {
+      animation: landing-line linear both;
+      animation-timeline: --title;
+      animation-range: entry 20% cover 30%;
+    }
+
+    .landing-words,
+    .day-ordinal {
+      animation: landing-settle linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 30%;
+    }
+
+    .landing-shelf {
+      view-timeline-name: --shelf;
+    }
+    .landing-well {
+      animation: landing-well linear both;
+      animation-timeline: --shelf;
+      animation-range: entry 0% cover 40%;
+    }
+    /* Each phone on its own, as a pair stands one under the other. */
+    .landing-shelf-phone {
+      animation:
+        landing-shelf-rise linear both,
+        landing-shelf-drift linear forwards;
+      animation-timeline: view(), view();
+      animation-range:
+        entry 5% cover 42%,
+        exit 0% exit 100%;
+    }
+
+    .landing-who {
+      view-timeline-name: --who;
+    }
+    /* The picture is set down, turning; its words only settle, and never tilt. */
+    .landing-sticker,
+    .landing-sticker-picture {
+      animation: landing-settle linear both;
+      animation-timeline: --who;
+      animation-range: entry calc(10% + var(--i, 0) * 12%) cover calc(28% + var(--i, 0) * 5%);
+    }
+    .landing-sticker-picture {
+      animation-name: landing-sticker;
+    }
+
+    .landing-devices {
+      view-timeline-name: --devices;
+    }
+    .landing-device {
+      animation: landing-device linear both;
+      animation-timeline: --devices;
+      animation-range: entry calc(20% + var(--i, 0) * 15%) cover calc(35% + var(--i, 0) * 6%);
+    }
+
+    .landing-hero {
+      view-timeline-name: --hero;
+    }
+    .landing-stage {
+      animation: landing-stage linear both;
+      animation-timeline: --hero;
+      animation-range: exit 0% exit 100%;
+    }
+
+    .landing-band {
+      view-timeline-name: --band;
+    }
+    .landing-plate {
+      transform-origin: 100% 50%;
+      animation: landing-plate linear both;
+      animation-timeline: --band;
+      animation-range: entry 0% cover 50%;
+    }
+  }
+}
+
+@keyframes landing-well {
+  from {
+    opacity: 0.3;
+    transform: scaleY(0.55);
+  }
+}
+
+@keyframes landing-shelf-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18%);
+  }
+}
+
+@keyframes landing-shelf-drift {
+  to {
+    transform: translateY(-6%);
+  }
+}
+
+@keyframes landing-sticker {
+  from {
+    opacity: 0;
+    transform: scale(0.7) rotate(-10deg);
+  }
+}
+
+@keyframes landing-device {
+  from {
+    opacity: 0;
+    transform: translateX(-1rem);
+  }
+}
+
+@keyframes landing-stage {
+  to {
+    opacity: 0.35;
+    transform: translateY(-6%) scale(0.95);
+  }
+}
+
+@keyframes landing-plate {
+  from {
+    transform: scale(1.14);
+  }
+}
+
+/* Each point's check is drawn once, as it comes into view, as a job
+   is ticked off; those that come in together, one after another
+   (Ticks). Until then it waits undrawn; under reduced motion, and
+   before the page's script runs, it is simply there. */
+.landing-tick path {
+  stroke-dasharray: 24;
+  transition: stroke-dashoffset 560ms var(--ease-out-expo) var(--tick-delay, 0ms);
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-tick="wait"] .landing-tick path {
+    stroke-dashoffset: 24;
+    transition: none;
+  }
+}
+
+/* ============================================================
+   A day on one phone (DayOnOnePhone; plan §139.11.22 — the user,
+   2026-09-30: "overdrive for about page", then "for mobile keep it
+   like before"). From 768 px the phone is held in the middle of the
+   screen, in its well, while the day's six steps pass beside it,
+   and its screen changes as each step comes up, the way the app
+   moves: a screen pushes in from the side over the last, pushed
+   aside and dimmed, under one status bar and header that stay
+   still; the bill rises as the app's sheet over Home, dimmed by the
+   app's scrim. Once a
+   screen settles, a caramel ring marks what the step is about. A
+   rail numbers the steps. Narrower than 768 px, or shorter than
+   600 px (a phone on its side), there is no held phone: each step
+   shows its own screens under its words, one under the other, each
+   with its ring always on, and its number beside its title. Under
+   reduced motion the screens fade.
+   ============================================================ */
+@layer components {
+  .day {
+    /* The held phone as wide as fits three-quarters of the screen's height. */
+    --day-phone-w: min(290px, calc(74dvh / 2.12));
+    --day-pad: 22dvh;
+    /* Where, in every screenshot, the app's header ends, and the bill's sheet begins. */
+    --day-chrome: 14.99%;
+    --day-sheet-top: 16.02%;
+  }
+
+  .day-stage,
+  .day-number {
+    display: none;
+  }
+
+  .day-steps {
+    display: grid;
+    gap: 5rem;
+  }
+
+  .day-step {
+    position: relative;
+  }
+
+  .day-marker {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+  }
+
+  /* Each screen is what lies under the app's header; the header itself is
+     drawn once, above them all (.day-chrome). */
+  .day-screen {
+    position: absolute;
+    inset: 0;
+    z-index: calc(var(--at, 0) + 1);
+    clip-path: inset(var(--day-chrome) 0 0 0);
+    transition:
+      transform 560ms var(--ease-out-expo),
+      opacity 380ms ease,
+      filter 420ms ease;
+  }
+  .day-screen[data-state="after"][data-enter="push"] {
+    transform: translateX(102%);
+  }
+  .day-screen[data-state="before"] {
+    filter: brightness(0.8);
+    transform: translateX(-28%);
+  }
+
+  /* The bill is the app's sheet: only the sheet, its corners rounded, rising
+     from the bottom edge over the scrim, and going down again when done. */
+  .day-screen[data-enter="sheet"] {
+    z-index: 12;
+    clip-path: inset(var(--day-sheet-top) 0 0 0 round 6cqw 6cqw 0 0);
+  }
+  .day-screen[data-enter="sheet"]:is([data-state="after"], [data-state="before"]) {
+    filter: none;
+    transform: translateY(100%);
+    transition-duration: 380ms;
+  }
+
+  .day-chrome {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    clip-path: inset(0 0 calc(100% - var(--day-chrome)) 0);
+    pointer-events: none;
+  }
+
+  .day-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 11;
+    background: var(--color-scrim);
+    backdrop-filter: blur(0.5cqw);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 320ms ease,
+      visibility 0s linear 320ms;
+    pointer-events: none;
+  }
+  .day-scrim[data-shown] {
+    opacity: 1;
+    visibility: visible;
+    transition:
+      opacity 380ms ease,
+      visibility 0s;
+  }
+
+  .day-spot {
+    position: absolute;
+    border-radius: 3.6cqw;
+    box-shadow:
+      0 0 0 0.55cqw var(--color-primary),
+      0 0 0 2.4cqw color-mix(in oklab, var(--color-primary) 18%, transparent);
+    opacity: 0;
+    transform: scale(1.06);
+    transition:
+      opacity 240ms ease,
+      transform 420ms var(--ease-out-expo);
+    pointer-events: none;
+  }
+  .day-spot[data-pill] {
+    border-radius: 999px;
+  }
+  .day-screen[data-state="current"] .day-spot,
+  .day-spot[data-still] {
+    opacity: 1;
+    transform: none;
+  }
+  .day-screen[data-state="current"] .day-spot {
+    transition-delay: 420ms;
+  }
+
+  /* The `held` variant's query (DayOnOnePhone, `HELD`). */
+  @media (min-width: 768px) and (min-height: 600px) {
+    .day-steps {
+      display: block;
+    }
+
+    /* Beside the steps, the phone is held in the middle of the screen, in its well. */
+    .day-stage {
+      position: sticky;
+      top: calc(50dvh - var(--day-phone-w) * 1.06 - 1.5rem);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      align-self: start;
+      isolation: isolate;
+      padding-block: 1.5rem;
+    }
+    .day-phone {
+      width: var(--day-phone-w);
+    }
+    .day-well {
+      position: absolute;
+      inset: 16% 0;
+      z-index: -1;
+      border-radius: 2rem;
+      background: var(--color-sunken);
+    }
+
+    .day-step {
+      padding-block: var(--day-pad);
+      padding-left: 4rem;
+    }
+    /* A step turns the phone as its title arrives (TURN_LINE). */
+    .day-step > .day-marker {
+      top: var(--day-pad);
+    }
+
+    /* The day's rail: a line down the steps, and each step's number on it. */
+    .day-step::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 1.1rem;
+      width: 1px;
+      background: var(--color-border);
+    }
+    .day-step:first-child::before {
+      top: calc(var(--day-pad) + 1.1rem);
+    }
+    .day-step:last-child::before {
+      bottom: auto;
+      height: calc(var(--day-pad) + 1.1rem);
+    }
+
+    .day-number {
+      position: absolute;
+      top: var(--day-pad);
+      left: 0;
+      display: grid;
+      place-items: center;
+      width: 2.2rem;
+      height: 2.2rem;
+      border: 1px solid var(--color-border);
+      border-radius: 999px;
+      background: var(--color-background);
+      color: var(--color-text-muted);
+      font-size: 0.875rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      transition:
+        background-color 300ms ease,
+        border-color 300ms ease,
+        color 300ms ease;
+    }
+    .day-step[data-state="done"] .day-number {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+    .day-step[data-state="current"] .day-number {
+      border-color: var(--color-primary);
+      background: var(--color-primary);
+      color: var(--color-primary-text);
+    }
+
+    /* The step being read is whole; those read stay easily read (muted text
+       still 4.6 : 1); those to come wait fainter. */
+    .day-words {
+      transition: opacity 360ms ease;
+    }
+    .day-step[data-state="done"] .day-words {
+      opacity: 0.9;
+    }
+    .day-step[data-state="next"] .day-words {
+      opacity: 0.55;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .day-screen {
+      transition: opacity 200ms ease;
+    }
+    .day-screen:is([data-state="before"], [data-state="after"]),
+    .day-screen[data-enter="sheet"]:is([data-state="before"], [data-state="after"]) {
+      opacity: 0;
+      filter: none;
+      transform: none;
+    }
+    .day-spot,
+    .day-screen[data-state="current"] .day-spot {
+      transform: none;
+      transition: opacity 200ms ease;
+    }
+  }
+}
+
+/* ============================================================
+   The landing page's start bar (StartBar; the critique,
+   2026-10-01). Along the bottom of a phone, of the app's own
+   bottom bar's material: it comes up from the edge once the hero's
+   buttons have gone, and goes down again at the closing band.
+   Hidden, it is not seen, tabbed to or read. Under reduced motion
+   it only fades.
+   ============================================================ */
+@layer components {
+  .landing-start-bar {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(100%);
+    transition:
+      transform 420ms var(--ease-out-expo),
+      opacity 240ms ease,
+      visibility 0s linear 420ms;
+  }
+  .landing-start-bar[data-shown] {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition:
+      transform 560ms var(--ease-out-expo),
+      opacity 240ms ease,
+      visibility 0s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .landing-start-bar {
+      transform: none;
+    }
   }
 }

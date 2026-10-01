@@ -28,7 +28,7 @@ export interface PrivacySection {
 
 export const PRIVACY_POLICY = {
   /** The day this text last changed, as a day key. */
-  updated: "2026-09-30",
+  updated: "2026-10-01",
   intro: [
     `${app} helps you run a home business: your orders, customers, products, stock, expenses and bills. This policy says what ${app} keeps, why it keeps it, who can see it, and how you delete it.`,
     `It covers ${app} on the web, installed from the browser, and the Android app.`,
@@ -49,8 +49,8 @@ export const PRIVACY_POLICY = {
         "Your account: your name, the mobile number you sign in with, your email address, the profile picture you chose, whether you have seen the welcome, and your password — kept only as a one-way hash, which no one can read back, not even us.",
         "Your business: its name, catch phrase, city, address, phone number and logo.",
         "What you record: customers (names, phone numbers, addresses and notes), products and stock, orders with their items, charges and discounts, payments (the amount, the method and any reference you type), and expenses.",
-        "A history of the changes made in your business — who changed what, and when — and notifications about orders that are due.",
-        "Records our server makes as it runs: when a request came, its reference number, and what went wrong, so faults can be found and fixed. They never hold your password.",
+        "A history of the changes made in your business — who changed what, and when — kept for 7 days, and notifications about orders that are due.",
+        `A record of anything that fails on our side: when and where in ${app} it happened, its reference number, which account and business it happened to, and what went wrong, so we can put it right. It is kept for 7 days and never holds your password.`,
         "If you turn on order reminders in a browser: the address that browser’s push service gives us to reach it, and the keys that lock what we send, kept until you sign out there or the address stops working. The Android app keeps its reminders on the phone itself.",
       ],
       after: [
@@ -75,8 +75,8 @@ export const PRIVACY_POLICY = {
       heading: "Who can see it",
       points: [
         "You, when you are signed in. Each business is kept apart from every other: no one signed in to another business can see yours.",
-        `The people who run ${app}, only when it is needed to keep it working or to answer you. Our developer console shows accounts and the history of changes, to us and no one else.`,
-        `The services that run ${app} for us: Supabase, which holds the database, the sign-in and the logo; Cloudflare, which carries the app to you; and Google’s Gmail, which sends ${app}’s emails. They handle your data only to provide their service to us.`,
+        `The people who run ${app}, only when it is needed to keep it working or to answer you. Our developer console shows accounts, the history of changes and the record of faults, to us and no one else.`,
+        `The services that run ${app} for us: Supabase, which holds the database, the sign-in and the logo; Vercel, which carries the app to you; and Google’s Gmail, which sends ${app}’s emails. They handle your data only to provide their service to us.`,
         "If you turn on order reminders in a browser, that browser’s own push service — Google’s for Chrome, Apple’s for Safari, Mozilla’s for Firefox — carries each one to you. What it carries is locked so that only your browser can read it.",
         "Anyone the law requires us to tell, and only what it requires.",
       ],
@@ -88,7 +88,7 @@ export const PRIVACY_POLICY = {
       points: [
         "Everything travels encrypted (HTTPS). Passwords are hashed. The sign-in cookie cannot be read by the page’s scripts, and the database checks which business a row belongs to before anyone sees it.",
         "We keep your data for as long as your account exists.",
-        `When you delete your account, it is deleted from ${app} at once. Copies in our backups are gone within 30 days. The server’s records are kept only as long as they help us find faults.`,
+        `When you delete your account, it is deleted from ${app} at once. Copies in our backups are gone within 30 days. The history of changes and the record of faults are deleted after 7 days.`,
       ],
     },
     {

@@ -134,6 +134,31 @@ describe("Welcome", () => {
     expect(title()).toHaveTextContent(text.bills.title);
   });
 
+  it("keeps focus on the slide's title as the keys turn it, and hears keys wherever focus is", () => {
+    show();
+    for (const expected of [text.orders.title, text.bills.title]) {
+      fireEvent.keyDown(document.activeElement!, { key: "ArrowRight" });
+      expect(title()).toHaveTextContent(expected);
+      expect(title()).toHaveFocus();
+    }
+    (document.activeElement as HTMLElement).blur();
+    fireEvent.keyDown(document.body, { key: "ArrowRight" });
+    expect(title()).toHaveTextContent(text.numbers.title);
+    expect(document.body).toHaveFocus();
+  });
+
+  it("leaves focus on Next as it turns, and moves it off Back as the first slide comes", () => {
+    show();
+    next().focus();
+    fireEvent.click(next());
+    expect(next()).toHaveFocus();
+    const back = within(welcome()).getByRole("button", { name: text.back });
+    back.focus();
+    fireEvent.click(back);
+    expect(title()).toHaveTextContent(text.hello.title("Asha"));
+    expect(title()).toHaveFocus();
+  });
+
   it("ends on Skip: recorded at once, lifted away, then the account is known to be welcomed", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-09-30T04:00:00.000Z"));

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { paiseToRupees, parseRupees, roundToPaise, rupeesToPaise, sumPaise } from "@/lib/money";
+import { averagePaise, paiseToRupees, parseRupees, roundToPaise, rupeesToPaise, sumPaise } from "@/lib/money";
 
 describe("roundToPaise", () => {
   it("rounds positive numbers to 2 decimal places", () => {
@@ -44,6 +44,18 @@ describe("rupeesToPaise", () => {
 describe("paiseToRupees", () => {
   it("converts for display", () => {
     expect(paiseToRupees(49950)).toBe(499.5);
+  });
+});
+
+describe("averagePaise", () => {
+  it("shares a total out to the nearest whole rupee", () => {
+    expect(averagePaise(923_000, 8)).toBe(115_400); // ₹1,153.75 reads ₹1,154
+    expect(averagePaise(870_000, 30)).toBe(29_000);
+    expect(averagePaise(1_050, 1)).toBe(1_100);
+  });
+
+  it("is zero over nothing", () => {
+    expect(averagePaise(5_000, 0)).toBe(0);
   });
 });
 

@@ -6689,7 +6689,7 @@ The queue table and the claim/complete/fail helpers exist. Nothing runs them.
 | K3 | **Pipeline closed 2026-09-29 by R6.4:** `.github/workflows/ci.yml` runs every gate but SonarQube. No SonarQube and no CI pipeline — there is no `.github/` directory, so none of §125 runs anywhere (§124–§125). *SonarQube kept for later (2026-09-28); the pipeline stays in Phase 6 (R6.4).* |
 | K4 | **Closed 2026-09-29 by R6.5:** `tests/e2e` drives the built app in a browser with Playwright. The "E2E" suite is a Vitest test that reads route files and checks their shape. There is no browser journey and no Playwright (§121). |
 | K5 | **Closed 2026-09-29 by R6.6:** `tests/db/integration` runs the app's data functions against the local Supabase. There are no integration tests against a real database. `tests/db` reads the migration SQL as text; it proves the file says the right thing, not that the database does. |
-| K6 | No rate limiting on authentication or on any mutation. *Decided 2026-09-29 (the user): no limiter in the app. Supabase Auth limits its own sign-ins, and Cloudflare's rate-limiting rule guards the sign-in routes at the edge (R6.2).* |
+| K6 | No rate limiting on authentication or on any mutation. *Decided 2026-09-29 (the user): no limiter in the app. Supabase Auth limits its own sign-ins, and Cloudflare's rate-limiting rule guards the sign-in routes at the edge (R6.2). 2026-10-01: on Vercel, its firewall's rate-limit rule does instead (§139.11.23).* |
 
 ---
 
@@ -8693,6 +8693,8 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
 - **Only what is kept:** no new logging. Server errors are written to the
   server's output only, so §37's `/admin/logs` and §103's `error_logs` are not
   built. `/admin/workers` waits for a worker.
+  *Changed 2026-09-30 (§139.11.21): the error log is built, at `/admin/logs`,
+  and the audit trail and the error log are kept seven days.*
 - **Look:** white and blue, sans throughout (`data-theme="dev"`), on the
   page only while the console is open.
 - **Accounts:** a developer owns no business (`profiles.bakery_id` may be null
@@ -8778,6 +8780,157 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
   The phone with a shopping cart (Brio takes no orders online) and the box
   printed "Brio" (the business's name leads, not ours) are left out.
 
+### 139.11.21 The error log, and seven days for every log (the user, 2026-09-30)
+
+- **Asked for:** "like audit logs, let there be proper error logs too. and
+  only dev can see it, also both error logs and audit logs will be cleared in
+  7 days, like the expire time will be 7 days." It builds §103's `error_logs`,
+  §104's central helper and §37's `/admin/logs`, which §139.11.16 had left
+  out while nothing kept errors.
+- **What is kept:** what failed on the server, in `error_logs`
+  (`0036_error_logs`): where (`API`, `SCREEN`, `SERVER`, `WORKER`), the words,
+  the reference the person was shown (a request's id, or a screen's digest),
+  the catalogue code, kind and status, the method and the path (never the
+  query), who was asking and for which business, and the thrown value's own
+  message and stack, each bounded (`ERROR_LOG_LIMITS`), with the logger's
+  redaction on the rest.
+- **What goes in:** one helper, `captureError` (`src/lib/audit/errorLog.ts`),
+  which also writes the line to the server's output as before, and never
+  throws.
+  - `withApiHandler`: a request that failed with 500 or above, with who was
+    asking once a guard knew. A refused request (4xx) is not an error of the
+    server's and stays in the output only.
+  - `src/instrumentation.ts` (`onRequestError`): a screen the server could not
+    draw, the proxy, and anything a route threw before it could answer.
+  - The work beside a request that failed without failing it: a mail not
+    sent, an audit line not written, an undo that did not take, a look for
+    orders due, a notification not queued; and a job or a sweep, once a
+    worker runs.
+- **Who sees it:** DEV only, in the developer console's **Error log**
+  (`/admin/logs`, `GET /api/admin/logs`, `withDevRoute`), newest first,
+  searchable by reference or words, with what was thrown on request. The
+  Overview counts it. No policy lets an owner read or write a row; the server
+  writes through the service role.
+- **Seven days:** `clean_up_logs()` drops audit and error rows older than
+  seven days (`LOG_KEEP_DAYS`), run every hour by pg_cron, worker or not. The
+  audit trail was kept for the life of the business before; nothing in the
+  app reads it but the console. A deleted account takes its business's error
+  rows with it (`on delete cascade`).
+- **The privacy policy** says both are kept seven days, and what the error
+  log holds.
+
+### 139.11.22 The landing page (the user, 2026-09-30)
+
+- **Asked for:** "under a new route like /about or /hero or whatever
+  production uses, create a landing hero page for the app also, informative,
+  explaining the use cases of the app and if possible with screenshots or
+  demonstrations", and "add with a phone like framed screenshot like with
+  iphone 18 pro".
+- **Where:** the site's root, `/` (the user, 2026-10-01: "make / route for
+  landing page, give /home for homepage"; it was first at `/about`, which now
+  leads there), open to anyone, signed in or not; the proxy does not run for
+  it, as for `/privacy`. Home is `/home` (`HOME_ROUTE`): where signing in
+  leads, the installed app's start (the manifest's `start_url`, its `id`
+  still `/`), and the Android app's (`server.appStartPath`). The sign-in
+  screen leads to the landing page under its promise ("See what Brio does").
+- **A shared link** (the user, 2026-10-01: "add open graph meta data for a
+  better previews in social medias"): named Brio, with what it is, as a large
+  card, and one picture for every page — the brand's line beside a phone open
+  on a bill, drawn by the app itself (`scripts/og-image.mts`,
+  `opengraph-image.jpg`, `twitter-image.jpg`), small enough for WhatsApp.
+  Addresses are made from `NEXT_PUBLIC_APP_URL`.
+- **What it says** (`UI_TEXT.landing`), only what the app does — no prices, no
+  counts of users, no quotes:
+  - the brand's line as the headline, what Brio is, and who it is for (home
+    bakers, hamper makers, florists, gift makers);
+  - a day's work in order: taking an order, what is due, the bill, customers,
+    stock and the numbers, each beside the screen that does it;
+  - where it runs (Android app, iPhone and iPad from Safari, a computer), the
+    two looks, and what stays private, with the policy a link away;
+  - the way in: Create your account, or Sign in; Open Brio for someone
+    signed in.
+- **The screenshots** are the app itself: `scripts/landing-shots.mts` makes a
+  demo business through the app's own functions (local Supabase only, no
+  mail), gives it a month of orders, photographs it in the built app and
+  deletes it again, into `src/assets/landing/` (committed). A phone shot is a
+  whole screen of a current Pro phone (402 × 874 points): the status bar and
+  the home indicator are drawn on in the screen's own colours, and the page
+  draws the phone round it (`PhoneFrame`: titanium band, black border,
+  Dynamic Island, buttons). The desktop shot sits in a laptop
+  (`LaptopFrame`).
+- **Motion** (the user: "animate about page"): one sequence as the page
+  arrives, the order book opening — the headline rises line by line, the
+  laptop's lid swings up and its screen wakes, the phone steps up in front,
+  the words settle in. Inside 1.5 s, CSS only; with reduced motion it fades.
+  And as it scrolls ("give animation while scrolling down and up also"),
+  tied to the scroll so scrolling up plays it back: titles rise out of their
+  line, each point's check is drawn, the pictures are set down in turn, the
+  hero steps back, the closing photograph settles. Still without scroll
+  timelines or with reduced motion.
+- **A day on one phone** ("overdrive for about page"; the direction the user
+  chose of three): from 768 px wide and 600 px tall the day's six steps pass
+  beside one phone that stays put, and its screen changes as each step comes
+  up, the way the app moves — a push from the side, the bill rising as a
+  sheet — with a ring on what the step is about (`DayOnOnePhone`). On a phone,
+  upright or on its side, as the user asked, each step keeps its own screens
+  under its words instead, one under the other, each with its ring, and each
+  step its number. The sixth step, "Every cost, beside every sale", shows
+  Expenses ("add expenses page also in the demo").
+- **On a phone, Create account stays to hand** (after the critique of
+  2026-10-01): a slim bar along the bottom comes up once the hero's buttons
+  have gone, and goes at the closing band (`StartBar`).
+- **After the critique of 2026-10-01**, also: the hero's lead is one
+  sentence, and under its button a line says what making an account asks
+  ("Two short steps · your mobile number and email" — no price is named);
+  the hero's phone shows a bill; the first point on privacy reads "No other
+  business can see your orders, customers or money"; the two looks are shown
+  as swatches. On the held phone the header stays still while the screens
+  move, and the bill rises as the app's own sheet over its scrim. Each
+  point's check is drawn once, as it comes into view. The demo month comes to
+  a whole average order (₹1,375).
+
+### 139.11.23 Releases, and Vercel (the user, 2026-09-30)
+
+- **Asked for:** "a md file which will explain me what to do to make a v1.0.0
+  release tag and ci which will build it to vercel when i set it up … include
+  what to do in github, even give what release note to put for this v1.0.0
+  version".
+- **A release is a published GitHub release** tagged `vX.Y.Z`, matching
+  `package.json`. `.github/workflows/release.yml` then: checks the tag;
+  runs every CI gate again on it (`ci.yml`, now also callable, with `ref`);
+  applies the new migrations to the hosted Supabase (`supabase db push`); and
+  builds and deploys that tag to Vercel as production (`vercel pull`,
+  `vercel build --prod`, `vercel deploy --prebuilt --prod`), in the
+  `production` environment, which can be made to wait for approval. It can be
+  run again by hand for a released tag. A push deploys nothing.
+- **Until it is set up** (Vercel's token and ids, Supabase's token, password
+  and project reference, as GitHub secrets and a variable), the migrate and
+  deploy jobs say so and change nothing.
+- **`docs/RELEASE.md`** is the guide: what a release is and how versions are
+  numbered; the one-time setup in Vercel, Supabase and GitHub; each release's
+  steps; checking it is live; rolling back; and the v1.0.0 release notes.
+- The version is `package.json`'s: Settings → About shows it, and it is the
+  Android app's version name. It stays 0.1.0 until the release is made.
+  *2026-10-01 (the user): 1.0.0, ready for the first release.*
+- **Vercel never sees the code** (the user, 2026-10-01: the code is in their
+  personal GitHub, and others can reach the Vercel account; Vercel Hobby,
+  Supabase Free and a GoDaddy domain). Vercel is never connected to the
+  repository. The release uploads only what `vercel build` made, after
+  `scripts/check-deploy-output.mjs` finds no source file, source map or env
+  file in it. Node is 22 in `engines` as well as `.nvmrc`, so Vercel runs
+  the version CI tests. `docs/RELEASE.md` adds:
+  - what each account can see;
+  - the free plans' limits;
+  - the domain, mail and backup steps.
+- **Mail is a free Gmail** (the user, 2026-10-01): a Gmail made only for
+  Brio's mail, over SMTP with an app password, sending as that address (a
+  free Gmail cannot send as the domain), at most 500 a day. No code changes:
+  the SMTP variables take it. The privacy policy already named Gmail; it now
+  names Vercel in place of Cloudflare, which this setup does not use.
+- **Vercel's firewall takes Cloudflare's place** for R6.2: one rate-limit rule
+  (Hobby's one) on the routes that check a password or send an email, 20
+  requests per IP in ten minutes (`docs/RELEASE.md`, B5).
+
 ---
 
 ## 139.12 Data model and migrations
@@ -8809,6 +8962,8 @@ built (AGENTS §23). Tests in `tests/db` cover each one.
 | `…_audit_writes` | Revoke `INSERT` on `audit_logs` from `authenticated`; audit is written by the server with the acting user (§133.7 G1, BUG-20). | 2 |
 | `…_device_tokens` | The push-token registry (§133.5 E2). Built as `0031_web_push` for web push, with the scheduler's call (2026-09-29). | 8 |
 | `…_service_role_functions` | *Added 2026-09-30 as `0034_service_role_functions` (CI).* The service role runs every function in `public`, and every one added later: 0004 made later tables and sequences its own but not later functions, which newer Supabase images no longer grant by default. On a database made fresh, registration failed on `random_avatar()`. `authenticated` and `anon` gain nothing. | 6 |
+| `…_welcome` | *Added 2026-09-30 as `0035_welcome` (the user).* `profiles.welcomed_at`: every account then existing taken as welcomed, a new one without it (§139.11.20). | 6 |
+| `…_error_logs` | *Added 2026-09-30 as `0036_error_logs` (the user).* **`error_logs`**: what failed on the server, who was asking, and what was thrown — no policy, `authenticated` and `anon` revoked, the service role's alone. **`clean_up_logs()`**: audit and error rows older than seven days go, every hour by pg_cron (§139.11.21). | 6 |
 | `…_profile_theme` *(if Q14)* | `profiles.theme`. | 1 |
 
 ---
@@ -9322,9 +9477,9 @@ Phase 5 closed on 2026-09-26 with R5.10.
 | ID | Work | Source | Waits on | Status |
 |---|---|---|---|---|
 | R6.1 | Jobs enqueued with the service role; exponential backoff; the Menu and Cleanup workers | §133.6 F6–F8 | — | DONE (2026-09-29 · `0032_queue_hardening`: only the server queues; 1, 2, 4, 8 minutes between tries; the CleanupWorker, with pg_cron standing in while no worker runs. The MenuBuildWorker waits with the menu builder, outside the roadmap) |
-| R6.2 | Rate limiting | §133.11 K6 | — | NOT BUILT (2026-09-29, the user's decision: no limiter in the app; Supabase Auth's own limits and Cloudflare's rules stand in — changelog) |
+| R6.2 | Rate limiting | §133.11 K6 | — | NOT BUILT (2026-09-29, the user's decision: no limiter in the app; Supabase Auth's own limits and Cloudflare's rules stand in — changelog. *2026-10-01: Vercel's firewall rule in Cloudflare's place, §139.11.23*) |
 | R6.3 | OpenAPI and Swagger | §133.11 K1 | — | LATER (2026-09-28, the user: not needed for now; §119 – §120 kept) |
-| R6.4 | CI pipeline ~~with SonarQube~~ — SonarQube kept for later (2026-09-28) | §133.11 K3 | — | DONE (2026-09-29 · `.github/workflows/ci.yml`, on each push to main and each pull request: lint, format, types, unit tests, then the local Supabase, integration tests, the build and the journeys. No staging, smoke or production step: nothing is deployed from CI yet) |
+| R6.4 | CI pipeline ~~with SonarQube~~ — SonarQube kept for later (2026-09-28) | §133.11 K3 | — | DONE (2026-09-29 · `.github/workflows/ci.yml`, on each push to main and each pull request: lint, format, types, unit tests, then the local Supabase, integration tests, the build and the journeys. No staging, smoke or production step: nothing is deployed from CI yet. *2026-09-30: a published release deploys to Vercel, §139.11.23*) |
 | R6.5 | Playwright journeys, tenant isolation included | §133.11 K4 | — | DONE (2026-09-29 · `tests/e2e`, `npm run test:e2e`: the critical journey, sign-in to Completed, through the screens; and tenant isolation, on the screens and at the API) |
 | R6.6 | Database integration tests against local Supabase | §133.11 K5 | — | DONE (2026-09-29 · `tests/db/integration`, `npm run test:integration`: authentication, tenant isolation, orders and stock, notifications and the queue; found the ledger's unchecked signs, now `0033_ledger_signs`) |
 | R6.7 | BugSnag | §133.11 K2 | — | LATER (2026-09-28, the user: not for now; §123 kept) |

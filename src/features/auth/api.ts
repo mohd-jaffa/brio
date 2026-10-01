@@ -1,6 +1,7 @@
 import { type Session, type SupabaseClient } from "@supabase/supabase-js";
 
 import { avatarOr } from "@/constants/avatars";
+import { captureError } from "@/lib/audit/errorLog";
 import { getServerEnv, type ServerEnv } from "@/lib/env/server";
 import {
   authenticationError,
@@ -250,9 +251,11 @@ async function rollbackCreatedUser(client: SupabaseClient, userId: string) {
   const { error } = await client.auth.admin.deleteUser(userId);
 
   if (error) {
-    logger.error("Failed to roll back auth user after registration failure", {
-      userId,
+    // The account has no profile, so it is named in the context only.
+    await captureError({
+      message: "Failed to roll back auth user after registration failure",
       error,
+      context: { userId },
     });
   }
 }
@@ -318,10 +321,7 @@ export async function register(client: SupabaseClient, registration: RegisterPay
   try {
     await deliverAccountConfirmation(client, user.id);
   } catch (error) {
-    logger.error("Could not send the confirmation email", {
-      userId: user.id,
-      reason: error instanceof Error ? error.message : String(error),
-    });
+    await captureError({ message: "Could not send the confirmation email", error, userId: user.id });
   }
 
   return {

@@ -67,7 +67,7 @@ describe("ItemsPanel", () => {
 
   it("finds a product by name, and says when nothing matches", async () => {
     show();
-    const search = screen.getByLabelText("Search products…");
+    const search = screen.getByLabelText("Search products");
     await userEvent.type(search, "  BROWN ");
     expect(screen.getAllByRole("listitem")).toHaveLength(1);
     expect(screen.getByRole("button", { name: "Add Walnut brownie" })).toBeInTheDocument();

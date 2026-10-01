@@ -2,6 +2,7 @@ import type { ZodType } from "zod";
 import { ZodError } from "zod";
 
 import type { ErrorMessageCode } from "@/constants/messages";
+import { captureError } from "@/lib/audit/errorLog";
 import { AppError, toAppError, validationError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 
@@ -15,6 +16,8 @@ import { errorResponse, successResponse } from "./responses";
  */
 export interface ApiContext {
   requestId: string;
+  /** Who is asking, once a guard knows: a failure is logged against them. */
+  asker?: { userId: string; bakeryId: string | null };
 }
 
 interface HandlerOptions {
@@ -111,9 +114,10 @@ export async function withApiHandler<TData>(
   options: HandlerOptions = {},
 ) {
   const requestId = createRequestId(request.headers);
+  const context: ApiContext = { requestId };
 
   try {
-    const data = await handler({ requestId });
+    const data = await handler(context);
     // A route that answers with a file (the logo) builds its own response; a
     // failure on the way still answers in the envelope below.
     if (data instanceof Response) return data;
@@ -122,19 +126,38 @@ export async function withApiHandler<TData>(
     const appError = normalizeApiError(error);
 
     // The cause is logged, never returned: it is the driver's own text, and it
-    // names tables, columns and sometimes values (AGENTS.md §10).
-    logger.error(
-      "API request failed",
-      {
-        kind: appError.kind,
+    // names tables, columns and sometimes values (AGENTS.md §10). A fault of
+    // the server's own goes to the error log too (plan §103), under the
+    // reference the person is shown; a refused request does not.
+    if (appError.httpStatus >= 500) {
+      await captureError({
+        source: "API",
+        message: "API request failed",
+        error: appError.cause ?? appError,
+        reference: requestId,
         code: appError.code,
+        kind: appError.kind,
         httpStatus: appError.httpStatus,
-        traceId: appError.traceId,
-        details: appError.details,
-        cause: appError.cause instanceof Error ? appError.cause.message : appError.cause,
-      },
-      requestId,
-    );
+        method: request.method,
+        path: new URL(request.url).pathname,
+        userId: context.asker?.userId,
+        bakeryId: context.asker?.bakeryId,
+        context: { traceId: appError.traceId, details: appError.details },
+      });
+    } else {
+      logger.error(
+        "API request failed",
+        {
+          kind: appError.kind,
+          code: appError.code,
+          httpStatus: appError.httpStatus,
+          traceId: appError.traceId,
+          details: appError.details,
+          cause: appError.cause instanceof Error ? appError.cause.message : appError.cause,
+        },
+        requestId,
+      );
+    }
 
     return errorResponse(appError, requestId);
   }

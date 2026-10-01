@@ -50,7 +50,12 @@ export function BusinessMark({
             >
               {business?.name ?? UI_TEXT.appName}
             </span>
-            <span className="block truncate text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-text-muted">
+            {/* The catch phrase is the business's too: it takes a second line,
+                evenly, rather than lose its end (up to 80 letters, BusinessForm). */}
+            <span
+              title={business?.tagline ?? undefined}
+              className="line-clamp-2 text-[0.7rem] font-semibold uppercase leading-snug tracking-[0.2em] text-balance break-words text-text-muted"
+            >
               {business ? (business.tagline ?? UI_TEXT.businessLine) : UI_TEXT.appTagline}
             </span>
           </>

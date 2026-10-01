@@ -37,7 +37,7 @@ In the repository: **Settings → Secrets and variables → Actions**.
 
 | Kind | Name | Value |
 |---|---|---|
-| Variable | `ANDROID_APP_URL` | The hosted app, e.g. `https://app.yourdomain.com` (the same as `NEXT_PUBLIC_APP_URL`) |
+| Variable | `ANDROID_APP_URL` | The hosted app, e.g. `https://www.yourdomain.com` (the same as `NEXT_PUBLIC_APP_URL`) |
 | Secret | `BRIO_UPLOAD_KEYSTORE_BASE64` | `base64 -i brio-upload.jks \| pbcopy`, then paste |
 | Secret | `BRIO_UPLOAD_KEYSTORE_PASSWORD` | The store password |
 | Secret | `BRIO_UPLOAD_KEY_ALIAS` | `upload` |
@@ -46,7 +46,7 @@ In the repository: **Settings → Secrets and variables → Actions**.
 Or from the terminal, with `gh`:
 
 ```sh
-gh variable set ANDROID_APP_URL --body "https://app.yourdomain.com"
+gh variable set ANDROID_APP_URL --body "https://www.yourdomain.com"
 base64 -i brio-upload.jks | gh secret set BRIO_UPLOAD_KEYSTORE_BASE64
 gh secret set BRIO_UPLOAD_KEYSTORE_PASSWORD
 gh secret set BRIO_UPLOAD_KEY_ALIAS --body upload
@@ -85,7 +85,7 @@ only once the site vouches for the app, at `/.well-known/assetlinks.json`.
 3. Check it answers (with no redirect):
 
    ```sh
-   curl -i https://app.yourdomain.com/.well-known/assetlinks.json
+   curl -i https://www.yourdomain.com/.well-known/assetlinks.json
    ```
 
 4. Android checks when the app is installed. On a phone with it installed:
@@ -113,7 +113,7 @@ app's own confirmation page.
 
 | Section | Answer |
 |---|---|
-| Privacy policy | `https://app.yourdomain.com/privacy` |
+| Privacy policy | `https://www.yourdomain.com/privacy` |
 | App access | Sign-in is required. Give the review team a working test account (a sign-in number and password) whose business has a few orders. |
 | Ads | No ads. |
 | Content rating | Questionnaire: category *Utility, productivity, communication or other*; no violence, sexual content, language, controlled substances, gambling or user-to-user sharing. Expect *Everyone* / *3+*. |
@@ -123,7 +123,7 @@ app's own confirmation page.
 | Health | None. |
 | Government app | No. |
 | Data safety | The table below. |
-| Account deletion | Yes. The web link is `https://app.yourdomain.com/privacy#delete`, and in the app it is Settings → Delete account. |
+| Account deletion | Yes. The web link is `https://www.yourdomain.com/privacy#delete`, and in the app it is Settings → Delete account. |
 
 ### Data safety
 
@@ -133,7 +133,7 @@ starts keeping something new, both change together.
 **Overview**
 
 - Collects user data: **Yes**. Shares user data with third parties: **No**
-  (Supabase, Cloudflare and Gmail are service providers acting for us, which
+  (Supabase, Vercel and Gmail are service providers acting for us, which
   Play does not count as sharing).
 - Encrypted in transit: **Yes** (HTTPS).
 - A way to request deletion: **Yes** (above).

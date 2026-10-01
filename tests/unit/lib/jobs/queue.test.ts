@@ -5,6 +5,8 @@ import type { Job } from "@/lib/jobs/types";
 
 const logger = vi.hoisted(() => ({ info: vi.fn(), warn: vi.fn(), error: vi.fn() }));
 vi.mock("@/lib/logger", () => ({ logger }));
+const captureError = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/audit/errorLog", () => ({ captureError }));
 const service = vi.hoisted(() => ({ client: undefined as unknown }));
 vi.mock("@/lib/supabase/server", () => ({ createSupabaseServiceRoleClient: () => service.client }));
 
@@ -197,11 +199,11 @@ describe("processNextJob", () => {
 
     await expect(processNextJob(client, "w-1")).resolves.toBe(true);
     expect(updates[0].changes).toMatchObject({ status: "pending", last_error: "provider down" });
-    expect(logger.error).toHaveBeenCalledWith("Job failed", {
-      jobId: "j-1",
-      type: "REFRESH_ANALYTICS",
-      attempt: 1,
-      reason: "provider down",
+    expect(captureError).toHaveBeenCalledWith({
+      source: "WORKER",
+      message: "Job failed",
+      error: new Error("provider down"),
+      context: { jobId: "j-1", type: "REFRESH_ANALYTICS", attempt: 1 },
     });
   });
 
@@ -239,8 +241,18 @@ describe("sweeps", () => {
     registerSweep("plain", () => Promise.reject("plain words"));
     registerSweep("after", after);
     await runSweeps(client);
-    expect(logger.error).toHaveBeenCalledWith("Sweep failed", { sweep: "broken", reason: "database down" });
-    expect(logger.error).toHaveBeenCalledWith("Sweep failed", { sweep: "plain", reason: "plain words" });
+    expect(captureError).toHaveBeenCalledWith({
+      source: "WORKER",
+      message: "Sweep failed",
+      error: new Error("database down"),
+      context: { sweep: "broken" },
+    });
+    expect(captureError).toHaveBeenCalledWith({
+      source: "WORKER",
+      message: "Sweep failed",
+      error: "plain words",
+      context: { sweep: "plain" },
+    });
     expect(after).toHaveBeenCalled();
   });
 

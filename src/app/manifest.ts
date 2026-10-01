@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { UI_TEXT } from "@/constants/messages";
+import { HOME_ROUTE } from "@/constants/routes";
 import { DEFAULT_THEME, THEME_COLORS } from "@/lib/theme/themes";
 
 /**
@@ -16,7 +17,8 @@ export default function manifest(): MetadataRoute.Manifest {
     name: UI_TEXT.appTitle,
     short_name: UI_TEXT.appShortName,
     description: UI_TEXT.appDescription,
-    start_url: "/",
+    // The app opens on Home; `id` stays the root, so an app already installed is still the same app.
+    start_url: HOME_ROUTE,
     scope: "/",
     display: "standalone",
     background_color: THEME_COLORS[DEFAULT_THEME],

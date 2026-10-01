@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  Compass,
+  Check,
   Download,
   EllipsisVertical,
   Globe,
@@ -18,13 +18,16 @@ import { Button } from "@/components/ui/button";
 import { Sheet } from "@/components/ui/sheet";
 import { UI_TEXT } from "@/constants/messages";
 import { useInstallApp } from "@/hooks/useInstallApp";
-import type { InstallPlatform } from "@/lib/pwa/install";
+import { isIos, type InstallPlatform } from "@/lib/pwa/install";
 
 const text = UI_TEXT.install;
 
-/** A mark for each step, as the device shows it: Safari's Share, Chrome's three dots. */
+/** A mark for each step, as the device shows it: the iPhone's Share, Chrome's three dots. */
+const IOS_ICONS = [Share, SquarePlus, Check] as const;
 const STEP_ICONS: Record<InstallPlatform, readonly LucideIcon[]> = {
-  ios: [Compass, Share, SquarePlus],
+  ios: IOS_ICONS,
+  iosChrome: IOS_ICONS,
+  iosOther: IOS_ICONS,
   android: [Globe, EllipsisVertical, Download],
   desktop: [Globe, MonitorDown, Download],
   other: [Globe, Menu, SquarePlus],
@@ -35,7 +38,10 @@ const STEP_ICONS: Record<InstallPlatform, readonly LucideIcon[]> = {
  * also give small tutorial like instructions showed how to install the pwa").
  * Where the browser will install it itself, **Install** asks it to; the steps
  * for this device follow either way, each with the mark the device shows
- * for it. A bottom sheet on a phone and a dialog from 768 px.
+ * for it. An iPhone has no Install button to give — Apple lets no website
+ * offer one — so it is told why, and shown its own browser's steps (the user,
+ * 2026-10-01: in Chrome on an iPhone, the steps sent them to Safari). A bottom
+ * sheet on a phone and a dialog from 768 px.
  */
 export function InstallAppSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { canPrompt, platform, install } = useInstallApp();
@@ -65,6 +71,7 @@ export function InstallAppSheet({ open, onClose }: { open: boolean; onClose: () 
           <h3 id="install-steps" className="font-body text-xs font-semibold uppercase tracking-wider text-text-muted">
             {canPrompt ? text.orFollow : text.stepsFor[platform]}
           </h3>
+          {isIos(platform) && <p className="text-sm text-text-muted">{text.iosNote}</p>}
           <ol className="space-y-2">
             {steps.map((step, index) => {
               const Icon = icons[index];

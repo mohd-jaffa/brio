@@ -6,6 +6,7 @@ import { JOB_TYPES, WORKER_ENABLED } from "@/constants/jobs";
 import { EMAIL_CHANGE_LINK_HOURS } from "@/constants/limits";
 import { removeBusinessFiles } from "@/features/business/api";
 import { logActionSafe } from "@/lib/audit/auditLog";
+import { captureError } from "@/lib/audit/errorLog";
 import { changeReopensAt } from "@/lib/dates/cooldown";
 import { getServerEnv } from "@/lib/env/server";
 import { businessRuleError, internalError, validationError } from "@/lib/errors";
@@ -174,7 +175,13 @@ export async function changePhone(
       phone: profile.phone,
       phone_confirm: true,
     });
-    if (undo) logger.error("Could not put the sign-in number back after a failed change", { userId: profile.id });
+    if (undo) {
+      await captureError({
+        message: "Could not put the sign-in number back after a failed change",
+        error: undo,
+        userId: profile.id,
+      });
+    }
     throw failure;
   }
 
@@ -245,10 +252,7 @@ export async function requestEmailChange(
   try {
     await deliverEmailChange(adminClient, profile.id);
   } catch (error) {
-    logger.error("Could not send the new email's link", {
-      userId: profile.id,
-      reason: error instanceof Error ? error.message : String(error),
-    });
+    await captureError({ message: "Could not send the new email's link", error, userId: profile.id });
   }
   await logActionSafe(tenant, {
     action: "UPDATE",
@@ -295,7 +299,7 @@ export async function sendEmailChangeConfirmation(adminClient: SupabaseClient, u
   if (error) throw internalError("INTERNAL_ERROR", undefined, error);
 
   const env = getServerEnv();
-  await createConfiguredMailService(env).sendAccountConfirmation({
+  await createConfiguredMailService(env).sendEmailChange({
     to: profile.pending_email,
     name: profile.name,
     confirmationUrl: `${env.NEXT_PUBLIC_APP_URL}${EMAIL_CONFIRMATION_PATH}#${EMAIL_CHANGE_FRAGMENT}=${token}`,
@@ -345,7 +349,12 @@ export async function confirmEmailChange(
       email: row.email,
       email_confirm: true,
     });
-    if (undo) logger.error("Could not put the email back after a failed change", { userId: row.id });
+    if (undo)
+      await captureError({
+        message: "Could not put the email back after a failed change",
+        error: undo,
+        userId: row.id,
+      });
     throw failure;
   }
 

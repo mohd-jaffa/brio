@@ -6,20 +6,27 @@
 #            → build → the browser journeys, on that build
 #
 # SonarQube is kept for later (plan §139.18), so there is no quality gate
-# beyond these. Nor is there a staging, smoke test or production step: the app
-# has no hosting to deploy to from here yet.
+# beyond these. A release runs the same gates again on its tag before it
+# deploys (release.yml, docs/RELEASE.md), calling this workflow with `ref`.
 name: CI
 
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_call:
+    inputs:
+      ref:
+        description: The tag or commit to check; the triggering one when empty.
+        type: string
+        default: ""
 
 permissions:
   contents: read
 
+# A release's run (github.workflow is then "Release") never cancels a push's.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ inputs.ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -29,6 +36,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
 
       - uses: actions/setup-node@v5
         with:
@@ -48,6 +57,8 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
 
       - uses: actions/setup-node@v5
         with:

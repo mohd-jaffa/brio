@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { containsPattern, ilikeFilter, phoneDigits } from "@/lib/supabase/search";
+import { containsPattern, ilikeFilter, phoneDigits, referencePattern } from "@/lib/supabase/search";
 
 describe("containsPattern", () => {
   it("matches the words anywhere, spaces kept", () => {
@@ -13,6 +13,14 @@ describe("containsPattern", () => {
 
   it("has nothing to look for when nothing safe is left", () => {
     expect(containsPattern(" %_* ")).toBeNull();
+  });
+});
+
+describe("referencePattern", () => {
+  it("keeps the underscore of a request's id, and drops the rest as containsPattern does", () => {
+    expect(referencePattern(" req_5e1d ")).toBe("%req_5e1d%");
+    expect(referencePattern(`a%b"(c),*:d\\`)).toBe("%a b c d%");
+    expect(referencePattern("%*")).toBeNull();
   });
 });
 

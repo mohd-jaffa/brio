@@ -1,10 +1,10 @@
+import { captureError } from "@/lib/audit/errorLog";
 import type { Tenant } from "@/lib/supabase/tenant";
 import { type Payment, type CreatePaymentDTO } from "./types";
 import { type CreatePaymentPayload } from "@/lib/validation";
 import { logActionSafe } from "@/lib/audit/auditLog";
 import { JOB_TYPES, WORKER_ENABLED } from "@/constants/jobs";
 import { createJob } from "@/lib/jobs/queue";
-import { logger } from "@/lib/logger";
 import { findOrderById } from "@/features/orders/api";
 import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
 import { conflictError } from "@/lib/errors";
@@ -116,10 +116,12 @@ async function notifyPayment(tenant: Tenant, orderId: string, orderNumber: strin
       payload: { bakeryId: tenant.bakeryId, message: { kind: "PAYMENT_RECEIVED", orderId, orderNumber, amount } },
     });
   } catch (error) {
-    logger.error("Could not queue the payment notification", {
+    await captureError({
+      message: "Could not queue the payment notification",
+      error,
+      userId: tenant.actorId,
       bakeryId: tenant.bakeryId,
-      orderNumber,
-      reason: error instanceof Error ? error.message : String(error),
+      context: { orderNumber },
     });
   }
 }

@@ -135,7 +135,7 @@ export function Home() {
           <Fab label={text.newOrder} href="/orders/new" />
         </div>
         {data ? (
-          <dl className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:gap-4">
+          <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
             <StatTile
               label={text.dueToday}
               value={String(data.dueToday)}

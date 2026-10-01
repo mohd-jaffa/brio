@@ -6,9 +6,9 @@ describe("the web app manifest", () => {
   it("opens the app standalone from the root, named as the app is", () => {
     expect(manifest()).toMatchObject({
       id: "/",
-      name: "Brio — Made by you. Managed simply.",
+      name: "Brio",
       short_name: "Brio",
-      start_url: "/",
+      start_url: "/home",
       scope: "/",
       display: "standalone",
       background_color: "#f6efe5",

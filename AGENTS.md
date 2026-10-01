@@ -155,7 +155,7 @@ src/
 ├── proxy.ts                  # the signed-in/signed-out gate (§9)
 └── lib/
     ├── api/                  # route handler, response envelope, browser client
-    ├── audit/                # the central audit logger (§11)
+    ├── audit/                # the audit logger and the error log (§11)
     ├── dates/                # the bakery's calendar
     ├── errors/               # AppError and the kind factories (§10)
     ├── format/               # currency, date
@@ -245,8 +245,8 @@ or written to, Supabase `user_metadata` — users can edit their own metadata
 (BUG-17, `0009_role_out_of_metadata.sql`).
 
 **DEV has the developer console** (`/admin`, plan §139.11.16) and nothing else:
-read-only, behind `withDevRoute` (`DEVELOPER_ROLES`), showing the accounts and
-the audit trail. A developer owns no business (`0028_developer_accounts.sql`),
+read-only, behind `withDevRoute` (`DEVELOPER_ROLES`), showing the accounts, the
+error log and the audit trail. A developer owns no business (`0028_developer_accounts.sql`),
 is sent to `/admin` from every business screen, and is added from the Supabase
 dashboard, never by registering. The console shows only what the app already
 keeps.
@@ -381,6 +381,19 @@ may read their business's rows and insert none (BUG-20,
 `0011_audit_writes.sql`).
 
 Do not log sensitive credentials.
+
+**What fails on the server goes to the error log** (plan §103 – §104,
+§139.11.21, `0036_error_logs.sql`) through one helper, `captureError`
+(`src/lib/audit/errorLog.ts`), which also writes the output line and never
+throws. `withApiHandler` sends a request that failed with 500 or above, with
+who was asking; `src/instrumentation.ts` sends a screen the server could not
+draw; work beside a request that fails without failing it (a mail, an audit
+line, an undo) calls it itself. A refused request (4xx) is not logged there.
+Only the developer console reads it (`/admin/logs`); no owner can read or
+write a row.
+
+**Both logs are kept seven days** (`LOG_KEEP_DAYS`, `src/constants/logs.ts`):
+`clean_up_logs()` drops older audit and error rows every hour, by pg_cron.
 
 ---
 
@@ -522,7 +535,7 @@ reference change through `update_business_profile` and `set_business_logo`,
 which act only for the owner.
 - Do not introduce image uploads for products, customers, orders, expenses, receipts, menu items, or users unless the plan is explicitly changed.
 
-**App-owned artwork is not an upload.** The illustration library (`artwork/illustrations/`, shipped from `src/assets/illustrations/`, plan §139.11.10), the photographic plates (`src/assets/plates/`, §139.11.12) the profile pictures — nine animals and 24 people (`src/assets/avatars/`, §139.11.14) — the brand's marks (`src/assets/brand/`, the installed app's icons) and the launch splash's scene (`src/assets/splash/`, §139.11.19) ship with the app. A user **chooses** an illustration for a product or an expense category, and a profile picture for their own account — a new account is given one at random (`0026_profile_avatars`, `0029_people_avatars`); nothing they choose is stored except its key. The profile pictures are for the owner's account only: a customer keeps their initials. Their masters are committed; the design references in `design-references/` are not, and the plates and the profile pictures are built from them.
+**App-owned artwork is not an upload.** The illustration library (`artwork/illustrations/`, shipped from `src/assets/illustrations/`, plan §139.11.10), the photographic plates (`src/assets/plates/`, §139.11.12) the profile pictures — nine animals and 24 people (`src/assets/avatars/`, §139.11.14) — the brand's marks (`src/assets/brand/`, the installed app's icons), the launch splash's scene (`src/assets/splash/`, §139.11.19), the welcome's drawings (`src/assets/onboarding/`, §139.11.20), the landing page's screenshots (`src/assets/landing/`, §139.11.22, made by `scripts/landing-shots.mts` from a demo business it deletes again), the picture a shared link shows (`src/app/opengraph-image.jpg`, `twitter-image.jpg`, made by `scripts/og-image.mts`) and the emails' marks (`public/email/`, by `scripts/brand.mjs`) ship with the app. A user **chooses** an illustration for a product or an expense category, and a profile picture for their own account — a new account is given one at random (`0026_profile_avatars`, `0029_people_avatars`); nothing they choose is stored except its key. The profile pictures are for the owner's account only: a customer keeps their initials. Their masters are committed; the design references in `design-references/` are not, and the plates and the profile pictures are built from them.
 
 ---
 
@@ -978,14 +991,16 @@ Push / PR
 
 **SonarQube and BugSnag are kept for later** (the user, 2026-09-28; plan
 §139.18). The pipeline runs without them, and errors go to the server's own
-structured logs (§11).
+structured logs and the error log (§11).
 
 **The pipeline is `.github/workflows/ci.yml`** (R6.4), on every push to main and every pull request:
 
 - `checks`: install, lint, format check, type check and unit tests.
 - `app`, after it: the local Supabase, with every migration applied (the same CLI version as development), then the integration tests, the build and the browser journeys on that build.
 
-There is no staging, smoke test or production step yet: nothing is deployed from CI. `npm run typecheck` generates Next's types first (`next typegen`), so a fresh checkout checks as a working copy does.
+**A release deploys; a push does not** (`.github/workflows/release.yml`, plan §139.11.23). Publishing a GitHub release tagged `vX.Y.Z`, the same as `package.json`'s version, checks the tag, runs every CI gate again on it (`ci.yml` is also callable), applies the new migrations to the hosted Supabase, and deploys that tag to Vercel as production. `docs/RELEASE.md` is the guide: the one-time setup, each release's steps, rolling back, and the v1.0.0 notes. There is no staging step. `npm run typecheck` generates Next's types first (`next typegen`), so a fresh checkout checks as a working copy does.
+
+**Vercel never sees the code** (the user, 2026-10-01: the repository stays in their own GitHub, and the Vercel account is shared). Vercel is never connected to the repository, and nothing deploys from a working copy. The release builds on GitHub and uploads only the built app (`vercel deploy --prebuilt`). Before the upload, `scripts/check-deploy-output.mjs` stops it if a source file, a source map or an env file is in it. Node is 22 everywhere (`.nvmrc`, `engines`): CI tests on it, and Vercel takes its runtime from `engines`.
 
 **Formatting is Prettier's** (`.prettierrc.json`: 120 columns, otherwise its
 defaults). `npm run format` writes it and `npm run format:check` is the gate.

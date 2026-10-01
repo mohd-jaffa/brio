@@ -1,27 +1,29 @@
-import { UI_TEXT } from "@/constants/messages";
+import { MAIL_TEXT } from "@/constants/messages";
+import { AUTH_ROUTES } from "@/constants/routes";
+
+import { emailHtml, emailText, type EmailParts } from "./layout";
 
 interface PasswordResetTemplateInput {
+  appUrl: string;
   name: string;
   temporaryPassword: string;
 }
 
+/**
+ * The temporary password (plan §94), set apart to copy, and the way to sign
+ * in with it; the app then asks for a new one.
+ */
 export function passwordResetTemplate(input: PasswordResetTemplateInput) {
-  const subject = `Your ${UI_TEXT.appName} temporary password`;
-  const text = [
-    `Hi ${input.name},`,
-    "",
-    "Your temporary password is:",
-    input.temporaryPassword,
-    "",
-    "Please log in and change your password immediately.",
-  ].join("\n");
-
-  const html = `
-    <p>Hi ${input.name},</p>
-    <p>Your temporary password is:</p>
-    <p><strong>${input.temporaryPassword}</strong></p>
-    <p>Please log in and change your password immediately.</p>
-  `;
-
-  return { subject, text, html };
+  const text = MAIL_TEXT.passwordReset;
+  const parts: EmailParts = {
+    appUrl: input.appUrl,
+    subject: text.subject,
+    preheader: text.preheader,
+    heading: text.heading,
+    paragraphs: [MAIL_TEXT.greeting(input.name), text.body],
+    code: { label: text.label, value: input.temporaryPassword },
+    action: { label: text.action, url: `${input.appUrl.replace(/\/+$/, "")}${AUTH_ROUTES.signIn}` },
+    footnote: text.footnote,
+  };
+  return { subject: text.subject, text: emailText(parts), html: emailHtml(parts) };
 }

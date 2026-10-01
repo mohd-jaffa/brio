@@ -188,4 +188,9 @@ export {
   type PushSubscriptionPayload,
 } from "./schemas/notification";
 
-export { adminListQuerySchema, type AdminListQuery } from "./schemas/admin";
+export {
+  adminErrorQuerySchema,
+  adminListQuerySchema,
+  type AdminErrorQuery,
+  type AdminListQuery,
+} from "./schemas/admin";

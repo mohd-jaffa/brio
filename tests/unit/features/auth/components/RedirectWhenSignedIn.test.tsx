@@ -46,7 +46,7 @@ describe("an already-signed-in visitor", () => {
     auth.current = authStub();
     signInScreen();
 
-    await waitFor(() => expect(loadPage).toHaveBeenCalledWith("/"));
+    await waitFor(() => expect(loadPage).toHaveBeenCalledWith("/home"));
     expect(screen.queryByText("Sign in form")).not.toBeInTheDocument();
   });
 

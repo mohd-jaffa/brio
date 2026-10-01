@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
     // are faded and masked behind words (src/assets/plates, PLATE_QUALITY).
     qualities: [60, 75],
   },
+  // The landing page moved to the site's root (the user, 2026-10-01): its
+  // first address, already on the sign-in screen and shared, leads there.
+  async redirects() {
+    return [{ source: "/about", destination: "/", permanent: true }];
+  },
   // Settings → About shows it (R5.11).
   env: { NEXT_PUBLIC_APP_VERSION: version },
   experimental: {

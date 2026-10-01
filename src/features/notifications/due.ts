@@ -2,8 +2,8 @@ import { randomUUID } from "node:crypto";
 
 import { SWEEP_INTERVAL_MS, WORKER_ENABLED } from "@/constants/jobs";
 import { DUE_NOTICE_FROM_HOUR } from "@/constants/limits";
+import { captureError } from "@/lib/audit/errorLog";
 import { fromPostgrestError } from "@/lib/errors/fromSupabaseError";
-import { logger } from "@/lib/logger";
 import { readAll } from "@/lib/supabase/readAll";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server";
 import type { Tenant } from "@/lib/supabase/tenant";
@@ -55,12 +55,9 @@ function lookForDueOrders(bakeryId: string): Promise<void> {
   const last = looks.get(bakeryId);
   if (last && Date.now() - last.at < SWEEP_INTERVAL_MS) return last.run;
 
-  const run = tellDueOrders(bakeryId).catch((error: unknown) => {
-    logger.error("Could not look for orders due", {
-      bakeryId,
-      reason: error instanceof Error ? error.message : String(error),
-    });
-  });
+  const run = tellDueOrders(bakeryId).catch((error: unknown) =>
+    captureError({ message: "Could not look for orders due", error, bakeryId }),
+  );
   looks.set(bakeryId, { at: Date.now(), run });
   return run;
 }

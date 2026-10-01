@@ -5,6 +5,7 @@
  * failure.
  */
 
+import { LOG_KEEP_DAYS } from "./logs";
 import type { NotificationTab } from "./statuses";
 
 export const ERROR_MESSAGES = {
@@ -64,6 +65,7 @@ export const ERROR_MESSAGES = {
   ADMIN_OVERVIEW_LOAD_FAILED: "Could not load the overview. Please try again.",
   ADMIN_USERS_LOAD_FAILED: "Could not load the accounts. Please try again.",
   ADMIN_AUDIT_LOAD_FAILED: "Could not load the audit log. Please try again.",
+  ADMIN_LOGS_LOAD_FAILED: "Could not load the error log. Please try again.",
   EXPENSES_LOAD_FAILED: "Could not load your expenses. Please try again.",
   ANALYTICS_LOAD_FAILED: "Could not load your analytics. Please try again.",
   DASHBOARD_LOAD_FAILED: "Could not load your dashboard. Please try again.",
@@ -135,8 +137,20 @@ export const UI_TEXT = {
   // app … change the app name and tagline").
   appName: "Brio",
   appTagline: "Made by you. Managed simply.",
-  /** What a browser tab, a search result and a shared link say of the app. */
-  appTitle: "Brio — Made by you. Managed simply.",
+  /**
+   * What a browser tab, a search result and a shared link call the app: its
+   * name alone, with no line (the user, 2026-10-01).
+   */
+  appTitle: "Brio",
+  /**
+   * The picture a shared link shows (scripts/og-image.mts; the user,
+   * 2026-10-01): its words, and what it says to a screen reader.
+   */
+  share: {
+    line: "The order book for businesses run from home.",
+    audience: "For home bakers, hamper makers, florists and gift makers.",
+    imageAlt: "Brio, Made by you. Managed simply. A phone shows a bill made in Brio for Asha’s Home Bakes.",
+  },
   /** The name under the icon once the app is installed (plan §139.19 R7.1). */
   appShortName: "Brio",
   /** The line under a business's name in the header when it has no catch phrase of its own. */
@@ -212,6 +226,8 @@ export const UI_TEXT = {
     registerHeadline: ["Grow what", "you make", "at home."],
     registerIntro: "Two short steps, and you are ready for orders",
     promise: "Made at home, run with care.",
+    // The way to the landing page (§139.11.22), under the promise.
+    seeWhatBrioDoes: "See what Brio does",
 
     // The three screens behind the front door (plan §138.6). Same voice: a
     // serif line that says where you are, then one sentence of why.
@@ -471,7 +487,7 @@ export const UI_TEXT = {
   /** Analytics (plan §139.10, §139.11.11). */
   analytics: {
     title: "Analytics",
-    subtitle: "How your business is doing",
+    subtitle: "How your business is doing.",
     bandLines: ["Good work brings", "great numbers."],
     bandTagline: "Make · Share · Grow",
     tabs: "Analytics views",
@@ -797,7 +813,7 @@ export const UI_TEXT = {
     title: "Orders",
     subtitle: "Track every order, from placed to handed over.",
     newOrder: "New order",
-    search: "Search orders, customers or phone",
+    search: "Search by name or order",
     filter: "Filter orders",
     tabs: "Orders by status",
     all: "All",
@@ -928,13 +944,13 @@ export const UI_TEXT = {
   /** Creating an order: items, then details, then payment (plan §139.10). */
   newOrder: {
     title: "Create order",
-    itemsSubtitle: "Add items to create a new order",
+    itemsSubtitle: "Add items to create a new order.",
     detailsTitle: "Order details",
-    detailsSubtitle: "Review items and add customer details",
+    detailsSubtitle: "Review items and add customer details.",
     paymentTitle: "Payment",
-    paymentSubtitle: "Record what has been paid so far",
+    paymentSubtitle: "Record what has been paid so far.",
     stepOf: (step: number, of: number) => `Step ${step} of ${of}`,
-    searchProducts: "Search products…",
+    searchProducts: "Search products",
     noProducts: "No products yet",
     noProductsHint: "Add products on the Products screen, or a custom item for a one-off.",
     noMatches: (search: string) => `Nothing matches “${search}”`,
@@ -1015,8 +1031,8 @@ export const UI_TEXT = {
   /** Changing an open order (plan §139.11.13): its items, then its details. */
   editOrder: {
     title: (orderNumber: string) => `Edit ${orderNumber}`,
-    itemsSubtitle: "Add items, or change what is in the order",
-    detailsSubtitle: "Check the details, then save the changes",
+    itemsSubtitle: "Add items, or change what is in the order.",
+    detailsSubtitle: "Check the details, then save the changes.",
     save: "Save changes",
     savedBody: (orderNumber: string) => `${orderNumber} is saved with its changes.`,
     paidSoFar: "Paid so far",
@@ -1027,7 +1043,7 @@ export const UI_TEXT = {
   /** The customer picker (plan §139.5, §139.11.4). */
   customerPicker: {
     title: "Select customer",
-    search: "Search by name or phone…",
+    search: "Search by name or phone",
     guest: "Guest",
     guestHint: "The bill reads “Guest”",
     addNew: "Add new customer",
@@ -1056,7 +1072,7 @@ export const UI_TEXT = {
 
     /** The inbox (plan §139.10). */
     title: "Notifications",
-    subtitle: "What happened in the business, newest first",
+    subtitle: "What happened in the business, newest first.",
     tabs: "Which notifications",
     tabNames: {
       ALL: "All",
@@ -1089,7 +1105,7 @@ export const UI_TEXT = {
   /** Business details (plan §139.10, §139.11.2). */
   business: {
     title: "Business details",
-    subtitle: "How your business appears in the app and on every bill",
+    subtitle: "How your business appears in the app and on every bill.",
     name: "Business name",
     tagline: "Catch phrase",
     taglinePlaceholder: "e.g. Your friendly home baker",
@@ -1225,6 +1241,109 @@ export const UI_TEXT = {
     deleted: "Your account and your business have been deleted. Thank you for using Brio.",
   },
 
+  /**
+   * The landing page (`/`, plan §139.11.22; the user, 2026-09-30): what
+   * Brio is and who it is for, shown on its own screens. It says only what
+   * the app does — no prices, no numbers of users, no quotes.
+   */
+  landing: {
+    metaDescription:
+      "Brio keeps the orders, customers, stock and money of a home business in one place, for home bakers, hamper makers, florists and gift makers.",
+    signIn: "Sign in",
+    createAccount: "Create account",
+    openApp: "Open Brio",
+    start: "Create your account",
+    heroLead:
+      "The order book for businesses run from home — every order from WhatsApp or a call, what is due, and who has paid.",
+    /** Under the hero's button: what making an account asks. */
+    signUpNeeds: "Two short steps · your mobile number and email",
+    whoTitle: "Made for work done at home",
+    who: {
+      bakers: { title: "Home bakers", body: "Cakes, cupcakes and brownies, made to order." },
+      hampers: { title: "Hamper makers", body: "Festive hampers and gift sets, by the set." },
+      florists: { title: "Florists", body: "Bouquets and arrangements, by the bunch." },
+      gifts: { title: "Gift makers", body: "Boxes, keepsakes and gifts made to order." },
+    },
+    dayTitle: "A day’s work, kept in order",
+    dayLead: "From the message that brings an order to the money that settles it.",
+    features: {
+      order: {
+        title: "Take an order as fast as it comes in",
+        body: "An order from a WhatsApp message or a phone call goes in with a few taps. Pick from what you sell or add something made to order, choose the customer or keep it as a guest, and note what was paid.",
+        points: [
+          "Stock is set aside the moment an order is placed, so nothing is promised twice.",
+          "Pickup or delivery, with the day and time it is due.",
+        ],
+      },
+      due: {
+        title: "Know what is due before it is late",
+        body: "Home opens on what needs you now: orders running late, due today and due tomorrow, money still to collect and stock running low.",
+        points: [
+          "Move each order along: Pending, Preparing, Ready, Delivered.",
+          "Reminders on your phone or in your browser as orders come due.",
+        ],
+      },
+      bill: {
+        title: "A proper bill in seconds",
+        body: "Every order has a clean bill with your business’s name, logo, address and catch phrase. Share it from your phone to WhatsApp or anywhere else, or save it as a PDF.",
+        points: ["Paid, part paid or still owed, said plainly.", "Made when you ask for it, and never stored."],
+      },
+      customers: {
+        title: "Every customer, remembered",
+        body: "Each customer keeps their orders, what they have spent and what they still owe, with Call and WhatsApp a tap away.",
+        points: ["Regulars, new faces and balances due, each on a tab.", "A guest order needs no customer at all."],
+      },
+      numbers: {
+        title: "Know where you stand",
+        body: "Stock counts itself as orders are placed and handed over. Analytics shows sales, orders, best sellers and customers for any stretch of time.",
+        points: [
+          "Low stock is flagged before you run out.",
+          "Sales, orders and the average order, day by day or month by month.",
+        ],
+      },
+      expenses: {
+        title: "Every cost, beside every sale",
+        body: "Note what you spend as you spend it: ingredients, packaging, delivery, gas. Brio adds it up by where it went and sets it beside your sales, so you see what you really made.",
+        points: [
+          "Expenses by category, with categories of your own.",
+          "The month’s costs at a glance: the total, the daily average and where they went.",
+        ],
+      },
+    },
+    shots: {
+      desktop:
+        "Brio’s Home on a computer: orders due today and one running late, the day’s sales, money to collect and stock running low.",
+      home: "Brio’s Home on a phone: orders due today, the day’s sales, money to collect and stock running low.",
+      order: "Creating an order on a phone: products to pick from, and the order adding up at the foot.",
+      bill: "An order’s bill on a phone, with the business’s name, the items, what was paid, and Share and Download PDF.",
+      customer:
+        "A customer on a phone: what they still owe, what they have spent and their orders, with Call and WhatsApp.",
+      inventory: "Stock on a phone: each product with how much is left, one marked low.",
+      analytics: "Analytics on a phone: sales, orders, new customers and the average order for the last 30 days.",
+      expenses: "Expenses on a phone: the month’s total, the daily average and the costs by category.",
+    },
+    devicesTitle: "In your apron pocket, and on the desk",
+    devices: {
+      android: { title: "Android", body: "An app for Android phones, with reminders for orders coming due." },
+      iphone: { title: "iPhone and iPad", body: "Added to the home screen from Safari, and opened like an app." },
+      computer: { title: "Computer", body: "Any browser, with a sidebar, wider lists and room for the numbers." },
+    },
+    looks: "Two looks to choose from",
+    trustTitle: "Your business stays yours",
+    trust: [
+      "No other business can see your orders, customers or money.",
+      "Bills are made when you ask for them, and never kept on our side.",
+      "No adverts, no tracking tools, and your data is never sold.",
+      "Delete your account from Settings whenever you like, and it goes at once.",
+    ],
+    privacyLink: "Read the privacy policy",
+    closingTitle: "Start with your next order",
+    closingBody: "Make your account in two short steps, add what you sell, and your next order goes straight in.",
+    haveAccount: "Already using Brio?",
+    privacy: "Privacy policy",
+    copyright: (year: number) => `© ${year} Brio`,
+  },
+
   /** The privacy policy's page (R8.10); its words are in src/constants/privacy.ts. */
   privacy: {
     title: "Privacy policy",
@@ -1237,8 +1356,9 @@ export const UI_TEXT = {
   },
 
   /**
-   * The developer console (plan §5, §37; the user, 2026-09-27): read-only, in
-   * white and blue, for DEV only. It shows what the app already keeps.
+   * The developer console (plan §5, §37; the user, 2026-09-27 and 2026-09-30):
+   * read-only, in white and blue, for DEV only. It shows what the app keeps,
+   * the audit trail and the error log for seven days.
    */
   admin: {
     product: "Brio",
@@ -1247,6 +1367,7 @@ export const UI_TEXT = {
     places: {
       overview: "Overview",
       users: "Users",
+      logs: "Error log",
       audit: "Audit log",
     },
     signedInAs: "Signed in as",
@@ -1257,10 +1378,11 @@ export const UI_TEXT = {
       `${owners} ${owners === 1 ? "owner" : "owners"} · ${developers} ${developers === 1 ? "developer" : "developers"}`,
     businesses: "Businesses",
     auditEntries: "Audit entries",
-    auditLastDay: (count: number) => `${count} in the last 24 hours`,
-    // What is kept, said plainly: server errors are written to the server's output only.
-    keptNote:
-      "This console shows what the app keeps: accounts and the audit trail. Server errors are not stored; they are in the server's own output.",
+    errorEntries: "Errors",
+    auditLastDay: (count: number) => `${count} audit ${count === 1 ? "entry" : "entries"} in the last 24 hours`,
+    errorsLastDay: (count: number) => `${count} ${count === 1 ? "error" : "errors"} in the last 24 hours`,
+    // What is kept, and for how long, said plainly.
+    keptNote: `This console shows what the app keeps: the accounts, the audit trail and the error log. Audit and error entries are removed after ${LOG_KEEP_DAYS} days.`,
     usersTitle: "Users",
     usersSubtitle: "Every account, newest first.",
     usersEmpty: "No accounts yet.",
@@ -1274,10 +1396,20 @@ export const UI_TEXT = {
     emailUnconfirmed: "Email not confirmed",
     owesPasswordChange: "Owes a password change",
     auditTitle: "Audit log",
-    auditSubtitle: "What changed in every business, who changed it, and when.",
+    auditSubtitle: `What changed in every business, who changed it, and when. Kept for ${LOG_KEEP_DAYS} days.`,
     auditEmpty: "Nothing has been recorded yet.",
     by: (actor: string) => `by ${actor}`,
     unknownActor: "someone no longer here",
+    logsTitle: "Error log",
+    logsSubtitle: `What failed on the server, newest first. Kept for ${LOG_KEEP_DAYS} days.`,
+    logsEmpty: `Nothing has failed in the last ${LOG_KEEP_DAYS} days.`,
+    logsSearch: "Find a reference or a message",
+    reference: "Reference",
+    signedOut: "no one signed in",
+    detailAndStack: "What was thrown",
+    detail: "Detail",
+    stack: "Stack",
+    context: "Context",
     beforeAndAfter: "Before and after",
     before: "Before",
     after: "After",
@@ -1348,15 +1480,27 @@ export const UI_TEXT = {
     orFollow: "Or follow these steps",
     stepsFor: {
       ios: "On iPhone or iPad",
+      iosChrome: "On iPhone or iPad",
+      iosOther: "On iPhone or iPad",
       android: "On Android",
       desktop: "On a computer",
       other: "In your browser",
     },
+    /** Why an iPhone shows no Install button: Apple lets no website offer one. */
+    iosNote:
+      "An iPhone or iPad adds apps from the browser’s Share menu, so there is no Install button here — just three taps.",
     steps: {
+      // Safari, Chrome and every other iPhone browser can add Brio since iOS 16.4.
       ios: [
-        "Open Brio in Safari.",
-        "Tap the Share button at the bottom of the screen.",
-        "Scroll down and tap Add to Home Screen, then Add.",
+        "Tap Share — in the toolbar, or under ••• beside the address bar.",
+        "Scroll down and tap Add to Home Screen.",
+        "Tap Add.",
+      ],
+      iosChrome: ["Tap Share, at the right of the address bar.", "Scroll down and tap Add to Home Screen.", "Tap Add."],
+      iosOther: [
+        "Tap the browser’s Share button, or open its menu and tap Share.",
+        "Scroll down and tap Add to Home Screen.",
+        "Tap Add.",
       ],
       android: [
         "Open Brio in Chrome.",
@@ -1375,5 +1519,43 @@ export const UI_TEXT = {
       ],
     },
     done: "Once it is on your home screen, open Brio from there. This option goes away inside the app.",
+  },
+} as const;
+
+/**
+ * The emails Brio sends (src/lib/mail/templates; the user, 2026-10-01: "update
+ * the email template as there is name change, logos and everything new"), in
+ * the app's own voice. A name is the person's, as they gave it.
+ */
+export const MAIL_TEXT = {
+  greeting: (name: string) => `Hi ${name},`,
+  /** Under a button, for a mail app that will not show one. */
+  linkFallback: "If the button doesn’t work, copy this link into your browser:",
+  confirmation: {
+    subject: "Confirm your Brio account",
+    preheader: "One tap, and your account is ready for your first order.",
+    heading: "Confirm your email",
+    body: "Your Brio account is made. Confirm this is your email address, and you’re ready to take your first order.",
+    action: "Confirm my email",
+    footnote:
+      "You’re getting this because this address was used to make a Brio account. If that wasn’t you, you can ignore this email.",
+  },
+  emailChange: {
+    subject: "Confirm your new email for Brio",
+    preheader: "Confirm it, and it becomes the address on your account.",
+    heading: "Confirm your new email",
+    body: "You asked to use this address for your Brio account. Confirm it, and it becomes the address on your account.",
+    action: "Confirm this email",
+    expires: (hours: number) => `The link works for ${hours} hours.`,
+    footnote: "If you didn’t ask for this, ignore this email. Your account keeps the address it has.",
+  },
+  passwordReset: {
+    subject: "Your Brio temporary password",
+    preheader: "Sign in with it, and choose a new password.",
+    heading: "Your temporary password",
+    body: "Your password has been reset. Sign in with this temporary password, and Brio will ask you to choose a new one straight away.",
+    label: "Temporary password",
+    action: "Sign in to Brio",
+    footnote: "If you didn’t ask for this, sign in with it and choose a new password, so only you know it.",
   },
 } as const;

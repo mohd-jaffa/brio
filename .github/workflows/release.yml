@@ -1,0 +1,172 @@
+# A release (plan §139.11.23, docs/RELEASE.md). Publishing a GitHub release
+# whose tag is vX.Y.Z — the same X.Y.Z as package.json — does four things, in
+# order, and stops at the first that fails:
+#
+#   version   the tag is vX.Y.Z and matches package.json
+#   checks    every CI gate again, on that tag (ci.yml)
+#   migrate   the new migrations applied to the hosted Supabase
+#   deploy    that tag built here, and only the built app uploaded to
+#             Vercel as production
+#
+# Vercel is never connected to the repository and never sees the code
+# (docs/RELEASE.md, A1): the build runs on GitHub, a check stops the upload
+# if a source file, a source map or an env file is in it, and
+# `vercel deploy --prebuilt` sends the rest.
+#
+# It can also be run by hand from the Actions tab for a tag already released,
+# to deploy it again. What it reads (docs/RELEASE.md, part B):
+#
+#   secrets.VERCEL_TOKEN            a Vercel access token
+#   secrets.VERCEL_ORG_ID           the Vercel team (or account) id
+#   secrets.VERCEL_PROJECT_ID       the Vercel project id
+#   secrets.SUPABASE_ACCESS_TOKEN   a Supabase personal access token
+#   secrets.SUPABASE_DB_PASSWORD    the hosted database's password
+#   vars.SUPABASE_PROJECT_REF       the hosted project's reference
+#
+# Until they are set, migrate and deploy say so and do nothing.
+name: Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The release tag to deploy again, e.g. v1.0.0
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+# One release at a time, and never one cut short by the next.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  version:
+    name: Tag matches the version
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - id: tag
+        env:
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        run: |
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::A release tag is v and three numbers, like v1.0.0; this one is \"$TAG\"."
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ steps.tag.outputs.tag }}
+
+      - name: Compare with package.json
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          version="v$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$version" ]; then
+            echo "::error::The tag is $TAG but package.json says $version. Set the version first (docs/RELEASE.md, C1), then tag that commit."
+            exit 1
+          fi
+
+  checks:
+    name: Every gate, on the tag
+    needs: version
+    uses: ./.github/workflows/ci.yml
+    with:
+      ref: ${{ needs.version.outputs.tag }}
+
+  migrate:
+    name: Hosted database migrations
+    needs: [version, checks]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+    steps:
+      - name: Not set up yet
+        if: env.SUPABASE_ACCESS_TOKEN == '' || env.SUPABASE_DB_PASSWORD == '' || env.PROJECT_REF == ''
+        run: echo "::notice::No hosted Supabase is set up for releases (docs/RELEASE.md, B4), so no migration was applied."
+
+      - uses: actions/checkout@v5
+        if: env.SUPABASE_ACCESS_TOKEN != '' && env.SUPABASE_DB_PASSWORD != '' && env.PROJECT_REF != ''
+        with:
+          ref: ${{ needs.version.outputs.tag }}
+
+      # The same CLI as the one the app is developed and tested against.
+      - uses: supabase/setup-cli@v1
+        if: env.SUPABASE_ACCESS_TOKEN != '' && env.SUPABASE_DB_PASSWORD != '' && env.PROJECT_REF != ''
+        with:
+          version: 2.109.1
+
+      - name: Apply the new migrations
+        if: env.SUPABASE_ACCESS_TOKEN != '' && env.SUPABASE_DB_PASSWORD != '' && env.PROJECT_REF != ''
+        run: |
+          supabase link --project-ref "$PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+          supabase db push --password "$SUPABASE_DB_PASSWORD" --yes
+
+  deploy:
+    name: Deploy to Vercel
+    needs: [version, checks, migrate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Protect this environment in GitHub (docs/RELEASE.md, B6) to have a
+    # release wait for your approval before it goes out. A private repository
+    # needs GitHub Pro for that; on GitHub Free the job runs without it.
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - name: Not set up yet
+        if: env.VERCEL_TOKEN == '' || env.VERCEL_ORG_ID == '' || env.VERCEL_PROJECT_ID == ''
+        run: echo "::notice::No Vercel project is set up for releases (docs/RELEASE.md, B5), so nothing was deployed."
+
+      - uses: actions/checkout@v5
+        if: env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != ''
+        with:
+          ref: ${{ needs.version.outputs.tag }}
+
+      - uses: actions/setup-node@v5
+        if: env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != ''
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: The Vercel CLI
+        if: env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != ''
+        run: npm install --global vercel@latest
+
+      # The production environment variables come from the Vercel project
+      # (docs/RELEASE.md, B5), never from the repository. The build needs none
+      # of the secrets, so they can be Sensitive: Vercel adds them when the
+      # app runs, and none is written into what is uploaded.
+      - name: Build
+        if: env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != ''
+        run: |
+          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          vercel build --prod --token="$VERCEL_TOKEN"
+
+      - name: Only the built app goes to Vercel
+        if: env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != ''
+        run: node scripts/check-deploy-output.mjs
+
+      - name: Deploy
+        id: deploy
+        if: env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != ''
+        run: |
+          url="$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "::notice::Deployed $url"

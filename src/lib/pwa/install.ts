@@ -5,7 +5,9 @@
  *
  * Chrome, Edge and Samsung Internet offer it themselves, once, with
  * `beforeinstallprompt`: the offer is kept here until the owner asks for it.
- * Safari offers nothing of the kind; there the steps are the way.
+ * No browser on an iPhone or iPad can: Apple lets no website offer to install.
+ * There the steps are the way, through the browser's own Share menu — Safari's,
+ * and since iOS 16.4 Chrome's and every other's too.
  */
 
 /** The browser's own offer to install, as Chrome gives it. */
@@ -87,15 +89,25 @@ export async function promptInstall(): Promise<boolean> {
   return outcome === "accepted";
 }
 
-export type InstallPlatform = "ios" | "android" | "desktop" | "other";
+/** `ios` is Safari; `iosChrome` and `iosOther` are the other browsers on an iPhone or iPad. */
+export type InstallPlatform = "ios" | "iosChrome" | "iosOther" | "android" | "desktop" | "other";
+
+export const isIos = (platform: InstallPlatform) =>
+  platform === "ios" || platform === "iosChrome" || platform === "iosOther";
 
 /**
  * Whose steps to show, from the browser's own description of itself. An iPad
- * describes itself as a Mac, and gives itself away by its touch screen.
- * Firefox on a computer cannot install an app at all.
+ * describes itself as a Mac, and gives itself away by its touch screen. On
+ * either, each browser keeps its Share button somewhere else, and says who it
+ * is: CriOS is Chrome, FxiOS Firefox, EdgiOS Edge. Firefox on a computer cannot
+ * install an app at all.
  */
 export function installPlatform(userAgent: string, touchPoints = 0): InstallPlatform {
-  if (/iPhone|iPad|iPod/.test(userAgent) || (/Macintosh/.test(userAgent) && touchPoints > 1)) return "ios";
+  if (/iPhone|iPad|iPod/.test(userAgent) || (/Macintosh/.test(userAgent) && touchPoints > 1)) {
+    if (/CriOS\//.test(userAgent)) return "iosChrome";
+    if (/FxiOS|EdgiOS|OPiOS|OPT\/|DuckDuckGo|YaBrowser|GSA\//.test(userAgent)) return "iosOther";
+    return "ios";
+  }
   if (/Android/.test(userAgent)) return "android";
   if (/Firefox\//.test(userAgent)) return "other";
   return "desktop";

@@ -20,6 +20,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { UI_TEXT } from "../src/constants/messages.ts";
+import { HOME_ROUTE } from "../src/constants/routes.ts";
 import { shellServer } from "../src/lib/native/shell.ts";
 
 const OUT = ".capacitor/shell";
@@ -81,7 +82,7 @@ fs.writeFileSync(
     `<img src="icon.webp" alt="">
 <h1>${escape(text.title)}</h1>
 <p>${escape(text.body)}</p>
-<a href="${escape(server.url)}/">${escape(text.retry)}</a>`,
+<a href="${escape(server.url)}${HOME_ROUTE}">${escape(text.retry)}</a>`,
   ),
 );
 fs.writeFileSync(

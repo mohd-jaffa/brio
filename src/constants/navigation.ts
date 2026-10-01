@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { UI_TEXT } from "./messages";
+import { HOME_ROUTE } from "./routes";
 
 /**
  * Where the app can be navigated to (plan §139.5). One set of items, so the
@@ -27,7 +28,7 @@ export interface NavItem {
   href: string;
 }
 
-const HOME: NavItem = { id: "home", label: UI_TEXT.nav.places.home, icon: Home, href: "/" };
+const HOME: NavItem = { id: "home", label: UI_TEXT.nav.places.home, icon: Home, href: HOME_ROUTE };
 const ORDERS: NavItem = { id: "orders", label: UI_TEXT.nav.places.orders, icon: ClipboardList, href: "/orders" };
 const PRODUCTS: NavItem = { id: "products", label: UI_TEXT.nav.places.products, icon: Cookie, href: "/products" };
 const CUSTOMERS: NavItem = { id: "customers", label: UI_TEXT.nav.places.customers, icon: Users, href: "/customers" };

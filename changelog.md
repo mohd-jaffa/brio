@@ -3843,3 +3843,464 @@ A second `/impeccable optimize` pass, on the built app at 390 px, with a throttl
 
 ### Blockers
 - None.
+
+## 2026-09-30 — The welcome keeps its keys and its focus as it turns
+
+### Fixed
+- **The arrow keys turned the welcome only once** (`Welcome.tsx`). Focus starts on the first slide's title; turning put that slide out of reach, focus fell out of the dialog, and the next key went nowhere. Back on the way to the first slide did the same.
+  - Focus on something about to go out of reach — the leaving slide's title, or Back as the first slide comes — now moves to the new slide's title. Focus on Next stays there.
+  - The arrow keys are heard wherever focus is, since nothing else takes keys while the welcome is open.
+
+### Validation
+- Seen on the screenshots taken for the user: at 1440 × 900 the arrow keys walked all four slides. Two unit tests added; `Welcome.tsx` stays fully covered.
+
+### Blockers
+- None.
+
+## 2026-09-30 — The error log, and seven days for every log
+
+### Added
+- **An error log, for developers only** (the user: "like audit logs, let there be proper error logs too. and only dev can see it"; plan §103, §104, §37, §139.11.21).
+  - `error_logs` (`0036_error_logs`): what failed on the server, where (a request, a screen, the server's own work, a job), the reference the person was shown, the code, kind and status, the method and path (never the query), who was asking and for which business, and the thrown value's message and stack, each bounded, the rest redacted as the logger redacts. No policy: no owner reads or writes a row.
+  - One helper, `captureError` (`src/lib/audit/errorLog.ts`), writes the row through the service role and the line to the output, and never throws.
+  - What goes in: a request that failed with 500 or above (`withApiHandler`, with who was asking once a guard knew); a screen the server could not draw, the proxy, a route that threw before answering (`src/instrumentation.ts`, `onRequestError`); a mail not sent, an audit line not written, an undo that did not take, a look for orders due, a notification not queued; a job or sweep, once a worker runs. A refused request (4xx) stays in the output only.
+  - **The console's Error log** (`/admin/logs`, `GET /api/admin/logs`, DEV only): newest first, searchable by a quoted reference or words of the message, with what was thrown on request. The Overview counts errors beside the rest.
+- **Seven days for every log** (the user: "both error logs and audit logs will be cleared in 7 days"): `clean_up_logs()` drops audit and error rows older than seven days (`LOG_KEEP_DAYS`), every hour, by pg_cron. The audit trail was kept for the life of the business before; only the console reads it.
+
+### Changed
+- The privacy policy says the history of changes and the record of faults are kept seven days, and what the record of faults holds. The console's notes say the same.
+- The plan records §139.11.21 and the missing `…_welcome` row; AGENTS.md §8, §11 and §27 name the error log.
+
+### Migration notes
+- `0036_error_logs.sql`: a new table (no rows), a function, and a pg_cron job `log-cleanup` at 23 minutes past every hour. Applied to the local database. On a hosted database, audit rows older than seven days go within the hour of applying it.
+
+### Validation
+- Unit tests pass, with `captureError`, the console's Error log, `onRequestError`, `referencePattern` and the migration's contract covered; the handler's and the guards' logging, and each call site's, are tested.
+- Integration tests (36) pass on the local database: a failure is kept with who was asking and found by its reference; an owner can neither read nor write the log, nor run the sweep; rows past seven days go and newer ones stay, in both logs; a deleted account takes its error rows.
+- Lint, the type check and the format check pass.
+
+### Blockers
+- None.
+
+## 2026-09-30 — The landing page, with the app on a phone and a laptop
+
+### Added
+- **A landing page at `/about`** (the user: "create a landing hero page for the app also, informative, explaining the use cases of the app and if possible with screenshots or demonstrations"; plan §139.11.22). Open to anyone, signed in or not; the proxy does not run for it, as for `/privacy`.
+  - The brand's line as the headline; what Brio is and who it is for; a day's work — taking an order, what is due, the bill, customers, stock and the numbers — each beside the screen that does it; where it runs; what stays private, with the policy a link away; and the way in. Someone signed in is offered **Open Brio** instead of an account.
+  - It says only what the app does: no prices, no numbers of users, no quotes.
+- **The screenshots are the app itself** (`scripts/landing-shots.mts` → `src/assets/landing/`, 48–85 KB each): a demo business made through the app's own functions against the local Supabase, with no mail sent, given a month of orders, photographed in the built app, then deleted.
+- **Framed like a current Pro phone** (the user: "add with a phone like framed screenshot like with iphone 18 pro"): each phone shot is a whole 402 × 874 screen, its status bar (time, signal, Wi-Fi, battery) and home indicator drawn in the screen's own colours; `PhoneFrame` draws the titanium band, the black border, the Dynamic Island and the buttons in CSS, sized as a share of its own width. The desktop shot sits in `LaptopFrame`.
+- **"See what Brio does"** under the sign-in screen's promise leads to it.
+
+### Validation
+- Seen at 1440 × 900, 1024 × 768, 820 × 1180, 390 × 844 and 360 × 640: the headline holds its two lines, nothing scrolls sideways, every picture loads.
+- Unit tests: the page, its frames, its route and the sign-in link fully covered; the pictures' files and sizes; the proxy leaves `/about` alone.
+- A browser journey: from sign-in to the landing page, every part of a day shown, a screenshot loaded, and on to making an account.
+- Lint, the type check and the format check pass.
+
+### Blockers
+- None.
+
+## 2026-09-30 — The landing page opens like an order book
+
+### Changed
+- **The landing page's arrival is animated** (the user: "/impeccable animate about page"; plan §139.11.22). One sequence, once, as the page arrives: the headline's two lines rise out of their own line; the laptop's lid swings up from its hinge with its screen dark, and the screen wakes onto Home; the phone steps up in front of it; the words under the headline settle in behind. Inside 1.5 s, on the app's arrival curve, in CSS transforms and opacity only; nothing else on the page moves.
+- With reduced motion the hero only fades in, over 240 ms.
+- DESIGN.md records the page's motion and its own type steps.
+
+### Validation
+- Frames frozen at 0, 250, 500, 750, 1,000 and 1,600 ms at 1440 × 900 and 390 × 844, and with reduced motion: every stage reads, and the page rests as it was.
+- The design detector: advisories only — the devices' own colours and radii, and the page's type steps, now written into DESIGN.md.
+- Unit tests, lint, the type check and the format check pass; the landing journey passes on the build.
+
+### Blockers
+- None.
+
+## 2026-09-30 — The landing page moves as it scrolls, both ways
+
+### Changed
+- **Motion tied to the scroll** (the user: "give animation while scrolling down and up also"; plan §139.11.22), in CSS scroll timelines, so scrolling back up plays it backwards:
+  - titles rise out of their own line as they come into view, as the headline does as the page arrives;
+  - each day's phones rise out of their sunken well as it opens, and drift on as they leave;
+  - each point's check is drawn as it comes in, as a job is ticked off in an order book (the privacy points too);
+  - the pictures of who it is for are set down one after another; the three devices slide in;
+  - the hero's laptop and phone step back as the page moves on; the closing photograph settles into its band.
+- Transforms, opacity and a check's stroke only, run by the browser beside the scroll. A browser without scroll timelines, and a visitor who asks for reduced motion, see the page still, every word in place.
+
+### Validation
+- Frames at set scroll positions, down and back up, at 1440 × 900 and 390 × 844: each stage reads, and the frame on the way back up matches the one on the way down.
+- Unit tests, lint, the type check and the format check pass; the landing journey passes on the build.
+
+### Blockers
+- None.
+
+## 2026-09-30 — Releases: a published GitHub release deploys to Vercel
+
+### Added
+- **`docs/RELEASE.md`** (the user: "a md file which will explain me what to do to make a v1.0.0 release tag and ci which will build it to vercel … include what to do in github, even give what release note to put for this v1.0.0 version"; plan §139.11.23):
+  - what a release is, and how versions are numbered;
+  - the one-time setup in Vercel (project, region, environment, domain, token), Supabase (project, authentication settings, migrations, the reminder scheduler's Vault secrets, a developer account) and GitHub (secrets, the `production` environment, rules for `main` and for tags);
+  - each release's steps, from setting the version to checking it is live, and building the Android app from the same tag;
+  - what to do when a release goes wrong: rolling back on Vercel, and releasing a patch;
+  - the v1.0.0 release notes, ready to paste.
+- **`.github/workflows/release.yml`**: publishing a release tagged `vX.Y.Z` checks the tag against `package.json`, runs every CI gate again on it, applies the new migrations to the hosted Supabase, and deploys that tag to Vercel as production. It can be run again by hand for a released tag. Until its secrets exist, the migrate and deploy jobs leave a note and change nothing.
+
+### Changed
+- **`ci.yml` can be called** by the release, with the tag to check (`ref`); a release's run has its own concurrency group, so it never cancels a push's.
+- AGENTS.md §27 and plan R6.4 say a release deploys and a push does not.
+
+### Validation
+- Both workflows parse, with the jobs and triggers intended. The bill PDF's fonts are already traced into its route by the build (`route.js.nft.json`), so it needs nothing more to work on Vercel.
+- The workflow cannot run here: it needs GitHub, Vercel and a hosted Supabase. Its first run is the first release.
+
+### Blockers
+- None. The version stays 0.1.0 until the release is made (`docs/RELEASE.md`, C1).
+
+## 2026-09-30 — A day on one phone
+
+### Changed
+- **The landing page's day is told on one phone** (the user: "/impeccable overdrive for about page", choosing "A day on one phone" of three directions; plan §139.11.22). The five alternating rows become one phone that stays put while the day's five steps pass beside it (`DayOnOnePhone`):
+  - from 768 px it is held in the middle of the screen, in a sunken well, beside the steps; on a phone it is pinned above them on the page's ground, and they pass beneath it;
+  - its screen changes as each step reaches the middle, the way the app moves: a screen pushes in from the side over the last, the bill rises as a sheet over Home, and the last step shows the stock, then the numbers;
+  - once a screen settles, a caramel ring marks what the step is about;
+  - a rail numbers the steps; the one being read is filled, those read are outlined, the rest dim;
+  - scrolling back up plays it back. Under reduced motion the screens fade.
+- Which screen shows is worked out once a frame, from where the steps' markers stand against the middle of the screen (or, on a phone, of the part under the pinned phone), so it works in every browser. The per-row scroll motion it replaces is gone.
+
+### Validation
+- Stepped through at 1440 × 900 and 390 × 844, down and back up: each screen comes in order, Home stays under the rising bill, the numbers come up while the phone is still held, and the first screen returns at the top. The bill's step seen at 820 × 1180, 360 × 640, 844 × 390 and with reduced motion; nothing scrolls sideways.
+- Unit tests: `DayOnOnePhone` and the landing page fully covered; the landing journey passes on the build.
+- Lint, the type check and the format check pass.
+
+### Blockers
+- None.
+
+## 2026-09-30 — The day on a phone as before, Expenses in it, and the page measured
+
+### Changed
+- **On a phone, each step keeps its own screens again** (the user: "for mobile keep it like before with multiple screenshots like before one down the other, for larger screens like ipad or laptop this looks way good"). Below 768 px the day is the earlier layout: each step's words, then its screens rising out of their well, the stock and the numbers side by side. From 768 px the phone is held beside the steps as before. Neither layout fetches the other's pictures.
+- **Expenses in the demo** (the user: "add expenses page also in the demo of the about page"): a sixth step, **Every cost, beside every sale**, with the Expenses screen scrolled to the month's costs by category, and its ring on the chart. Know where you stand now keeps to the stock and analytics. `scripts/landing-shots.mts` photographs `/expenses` too.
+- **The held phone's screens wait for the day** (from the performance check): after the first, they are drawn once the day comes into view, not at page load. On a laptop the page's first images fell from 267 KB to 115 KB, on an iPad from 279 KB to 127 KB.
+
+### Validation
+- Measured on the build, cold, with the page scrolled all the way down and back up:
+
+  | | First paint | Largest paint | Layout shift | Blocking | Scrolling | Blank screens at a turn |
+  |---|---|---|---|---|---|---|
+  | Phone, 4× slower CPU, slow 4G | 1.0 s | 1.6 s | 0 | 45 ms | 60 fps, slowest frame 18 ms | — |
+  | Laptop | 0.04 s | 0.04 s | 0 | 0 ms | 60 fps, slowest frame 18 ms | 0 |
+  | iPad, 4× slower CPU, slow 4G | 0.9 s | 1.3 s | 0 | 9 ms | 60 fps, slowest frame 18 ms | 0 |
+
+  The page's JavaScript is 199 KB and its fonts 114 KB, both the app's own; a phone fetches 67 KB of images to open and 282 KB after scrolling everything.
+- Seen: the phone's stacked steps, and the laptop's held phone through all six steps, Expenses last.
+- Unit tests: `DayOnOnePhone` and the landing page fully covered; lint, the type check and the format check pass; the journeys pass on the build.
+
+### Blockers
+- None.
+
+## 2026-10-01 — The landing page holds with larger text
+
+### Changed
+- **The hero no longer runs off a phone** (the critique's first issue; the user: "stop the hero clipping. Size the headline from the screen width and let it wrap below 640px, so 150% text and 320px screens never scroll sideways"). On a phone the headline is sized from the screen's width (11.5 vw, 36 – 56 px), so each line fits on one line from 320 px; it was 44 px at least, and 25 px too wide at 320. Its lines may wrap now, so text set larger wraps a line instead of pushing the page wider — 150 % text had made a 390 px page 496 px wide, clipping the headline and the words under it. On a laptop with large text, "Managed simply." now wraps in its column rather than run under the laptop. The hero's column can no longer widen the page (`grid-cols-1`, `min-w-0`).
+- **The rest of the page, checked the same way:** who it is for goes to one column when two no longer fit, its pictures shrinking with their column; the three devices stand each medallion over its words from 640 px to 1024, where a large text had pushed **Computer** past the edge. At normal text the page looks as before, but for the devices between 640 and 1024 px.
+- Affected: `src/components/landing/Landing.tsx`; DESIGN.md (Landing page).
+
+### Validation
+- On the build, the page's width measured at 320, 360, 390, 414, 640, 700, 768, 1024, 1100, 1180, 1280 and 1440 px, with the text at 100, 125, 150 and 200 %: nothing scrolls sideways, and at normal text each headline line stays on one line at every width.
+- Unit tests, lint, the type check and the format check pass.
+
+### Blockers
+- None.
+
+## 2026-10-01 — The landing page on a phone
+
+### Changed
+- **The day on a phone** (the critique's second issue; the user: "on phones: add the caramel ring and step numbers to each step's screenshots; stack the stock and analytics screens one under the other; show a slim sticky Create account bar after the hero; only pin the phone when the screen is at least 600px tall, so a sideways phone gets the stacked layout"):
+  - each step's own screens carry the caramel ring the held phone has, always on, round what the step is about;
+  - each step has its number, outlined caramel beside its title, where the held layout has its rail;
+  - the stock and analytics stand one under the other, stepping from left to right, each as wide as a single screen (they were side by side, 165 px each, too small to read);
+  - each phone rises on its own as it scrolls in.
+- **The phone is held only on a screen at least 768 px wide and 600 px tall** (`HELD`, and the `held` variant in globals.css). A phone on its side (844 × 390) gets the stacked steps, where it had a 136 px held phone.
+- **A start bar on a phone** (`StartBar`): Create account along the bottom, with the wordmark, of the app's bottom bar's material. It comes up once the hero's buttons have gone above the screen, and goes at the closing band, so it never stands beside another Create account. Hidden, it is inert. It is measured once a frame as the page scrolls, so a jump past the hero still brings it. It is not drawn where the phone is held.
+- `PhoneFrame` takes children, drawn over its screen.
+- Affected: `src/components/landing/` (`DayOnOnePhone`, `DeviceFrame`, `Landing`, the new `StartBar`), `src/app/globals.css`; DESIGN.md (Landing page) and plan §139.11.22.
+
+### Validation
+- Seen on the build:
+  - at 390 × 844: the numbers and rings on every step, the stock and analytics one under the other, and the bar coming up after the hero and going at the closing band, down and back up;
+  - at 844 × 390: the stacked steps and the bar;
+  - at 820 × 1180 and 1440 × 900: the held phone as before, with no bar and no step numbers beside the titles.
+- Unit tests: the landing components 100 % covered, with `StartBar`'s own tests.
+- The landing journey checks the bar on a phone.
+- Lint, the type check and the format check pass.
+
+### Blockers
+- None.
+
+## 2026-10-01 — The landing page: the pinned phone's seams, fewer words, and a finish
+
+### Changed
+- **The pinned phone** (the critique's third issue; the user: "turn the screen as the heading arrives … make the steps you've passed less faint; one status bar and header, with only the content moving; the bill rises as a real sheet over a dimmed Home; a shorter empty stretch after step 6; each tick draws once"):
+  - a step turns the phone as its title crosses 60 % of the screen (`TURN_LINE`), where its marker sat some 200 px above the title before;
+  - steps read stay at 90 % (muted text 4.6 : 1, from about 1.8 : 1 at 40 %), and steps to come at 55 %;
+  - one status bar and header (`.day-chrome`, the first screen's own, so nothing more is fetched) stay still above the screens, which now move only below the header;
+  - the bill is the app's sheet: only the sheet, its corners rounded, rising from the bottom edge over Home and the header, under the app's own scrim (`--color-scrim`, a 2 px blur), and going down again when the day moves on;
+  - the empty 50 dvh after the last step is gone, so the phone leaves with step 6;
+  - each point's check is drawn once as it comes into view, those that come in together 90 ms apart (`Ticks`), where before it was tied to the scroll and could rest half drawn.
+- **The phone's Dynamic Island shows again on the held phone.** It had been drawn beneath the screens since they were given a stacking order.
+- **Fewer words** (the critique's fourth issue; the user: "keep the laptop and phone in the hero … Cut the 48-word lead to one sentence and drop the repeats"):
+  - the lead is one sentence: "The order book for businesses run from home — every order from WhatsApp or a call, what is due, and who has paid.";
+  - the hero's line listing who it is for is gone, since the next section says it with pictures;
+  - the hero's phone shows the bill, so Home is on the laptop and in the day, not three times.
+- **What making an account asks** (the critique's fifth issue): "Two short steps · your mobile number and email" under the hero's button, for a visitor signed out. No price is named. The first privacy point now reads "No other business can see your orders, customers or money."
+- **Finish** (the critique's minor notes):
+  - the who-it-is-for pictures turn as they land, but their words only settle and never tilt;
+  - the demo month's average order is a whole ₹1,375, where it was ₹1,348.33: one past order in `scripts/landing-shots.mts` has three boxes of cupcakes, and the screenshots were taken again;
+  - "Two looks to choose from" shows Golden and Peach as swatches in their own colours;
+  - on a phone the closing band's plate stands above its words;
+  - the header's Create account is a secondary pill, so the first view has one espresso button.
+- Affected:
+  - `src/components/landing/`: `Landing`, `DayOnOnePhone`, `Words`, and the new `Ticks`;
+  - `src/app/globals.css`, `src/constants/messages.ts`;
+  - `src/assets/landing/`, retaken, and `scripts/landing-shots.mts`;
+  - DESIGN.md (Landing page) and plan §139.11.22.
+
+### Validation
+- Seen on the build at 1440 × 900:
+  - Home, then the bill rising over the scrim and settled;
+  - a push under the still header;
+  - the expenses, with the phone leaving with them;
+  - where it runs, with the looks, and the privacy band.
+- Seen on the build at 390 × 844: the hero, who it is for, and the closing band with its plate.
+- Seen with reduced motion at 1440 × 900: the bill fades in over the scrim, and the checks are simply drawn.
+- Unit tests: the landing components 100 % covered, with `Ticks`' own tests. The landing journey passes on the build.
+- Lint, the type check and the format check pass.
+
+### Blockers
+- None.
+
+## 2026-10-01 — The browser says Brio; the release guide and the README
+
+### Changed
+- **The site's name in the browser is Brio alone** (the user: "for the site name the browser just keep as Brio … no tag line required"). `UI_TEXT.appTitle` is "Brio". It is what a tab says on every screen of the app and on `/about`, and the installed app's name in the manifest; `/about`'s "the order book for home businesses" is gone (`metaTitle` removed). A page with a name of its own still says it first: "Sign in — Brio".
+- **`docs/RELEASE.md`** (the user: "update the release md file if needed, mention what needs to be added as release note"):
+  - **C2, What goes in the release notes:** how to collect what changed since the last tag (commits, new migrations, new settings, the changelog); the sections to write (New, Changed, Fixed, For developers, Setting it up, Before you update); what never goes in; and a template for a later release.
+  - **The v1.0.0 notes** describe the landing page as it is now.
+- **`README.md`** brought up to date:
+  - what Brio is for (home businesses, not only bakers);
+  - both seeded accounts, the developer console's included;
+  - the landing page, the privacy policy and `/admin`;
+  - that no worker runs for now, and what stands in for it;
+  - the error and audit logs, and their seven days;
+  - every check CI runs;
+  - releasing through a published GitHub release;
+  - the Android guide;
+  - how the landing page's screenshots are made.
+- Affected: `src/constants/messages.ts`, `src/app/about/page.tsx`, `src/app/manifest.ts` (through `appTitle`), their tests; docs.
+
+### Validation
+- The app's unit tests pass. The manifest names the app Brio, and `/about`'s title is Brio.
+- Lint, the type check and the format check pass.
+
+### Blockers
+- None.
+
+## 2026-10-01 — The landing page at `/`, Home at `/home`, shared links and emails in Brio's look
+
+### Changed
+- **The landing page is the site's root, `/`, and Home is `/home`** (the user: "If possible make / route for landing page, give /home for homepage if there is no issues"):
+  - `HOME_ROUTE` is `/home`, so signing in, a confirmed email, a changed password and the app's Home link all lead there. `LANDING_ROUTE` is `/`, which the proxy leaves alone.
+  - `/about` leads to `/` with a permanent redirect (next.config.ts), for links already shared.
+  - The installed app starts at `/home`. Its manifest `id` stays `/`, so an app already installed is still the same app.
+  - The Android app opens on `/home` (`server.appStartPath`). Capacitor checks only the host for what stays in the app, so every screen still opens inside it. Its offline page's Try again goes to `/home` too.
+  - A pushed reminder with nowhere to lead opens `/home` (public/sw.js).
+  - Nothing else moved. There was no issue: nothing is released yet, and Android's App Links claim only `/confirm-email`.
+- **Shared links** (the user: "add open graph meta data for a better previews in social medias"):
+  - Every page carries Open Graph and Twitter card tags: Brio as the name, what it is, `en_IN`, and a large card. Addresses come from `NEXT_PUBLIC_APP_URL` (`metadataBase`, `src/lib/share/metadata.ts`).
+  - The landing page adds its own description, its address and a canonical link.
+  - One picture for all of them: `src/app/opengraph-image.jpg` and `twitter-image.jpg`, 1200 × 630, 61 KB, with alt text. It shows the brand's line beside the landing page's phone open on a bill, drawn from the app's own fonts and frame by `scripts/og-image.mts`.
+  - The proxy leaves the pictures alone, since a link preview fetches them with no session.
+- **Emails in Brio's look** (the user: "Visually update the email template as there is name change, logos and everything new with us now"):
+  - One layout for all of them (`src/lib/mail/templates/layout.ts`): the wordmark, a card, one dark button with its link in words beneath, a temporary password set apart to copy, and the leaf and the brand's line at the foot.
+  - Light only, inline styles and tables, and a plain-text twin. Nothing is fetched from a font service.
+  - Everything a person typed is escaped. Before, a name went into the HTML as typed.
+  - The marks are PNGs in `public/email/`, built by `scripts/brand.mjs`. The proxy leaves them alone, since a mail app fetches them with no session.
+  - The words are `MAIL_TEXT` (src/constants/messages.ts).
+- **Changing your email has its own email** (`emailChangeTemplate`, `MailService.sendEmailChange`). It asks to confirm the new address and says the link works for 48 hours. Before, it was sent the new account's "Your Brio account has been created successfully".
+- **The password-reset email** says the password has been reset, sets the temporary one apart, and links to sign in.
+- Affected:
+  - routes and the proxy;
+  - `src/app/page.tsx` (the landing page), `src/app/home/page.tsx` (Home), the manifest and the layout;
+  - `capacitor.config.ts`, `scripts/android-shell.mjs` and `public/sw.js`;
+  - `src/lib/share/`, `src/lib/mail/`, `src/features/auth/account.ts` and `src/constants/messages.ts`;
+  - the new `scripts/og-image.mts` and `scripts/brand.mjs`;
+  - DESIGN.md, plan §139.11.22, README and docs/RELEASE.md.
+
+### Validation
+- On the build:
+  - `/` is the landing page, `/home` asks a visitor to sign in, and `/about` redirects to `/` (308);
+  - the landing page and sign-in carry the Open Graph and Twitter tags, and the picture is served with no session;
+  - the browser journeys and the integration tests pass.
+- The three emails sent to Mailpit and seen at a laptop's and a phone's width, the marks loaded.
+- Unit tests pass, with new tests for the email layout, the email-change email and the share metadata. Lint, the type check and the format check pass.
+
+### Blockers
+- None.
+
+## 2026-10-01
+
+### Fixed
+- **Tapping a field no longer zooms the page on an iPhone** (the user: "When in mobile web, when i click any form field, keyboard opens as well as the page gets zoomed in. Fix that."). iOS zooms in on any field whose text is smaller than 16 px, and ours were 14 px.
+  - Typed text is now 16 px on every screen size: the field well (`FIELD_WELL`, shared with the select and the date picker), a field's `+91` prefix, the search box and the quantity stepper's number.
+  - The well keeps its height (46 px) with less padding, so no layout moves.
+- **A quick second tap on a control is a tap**, not a double-tap that zooms: buttons, links, fields and labels take `touch-action: manipulation` (globals.css).
+- **Pinch zoom is left on.** The viewport is not locked with `maximum-scale=1` or `user-scalable=no`:
+  - locking it fails WCAG 1.4.4 and Lighthouse's accessibility check;
+  - iOS Safari ignores it for pinching anyway.
+- Affected: `src/components/ui/field-styles.ts`, `text-field.tsx`, `search-field.tsx`, `quantity-stepper.tsx`, globals.css, DESIGN.md (Inputs) and `.impeccable/design.json`.
+
+### Validation
+- On the build at 390 px, every field on sign in, registration, Customers, Products, Stock and a new order measures 16 px, at its old height. The custom item sheet and the order details' stepper looked right.
+- The UI kit's unit tests pass. Lint and the format check pass.
+
+### Blockers
+- None.
+
+## 2026-10-01 — Installing on an iPhone
+
+### Fixed
+- **Install app on an iPhone gives the steps for the browser in use** (the user: "i opened the website in iphone chrome, and i was not able to see the install app button inside the install app modal, there was only instructions like go to safari"):
+  - No iPhone or iPad browser can show an Install button: Apple lets no website offer to install. The sheet now says so in one line, so its absence reads as expected rather than broken.
+  - Its first step used to send every iPhone to Safari. Since iOS 16.4, Chrome and the other iPhone browsers add apps from their own Share menu, so each now gets its own steps:
+    - Chrome: Share at the right of the address bar;
+    - Firefox, Edge and the others: their Share button or menu;
+    - Safari: Share in the toolbar, or under •••.
+  - All three then read "Add to Home Screen", then Add.
+- `installPlatform` tells them apart by what each browser calls itself (`CriOS`, `FxiOS`, `EdgiOS`…).
+- Affected: `src/lib/pwa/install.ts`, `src/components/nav/InstallAppSheet.tsx` and `UI_TEXT.install` (src/constants/messages.ts).
+
+### Validation
+- On the build at 390 px, as Chrome on an iPhone, the sheet showed the note and Chrome's three steps.
+- New unit tests cover telling the iPhone browsers apart and each one's steps. Lint, the type check and the format check pass.
+
+### Blockers
+- None.
+
+## 2026-10-01 — Polish across the signed-in app
+
+### Fixed
+Every signed-in screen was checked at 360, 390, 768 and 1440 px (`/impeccable polish`, the user chose "the whole signed-in app"). A scan looked for sideways overflow, cut text, small targets, fields under 16 px, broken pictures, console errors and layout shift. It found none of the last four.
+- **The business's catch phrase was cut off in the header on every screen**, at every size ("CAKES FOR EVERY CELEB…"). It now takes a second line, evenly, as the name does. A phrase too long even for two lines shows in full on hover. (`BusinessMark`)
+- **Home's tiles on a tablet broke their labels word by word** ("Due / today") with four to a row at 768 px. Home now keeps two to a row until 1024 px, as Analytics does. (`Home`)
+- **Stat tiles on a phone under 390 px did the same.** A tile too narrow for its label beside the medallion now stacks as a desktop's does: medallion, figure, then label. A container query decides, so it is the tile's own width that counts.
+  - Where a label still wraps beside its medallion ("Total expenses" at 390 px), the label row is always two lines tall, so the figures side by side line up. (`StatTile`)
+- **Averages read in whole rupees.** Analytics showed "Average order value ₹1,153.75". The average order value and the expenses' daily average now round to the rupee, through one helper, `averagePaise` (`src/lib/money.ts`).
+- **The Orders search hint was cut mid-word on a phone** ("Search orders, customers or p"). It now reads "Search by name or order", which fits at 360 px. Any hint still too long for its field ends in "…" rather than mid-letter.
+- **A row's reason no longer loses its end:**
+  - Settings → Order reminders: "Turned off in this browser’s settings for Brio";
+  - a customer's "1 order · last order a week ago".
+  - Both take a second line.
+- **Consistent words:**
+  - every page's line under its title ends with a full stop, as most already did (Analytics, Notifications, Business details, and the new and edit order steps);
+  - the two search hints that ended in "…" no longer do.
+- Checked and left as they are:
+  - the desktop sales chart, which was only mid-way through drawing in the first capture;
+  - the `#1004` order numbers, which are left over from an older demo data load (fresh demo data numbers every order ORD-1001 onwards);
+  - the bands' "Track · Control · Grow" break, a documented choice;
+  - the developer console's own look, also documented.
+- Affected:
+  - `src/components/ui/stat-tile.tsx`, `search-field.tsx` and `text-field.tsx`;
+  - `src/components/nav/BusinessMark.tsx`;
+  - Home, Customers and the reminder settings;
+  - `src/lib/money.ts` and the analytics and expenses summaries;
+  - `UI_TEXT` and DESIGN.md (Stat Tile, the app's frame).
+
+### Validation
+- Fixes re-captured on the build at 360, 375, 390, 768 and 1440 px.
+- Lint, the format check and the type check pass.
+- Unit tests pass (2,575), with a new one for `averagePaise`.
+- The browser journeys pass (3).
+- The design detector finds nothing in the changed files.
+
+### Blockers
+- None.
+
+## 2026-10-01 — Release guide for the hosted setup; Vercel never sees the code
+
+### Changed
+- **`docs/RELEASE.md`** is rewritten for how Brio will be hosted. The user's words: "iam hosting this on vercel free plan, supabase cloud free plan, and will be purchasing a domain from godaddy … mainly why i keep the code in my personal github is so that no one can get the codebase and the gmail where vercel is there has access to other peoples". It now covers:
+  - **A1, who sees what:** GitHub, Vercel, Supabase, GoDaddy and the mail provider, and which way the keys go.
+    - What Vercel receives, and what it never does.
+    - Never deploy from a Mac.
+    - What people who share the Vercel account can still do. They cannot get the code. They can deploy code of their own that runs with the production values, so they can reach the data.
+  - **A2, the free plans:**
+    - Vercel Hobby is for non-commercial use only.
+    - Supabase Free pauses an idle project and keeps no backups.
+    - GitHub Free with a private repository gets 2,000 Actions minutes and no environment protection or rulesets.
+  - **B1 to B7, the one-time setup, in order:**
+    - the domain;
+    - Brio's own keys;
+    - mail through Resend, with its records at GoDaddy;
+    - Supabase, with the new publishable and secret keys;
+    - Vercel, made with `vercel link` and never connected to GitHub, with every secret Sensitive and GoDaddy's A and CNAME records;
+    - GitHub;
+    - a checklist.
+  - **The developer account** is made from the dashboard and two SQL statements.
+  - **C3, backing up** with `supabase db dump`, before each release that brings migrations and weekly.
+  - **D4 to D6:** a paused project, an expired token, lost data.
+  - Part E, the v1.0.0 notes, is unchanged but for one reference.
+- **The release checks what it uploads** (`scripts/check-deploy-output.mjs`, in `release.yml` between the build and the deploy). It fails if a source map, a file from `src/`, `supabase/`, `tests/`, `scripts/` or `docs/`, a `.ts`, `.sql` or `.md` file, or an env file other than `.env.example` would go to Vercel.
+- **Node is pinned to 22** (`engines`, from `>=20.9.0`). Vercel takes its runtime from `engines`, not the dashboard, and was going to run Node 24, then each new major, untested. CI tests on 22 (`.nvmrc`).
+- README, AGENTS.md §27 and plan §139.11.23 say the same.
+
+### Validation
+- **Run with Vercel's own CLI** (`vercel build --prod`, 62.1.0) on this code:
+  - The upload holds 0 source maps and 0 files from `src/`. The server's chunks are minified.
+  - The only env files are `.env.example` and, on a Mac, `.env.local`. The new check stops `.env.local`, which a deploy from a Mac would have uploaded.
+  - Secrets given to the build (placeholder values) appear nowhere in the upload.
+  - The build passes without the server's secrets, so they can be Sensitive.
+  - Every function's runtime is `nodejs22.x` after the pin, `nodejs24.x` before.
+- **`vercel link`** (the CLI's source) connects the Git repository by itself only with `--yes`; asked, its default is no. The guide says never `--yes`.
+- **The developer-account steps work** against the local Supabase: a user made by email, the two SQL statements, then sign-in by number. It gets a DEV profile with no business, and the test user is deleted after.
+- The free-plan limits, the GitHub plan limits, Vercel's SMTP ports (465 and 587 open), Resend's SMTP settings and Supabase's backup commands were checked against each vendor's current documentation.
+- Lint, the format check and the type check pass. Unit tests pass.
+
+### Blockers
+- None.
+
+## 2026-10-01 — Mail through a free Gmail; version 1.0.0
+
+### Changed
+- **Mail is a free Gmail** (the user: "iam using gmails free mail service for the emails"). `docs/RELEASE.md`:
+  - **A1:** Brio's mail gets a Gmail of its own, used for nothing else. Its app password is kept in Vercel and opens that whole mailbox, so it must not be the personal Gmail (GitHub's and GoDaddy's recovery emails go there) nor the Vercel Gmail.
+  - **A2:** at most 500 emails a day, and they come from the Gmail address; a free Gmail cannot send as the domain, so GoDaddy needs no mail records.
+  - **B3** replaces Resend: the new Gmail, 2-Step Verification, an app password, and a check on the Mac that Gmail accepts it. The settings are `smtp.gmail.com`, 465, secure, the Gmail address as user and sender.
+  - **B5:** the env table takes the app password, and `SUPPORT_EMAIL` is optional (the policy then gives the Gmail). Every change to a value needs a new deployment, not only a `NEXT_PUBLIC_` one.
+  - **D7, emails stopped:** a cancelled app password, the daily limit, or a disabled account. A reset asked for meanwhile has already replaced the password.
+- **The version is 1.0.0** (the user set `package.json`; `package-lock.json` follows). C1 says v1.0.0 needs no bump.
+- **A rate limit on signing in** (`docs/RELEASE.md`, B5, step 8). R6.2 relied on Cloudflare's rule, which this setup has no place for. Vercel's firewall gives Hobby one rate-limit rule: 20 POSTs per IP in ten minutes to login, register, password reset and the two resends. It also keeps one person from using up Gmail's 500 a day quickly. Plan §133.11 K6, R6.2 and §139.11.23 note it.
+- **The privacy policy names Vercel, not Cloudflare** (`src/constants/privacy.ts`, `updated` 2026-10-01), and so does `docs/ANDROID.md`'s Data safety. Vercel carries the app; Cloudflare is not used.
+- `.env.example` shows the Gmail settings, and it and `docs/ANDROID.md` use `www.yourdomain.com`, the address `docs/RELEASE.md` uses. Part E's reference is C5, not C4. README follows.
+
+### Validation
+- **Gmail's SMTP:** a wrong app password against `smtp.gmail.com:465` is refused with "Invalid login: 535-5.7.8 Username and Password not accepted", which the B3 check prints. The same check against the local Mailpit passes.
+- Gmail's limits (500 a day, 1 to 24 hours to recover) and app passwords (2-Step Verification needed; none with security keys only; cancelled by a password change) were checked against Google's help pages. Vercel's rate limiting on Hobby (one rule, fixed window, IP, 10 s to 10 minutes) and its conditions (Request Path Is any of, Method Equals) were checked against Vercel's documentation.
+- A request refused by the firewall (429, not JSON) shows `ERROR_MESSAGES.INTERNAL_ERROR` through `src/lib/api/client.ts`.
+
+### Blockers
+- None.
+
+## 2026-10-01 — Release v1.0.0
+
+### Release
+- Brio 1.0.0, the first release. Notes: docs/RELEASE.md, part E.
+- Served at `https://brio-omega.vercel.app`, the Vercel project's own address, until the domain is bought. `NEXT_PUBLIC_APP_URL`, Supabase's Site URL and redirect URL, and the scheduler's Vault URL use it until then.
+
+### Migration notes
+- A new hosted database gets every migration, 0001 to 0036.
+
+### Validation
+- On the release commit, locally: lint, the format check and the type check pass; unit tests (2575), integration tests (36), the build and the browser journeys (3) pass.
+
+### Blockers
+- None.

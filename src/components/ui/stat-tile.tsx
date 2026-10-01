@@ -23,7 +23,7 @@ function DeltaLine({ delta }: { delta: StatDelta }) {
   const good = change === 0 ? undefined : change > 0 === (up === "good");
   const Arrow = change > 0 ? ArrowUp : ArrowDown;
   return (
-    <dd className="col-span-2 row-start-3 mt-2 text-xs lg:row-start-4">
+    <dd className="col-span-2 row-start-3 mt-2 text-xs @max-[8.5rem]:row-start-4 lg:row-start-4">
       <span
         className={cn(
           "inline-flex items-center gap-0.5 font-semibold tabular-nums",
@@ -54,7 +54,12 @@ function DeltaLine({ delta }: { delta: StatDelta }) {
  *
  * Below 1024 px the label sits beside the medallion, so a phone's two rows of
  * tiles leave room for what follows them; the figure keeps the tile's whole
- * width, so a long amount is not cut short. From 1024 px the label drops
+ * width, so a long amount is not cut short. That row is always two lines
+ * tall, so when one tile's label wraps ("Total expenses") the figures beside
+ * each other still line up. A tile whose inside is narrower than 8.5 rem —
+ * two to a row on a phone under 390 px — has no room for "Due today" beside
+ * its medallion, and stacks as a desktop's does (a container query: the
+ * tile's width, not the screen's). From 1024 px the label drops
  * under the figure, and the sparkline takes the medallion's row — so a tile
  * with one is exactly as tall as a tile without.
  *
@@ -96,14 +101,16 @@ export function StatTile({
   return (
     <div
       className={cn(
-        "grid min-w-0 grid-cols-[auto_minmax(0,1fr)] content-start gap-x-3 rounded-2xl border border-border bg-surface p-4 shadow-card",
+        "@container grid min-w-0 grid-cols-[auto_minmax(0,1fr)] content-start gap-x-3 rounded-2xl border border-border bg-surface p-4 shadow-card",
         href && "relative transition-colors has-[a:hover]:bg-surface-hover",
       )}
     >
-      {icon && <Medallion icon={icon} tone={tone} size="sm" className="col-start-1 row-start-1" />}
+      {icon && <Medallion icon={icon} tone={tone} size="sm" className="col-start-1 row-start-1 self-center" />}
       <dt
         className={cn(
-          "row-start-1 self-center text-sm text-text-muted lg:col-span-2 lg:col-start-1 lg:row-start-3 lg:mt-0.5 lg:self-auto",
+          "row-start-1 flex min-h-10 items-center text-sm text-text-muted lg:col-span-2 lg:col-start-1 lg:row-start-3 lg:mt-0.5 lg:block lg:min-h-0",
+          // A tile too narrow for both — two to a row on a phone under 390 px — stacks as a desktop's does.
+          "@max-[8.5rem]:col-span-2 @max-[8.5rem]:col-start-1 @max-[8.5rem]:row-start-3 @max-[8.5rem]:mt-0.5 @max-[8.5rem]:block @max-[8.5rem]:min-h-0",
           icon ? "col-start-2" : "col-span-2 col-start-1",
         )}
       >
@@ -111,7 +118,7 @@ export function StatTile({
           // The whole tile is the link: its ::after covers it, and wears the focus ring.
           <Link
             href={href}
-            className="flex items-center justify-between gap-1 after:absolute after:inset-0 after:rounded-2xl focus-visible:shadow-none focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-primary"
+            className="flex w-full items-center justify-between gap-1 after:absolute after:inset-0 after:rounded-2xl focus-visible:shadow-none focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-primary"
           >
             {label}
             <ChevronRight size={16} strokeWidth={1.75} className="shrink-0" aria-hidden="true" />
@@ -122,14 +129,18 @@ export function StatTile({
       </dt>
       <dd
         className={cn(
-          "col-span-2 row-start-2 mt-2 truncate text-2xl tabular-nums text-text lg:mt-3",
+          "col-span-2 row-start-2 mt-2 truncate text-2xl tabular-nums text-text @max-[8.5rem]:mt-3 lg:mt-3",
           headline ? "font-heading font-medium" : "font-semibold",
         )}
       >
         {motionValue === undefined ? value : <RollingNumber value={motionValue}>{value}</RollingNumber>}
       </dd>
       {delta && <DeltaLine delta={delta} />}
-      {note && <dd className="col-span-2 row-start-3 mt-2 text-xs font-semibold text-danger lg:row-start-4">{note}</dd>}
+      {note && (
+        <dd className="col-span-2 row-start-3 mt-2 text-xs font-semibold text-danger @max-[8.5rem]:row-start-4 lg:row-start-4">
+          {note}
+        </dd>
+      )}
       {trend && (
         <Sparkline
           values={trend}

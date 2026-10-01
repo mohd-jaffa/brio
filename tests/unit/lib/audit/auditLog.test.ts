@@ -3,10 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const insert = vi.fn();
 const from = vi.fn(() => ({ insert }));
 vi.mock("@/lib/supabase/server", () => ({ createSupabaseServiceRoleClient: () => ({ from }) }));
-const error = vi.fn();
-vi.mock("@/lib/logger", () => ({
-  logger: { info: vi.fn(), warn: vi.fn(), error: (...args: unknown[]) => error(...args) },
-}));
+const captureError = vi.fn();
+vi.mock("@/lib/audit/errorLog", () => ({ captureError: (...args: unknown[]) => captureError(...args) }));
 
 import { logActionSafe } from "@/lib/audit/auditLog";
 import { tenantOf } from "@tests/support/tenant";
@@ -47,12 +45,12 @@ describe("logActionSafe", () => {
   it("logs a failed write and carries on, since the change it describes has happened", async () => {
     insert.mockResolvedValue({ error: { code: "42501", message: "permission denied" } });
     await expect(logActionSafe(tenantOf({}), entry)).resolves.toBeUndefined();
-    expect(error).toHaveBeenCalledWith("Failed to write audit log", {
+    expect(captureError).toHaveBeenCalledWith({
+      message: "Failed to write audit log",
+      error: { code: "42501", message: "permission denied" },
+      userId: "u-1",
       bakeryId: "b-1",
-      action: "UPDATE",
-      entityType: "customers",
-      entityId: "c-1",
-      code: "42501",
+      context: { action: "UPDATE", entityType: "customers", entityId: "c-1" },
     });
   });
 });

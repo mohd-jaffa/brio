@@ -49,6 +49,15 @@ export function paiseToRupees(paise: number): number {
   return paise / 100;
 }
 
+/**
+ * A total shared out over a count, to the nearest whole rupee, in paise — or 0
+ * over nothing. An average is a guide, not an amount anyone pays: "₹1,153.75"
+ * claims a precision it does not have, and reads as a price.
+ */
+export function averagePaise(total: number, count: number): number {
+  return count === 0 ? 0 : Math.round(total / count / 100) * 100;
+}
+
 /** Adds up paise amounts. Integers all the way, so nothing drifts. */
 export function sumPaise(amounts: readonly number[]): number {
   return amounts.reduce((total, amount) => total + amount, 0);

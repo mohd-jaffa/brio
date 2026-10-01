@@ -138,8 +138,9 @@ export function QuantityStepper({
         onKeyDown={keys}
         onBlur={commit}
         // 44 px to the touch, as the buttons are: it takes the stepper's full
-        // height, over its padding, and its ring is drawn inside.
-        className="focus-inset -my-1.5 w-11 self-stretch rounded-lg bg-transparent text-center text-sm font-semibold tabular-nums text-text"
+        // height, over its padding, and its ring is drawn inside. 16 px, as
+        // every field is, or an iPhone zooms in on it (field-styles.ts).
+        className="focus-inset -my-1.5 w-11 self-stretch rounded-lg bg-transparent text-center text-base font-semibold tabular-nums text-text"
       />
       {button(1)}
     </div>
