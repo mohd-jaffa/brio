@@ -474,9 +474,11 @@ it.
 5. **Project settings** (Project → Settings):
    - **Build and Deployment → Node.js Version:** 22.x. Vercel takes 22 from
      `package.json` anyway (A3).
-   - **Functions → Function Regions:** the region nearest your Supabase project.
-     For Mumbai, that is **Mumbai, `bom1`**. Every screen reads the database,
-     so the two should be close.
+   - **Functions → Function Regions:** **Mumbai, `bom1`**, beside the Supabase
+     project. `vercel.json` asks every release for `bom1` anyway, and wins over
+     this setting; if the Supabase project is elsewhere, change both. Every
+     screen reads the database several times, so the two must be close: in
+     Washington, D.C., Vercel's default, a screen took seconds to load.
 
 6. **Environment variables** (Project → Settings → Environment Variables).
    - Add each one to **Production** only.

@@ -11,6 +11,10 @@ import { UI_TEXT } from "@/constants/messages";
  * password is the commonest reason a sign-in fails, and the reveal is a real
  * button with a label that says which state pressing it will produce — not an
  * icon a screen reader has to guess at (AGENTS.md §21).
+ *
+ * Revealed, it is a text box, and a phone's keyboard would capitalise the
+ * first letter and correct the rest; the password registered would then not
+ * be the one typed at sign-in. The keyboard is told to leave it as typed.
  */
 export const PasswordField = forwardRef<
   HTMLInputElement,
@@ -29,6 +33,9 @@ export const PasswordField = forwardRef<
       {...props}
       ref={ref}
       type={visible ? "text" : "password"}
+      autoCapitalize="none"
+      autoCorrect="off"
+      spellCheck={false}
       trailing={
         <button
           type="button"

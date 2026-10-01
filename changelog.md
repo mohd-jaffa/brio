@@ -4304,3 +4304,25 @@ Every signed-in screen was checked at 360, 390, 768 and 1440 px (`/impeccable po
 
 ### Blockers
 - None.
+
+## 2026-10-02 — Release v1.0.1: a password stays as typed; the server beside the database
+
+### Fixed
+- **Every screen was slow to load its data** (`vercel.json`). The live app's server ran in Washington, D.C. (`x-vercel-id: bom1::iad1`), Vercel's default for a new project, while the database is in Mumbai: every read crossed the world and back, several times a screen. `vercel.json` now asks for `bom1` (Mumbai), and `vercel deploy --prebuilt` sends it with every release (the CLI takes `regions` from `vercel.json`, else the project's default). Hobby allows one region. `docs/RELEASE.md` B5, step 5 says so.
+- **A password typed with "show password" on could be registered differently from how it was meant** (`src/features/auth/components/PasswordField.tsx`). Revealed, the box is a text box, and a phone's keyboard capitalised its first letter: an owner on the live site registered a password beginning with a small letter, and could never sign in typing it with a capital, while the email's link signed them in. Every password box (sign in, register, change password, delete account, a new number or email) now tells the keyboard not to capitalise, correct or spell-check, hidden or revealed.
+
+### Release
+- Brio 1.0.1. The version is 1.0.1 in `package.json` and `package-lock.json`.
+
+### Migration notes
+- None.
+
+### Validation
+- On the live Supabase, the owner's sign-in was refused ("Invalid login credentials") with the first letter capitalised and accepted without; Phone sign-in is on (`/auth/v1/settings`). The account was fine.
+- A unit test checks `autocapitalize="none"`, `autocorrect="off"` and `spellcheck="false"` on the box, hidden and revealed. No password input in `src/` bypasses `PasswordField`.
+- Supabase answers from India in about 40 ms (its database address is in AWS Mumbai); the live pages answer from `bom1::iad1`.
+- The Vercel CLI 62.1.0 source: `regions = --regions flag || localConfig.regions`, passed to the deployment for `--prebuilt` too.
+- Lint, the format check and the type check pass; the unit tests pass.
+
+### Blockers
+- None.
