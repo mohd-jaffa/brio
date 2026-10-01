@@ -135,9 +135,10 @@ from a working copy.
 
 [`docs/RELEASE.md`](./docs/RELEASE.md) covers:
 
-- who can see what, across GitHub, Vercel, Supabase, the domain and the mail
-  provider, and what their free plans allow;
-- the one-time setup: the domain (GoDaddy), mail, Supabase, Vercel and GitHub;
+- who can see what, across GitHub, Vercel, Supabase, the domain and Gmail,
+  and what their free plans allow;
+- the one-time setup: the domain (GoDaddy), mail (a free Gmail), Supabase,
+  Vercel and its rate limit on signing in, and GitHub;
 - each release's steps;
 - what to write in the release notes;
 - backing up the database;

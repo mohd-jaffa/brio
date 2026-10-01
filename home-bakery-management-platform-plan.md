@@ -6689,7 +6689,7 @@ The queue table and the claim/complete/fail helpers exist. Nothing runs them.
 | K3 | **Pipeline closed 2026-09-29 by R6.4:** `.github/workflows/ci.yml` runs every gate but SonarQube. No SonarQube and no CI pipeline — there is no `.github/` directory, so none of §125 runs anywhere (§124–§125). *SonarQube kept for later (2026-09-28); the pipeline stays in Phase 6 (R6.4).* |
 | K4 | **Closed 2026-09-29 by R6.5:** `tests/e2e` drives the built app in a browser with Playwright. The "E2E" suite is a Vitest test that reads route files and checks their shape. There is no browser journey and no Playwright (§121). |
 | K5 | **Closed 2026-09-29 by R6.6:** `tests/db/integration` runs the app's data functions against the local Supabase. There are no integration tests against a real database. `tests/db` reads the migration SQL as text; it proves the file says the right thing, not that the database does. |
-| K6 | No rate limiting on authentication or on any mutation. *Decided 2026-09-29 (the user): no limiter in the app. Supabase Auth limits its own sign-ins, and Cloudflare's rate-limiting rule guards the sign-in routes at the edge (R6.2).* |
+| K6 | No rate limiting on authentication or on any mutation. *Decided 2026-09-29 (the user): no limiter in the app. Supabase Auth limits its own sign-ins, and Cloudflare's rate-limiting rule guards the sign-in routes at the edge (R6.2). 2026-10-01: on Vercel, its firewall's rate-limit rule does instead (§139.11.23).* |
 
 ---
 
@@ -8911,6 +8911,7 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
   steps; checking it is live; rolling back; and the v1.0.0 release notes.
 - The version is `package.json`'s: Settings → About shows it, and it is the
   Android app's version name. It stays 0.1.0 until the release is made.
+  *2026-10-01 (the user): 1.0.0, ready for the first release.*
 - **Vercel never sees the code** (the user, 2026-10-01: the code is in their
   personal GitHub, and others can reach the Vercel account; Vercel Hobby,
   Supabase Free and a GoDaddy domain). Vercel is never connected to the
@@ -8921,6 +8922,14 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
   - what each account can see;
   - the free plans' limits;
   - the domain, mail and backup steps.
+- **Mail is a free Gmail** (the user, 2026-10-01): a Gmail made only for
+  Brio's mail, over SMTP with an app password, sending as that address (a
+  free Gmail cannot send as the domain), at most 500 a day. No code changes:
+  the SMTP variables take it. The privacy policy already named Gmail; it now
+  names Vercel in place of Cloudflare, which this setup does not use.
+- **Vercel's firewall takes Cloudflare's place** for R6.2: one rate-limit rule
+  (Hobby's one) on the routes that check a password or send an email, 20
+  requests per IP in ten minutes (`docs/RELEASE.md`, B5).
 
 ---
 
@@ -9468,7 +9477,7 @@ Phase 5 closed on 2026-09-26 with R5.10.
 | ID | Work | Source | Waits on | Status |
 |---|---|---|---|---|
 | R6.1 | Jobs enqueued with the service role; exponential backoff; the Menu and Cleanup workers | §133.6 F6–F8 | — | DONE (2026-09-29 · `0032_queue_hardening`: only the server queues; 1, 2, 4, 8 minutes between tries; the CleanupWorker, with pg_cron standing in while no worker runs. The MenuBuildWorker waits with the menu builder, outside the roadmap) |
-| R6.2 | Rate limiting | §133.11 K6 | — | NOT BUILT (2026-09-29, the user's decision: no limiter in the app; Supabase Auth's own limits and Cloudflare's rules stand in — changelog) |
+| R6.2 | Rate limiting | §133.11 K6 | — | NOT BUILT (2026-09-29, the user's decision: no limiter in the app; Supabase Auth's own limits and Cloudflare's rules stand in — changelog. *2026-10-01: Vercel's firewall rule in Cloudflare's place, §139.11.23*) |
 | R6.3 | OpenAPI and Swagger | §133.11 K1 | — | LATER (2026-09-28, the user: not needed for now; §119 – §120 kept) |
 | R6.4 | CI pipeline ~~with SonarQube~~ — SonarQube kept for later (2026-09-28) | §133.11 K3 | — | DONE (2026-09-29 · `.github/workflows/ci.yml`, on each push to main and each pull request: lint, format, types, unit tests, then the local Supabase, integration tests, the build and the journeys. No staging, smoke or production step: nothing is deployed from CI yet. *2026-09-30: a published release deploys to Vercel, §139.11.23*) |
 | R6.5 | Playwright journeys, tenant isolation included | §133.11 K4 | — | DONE (2026-09-29 · `tests/e2e`, `npm run test:e2e`: the critical journey, sign-in to Completed, through the screens; and tenant isolation, on the screens and at the API) |

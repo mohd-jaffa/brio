@@ -4267,3 +4267,25 @@ Every signed-in screen was checked at 360, 390, 768 and 1440 px (`/impeccable po
 
 ### Blockers
 - None.
+
+## 2026-10-01 — Mail through a free Gmail; version 1.0.0
+
+### Changed
+- **Mail is a free Gmail** (the user: "iam using gmails free mail service for the emails"). `docs/RELEASE.md`:
+  - **A1:** Brio's mail gets a Gmail of its own, used for nothing else. Its app password is kept in Vercel and opens that whole mailbox, so it must not be the personal Gmail (GitHub's and GoDaddy's recovery emails go there) nor the Vercel Gmail.
+  - **A2:** at most 500 emails a day, and they come from the Gmail address; a free Gmail cannot send as the domain, so GoDaddy needs no mail records.
+  - **B3** replaces Resend: the new Gmail, 2-Step Verification, an app password, and a check on the Mac that Gmail accepts it. The settings are `smtp.gmail.com`, 465, secure, the Gmail address as user and sender.
+  - **B5:** the env table takes the app password, and `SUPPORT_EMAIL` is optional (the policy then gives the Gmail). Every change to a value needs a new deployment, not only a `NEXT_PUBLIC_` one.
+  - **D7, emails stopped:** a cancelled app password, the daily limit, or a disabled account. A reset asked for meanwhile has already replaced the password.
+- **The version is 1.0.0** (the user set `package.json`; `package-lock.json` follows). C1 says v1.0.0 needs no bump.
+- **A rate limit on signing in** (`docs/RELEASE.md`, B5, step 8). R6.2 relied on Cloudflare's rule, which this setup has no place for. Vercel's firewall gives Hobby one rate-limit rule: 20 POSTs per IP in ten minutes to login, register, password reset and the two resends. It also keeps one person from using up Gmail's 500 a day quickly. Plan §133.11 K6, R6.2 and §139.11.23 note it.
+- **The privacy policy names Vercel, not Cloudflare** (`src/constants/privacy.ts`, `updated` 2026-10-01), and so does `docs/ANDROID.md`'s Data safety. Vercel carries the app; Cloudflare is not used.
+- `.env.example` shows the Gmail settings, and it and `docs/ANDROID.md` use `www.yourdomain.com`, the address `docs/RELEASE.md` uses. Part E's reference is C5, not C4. README follows.
+
+### Validation
+- **Gmail's SMTP:** a wrong app password against `smtp.gmail.com:465` is refused with "Invalid login: 535-5.7.8 Username and Password not accepted", which the B3 check prints. The same check against the local Mailpit passes.
+- Gmail's limits (500 a day, 1 to 24 hours to recover) and app passwords (2-Step Verification needed; none with security keys only; cancelled by a password change) were checked against Google's help pages. Vercel's rate limiting on Hobby (one rule, fixed window, IP, 10 s to 10 minutes) and its conditions (Request Path Is any of, Method Equals) were checked against Vercel's documentation.
+- A request refused by the firewall (429, not JSON) shows `ERROR_MESSAGES.INTERNAL_ERROR` through `src/lib/api/client.ts`.
+
+### Blockers
+- None.

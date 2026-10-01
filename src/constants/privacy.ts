@@ -28,7 +28,7 @@ export interface PrivacySection {
 
 export const PRIVACY_POLICY = {
   /** The day this text last changed, as a day key. */
-  updated: "2026-09-30",
+  updated: "2026-10-01",
   intro: [
     `${app} helps you run a home business: your orders, customers, products, stock, expenses and bills. This policy says what ${app} keeps, why it keeps it, who can see it, and how you delete it.`,
     `It covers ${app} on the web, installed from the browser, and the Android app.`,
@@ -76,7 +76,7 @@ export const PRIVACY_POLICY = {
       points: [
         "You, when you are signed in. Each business is kept apart from every other: no one signed in to another business can see yours.",
         `The people who run ${app}, only when it is needed to keep it working or to answer you. Our developer console shows accounts, the history of changes and the record of faults, to us and no one else.`,
-        `The services that run ${app} for us: Supabase, which holds the database, the sign-in and the logo; Cloudflare, which carries the app to you; and Google’s Gmail, which sends ${app}’s emails. They handle your data only to provide their service to us.`,
+        `The services that run ${app} for us: Supabase, which holds the database, the sign-in and the logo; Vercel, which carries the app to you; and Google’s Gmail, which sends ${app}’s emails. They handle your data only to provide their service to us.`,
         "If you turn on order reminders in a browser, that browser’s own push service — Google’s for Chrome, Apple’s for Safari, Mozilla’s for Firefox — carries each one to you. What it carries is locked so that only your browser can read it.",
         "Anyone the law requires us to tell, and only what it requires.",
       ],

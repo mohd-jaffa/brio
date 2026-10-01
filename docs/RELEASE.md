@@ -6,7 +6,8 @@ written for one setup:
 - the code in a **private repository on your personal GitHub**;
 - the app on **Vercel's free Hobby plan**, in an account with a different Gmail;
 - the database on **Supabase's free plan**;
-- the address on a domain **bought from GoDaddy**.
+- the address on a domain **bought from GoDaddy**;
+- the emails sent from a **free Gmail account**.
 
 The guide has five parts:
 
@@ -33,7 +34,7 @@ and emails use, and several settings below must match it exactly.
 | **Vercel** (Hobby), the Vercel Gmail | The running app, its settings and environment values, and the server's logs. | No. It gets only the built app (below). |
 | **Supabase** (Free) | Every business's records and accounts, and the database the migrations build. | No. |
 | **GoDaddy** | The domain. | No. |
-| **Your mail provider** | Every email Brio sends. | No. |
+| **Gmail**, a new Gmail only for Brio's mail | Every email Brio sends, in its Sent folder, and any replies. | No. |
 
 **The keys go one way.** Vercel and Supabase each give GitHub a token, which
 GitHub keeps as a secret. Neither of them is ever connected to GitHub, signed
@@ -82,7 +83,8 @@ They can:
 
 That last one matters most. Their code would run with the production values,
 Sensitive ones included. With the Supabase secret key, it could read every
-business's data. Marking a value Sensitive hides it in the dashboard; it does
+business's data; with the Gmail app password, it could send as Brio and read
+what Brio sent. Marking a value Sensitive hides it in the dashboard; it does
 not stop this.
 
 So the code is safe from them, but the data is only as safe as you trust them.
@@ -93,13 +95,18 @@ else in this guide changes.
 for:
 
 - **Supabase**: it holds every business's data;
-- **GoDaddy**: whoever holds the domain decides where Brio's address leads;
-- **the mail provider**: it keeps a copy of every email Brio sends, temporary
-  passwords included.
+- **GoDaddy**: whoever holds the domain decides where Brio's address leads.
 
-Your personal Gmail is the natural home for all three. Turn on two-step
-verification on every account, GitHub first, because it holds the keys to the
-rest.
+Your personal Gmail is the natural home for both.
+
+**Brio's mail gets a Gmail of its own, used for nothing else** (B3). Its app
+password is kept in Vercel, and it opens that whole mailbox, where every email
+Brio sent is kept, temporary passwords included. It must not open your
+personal Gmail, where GitHub and GoDaddy send their recovery emails, nor the
+Vercel Gmail.
+
+Turn on two-step verification on every account, GitHub first, because it
+holds the keys to the rest.
 
 ### A2. What the free plans allow
 
@@ -119,6 +126,8 @@ rest.
   - 4 hours of active CPU;
   - 5,000 image transformations.
 - The server runs in one region, which you choose (B5).
+- Its firewall allows one rate-limiting rule, which B5 uses to slow down
+  password guessing and floods of emails.
 
 **Supabase Free**
 
@@ -156,13 +165,19 @@ rest.
 - Buy only the domain. Brio needs none of GoDaddy's hosting, website builder,
   SSL certificates or email: Vercel serves the site over HTTPS for free.
 
-**Mail**
+**Gmail (free)**
 
 - Brio sends its own emails over SMTP: confirming an email address, a new
-  email address, and a temporary password.
-- Any SMTP provider works. This guide uses **Resend**. Its free plan sends
-  3,000 emails a month, at most 100 a day, which is plenty for registrations
-  and password resets.
+  email address, and a temporary password. A free Gmail account sends them,
+  signed in with an app password (B3).
+- **At most 500 emails a day.** Past that, Gmail stops sending for 1 to 24
+  hours. Registrations and password resets fit easily, and B5's rate limit
+  stops one person using them up quickly.
+- **They come from the Gmail address**, with Brio as the sender's name:
+  `Brio <brio.mail@gmail.com>`, for example. A free Gmail cannot send from an
+  address on your domain, so GoDaddy needs no mail records.
+- Another SMTP provider can take Gmail's place later, through the same
+  variables.
 
 ### A3. What a release is
 
@@ -229,7 +244,7 @@ Do these steps in order. Each one gives you values that a later step needs.
    belong to the address they were installed from. Moving to a new address
    later means every owner installs Brio again and turns reminders on again.
 
-There is nothing to set at GoDaddy yet; B3 and B5 add the records.
+There is nothing to set at GoDaddy yet; B5 adds the records.
 
 ### B2. Brio's own keys
 
@@ -249,44 +264,67 @@ Save three values:
 Make the key pair once, and keep it. A new pair silently stops the reminders on
 every browser that turned them on.
 
-### B3. Mail (Resend)
+### B3. Mail (Gmail)
 
-1. **Make an account** at [resend.com](https://resend.com), on your personal
-   Gmail (A1).
-2. **Add your domain.** Go to **Domains → Add Domain**, enter
-   `yourdomain.com`, and choose the region nearest your owners.
-3. **Add Resend's records at GoDaddy.** Resend lists them, typically:
-   - an **MX** and a **TXT** record named `send`;
-   - a **TXT** record named `resend._domainkey`.
+Brio sends its emails through a free Gmail account, over SMTP, signed in with
+an app password.
 
-   At GoDaddy, open **Domain Portfolio → your domain → DNS → Add New Record**.
-   Add each record with the same type, name and value:
-   - In GoDaddy's **Name** field, enter only the part before your domain:
-     `send` for `send.yourdomain.com`, and `resend._domainkey` for
-     `resend._domainkey.yourdomain.com`.
-   - For the MX record, use the priority Resend shows.
-4. **Add one more TXT record**, so mail servers trust mail from your domain:
-   - Name: `_dmarc`
-   - Value: `v=DMARC1; p=none;`
-5. **Verify.** Back in Resend, choose **Verify DNS Records**. Verification
-   takes from a few minutes to a few hours.
-6. **Make the key.** Go to **API Keys → Create API Key**, with **Sending
-   access** for `yourdomain.com`. Resend shows the key once, so copy it then.
-   It is `SMTP_PASSWORD`.
+1. **Make a new Gmail for it**, such as `brio.mail@gmail.com`, and use it for
+   nothing else (A1).
+   - Owners see this address as the sender, so choose one that reads well.
+   - Keep its password and recovery details in your password manager.
+2. **Turn on 2-Step Verification** for it, at
+   [myaccount.google.com/signinoptions/twosv](https://myaccount.google.com/signinoptions/twosv).
+   Google offers app passwords only with it on.
+   - Use a phone or an authenticator app as a second step. With security keys
+     only, Google offers no app passwords.
+3. **Make an app password** at
+   [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords),
+   signed in to that Gmail.
+   - Name it `Brio`, and choose **Create**.
+   - Google shows 16 letters once, in four groups. Copy them without the
+     spaces. This is `SMTP_PASSWORD`.
+   - **Changing that Gmail's password cancels the app password**, and Brio's
+     emails stop until you make a new one (D7).
+4. **Check that Gmail accepts it**, on your Mac, in the project folder. It asks
+   for the app password without showing it, and keeps it out of your shell's
+   history. It is written for the Mac's own shell, zsh. Put the new Gmail
+   address in place of `brio.mail@gmail.com` at the end:
+
+   ```bash
+   cd ~/projects/ovenly
+   read -s "P?App password: " && echo
+   P="$P" node -e '
+     const [user] = process.argv.slice(1);
+     require("nodemailer")
+       .createTransport({ host: "smtp.gmail.com", port: 465, secure: true, auth: { user, pass: process.env.P } })
+       .verify()
+       .then(() => console.log("Gmail accepts the app password."), (e) => console.error("Gmail refused it:", e.message));
+   ' brio.mail@gmail.com
+   unset P
+   ```
+
+   - **"Gmail accepts the app password."** You are done.
+   - **"Gmail refused it: Invalid login …"**, which can take a minute to
+     appear: the address or the app password is wrong. Check both, or make a
+     new app password.
 
 The mail settings for B5:
 
 | Variable | Value |
 |---|---|
-| `SMTP_HOST` | `smtp.resend.com` |
+| `SMTP_HOST` | `smtp.gmail.com` |
 | `SMTP_PORT` | `465` |
 | `SMTP_SECURE` | `true` |
-| `SMTP_USER` | `resend` |
-| `SMTP_PASSWORD` | the API key |
-| `SMTP_FROM` | `Brio <no-reply@yourdomain.com>` |
+| `SMTP_USER` | the Gmail address, in full |
+| `SMTP_PASSWORD` | the app password, without spaces |
+| `SMTP_FROM` | `Brio <brio.mail@gmail.com>`, with the same Gmail address |
 
-Another provider works the same way. Its SMTP settings go into the same
-variables, and its DNS records go into GoDaddy.
+- **`SMTP_FROM` must be the same Gmail address.** Gmail puts the account's own
+  address in place of any other.
+- **Nothing is needed at GoDaddy** for mail.
+- **Replies go to that Gmail.** Read it now and then. If you leave
+  `SUPPORT_EMAIL` out (B5), the privacy policy gives this address too.
 
 ### B4. Supabase (the hosted database)
 
@@ -321,7 +359,7 @@ variables, and its DNS records go into GoDaddy.
    - **Site URL:** the address.
    - **Redirect URLs:** add `https://www.yourdomain.com/confirm-email`.
    - **Email:** on, with **Confirm email** off. Brio sends its own
-     confirmation through Resend.
+     confirmation through Gmail (B3).
    - **Phone:** on, with **Confirm phone** off. Brio signs in with the number
      and a password, and never sends a text message. If Supabase asks for an
      SMS provider before Phone can be turned on:
@@ -454,19 +492,20 @@ it.
    | `SUPABASE_SERVICE_ROLE_KEY` | the secret key (B4) | **yes** |
    | `NEXT_PUBLIC_APP_URL` | the address, with no `/` at the end. Email links, the pictures emails show, and a shared link's preview are all made from it. | no |
    | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_FROM` | from B3 | no |
-   | `SMTP_PASSWORD` | the Resend API key (B3) | **yes** |
-   | `SUPPORT_EMAIL` | an address you read. The privacy policy shows it to everyone. | no |
+   | `SMTP_PASSWORD` | the Gmail app password (B3) | **yes** |
+   | `SUPPORT_EMAIL` | optional: an address you read, which the privacy policy shows to everyone. Left out, the policy gives Brio's Gmail (B3). | no |
    | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | from B2 | no |
    | `VAPID_PRIVATE_KEY` | from B2 | **yes** |
    | `CRON_SECRET` | from B2, the same value as in the Vault (B4) | **yes** |
 
    - **Leave out** `NODE_ENV` (Vercel sets it) and `VAPID_SUBJECT` (it falls
-     back to `SUPPORT_EMAIL`).
+     back to the privacy policy's address).
    - **Leave out `ANDROID_CERT_FINGERPRINTS`** until the Android app is on
      Play (`docs/ANDROID.md`).
-   - **A `NEXT_PUBLIC_` value is built into the app**, so after changing one,
-     deploy again (D3). A `NEXT_PUBLIC_` value is never a secret: the browser
-     can see it.
+   - **After changing any value, deploy again** (D3). A deployment keeps the
+     values it was made with.
+   - **A `NEXT_PUBLIC_` value is built into the app**, and is never a secret:
+     the browser can see it.
 
 7. **Your domain** (Project → Settings → Domains).
    1. **Add `yourdomain.com`.** Choose Vercel's recommended option: add
@@ -482,13 +521,42 @@ it.
         **Edit**, set the value to Vercel's CNAME, and save.
       - **Forwarding.** If any is set (your domain → **Forwarding**), remove
         it.
-   4. **Leave the rest alone.** Keep the NS and SOA records and the mail
-      records from B3, and do not change the nameservers.
+   4. **Leave the rest alone.** Keep the NS and SOA records and anything else
+      GoDaddy put there, and do not change the nameservers. Brio's mail needs
+      no records (B3).
 
    Within minutes to a few hours, Vercel shows both names as **Valid
    Configuration** and issues the HTTPS certificate itself.
 
-8. **A token for GitHub.** Go to Account Settings → **Tokens → Create**.
+8. **A rate limit on signing in, after the first release.** Brio has no
+   limiter of its own (plan, R6.2); Vercel's firewall stands in, counting each
+   IP address's requests to the routes that check a password or send an email.
+   Hobby allows one such rule.
+
+   1. Open the project → **Firewall** → **Configure** → **+ New Rule**.
+   2. **Name:** `Sign-in and emails`.
+   3. **If** **Request Path** **Is any of**:
+      - `/api/auth/login`
+      - `/api/auth/register`
+      - `/api/auth/password-reset`
+      - `/api/auth/resend-confirmation`
+      - `/api/auth/email/resend`
+   4. **AND** **Method** **Equals** `POST`.
+   5. **Then:** **Rate Limit**, **Fixed Window**:
+      - **Time Window:** 10 minutes (600 seconds);
+      - **Request Limit:** 20;
+      - **Key:** IP;
+      - the action left at **Default (429)**.
+   6. **Save Rule**, then **Review Changes** → **Publish**.
+
+   - Someone past the limit sees "Something went wrong. Please try again."
+     until the ten minutes pass.
+   - It slows one person down. It cannot stop many addresses at once.
+   - **Leave Attack Challenge Mode off**, and never add a Challenge or Deny
+     rule for every visitor. The database's scheduler calls Brio without a
+     browser, and would be refused (B4, step 5).
+
+9. **A token for GitHub.** Go to Account Settings → **Tokens → Create**.
    - Scope: your account.
    - Expiry: one year, with a reminder in your calendar to replace it (D5).
    - This is `VERCEL_TOKEN`. Vercel shows it once.
@@ -536,7 +604,7 @@ it.
 
 ### B7. Before the first release, check
 
-- [ ] Resend shows the domain as **Verified** (B3).
+- [ ] Gmail accepts the app password (B3, step 4).
 - [ ] Supabase: the authentication settings are set (B4, step 3), your Mac
       is linked (B4, step 4), and the scheduler's two Vault secrets are in
       (B4, step 5).
@@ -555,11 +623,14 @@ Then make the release (part C).
 
 ### C1. Set the version
 
-Choose the number (A3), and set it in `package.json` and `package-lock.json`
+**For v1.0.0 this is done:** `package.json` and `package-lock.json` both say
+1.0.0.
+
+For a later release, choose the number (A3), and set it in both files
 together:
 
 ```bash
-npm version 1.0.0 --no-git-tag-version
+npm version 1.0.1 --no-git-tag-version
 ```
 
 ### C2. Write it down
@@ -727,13 +798,14 @@ On the address, in a private window:
       the address.
 - [ ] A shared link to it shows Brio's picture (paste it into WhatsApp), and
       Settings → About shows the new version.
-- [ ] Register a new account. The confirmation email arrives, and not in spam;
-      the welcome shows once after signing in.
+- [ ] Register a new account. The confirmation email arrives from Brio's
+      Gmail, and not in spam; the welcome shows once after signing in.
 - [ ] Create an order. Open its bill, then **Share** and **Download PDF**.
 - [ ] Move the order to Ready, then Delivered. Home and the stock follow it.
-- [ ] The privacy policy (`/privacy`) shows `SUPPORT_EMAIL`.
+- [ ] The privacy policy (`/privacy`) gives `SUPPORT_EMAIL`, or Brio's Gmail
+      if you left it out.
 - [ ] **On the first release only:** add the developer account (B4,
-      step 7).
+      step 7), and the rate limit (B5, step 8).
 - [ ] Sign in as the developer. `/admin` shows the accounts, the error log
       and the audit log.
 - [ ] In Vercel, Project → **Logs** shows no errors.
@@ -817,7 +889,7 @@ Once owners use Brio daily, it stays awake.
 
 `deploy` or `migrate` fails, saying the token is not valid.
 
-1. Make a new one: Vercel's as in B5, step 8, or Supabase's as in B4, step 6.
+1. Make a new one: Vercel's as in B5, step 9, or Supabase's as in B4, step 6.
 2. Replace the GitHub secret (B6, step 2).
 3. Deploy the release again (D3).
 
@@ -833,11 +905,34 @@ gives the commands. Then:
 
 Owners upload their logos again.
 
+### D7. Emails stopped arriving
+
+The developer console's error log (`/admin/logs`) shows each email that
+failed, with Gmail's reason.
+
+- **"Invalid login" or "Username and Password not accepted":** the app
+  password no longer works. Changing that Gmail's password cancels it.
+  1. Make a new app password (B3, step 3), and check it (B3, step 4).
+  2. Replace `SMTP_PASSWORD` in Vercel (B5, step 6).
+  3. Deploy the release again (D3).
+- **A daily sending limit:** Gmail's 500 a day are used up, and it sends again
+  within 24 hours by itself. If it happens again, see who is asking: the
+  Firewall's overview shows the rate limit's matches (B5, step 8).
+- **Google disabled the account:** sign in to that Gmail in a browser, and
+  follow Google's steps.
+
+Until mail works again:
+
+- **A registration still made its account.** Once mail works, the owner
+  chooses **Resend confirmation** in Settings.
+- **A password reset has already replaced the password, but its email was not
+  sent.** The owner asks for a new one once mail works.
+
 ---
 
 ## E. Release notes for v1.0.0
 
-Paste everything below the line as the release's description (C4).
+Paste everything below the line as the release's description (C5).
 
 ---
 
