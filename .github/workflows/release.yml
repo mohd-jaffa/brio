@@ -5,7 +5,13 @@
 #   version   the tag is vX.Y.Z and matches package.json
 #   checks    every CI gate again, on that tag (ci.yml)
 #   migrate   the new migrations applied to the hosted Supabase
-#   deploy    that tag built and deployed to Vercel as production
+#   deploy    that tag built here, and only the built app uploaded to
+#             Vercel as production
+#
+# Vercel is never connected to the repository and never sees the code
+# (docs/RELEASE.md, A1): the build runs on GitHub, a check stops the upload
+# if a source file, a source map or an env file is in it, and
+# `vercel deploy --prebuilt` sends the rest.
 #
 # It can also be run by hand from the Actions tab for a tag already released,
 # to deploy it again. What it reads (docs/RELEASE.md, part B):
@@ -89,7 +95,7 @@ jobs:
     steps:
       - name: Not set up yet
         if: env.SUPABASE_ACCESS_TOKEN == '' || env.SUPABASE_DB_PASSWORD == '' || env.PROJECT_REF == ''
-        run: echo "::notice::No hosted Supabase is set up for releases (docs/RELEASE.md, B2), so no migration was applied."
+        run: echo "::notice::No hosted Supabase is set up for releases (docs/RELEASE.md, B4), so no migration was applied."
 
       - uses: actions/checkout@v5
         if: env.SUPABASE_ACCESS_TOKEN != '' && env.SUPABASE_DB_PASSWORD != '' && env.PROJECT_REF != ''
@@ -113,8 +119,9 @@ jobs:
     needs: [version, checks, migrate]
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    # Protect this environment in GitHub (docs/RELEASE.md, B3) to have a
-    # release wait for your approval before it goes out.
+    # Protect this environment in GitHub (docs/RELEASE.md, B6) to have a
+    # release wait for your approval before it goes out. A private repository
+    # needs GitHub Pro for that; on GitHub Free the job runs without it.
     environment:
       name: production
       url: ${{ steps.deploy.outputs.url }}
@@ -125,7 +132,7 @@ jobs:
     steps:
       - name: Not set up yet
         if: env.VERCEL_TOKEN == '' || env.VERCEL_ORG_ID == '' || env.VERCEL_PROJECT_ID == ''
-        run: echo "::notice::No Vercel project is set up for releases (docs/RELEASE.md, B1), so nothing was deployed."
+        run: echo "::notice::No Vercel project is set up for releases (docs/RELEASE.md, B5), so nothing was deployed."
 
       - uses: actions/checkout@v5
         if: env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != ''
@@ -143,12 +150,18 @@ jobs:
         run: npm install --global vercel@latest
 
       # The production environment variables come from the Vercel project
-      # (docs/RELEASE.md, B1), never from the repository.
+      # (docs/RELEASE.md, B5), never from the repository. The build needs none
+      # of the secrets, so they can be Sensitive: Vercel adds them when the
+      # app runs, and none is written into what is uploaded.
       - name: Build
         if: env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != ''
         run: |
           vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
           vercel build --prod --token="$VERCEL_TOKEN"
+
+      - name: Only the built app goes to Vercel
+        if: env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != ''
+        run: node scripts/check-deploy-output.mjs
 
       - name: Deploy
         id: deploy

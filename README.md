@@ -22,8 +22,8 @@ security) · Capacitor 8 for Android.
 
 ### What you need
 
-- **Node 20.9 or newer.** Next 16 refuses to start on Node 18. There is an
-  `.nvmrc`, so `nvm use` picks the right one (22).
+- **Node 22.** `.nvmrc` and `package.json` both say so: CI tests on it and
+  Vercel runs it. `nvm use` picks it.
 - **Docker**, running. The local Supabase stack runs in it.
 - **The Supabase CLI** (`brew install supabase/tap/supabase`).
 
@@ -127,14 +127,21 @@ every pull request.
    - checks the tag;
    - runs every CI gate on it;
    - applies the new migrations to the hosted Supabase;
-   - deploys that tag to Vercel as production.
+   - builds that tag on GitHub, and deploys it to Vercel as production.
+
+**Vercel never sees the code.** It is not connected to this repository: the
+release uploads only the built app, and checks the upload first. Never deploy
+from a working copy.
 
 [`docs/RELEASE.md`](./docs/RELEASE.md) covers:
 
-- the one-time setup in Vercel, Supabase and GitHub;
+- who can see what, across GitHub, Vercel, Supabase, the domain and the mail
+  provider, and what their free plans allow;
+- the one-time setup: the domain (GoDaddy), mail, Supabase, Vercel and GitHub;
 - each release's steps;
 - what to write in the release notes;
-- rolling back;
+- backing up the database;
+- rolling back, and other things that go wrong;
 - the notes for v1.0.0.
 
 ### A hosted Supabase project
@@ -151,7 +158,7 @@ settings.
 - **Do not load `supabase/seed.sql` into a hosted project.** It writes a known
   password into `auth.users`. Register the first account through the app
   instead. Add the developer account from the Supabase dashboard
-  (`docs/RELEASE.md`, B2).
+  (`docs/RELEASE.md`, B4).
 - **The service-role key is a real secret.** It bypasses row-level security. It
   belongs in `.env.local` and in the host's environment settings, never in the
   repository, and never in anything the browser receives.

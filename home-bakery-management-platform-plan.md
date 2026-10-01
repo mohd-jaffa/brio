@@ -8911,6 +8911,16 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
   steps; checking it is live; rolling back; and the v1.0.0 release notes.
 - The version is `package.json`'s: Settings → About shows it, and it is the
   Android app's version name. It stays 0.1.0 until the release is made.
+- **Vercel never sees the code** (the user, 2026-10-01: the code is in their
+  personal GitHub, and others can reach the Vercel account; Vercel Hobby,
+  Supabase Free and a GoDaddy domain). Vercel is never connected to the
+  repository. The release uploads only what `vercel build` made, after
+  `scripts/check-deploy-output.mjs` finds no source file, source map or env
+  file in it. Node is 22 in `engines` as well as `.nvmrc`, so Vercel runs
+  the version CI tests. `docs/RELEASE.md` adds:
+  - what each account can see;
+  - the free plans' limits;
+  - the domain, mail and backup steps.
 
 ---
 

@@ -4224,3 +4224,46 @@ Every signed-in screen was checked at 360, 390, 768 and 1440 px (`/impeccable po
 
 ### Blockers
 - None.
+
+## 2026-10-01 — Release guide for the hosted setup; Vercel never sees the code
+
+### Changed
+- **`docs/RELEASE.md`** is rewritten for how Brio will be hosted. The user's words: "iam hosting this on vercel free plan, supabase cloud free plan, and will be purchasing a domain from godaddy … mainly why i keep the code in my personal github is so that no one can get the codebase and the gmail where vercel is there has access to other peoples". It now covers:
+  - **A1, who sees what:** GitHub, Vercel, Supabase, GoDaddy and the mail provider, and which way the keys go.
+    - What Vercel receives, and what it never does.
+    - Never deploy from a Mac.
+    - What people who share the Vercel account can still do. They cannot get the code. They can deploy code of their own that runs with the production values, so they can reach the data.
+  - **A2, the free plans:**
+    - Vercel Hobby is for non-commercial use only.
+    - Supabase Free pauses an idle project and keeps no backups.
+    - GitHub Free with a private repository gets 2,000 Actions minutes and no environment protection or rulesets.
+  - **B1 to B7, the one-time setup, in order:**
+    - the domain;
+    - Brio's own keys;
+    - mail through Resend, with its records at GoDaddy;
+    - Supabase, with the new publishable and secret keys;
+    - Vercel, made with `vercel link` and never connected to GitHub, with every secret Sensitive and GoDaddy's A and CNAME records;
+    - GitHub;
+    - a checklist.
+  - **The developer account** is made from the dashboard and two SQL statements.
+  - **C3, backing up** with `supabase db dump`, before each release that brings migrations and weekly.
+  - **D4 to D6:** a paused project, an expired token, lost data.
+  - Part E, the v1.0.0 notes, is unchanged but for one reference.
+- **The release checks what it uploads** (`scripts/check-deploy-output.mjs`, in `release.yml` between the build and the deploy). It fails if a source map, a file from `src/`, `supabase/`, `tests/`, `scripts/` or `docs/`, a `.ts`, `.sql` or `.md` file, or an env file other than `.env.example` would go to Vercel.
+- **Node is pinned to 22** (`engines`, from `>=20.9.0`). Vercel takes its runtime from `engines`, not the dashboard, and was going to run Node 24, then each new major, untested. CI tests on 22 (`.nvmrc`).
+- README, AGENTS.md §27 and plan §139.11.23 say the same.
+
+### Validation
+- **Run with Vercel's own CLI** (`vercel build --prod`, 62.1.0) on this code:
+  - The upload holds 0 source maps and 0 files from `src/`. The server's chunks are minified.
+  - The only env files are `.env.example` and, on a Mac, `.env.local`. The new check stops `.env.local`, which a deploy from a Mac would have uploaded.
+  - Secrets given to the build (placeholder values) appear nowhere in the upload.
+  - The build passes without the server's secrets, so they can be Sensitive.
+  - Every function's runtime is `nodejs22.x` after the pin, `nodejs24.x` before.
+- **`vercel link`** (the CLI's source) connects the Git repository by itself only with `--yes`; asked, its default is no. The guide says never `--yes`.
+- **The developer-account steps work** against the local Supabase: a user made by email, the two SQL statements, then sign-in by number. It gets a DEV profile with no business, and the test user is deleted after.
+- The free-plan limits, the GitHub plan limits, Vercel's SMTP ports (465 and 587 open), Resend's SMTP settings and Supabase's backup commands were checked against each vendor's current documentation.
+- Lint, the format check and the type check pass. Unit tests pass.
+
+### Blockers
+- None.
