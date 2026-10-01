@@ -2,6 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { UI_TEXT } from "@/constants/messages";
 import type { InstallPlatform } from "@/lib/pwa/install";
 
 const { install } = vi.hoisted(() => ({
@@ -22,15 +23,31 @@ const steps = () =>
     .map((step) => step.textContent);
 
 describe("InstallAppSheet", () => {
-  it("shows an iPhone's steps: Safari, Share, Add to Home Screen", () => {
+  it("shows an iPhone's steps in Safari: Share, Add to Home Screen, Add — and why there is no Install button", () => {
     render(<InstallAppSheet open onClose={vi.fn()} />);
     expect(within(sheet()).getByRole("heading", { name: "On iPhone or iPad" })).toBeInTheDocument();
+    expect(within(sheet()).getByText(UI_TEXT.install.iosNote)).toBeInTheDocument();
     expect(steps()).toEqual([
-      "1Open Brio in Safari.",
-      "2Tap the Share button at the bottom of the screen.",
-      "3Scroll down and tap Add to Home Screen, then Add.",
+      "1Tap Share — in the toolbar, or under ••• beside the address bar.",
+      "2Scroll down and tap Add to Home Screen.",
+      "3Tap Add.",
     ]);
     expect(within(sheet()).queryByRole("button", { name: "Install" })).not.toBeInTheDocument();
+  });
+
+  it("keeps Chrome on an iPhone in Chrome, and any other iPhone browser in its own", () => {
+    for (const [platform, first] of [
+      ["iosChrome", "Tap Share, at the right of the address bar."],
+      ["iosOther", "Tap the browser’s Share button, or open its menu and tap Share."],
+    ] as const) {
+      install.current = { ...install.current, platform };
+      const { unmount } = render(<InstallAppSheet open onClose={vi.fn()} />);
+      expect(within(sheet()).getByRole("heading", { name: "On iPhone or iPad" })).toBeInTheDocument();
+      expect(within(sheet()).getByText(UI_TEXT.install.iosNote)).toBeInTheDocument();
+      expect(steps()[0]).toBe(`1${first}`);
+      expect(steps().join(" ")).not.toMatch(/Safari/);
+      unmount();
+    }
   });
 
   it("shows each device its own steps", () => {
@@ -42,6 +59,7 @@ describe("InstallAppSheet", () => {
       install.current = { ...install.current, platform };
       const { unmount } = render(<InstallAppSheet open onClose={vi.fn()} />);
       expect(within(sheet()).getByRole("heading", { name: heading })).toBeInTheDocument();
+      expect(within(sheet()).queryByText(UI_TEXT.install.iosNote)).not.toBeInTheDocument();
       expect(steps()[0]).toBe(`1${first}`);
       unmount();
     }

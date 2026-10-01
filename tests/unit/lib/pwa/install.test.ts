@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   installPlatform,
   installState,
+  isIos,
+  type InstallPlatform,
   listenForInstall,
   promptInstall,
   resetInstall,
@@ -123,6 +125,12 @@ describe("whose steps to show", () => {
   const ANDROID = "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 Chrome/128.0 Mobile Safari/537.36";
   const CHROME = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128.0 Safari/537.36";
   const FIREFOX = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:130.0) Gecko/20100101 Firefox/130.0";
+  const IPHONE_CHROME =
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/140.0.7339.122 Mobile/15E148 Safari/604.1";
+  const IPHONE_FIREFOX =
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/143.0 Mobile/15E148 Safari/605.1.15";
+  const IPHONE_EDGE =
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 EdgiOS/140.0.3485.94 Mobile/15E148 Safari/605.1.15";
 
   it("tells an iPhone, an iPad (which calls itself a Mac), Android, a computer and a browser that cannot install", () => {
     expect(installPlatform(IPHONE)).toBe("ios");
@@ -131,5 +139,17 @@ describe("whose steps to show", () => {
     expect(installPlatform(ANDROID)).toBe("android");
     expect(installPlatform(CHROME)).toBe("desktop");
     expect(installPlatform(FIREFOX)).toBe("other");
+  });
+
+  it("tells Chrome on an iPhone, and the other iPhone browsers, from Safari", () => {
+    expect(installPlatform(IPHONE_CHROME)).toBe("iosChrome");
+    expect(installPlatform(IPHONE_FIREFOX)).toBe("iosOther");
+    expect(installPlatform(IPHONE_EDGE)).toBe("iosOther");
+    expect(installPlatform(IPHONE)).toBe("ios");
+  });
+
+  it("counts every iPhone browser as an iPhone, and nothing else", () => {
+    expect(["ios", "iosChrome", "iosOther"].every((platform) => isIos(platform as InstallPlatform))).toBe(true);
+    expect(["android", "desktop", "other"].some((platform) => isIos(platform as InstallPlatform))).toBe(false);
   });
 });

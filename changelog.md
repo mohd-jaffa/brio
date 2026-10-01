@@ -4165,3 +4165,23 @@ A second `/impeccable optimize` pass, on the built app at 390 px, with a throttl
 
 ### Blockers
 - None.
+
+## 2026-10-01 — Installing on an iPhone
+
+### Fixed
+- **Install app on an iPhone gives the steps for the browser in use** (the user: "i opened the website in iphone chrome, and i was not able to see the install app button inside the install app modal, there was only instructions like go to safari"):
+  - No iPhone or iPad browser can show an Install button: Apple lets no website offer to install. The sheet now says so in one line, so its absence reads as expected rather than broken.
+  - Its first step used to send every iPhone to Safari. Since iOS 16.4, Chrome and the other iPhone browsers add apps from their own Share menu, so each now gets its own steps:
+    - Chrome: Share at the right of the address bar;
+    - Firefox, Edge and the others: their Share button or menu;
+    - Safari: Share in the toolbar, or under •••.
+  - All three then read "Add to Home Screen", then Add.
+- `installPlatform` tells them apart by what each browser calls itself (`CriOS`, `FxiOS`, `EdgiOS`…).
+- Affected: `src/lib/pwa/install.ts`, `src/components/nav/InstallAppSheet.tsx` and `UI_TEXT.install` (src/constants/messages.ts).
+
+### Validation
+- On the build at 390 px, as Chrome on an iPhone, the sheet showed the note and Chrome's three steps.
+- New unit tests cover telling the iPhone browsers apart and each one's steps. Lint, the type check and the format check pass.
+
+### Blockers
+- None.

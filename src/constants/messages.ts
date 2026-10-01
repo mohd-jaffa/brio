@@ -1480,15 +1480,27 @@ export const UI_TEXT = {
     orFollow: "Or follow these steps",
     stepsFor: {
       ios: "On iPhone or iPad",
+      iosChrome: "On iPhone or iPad",
+      iosOther: "On iPhone or iPad",
       android: "On Android",
       desktop: "On a computer",
       other: "In your browser",
     },
+    /** Why an iPhone shows no Install button: Apple lets no website offer one. */
+    iosNote:
+      "An iPhone or iPad adds apps from the browser’s Share menu, so there is no Install button here — just three taps.",
     steps: {
+      // Safari, Chrome and every other iPhone browser can add Brio since iOS 16.4.
       ios: [
-        "Open Brio in Safari.",
-        "Tap the Share button at the bottom of the screen.",
-        "Scroll down and tap Add to Home Screen, then Add.",
+        "Tap Share — in the toolbar, or under ••• beside the address bar.",
+        "Scroll down and tap Add to Home Screen.",
+        "Tap Add.",
+      ],
+      iosChrome: ["Tap Share, at the right of the address bar.", "Scroll down and tap Add to Home Screen.", "Tap Add."],
+      iosOther: [
+        "Tap the browser’s Share button, or open its menu and tap Share.",
+        "Scroll down and tap Add to Home Screen.",
+        "Tap Add.",
       ],
       android: [
         "Open Brio in Chrome.",
