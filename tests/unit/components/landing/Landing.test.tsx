@@ -6,6 +6,7 @@ import { UI_TEXT } from "@/constants/messages";
 
 const text = UI_TEXT.landing;
 const show = (signedIn = false) => render(<Landing signedIn={signedIn} year={2026} />);
+const hero = () => screen.getByRole("region", { name: UI_TEXT.appTagline });
 
 // The day's pinned phone asks the screen's width (DayOnOnePhone).
 beforeEach(() => {
@@ -21,6 +22,9 @@ describe("the landing page", () => {
     show();
     expect(screen.getByRole("heading", { level: 1, name: "Made by you. Managed simply." })).toBeInTheDocument();
     expect(screen.getByText(text.heroLead)).toBeInTheDocument();
+    // The bill on the hero's phone: Home is the laptop's, and the day's.
+    expect(within(hero()).getByRole("img", { name: text.shots.bill })).toBeInTheDocument();
+    expect(within(hero()).queryByRole("img", { name: text.shots.home })).not.toBeInTheDocument();
     const who = screen.getByRole("region", { name: text.whoTitle });
     expect(
       within(who)
@@ -45,6 +49,12 @@ describe("the landing page", () => {
     show();
     const devices = screen.getByRole("region", { name: text.devicesTitle });
     expect(within(devices).getAllByRole("heading", { level: 3 })).toHaveLength(3);
+    const looks = within(devices).getByRole("list", { name: text.looks });
+    expect(
+      within(looks)
+        .getAllByRole("listitem")
+        .map((look) => look.textContent),
+    ).toEqual(["Golden", "Peach"]);
     const trust = screen.getByRole("region", { name: text.trustTitle });
     for (const point of text.trust) expect(within(trust).getByText(point)).toBeInTheDocument();
     expect(within(trust).getByRole("link", { name: text.privacyLink })).toHaveAttribute("href", "/privacy");
@@ -59,6 +69,8 @@ describe("the landing page", () => {
     expect(screen.getAllByRole("link", { name: text.createAccount })[0]).toHaveAttribute("href", "/register");
     expect(screen.queryByRole("link", { name: text.openApp })).not.toBeInTheDocument();
     expect(screen.getByText(text.haveAccount)).toBeInTheDocument();
+    // What making an account asks, under the hero's button.
+    expect(within(hero()).getByText(text.signUpNeeds)).toBeInTheDocument();
   });
 
   it("leads someone signed in back into the app instead", () => {
@@ -67,6 +79,7 @@ describe("the landing page", () => {
     expect(screen.queryByRole("link", { name: text.signIn })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: text.start })).not.toBeInTheDocument();
     expect(screen.queryByText(text.haveAccount)).not.toBeInTheDocument();
+    expect(screen.queryByText(text.signUpNeeds)).not.toBeInTheDocument();
   });
 
   it("closes on the policy, the way in, and the year", () => {

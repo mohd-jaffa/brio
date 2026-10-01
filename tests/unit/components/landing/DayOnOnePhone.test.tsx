@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { DAY_STOPS, DayOnOnePhone, screenState, stopAt } from "@/components/landing/DayOnOnePhone";
+import { DAY_STOPS, DayOnOnePhone, HELD, screenState, stopAt, TURN_LINE } from "@/components/landing/DayOnOnePhone";
 import { UI_TEXT } from "@/constants/messages";
 
 const text = UI_TEXT.landing;
@@ -45,6 +45,7 @@ function scrollTo(tops: number[]) {
 }
 
 const screens = () => [...document.querySelectorAll<HTMLElement>(".day-screen")].map((each) => each.dataset.state);
+const scrimShown = () => document.querySelector(".day-scrim")!.hasAttribute("data-shown");
 const steps = () => screen.getAllByRole("listitem").filter((item) => item.classList.contains("day-step"));
 const shelfOf = (title: string) =>
   screen.getByRole("listitem", { name: title }).querySelector<HTMLElement>(".day-shelf")!;
@@ -70,7 +71,7 @@ describe("screenState", () => {
 
 describe("DayOnOnePhone", () => {
   it("lays out the day's six steps, with every point, and each step's own screens below it", () => {
-    render(<DayOnOnePhone />);
+    const { container } = render(<DayOnOnePhone />);
     expect(steps().map((step) => step.getAttribute("aria-labelledby"))).toEqual([
       "landing-order",
       "landing-due",
@@ -89,10 +90,25 @@ describe("DayOnOnePhone", () => {
     const numbers = within(shelfOf(text.features.numbers.title)).getAllByRole("img");
     expect(numbers.map((image) => image.getAttribute("alt"))).toEqual([text.shots.inventory, text.shots.analytics]);
     expect(numbers[0]).toHaveAttribute("loading", "lazy");
+    // Where no rail numbers them, each step carries its number, and each of its screens its ring.
+    expect([...container.querySelectorAll(".day-ordinal")].map((number) => number.textContent)).toEqual([
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+    ]);
+    const rings = [...container.querySelectorAll<HTMLElement>(".day-shelf .day-spot")];
+    expect(rings.every((ring) => ring.hasAttribute("data-still"))).toBe(true);
+    expect(rings.map((ring) => ring.hasAttribute("data-pill"))).toEqual(
+      DAY_STOPS.map((stop) => stop.enter === "sheet"),
+    );
   });
 
-  it("holds the phone beside the steps on a wide screen, every screen on hand by the time the day is near", () => {
+  it("holds the phone beside the steps on a wide, tall screen, every screen on hand by the time the day is near", () => {
     render(<DayOnOnePhone />);
+    expect(window.matchMedia).toHaveBeenCalledWith(HELD);
     // Far down the page, only the first screen is drawn, and fetched when near.
     expect(screens()).toEqual(["current"]);
     scrollTo([700, 1200, 1700, 2200, 2700, 3200, 3700]);
@@ -103,7 +119,7 @@ describe("DayOnOnePhone", () => {
     expect(within(stage).getByRole("img", { name: text.shots.home, hidden: true })).toHaveAttribute("loading", "eager");
   });
 
-  it("draws only the first of the held phone's screens on a narrow screen, and none turns", () => {
+  it("draws only the first of the held phone's screens on a phone, upright or on its side, and none turns", () => {
     wide = false;
     render(<DayOnOnePhone />);
     expect(screens()).toEqual(["current"]);
@@ -111,27 +127,50 @@ describe("DayOnOnePhone", () => {
     expect(screens()).toEqual(["current"]);
     expect(steps()[0]).toHaveAttribute("data-state", "current");
 
-    // Turned on its side, or a window made wider: the rest come.
+    // A window made wider and taller: the rest come.
     wide = true;
     scrollTo([-600, -500, -400, -300, -200, -100, 0]);
     expect(screens()).toHaveLength(DAY_STOPS.length);
   });
 
+  it("holds one status bar and header over the screens, the app's own, drawn once", () => {
+    const { container } = render(<DayOnOnePhone />);
+    scrollTo([700, 1200, 1700, 2200, 2700, 3200, 3700]);
+    const chrome = container.querySelector(".day-chrome")!;
+    expect(chrome).toHaveAttribute("aria-hidden", "true");
+    expect(chrome.querySelector("img")).toHaveAttribute("alt", "");
+    // The same picture as the first screen, so nothing more is fetched for it.
+    expect(chrome.querySelector("img")!.getAttribute("src")).toBe(
+      within(container.querySelector<HTMLElement>(".day-stage")!)
+        .getByRole("img", { name: text.shots.order })
+        .getAttribute("src"),
+    );
+  });
+
   it("marks what each screen is about, the bill's buttons with a pill", () => {
     const { container } = render(<DayOnOnePhone />);
     scrollTo([700, 1200, 1700, 2200, 2700, 3200, 3700]);
-    const spots = [...container.querySelectorAll<HTMLElement>(".day-spot")];
+    const spots = [...container.querySelectorAll<HTMLElement>(".day-stage .day-spot")];
     expect(spots).toHaveLength(DAY_STOPS.length);
     expect(spots.map((spot) => spot.hasAttribute("data-pill"))).toEqual(
       DAY_STOPS.map((stop) => stop.enter === "sheet"),
     );
     expect(spots[0]).toHaveStyle({ left: "3.9%", top: "78.3%", width: "92.2%", height: "8.9%" });
+    // The held phone's rings wait for their screen to settle.
+    expect(spots.some((spot) => spot.hasAttribute("data-still"))).toBe(false);
   });
 
-  it("turns the phone to each step as it crosses the middle of the screen, and back as the page scrolls up", () => {
+  it("turns the phone to each step as its title arrives, and back as the page scrolls up", () => {
     render(<DayOnOnePhone />);
+    expect(scrimShown()).toBe(false);
+    // The bill's title just short of the line: Home still.
+    const line = window.innerHeight * TURN_LINE;
+    scrollTo([-500, 100, line + 1, 900, 1200, 1500, 1800]);
+    expect(screens().slice(0, 3)).toEqual(["before", "current", "after"]);
     scrollTo([-500, 100, 300, 900, 1200, 1500, 1800]);
     expect(screens()).toEqual(["before", "under", "current", "after", "after", "after", "after"]);
+    // The bill is a sheet, over the app's scrim.
+    expect(scrimShown()).toBe(true);
     expect(steps().map((step) => step.dataset.state)).toEqual(["done", "done", "current", "next", "next", "next"]);
     const stage = document.querySelector<HTMLElement>(".day-stage")!;
     expect(within(stage).getByRole("img", { name: text.shots.bill })).toBeInTheDocument();
@@ -139,6 +178,7 @@ describe("DayOnOnePhone", () => {
     // The numbers' two screens: the stock as the step comes, analytics as its lines are read.
     scrollTo([-2000, -1500, -1000, -600, 100, 500, 900]);
     expect(screens()).toEqual(["before", "before", "before", "before", "current", "after", "after"]);
+    expect(scrimShown()).toBe(false);
     scrollTo([-2000, -1500, -1000, -600, -200, 100, 900]);
     expect(screens().at(5)).toBe("current");
     expect(steps().at(4)).toHaveAttribute("data-state", "current");

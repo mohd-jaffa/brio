@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Where the landing page's day holds its phone beside the steps: a screen wide
+   enough for both, and tall enough for the phone (DayOnOnePhone). */
+@custom-variant held (@media (min-width: 768px) and (min-height: 600px));
+
 /* ============================================================
    BRIO DESIGN TOKENS — Golden and Peach (plan §139.4)
 
@@ -1475,6 +1479,7 @@ html[data-launch="leaving"] .launch-splash {
   /* 402 × 874: the screen in points, as the screenshots are taken. */
   .device-phone-screen {
     position: relative;
+    isolation: isolate;
     overflow: hidden;
     aspect-ratio: 402 / 874;
     border-radius: 13cqw;
@@ -1484,6 +1489,7 @@ html[data-launch="leaving"] .launch-splash {
   /* 126 × 37 points, 11 from the top, on a screen 93.4 % of the frame. */
   .device-phone-island {
     position: absolute;
+    z-index: 30;
     top: 2.56cqw;
     left: 50%;
     width: 29.3cqw;
@@ -1674,7 +1680,7 @@ html[data-launch="leaving"] .launch-splash {
    scroll itself, so scrolling back up plays it backwards. Titles
    rise out of their own line as they come into view, as the
    headline does; on a phone, each step's screens rise out of their
-   well as it opens, and drift on as they leave; each point is
+   well one by one, and drift on as they leave; each point is
    ticked as it comes in, as a job is ticked off in an order book;
    the
    pictures of who it is for are set down one after another; the
@@ -1694,7 +1700,8 @@ html[data-launch="leaving"] .launch-splash {
       animation-range: entry 20% cover 30%;
     }
 
-    .landing-words {
+    .landing-words,
+    .day-ordinal {
       animation: landing-settle linear both;
       animation-timeline: view();
       animation-range: entry 10% cover 30%;
@@ -1708,33 +1715,29 @@ html[data-launch="leaving"] .launch-splash {
       animation-timeline: --shelf;
       animation-range: entry 0% cover 40%;
     }
+    /* Each phone on its own, as a pair stands one under the other. */
     .landing-shelf-phone {
       animation:
         landing-shelf-rise linear both,
         landing-shelf-drift linear forwards;
-      animation-timeline: --shelf, --shelf;
+      animation-timeline: view(), view();
       animation-range:
-        entry calc(5% + var(--i, 0) * 15%) cover calc(42% + var(--i, 0) * 6%),
+        entry 5% cover 42%,
         exit 0% exit 100%;
-    }
-
-    .landing-point {
-      view-timeline-name: --point;
-    }
-    .landing-tick path {
-      stroke-dasharray: 24;
-      animation: landing-tick linear both;
-      animation-timeline: --point;
-      animation-range: entry 60% cover 30%;
     }
 
     .landing-who {
       view-timeline-name: --who;
     }
-    .landing-sticker {
-      animation: landing-sticker linear both;
+    /* The picture is set down, turning; its words only settle, and never tilt. */
+    .landing-sticker,
+    .landing-sticker-picture {
+      animation: landing-settle linear both;
       animation-timeline: --who;
       animation-range: entry calc(10% + var(--i, 0) * 12%) cover calc(28% + var(--i, 0) * 5%);
+    }
+    .landing-sticker-picture {
+      animation-name: landing-sticker;
     }
 
     .landing-devices {
@@ -1787,15 +1790,6 @@ html[data-launch="leaving"] .launch-splash {
   }
 }
 
-@keyframes landing-tick {
-  from {
-    stroke-dashoffset: 24;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
 @keyframes landing-sticker {
   from {
     opacity: 0;
@@ -1823,6 +1817,21 @@ html[data-launch="leaving"] .launch-splash {
   }
 }
 
+/* Each point's check is drawn once, as it comes into view, as a job
+   is ticked off; those that come in together, one after another
+   (Ticks). Until then it waits undrawn; under reduced motion, and
+   before the page's script runs, it is simply there. */
+.landing-tick path {
+  stroke-dasharray: 24;
+  transition: stroke-dashoffset 560ms var(--ease-out-expo) var(--tick-delay, 0ms);
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-tick="wait"] .landing-tick path {
+    stroke-dashoffset: 24;
+    transition: none;
+  }
+}
+
 /* ============================================================
    A day on one phone (DayOnOnePhone; plan §139.11.22 — the user,
    2026-09-30: "overdrive for about page", then "for mobile keep it
@@ -1830,17 +1839,24 @@ html[data-launch="leaving"] .launch-splash {
    screen, in its well, while the day's six steps pass beside it,
    and its screen changes as each step comes up, the way the app
    moves: a screen pushes in from the side over the last, pushed
-   aside and dimmed; the bill rises as a sheet over Home. Once a
+   aside and dimmed, under one status bar and header that stay
+   still; the bill rises as the app's sheet over Home, dimmed by the
+   app's scrim. Once a
    screen settles, a caramel ring marks what the step is about. A
-   rail numbers the steps. Below 768 px there is no held phone: each
-   step shows its own screens under its words. Under reduced motion
-   the screens fade.
+   rail numbers the steps. Narrower than 768 px, or shorter than
+   600 px (a phone on its side), there is no held phone: each step
+   shows its own screens under its words, one under the other, each
+   with its ring always on, and its number beside its title. Under
+   reduced motion the screens fade.
    ============================================================ */
 @layer components {
   .day {
     /* The held phone as wide as fits three-quarters of the screen's height. */
     --day-phone-w: min(290px, calc(74dvh / 2.12));
     --day-pad: 22dvh;
+    /* Where, in every screenshot, the app's header ends, and the bill's sheet begins. */
+    --day-chrome: 14.99%;
+    --day-sheet-top: 16.02%;
   }
 
   .day-stage,
@@ -1866,9 +1882,13 @@ html[data-launch="leaving"] .launch-splash {
     pointer-events: none;
   }
 
+  /* Each screen is what lies under the app's header; the header itself is
+     drawn once, above them all (.day-chrome). */
   .day-screen {
     position: absolute;
     inset: 0;
+    z-index: calc(var(--at, 0) + 1);
+    clip-path: inset(var(--day-chrome) 0 0 0);
     transition:
       transform 560ms var(--ease-out-expo),
       opacity 380ms ease,
@@ -1877,16 +1897,50 @@ html[data-launch="leaving"] .launch-splash {
   .day-screen[data-state="after"][data-enter="push"] {
     transform: translateX(102%);
   }
-  .day-screen[data-state="after"][data-enter="sheet"] {
-    opacity: 0;
-    transform: translateY(16%);
-  }
   .day-screen[data-state="before"] {
     filter: brightness(0.8);
     transform: translateX(-28%);
   }
-  .day-screen[data-state="under"] {
-    filter: brightness(0.8);
+
+  /* The bill is the app's sheet: only the sheet, its corners rounded, rising
+     from the bottom edge over the scrim, and going down again when done. */
+  .day-screen[data-enter="sheet"] {
+    z-index: 12;
+    clip-path: inset(var(--day-sheet-top) 0 0 0 round 6cqw 6cqw 0 0);
+  }
+  .day-screen[data-enter="sheet"]:is([data-state="after"], [data-state="before"]) {
+    filter: none;
+    transform: translateY(100%);
+    transition-duration: 380ms;
+  }
+
+  .day-chrome {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    clip-path: inset(0 0 calc(100% - var(--day-chrome)) 0);
+    pointer-events: none;
+  }
+
+  .day-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 11;
+    background: var(--color-scrim);
+    backdrop-filter: blur(0.5cqw);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 320ms ease,
+      visibility 0s linear 320ms;
+    pointer-events: none;
+  }
+  .day-scrim[data-shown] {
+    opacity: 1;
+    visibility: visible;
+    transition:
+      opacity 380ms ease,
+      visibility 0s;
   }
 
   .day-spot {
@@ -1905,13 +1959,17 @@ html[data-launch="leaving"] .launch-splash {
   .day-spot[data-pill] {
     border-radius: 999px;
   }
-  .day-screen[data-state="current"] .day-spot {
+  .day-screen[data-state="current"] .day-spot,
+  .day-spot[data-still] {
     opacity: 1;
     transform: none;
+  }
+  .day-screen[data-state="current"] .day-spot {
     transition-delay: 420ms;
   }
 
-  @media (min-width: 768px) {
+  /* The `held` variant's query (DayOnOnePhone, `HELD`). */
+  @media (min-width: 768px) and (min-height: 600px) {
     .day-steps {
       display: block;
     }
@@ -1942,9 +2000,9 @@ html[data-launch="leaving"] .launch-splash {
       padding-block: var(--day-pad);
       padding-left: 4rem;
     }
-    /* Room for the numbers to come up while the phone is still held. */
-    .day-step:last-child {
-      padding-bottom: calc(var(--day-pad) + 50dvh);
+    /* A step turns the phone as its title arrives (TURN_LINE). */
+    .day-step > .day-marker {
+      top: var(--day-pad);
     }
 
     /* The day's rail: a line down the steps, and each step's number on it. */
@@ -1995,11 +2053,16 @@ html[data-launch="leaving"] .launch-splash {
       color: var(--color-primary-text);
     }
 
+    /* The step being read is whole; those read stay easily read (muted text
+       still 4.6 : 1); those to come wait fainter. */
     .day-words {
       transition: opacity 360ms ease;
     }
-    .day-step:not([data-state="current"]) .day-words {
-      opacity: 0.4;
+    .day-step[data-state="done"] .day-words {
+      opacity: 0.9;
+    }
+    .day-step[data-state="next"] .day-words {
+      opacity: 0.55;
     }
   }
 
@@ -2007,19 +2070,51 @@ html[data-launch="leaving"] .launch-splash {
     .day-screen {
       transition: opacity 200ms ease;
     }
-    .day-screen[data-state="before"],
-    .day-screen[data-state="after"] {
+    .day-screen:is([data-state="before"], [data-state="after"]),
+    .day-screen[data-enter="sheet"]:is([data-state="before"], [data-state="after"]) {
       opacity: 0;
       filter: none;
       transform: none;
-    }
-    .day-screen[data-state="under"] {
-      filter: none;
     }
     .day-spot,
     .day-screen[data-state="current"] .day-spot {
       transform: none;
       transition: opacity 200ms ease;
+    }
+  }
+}
+
+/* ============================================================
+   The landing page's start bar (StartBar; the critique,
+   2026-10-01). Along the bottom of a phone, of the app's own
+   bottom bar's material: it comes up from the edge once the hero's
+   buttons have gone, and goes down again at the closing band.
+   Hidden, it is not seen, tabbed to or read. Under reduced motion
+   it only fades.
+   ============================================================ */
+@layer components {
+  .landing-start-bar {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(100%);
+    transition:
+      transform 420ms var(--ease-out-expo),
+      opacity 240ms ease,
+      visibility 0s linear 420ms;
+  }
+  .landing-start-bar[data-shown] {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition:
+      transform 560ms var(--ease-out-expo),
+      opacity 240ms ease,
+      visibility 0s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .landing-start-bar {
+      transform: none;
     }
   }
 }

@@ -49,8 +49,19 @@ export function PhoneShell({
   );
 }
 
-/** One screenshot on the phone. The frame is the picture's, so only the picture is named. */
-export function PhoneFrame({ src, alt, sizes, lead = false, className, style }: Shot) {
+/**
+ * One screenshot on the phone. The frame is the picture's, so only the picture
+ * is named; `children` are drawn over the screen (the day's ring).
+ */
+export function PhoneFrame({
+  src,
+  alt,
+  sizes,
+  lead = false,
+  className,
+  style,
+  children,
+}: Shot & { children?: ReactNode }) {
   return (
     <PhoneShell className={className} style={style}>
       <Image
@@ -62,6 +73,7 @@ export function PhoneFrame({ src, alt, sizes, lead = false, className, style }: 
         fetchPriority={lead ? "high" : undefined}
         className="object-cover"
       />
+      {children}
     </PhoneShell>
   );
 }

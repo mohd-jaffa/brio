@@ -26,12 +26,13 @@ export function RisingTitle({
 }
 
 /**
- * One point, its check drawn as it scrolls into view, as a job is ticked off.
+ * One point, its check drawn once as it comes into view, as a job is ticked
+ * off (`Ticks`).
  * `marker` makes it a place the day's pinned phone turns at (`DayOnOnePhone`).
  */
 export function Point({ children, marker = false }: { children: string; marker?: boolean }) {
   return (
-    <li className="landing-point relative flex gap-3 text-[0.9375rem] leading-relaxed text-text">
+    <li data-tick="" className="landing-point relative flex gap-3 text-[0.9375rem] leading-relaxed text-text">
       {marker && <span data-stop="" aria-hidden="true" className="day-marker" />}
       <Check
         size={18}

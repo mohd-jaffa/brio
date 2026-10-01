@@ -8858,13 +8858,26 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
   hero steps back, the closing photograph settles. Still without scroll
   timelines or with reduced motion.
 - **A day on one phone** ("overdrive for about page"; the direction the user
-  chose of three): from 768 px the day's six steps pass beside one phone that
-  stays put, and its screen changes as each step comes up, the way the app
-  moves — a push from the side, the bill rising as a sheet — with a ring on
-  what the step is about (`DayOnOnePhone`). On a phone, as the user asked,
-  each step keeps its own screens under its words instead. The sixth step,
-  "Every cost, beside every sale", shows Expenses ("add expenses page also in
-  the demo").
+  chose of three): from 768 px wide and 600 px tall the day's six steps pass
+  beside one phone that stays put, and its screen changes as each step comes
+  up, the way the app moves — a push from the side, the bill rising as a
+  sheet — with a ring on what the step is about (`DayOnOnePhone`). On a phone,
+  upright or on its side, as the user asked, each step keeps its own screens
+  under its words instead, one under the other, each with its ring, and each
+  step its number. The sixth step, "Every cost, beside every sale", shows
+  Expenses ("add expenses page also in the demo").
+- **On a phone, Create account stays to hand** (after the critique of
+  2026-10-01): a slim bar along the bottom comes up once the hero's buttons
+  have gone, and goes at the closing band (`StartBar`).
+- **After the critique of 2026-10-01**, also: the hero's lead is one
+  sentence, and under its button a line says what making an account asks
+  ("Two short steps · your mobile number and email" — no price is named);
+  the hero's phone shows a bill; the first point on privacy reads "No other
+  business can see your orders, customers or money"; the two looks are shown
+  as swatches. On the held phone the header stays still while the screens
+  move, and the bill rises as the app's own sheet over its scrim. Each
+  point's check is drawn once, as it comes into view. The demo month comes to
+  a whole average order (₹1,375).
 
 ### 139.11.23 Releases, and Vercel (the user, 2026-09-30)
 

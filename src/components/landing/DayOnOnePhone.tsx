@@ -55,6 +55,12 @@ export function screenState(at: number, active: number): ScreenState {
   return at === active - 1 && DAY_STOPS[active].enter === "sheet" ? "under" : "before";
 }
 
+/**
+ * Where on the screen a step's title turns the phone to it: a little below the
+ * middle, as the title arrives where it will be read.
+ */
+export const TURN_LINE = 0.6;
+
 /** The stop shown: the last whose marker has crossed the line, and the first before any has. */
 export function stopAt(markers: readonly number[], line: number): number {
   let active = 0;
@@ -64,54 +70,77 @@ export function stopAt(markers: readonly number[], line: number): number {
   return active;
 }
 
-/** Where the phone is held beside the steps; below it, each step keeps its own screens. */
-const WIDE = "(min-width: 768px)";
+/**
+ * Where the phone is held beside the steps: wide enough for both, and tall
+ * enough for the phone. Elsewhere — a phone, upright or on its side — each step
+ * keeps its own screens. The `held` variant in globals.css is the same query.
+ */
+export const HELD = "(min-width: 768px) and (min-height: 600px)";
 
-/** Each step's screens, for a phone, where each step shows its own. */
-const shotsOf = (step: StepId) => DAY_STOPS.filter((stop) => stop.step === step).map((stop) => stop.shot);
+/** Each step's stops, for where each step shows its own screens. */
+const stopsOf = (step: StepId) => DAY_STOPS.filter((stop) => stop.step === step);
 
-/** Where a screen stands in its step's row, for the scroll to set each in turn. */
-const nth = (at: number) => ({ "--i": at }) as CSSProperties;
+/**
+ * The ring round what a step is about on its screen. On the held phone it comes
+ * once the screen has settled; on a step's own screens it is `still`, always there.
+ */
+function Spot({ spot, still = false }: { spot: Stop["spot"]; still?: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      data-pill={spot.pill || undefined}
+      data-still={still || undefined}
+      className="day-spot"
+      style={{ left: `${spot.x}%`, top: `${spot.y}%`, width: `${spot.w}%`, height: `${spot.h}%` }}
+    />
+  );
+}
 
 /**
  * A day on one phone (plan §139.11.22; the user, 2026-09-30: "overdrive for
  * about page", then "for mobile keep it like before … for larger screens like
- * ipad or laptop this looks way good").
+ * ipad or laptop this looks way good"; the critique, 2026-10-01: on a phone,
+ * the ring and the numbers too, and a phone on its side is not held).
  *
- * From 768 px, the phone stays where it is while the day's six steps pass
- * beside it, and its screen changes as each step comes up, the way the app
+ * On a screen wide and tall enough (`HELD`), the phone stays where it is
+ * while the day's six steps pass beside it, and its screen changes as each
+ * step comes up, the way the app
  * itself moves: Home pushes in from the side, the bill rises as a sheet. A
  * ring marks what the step is about, and scrolling back plays it back. Which
- * stop is shown is worked out once a frame from where the steps' markers
- * stand against the middle of the screen; the screens move in CSS
- * (globals.css, `.day-screen`), and fade under reduced motion.
+ * stop is shown is worked out once a frame from where the steps' titles
+ * stand against a line a little below the middle of the screen (`TURN_LINE`);
+ * the screens move in CSS (globals.css, `.day-screen`), and fade under
+ * reduced motion. The status bar and the header stay still above them
+ * (`.day-chrome`), as they do in the app, and the bill rises as the app's
+ * own sheet does, over its scrim.
  *
- * On a narrower screen each step shows its own screens below its words, as
- * they rise out of their well. Neither layout fetches the other's pictures,
+ * Elsewhere each step shows its own screens below its words, one under the
+ * other, as they rise out of their well, each with its ring; each step
+ * carries its number beside its title. Neither layout fetches the other's pictures,
  * nor its own before they are wanted: the held phone's screens after the
- * first are drawn only on a wide screen, once the day comes into view — a
+ * first are drawn only while held, once the day comes into view — a
  * step's turn is still most of a screen away; each step's own are fetched
  * lazily, which a hidden picture never is.
  */
 export function DayOnOnePhone() {
   const [active, setActive] = useState(0);
-  const [wide, setWide] = useState(false);
+  const [held, setHeld] = useState(false);
   const [near, setNear] = useState(false);
   const root = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const media = window.matchMedia(WIDE);
+    const media = window.matchMedia(HELD);
     const element = root.current!;
     let frame = 0;
     const measure = () => {
       frame = 0;
-      setWide(media.matches);
+      setHeld(media.matches);
       if (!media.matches) return;
       if (element.getBoundingClientRect().top < window.innerHeight) setNear(true);
       const markers = [...element.querySelectorAll<HTMLElement>("[data-stop]")].map(
         (marker) => marker.getBoundingClientRect().top,
       );
-      setActive(stopAt(markers, window.innerHeight / 2));
+      setActive(stopAt(markers, window.innerHeight * TURN_LINE));
     };
     const schedule = () => {
       if (!frame) frame = window.requestAnimationFrame(measure);
@@ -128,20 +157,20 @@ export function DayOnOnePhone() {
 
   const current = STEPS.indexOf(DAY_STOPS[active].step);
   return (
-    <div ref={root} className="day mt-14 md:grid md:grid-cols-2 md:gap-16">
-      <div className="day-stage md:col-start-2 md:row-start-1">
+    <div ref={root} className="day mt-14 held:grid held:grid-cols-2 held:gap-16">
+      <div className="day-stage held:col-start-2 held:row-start-1">
         <span aria-hidden="true" className="day-well" />
         <PhoneShell className="day-phone">
           {DAY_STOPS.map(
             (stop, at) =>
-              (at === 0 || (wide && near)) && (
+              (at === 0 || (held && near)) && (
                 <div
                   key={stop.shot}
                   data-state={screenState(at, active)}
                   data-enter={stop.enter}
                   aria-hidden={at !== active || undefined}
                   className="day-screen"
-                  style={{ zIndex: at + 1 }}
+                  style={{ "--at": at } as CSSProperties}
                 >
                   <Image
                     src={LANDING_SHOTS[stop.shot]}
@@ -154,47 +183,64 @@ export function DayOnOnePhone() {
                     fetchPriority="low"
                     className="object-cover"
                   />
-                  <span
-                    aria-hidden="true"
-                    data-pill={stop.spot.pill || undefined}
-                    className="day-spot"
-                    style={{
-                      left: `${stop.spot.x}%`,
-                      top: `${stop.spot.y}%`,
-                      width: `${stop.spot.w}%`,
-                      height: `${stop.spot.h}%`,
-                    }}
-                  />
+                  <Spot spot={stop.spot} />
                 </div>
               ),
           )}
+          {/* One status bar and header, the app's own, held still while only what is under them moves. */}
+          <div aria-hidden="true" className="day-chrome">
+            <Image
+              src={LANDING_SHOTS[DAY_STOPS[0].shot]}
+              alt=""
+              fill
+              sizes="290px"
+              loading="lazy"
+              fetchPriority="low"
+              className="object-cover"
+            />
+          </div>
+          {/* The app's scrim, over all of it while a sheet is up. */}
+          <span
+            aria-hidden="true"
+            data-shown={DAY_STOPS[active].enter === "sheet" || undefined}
+            className="day-scrim"
+          />
         </PhoneShell>
       </div>
 
-      <ol className="day-steps md:col-start-1 md:row-start-1">
+      <ol className="day-steps held:col-start-1 held:row-start-1">
         {STEPS.map((id, at) => {
           const words = text.features[id];
-          const shots = shotsOf(id);
-          const pair = shots.length > 1;
+          const stops = stopsOf(id);
+          const pair = stops.length > 1;
           return (
             <li
               key={id}
               aria-labelledby={`landing-${id}`}
               data-state={at === current ? "current" : at < current ? "done" : "next"}
-              className="day-step"
+              className="day-step max-w-2xl"
             >
               <span data-stop="" aria-hidden="true" className="day-marker" />
               <span aria-hidden="true" className="day-number">
                 {at + 1}
               </span>
-              <div className="day-words">
-                <RisingTitle
-                  as="h3"
-                  id={`landing-${id}`}
-                  className="font-display text-[1.75rem] font-medium leading-[1.15] tracking-[-0.025em] text-text text-balance sm:text-[2rem]"
-                >
-                  {words.title}
-                </RisingTitle>
+              <div className="day-words max-w-xl">
+                <div className="flex items-start gap-3">
+                  {/* Where no rail numbers the steps, each carries its own number. */}
+                  <span
+                    aria-hidden="true"
+                    className="day-ordinal grid size-8 shrink-0 place-items-center rounded-full border border-primary text-sm font-semibold tabular-nums text-primary sm:mt-1 held:hidden"
+                  >
+                    {at + 1}
+                  </span>
+                  <RisingTitle
+                    as="h3"
+                    id={`landing-${id}`}
+                    className="min-w-0 font-display text-[1.75rem] font-medium leading-[1.15] tracking-[-0.025em] text-text text-balance sm:text-[2rem]"
+                  >
+                    {words.title}
+                  </RisingTitle>
+                </div>
                 <p className="landing-words mt-4 text-base leading-relaxed text-text-muted text-pretty">{words.body}</p>
                 <ul className="mt-6 space-y-3">
                   {words.points.map((point, line) => (
@@ -205,25 +251,27 @@ export function DayOnOnePhone() {
                   ))}
                 </ul>
               </div>
-              {/* On a phone, the step's own screens, rising out of a well of the page's sunken ground. */}
-              <div className="day-shelf landing-shelf relative isolate mt-10 flex items-start justify-center gap-4 py-6 sm:gap-6 md:hidden">
+              {/* Unheld, the step's own screens, one under the other, rising out of a well of the page's sunken ground. */}
+              <div className="day-shelf landing-shelf relative isolate mt-10 flex flex-col items-center gap-8 py-6 held:hidden">
                 <span
                   aria-hidden="true"
                   className="landing-well absolute inset-x-0 inset-y-[16%] -z-10 rounded-[2rem] bg-sunken"
                 />
-                {shots.map((shot, index) => (
+                {stops.map((stop, index) => (
                   <PhoneFrame
-                    key={shot}
-                    src={LANDING_SHOTS[shot]}
-                    alt={SHOT_ALT[shot]}
-                    sizes={pair ? "44vw" : "68vw"}
+                    key={stop.shot}
+                    src={LANDING_SHOTS[stop.shot]}
+                    alt={SHOT_ALT[stop.shot]}
+                    sizes={pair ? "(min-width: 640px) 270px, 62vw" : "(min-width: 640px) 290px, 68vw"}
+                    // A pair steps down the well, the first a little to the left, the second to the right.
                     className={cn(
                       "landing-shelf-phone",
-                      pair ? "w-[46%] max-w-[240px]" : "w-[68%] max-w-[290px]",
-                      index === 1 && "mt-12",
+                      pair ? "w-[62%] max-w-[270px]" : "w-[68%] max-w-[290px]",
+                      pair && (index === 0 ? "mr-[18%]" : "ml-[18%]"),
                     )}
-                    style={nth(index)}
-                  />
+                  >
+                    <Spot spot={stop.spot} still />
+                  </PhoneFrame>
                 ))}
               </div>
             </li>

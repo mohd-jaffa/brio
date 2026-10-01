@@ -150,7 +150,8 @@ const HISTORY: Plan[] = [
     ],
   ],
   [14, "joseph", [["strawberry", 1]]],
-  [13, "guest", [["cupcake", 1]]],
+  // Three boxes, so the month comes to ₹49,500 over 36 orders and the average order is a whole ₹1,375.
+  [13, "guest", [["cupcake", 3]]],
   [12, "kavya", [["choc", 1]]],
   [11, "rahul", [["muffin", 2]]],
   [

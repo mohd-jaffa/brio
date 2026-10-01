@@ -12,10 +12,13 @@ import { Illustration } from "@/components/ui/illustration";
 import { Medallion } from "@/components/ui/medallion";
 import { UI_TEXT } from "@/constants/messages";
 import { AUTH_ROUTES, HOME_ROUTE, PRIVACY_ROUTE } from "@/constants/routes";
+import { THEME_LABELS, THEMES } from "@/lib/theme/themes";
 
 import { DayOnOnePhone } from "./DayOnOnePhone";
 import { LaptopFrame, PhoneFrame } from "./DeviceFrame";
 import { SHOT_ALT } from "./shots";
+import { StartBar } from "./StartBar";
+import { Ticks } from "./Ticks";
 import { Point, RisingTitle } from "./Words";
 
 const text = UI_TEXT.landing;
@@ -38,20 +41,29 @@ const DEVICES: readonly { id: keyof typeof text.devices; icon: LucideIcon }[] = 
   { id: "computer", icon: Monitor },
 ];
 
-/** Where a visitor goes next: into the app when signed in, or to make an account. */
-function Start({ signedIn, size }: { signedIn: boolean; size: "sm" | "lg" }) {
+/**
+ * Where a visitor goes next: into the app when signed in, or to make an
+ * account. `quiet` where the hero's own is in the same view — one espresso
+ * per view (DESIGN.md).
+ */
+function Start({ signedIn, size, quiet = false }: { signedIn: boolean; size: "sm" | "lg"; quiet?: boolean }) {
+  const variant = quiet ? "secondary" : "action";
   return signedIn ? (
-    <LinkButton href={HOME_ROUTE} label={text.openApp} variant="action" size={size} shape="pill" />
+    <LinkButton href={HOME_ROUTE} label={text.openApp} variant={variant} size={size} shape="pill" />
   ) : (
     <LinkButton
       href={AUTH_ROUTES.register}
       label={size === "sm" ? text.createAccount : text.start}
-      variant="action"
+      variant={variant}
       size={size}
       shape="pill"
     />
   );
 }
+
+/** The two places to start, which the start bar comes up between (`StartBar`). */
+const HERO_START = "landing-start";
+const CLOSING_START = "landing-closing-start";
 
 /** Where an item stands in its row, for the scroll to set each down in turn. */
 const nth = (at: number) => ({ "--i": at }) as CSSProperties;
@@ -60,8 +72,9 @@ const nth = (at: number) => ({ "--i": at }) as CSSProperties;
  * The landing page (`/about`; plan §139.11.22, the user, 2026-09-30): what
  * Brio is, who it is for, and a day's work in it on one pinned phone
  * (`DayOnOnePhone`), shown on the app's own screens — a demo business
- * photographed on a phone and a laptop (scripts/landing-shots.mts). It is open to anyone, signed in or not, and
- * leads to making an account, or back into the app for someone signed in.
+ * photographed on a phone and a laptop (scripts/landing-shots.mts). It is
+ * open to anyone, signed in or not, and leads to making an account, or back
+ * into the app for someone signed in.
  * It says only what the app does.
  */
 export function Landing({ signedIn, year }: { signedIn: boolean; year: number }) {
@@ -82,7 +95,7 @@ export function Landing({ signedIn, year }: { signedIn: boolean; year: number })
               <LinkButton href={AUTH_ROUTES.signIn} label={text.signIn} variant="ghost" size="sm" shape="pill" />
             )}
             <span className={cn(!signedIn && "hidden sm:inline-flex")}>
-              <Start signedIn={signedIn} size="sm" />
+              <Start signedIn={signedIn} size="sm" quiet />
             </span>
           </div>
         </nav>
@@ -93,35 +106,39 @@ export function Landing({ signedIn, year }: { signedIn: boolean; year: number })
           aria-labelledby="landing-title"
           className={cn(
             FRAME,
-            "landing-hero grid items-center gap-14 pt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-12 lg:pt-20",
+            "landing-hero grid grid-cols-1 items-center gap-14 pt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-12 lg:pt-20",
           )}
         >
-          <div className="max-w-xl">
+          <div className="min-w-0 max-w-xl">
             <h1
               id="landing-title"
-              className="font-display text-[clamp(2.75rem,1.75rem+4.4vw,4.25rem)] font-semibold leading-[1.02] tracking-[-0.035em] text-text lg:text-[clamp(3rem,4.4vw,4.25rem)]"
+              className="font-display text-[clamp(2.25rem,11.5vw,3.5rem)] font-semibold leading-[1.02] tracking-[-0.035em] text-text sm:text-[clamp(2.75rem,1.75rem+4.4vw,4.25rem)] lg:text-[clamp(3rem,4.4vw,4.25rem)]"
             >
-              {/* Each line rises out of its own line; the window keeps room for descenders. */}
+              {/* Each line rises out of its own line; the window keeps room for descenders. Sized from the
+                  screen's width, each fits on one line; with the text set larger, it wraps rather than
+                  run off the screen. */}
               <span className="-mb-[0.14em] block overflow-hidden pb-[0.14em]">
-                <span className="landing-line block whitespace-nowrap [--line:0]">{madeBy}</span>
+                <span className="landing-line block [--line:0]">{madeBy}</span>
               </span>
               <span className="-mb-[0.14em] block overflow-hidden pb-[0.14em]">
-                <span className="landing-line block whitespace-nowrap text-primary [--line:1]">{managed}</span>
+                <span className="landing-line block text-primary [--line:1]">{managed}</span>
               </span>
             </h1>
             <p className="landing-settle mt-6 max-w-[34rem] text-lg leading-relaxed text-text-muted text-pretty [--settle:0]">
               {text.heroLead}
             </p>
-            <div className="landing-settle mt-8 flex flex-wrap items-center gap-3 [--settle:1]">
+            <div id={HERO_START} className="landing-settle mt-8 flex flex-wrap items-center gap-3 [--settle:1]">
               <Start signedIn={signedIn} size="lg" />
               {!signedIn && (
                 <LinkButton href={AUTH_ROUTES.signIn} label={text.signIn} variant="secondary" size="lg" shape="pill" />
               )}
             </div>
-            <p className="landing-settle mt-7 flex items-center gap-2.5 text-sm text-text-muted [--settle:2]">
-              <Image src={BRAND.leaf.src} alt="" width={brandWidth("leaf", 16)} height={16} className="shrink-0" />
-              {text.heroFor}
-            </p>
+            {!signedIn && (
+              <p className="landing-settle mt-5 flex items-center gap-2.5 text-sm text-text-muted [--settle:2]">
+                <Image src={BRAND.leaf.src} alt="" width={brandWidth("leaf", 16)} height={16} className="shrink-0" />
+                {text.signUpNeeds}
+              </p>
+            )}
           </div>
 
           {/* The laptop, with the phone stood in front of its left corner. */}
@@ -133,9 +150,10 @@ export function Landing({ signedIn, year }: { signedIn: boolean; year: number })
               sizes="(min-width: 1024px) 620px, 86vw"
               lead
             />
+            {/* The bill on the phone: Home is the laptop's, and the day's second step. */}
             <PhoneFrame
-              src={LANDING_SHOTS.home}
-              alt={SHOT_ALT.home}
+              src={LANDING_SHOTS.bill}
+              alt={SHOT_ALT.bill}
               sizes="(min-width: 1024px) 170px, 30vw"
               lead
               className="landing-phone absolute bottom-0 left-0 w-[31%] sm:w-[25%]"
@@ -147,10 +165,11 @@ export function Landing({ signedIn, year }: { signedIn: boolean; year: number })
           <RisingTitle as="h2" id="landing-who" className={SECTION_TITLE}>
             {text.whoTitle}
           </RisingTitle>
-          <ul className="landing-who mt-10 grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-4">
+          {/* Two across on a phone, or one when the text is set too large for two; four on a wide screen. */}
+          <ul className="landing-who mt-10 grid grid-cols-[repeat(auto-fit,minmax(min(100%,max(8rem,calc((100%_-_1.5rem)/2))),1fr))] gap-x-6 gap-y-10 lg:grid-cols-4">
             {WHO.map(({ id, picture }, at) => (
               <li key={id} className="landing-sticker flex flex-col items-start gap-3" style={nth(at)}>
-                <span className="grid size-24 place-items-center rounded-full bg-sunken">
+                <span className="landing-sticker-picture grid aspect-square w-24 max-w-full place-items-center rounded-full bg-sunken">
                   <Illustration name={picture} fallback="default-product" size={72} />
                 </span>
                 <h3 className="mt-1 font-display text-xl font-medium text-text">{text.who[id].title}</h3>
@@ -176,7 +195,8 @@ export function Landing({ signedIn, year }: { signedIn: boolean; year: number })
           </RisingTitle>
           <ul className="landing-devices mt-10 grid gap-8 sm:grid-cols-3">
             {DEVICES.map(({ id, icon }, at) => (
-              <li key={id} className="landing-device flex gap-4" style={nth(at)}>
+              // Three across, each medallion stands over its words, so larger text still has room.
+              <li key={id} className="landing-device flex gap-4 sm:flex-col lg:flex-row" style={nth(at)}>
                 <Medallion icon={icon} />
                 <div>
                   <h3 className="text-base font-semibold text-text">{text.devices[id].title}</h3>
@@ -185,7 +205,26 @@ export function Landing({ signedIn, year }: { signedIn: boolean; year: number })
               </li>
             ))}
           </ul>
-          <p className="mt-8 text-sm text-text-muted">{text.looks}</p>
+          <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm">
+            <p id="landing-looks" className="text-text-muted">
+              {text.looks}
+            </p>
+            <ul aria-labelledby="landing-looks" className="flex gap-5">
+              {THEMES.map((theme) => (
+                <li key={theme} className="flex items-center gap-2 font-medium text-text">
+                  {/* Each look in its own colours: its ground, and its caramel. */}
+                  <span
+                    aria-hidden="true"
+                    data-theme={theme}
+                    className="grid size-6 place-items-center rounded-full border border-border bg-background"
+                  >
+                    <span className="size-2.5 rounded-full bg-primary" />
+                  </span>
+                  {THEME_LABELS[theme]}
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
 
         <section aria-labelledby="landing-trust" className="mt-24 bg-sunken sm:mt-32">
@@ -211,19 +250,19 @@ export function Landing({ signedIn, year }: { signedIn: boolean; year: number })
         </section>
 
         <section aria-labelledby="landing-closing" className={cn(FRAME, "pt-24 sm:pt-32")}>
-          {/* The app's picture band: words on the well, a plate fading in on the right. */}
+          {/* The app's picture band: words on the well, a plate fading in on the right — on a phone, above them. */}
           <div className="landing-band relative isolate overflow-hidden rounded-[1.5rem] bg-sunken">
             <div
               aria-hidden="true"
-              className="landing-plate absolute inset-y-0 right-0 -z-10 hidden w-3/5 max-w-2xl sm:block"
+              className="landing-plate relative h-44 sm:absolute sm:inset-y-0 sm:right-0 sm:-z-10 sm:h-auto sm:w-3/5 sm:max-w-2xl"
             >
               <Image
                 src={PLATES["cake-table"]}
                 alt=""
                 fill
                 quality={PLATE_QUALITY}
-                sizes="(min-width: 1024px) 670px, 60vw"
-                className="object-cover [mask-image:linear-gradient(to_right,transparent_15%,black_70%)]"
+                sizes="(min-width: 1024px) 670px, (min-width: 640px) 60vw, 100vw"
+                className="object-cover [mask-image:linear-gradient(to_bottom,black_45%,transparent)] sm:[mask-image:linear-gradient(to_right,transparent_15%,black_70%)]"
                 style={{ objectPosition: PLATE_FOCUS["cake-table"] }}
               />
             </div>
@@ -232,7 +271,7 @@ export function Landing({ signedIn, year }: { signedIn: boolean; year: number })
                 {text.closingTitle}
               </RisingTitle>
               <p className="mt-4 text-base leading-relaxed text-text-muted text-pretty">{text.closingBody}</p>
-              <div className="mt-7">
+              <div id={CLOSING_START} className="mt-7">
                 <Start signedIn={signedIn} size="lg" />
               </div>
               {!signedIn && (
@@ -250,6 +289,12 @@ export function Landing({ signedIn, year }: { signedIn: boolean; year: number })
           </div>
         </section>
       </main>
+
+      <Ticks />
+      <StartBar after={HERO_START} until={CLOSING_START}>
+        <Image src={BRAND.wordmark.src} alt="" width={brandWidth("wordmark", 24)} height={24} />
+        <Start signedIn={signedIn} size="sm" />
+      </StartBar>
 
       <footer className={cn(FRAME, "safe-bottom [--safe-pb:2rem] mt-20")}>
         <div className="flex flex-col gap-6 border-t border-border pt-8 sm:flex-row sm:items-center sm:justify-between">

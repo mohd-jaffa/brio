@@ -3997,3 +3997,84 @@ A second `/impeccable optimize` pass, on the built app at 390 px, with a throttl
 
 ### Blockers
 - None.
+
+## 2026-10-01 — The landing page holds with larger text
+
+### Changed
+- **The hero no longer runs off a phone** (the critique's first issue; the user: "stop the hero clipping. Size the headline from the screen width and let it wrap below 640px, so 150% text and 320px screens never scroll sideways"). On a phone the headline is sized from the screen's width (11.5 vw, 36 – 56 px), so each line fits on one line from 320 px; it was 44 px at least, and 25 px too wide at 320. Its lines may wrap now, so text set larger wraps a line instead of pushing the page wider — 150 % text had made a 390 px page 496 px wide, clipping the headline and the words under it. On a laptop with large text, "Managed simply." now wraps in its column rather than run under the laptop. The hero's column can no longer widen the page (`grid-cols-1`, `min-w-0`).
+- **The rest of the page, checked the same way:** who it is for goes to one column when two no longer fit, its pictures shrinking with their column; the three devices stand each medallion over its words from 640 px to 1024, where a large text had pushed **Computer** past the edge. At normal text the page looks as before, but for the devices between 640 and 1024 px.
+- Affected: `src/components/landing/Landing.tsx`; DESIGN.md (Landing page).
+
+### Validation
+- On the build, the page's width measured at 320, 360, 390, 414, 640, 700, 768, 1024, 1100, 1180, 1280 and 1440 px, with the text at 100, 125, 150 and 200 %: nothing scrolls sideways, and at normal text each headline line stays on one line at every width.
+- Unit tests, lint, the type check and the format check pass.
+
+### Blockers
+- None.
+
+## 2026-10-01 — The landing page on a phone
+
+### Changed
+- **The day on a phone** (the critique's second issue; the user: "on phones: add the caramel ring and step numbers to each step's screenshots; stack the stock and analytics screens one under the other; show a slim sticky Create account bar after the hero; only pin the phone when the screen is at least 600px tall, so a sideways phone gets the stacked layout"):
+  - each step's own screens carry the caramel ring the held phone has, always on, round what the step is about;
+  - each step has its number, outlined caramel beside its title, where the held layout has its rail;
+  - the stock and analytics stand one under the other, stepping from left to right, each as wide as a single screen (they were side by side, 165 px each, too small to read);
+  - each phone rises on its own as it scrolls in.
+- **The phone is held only on a screen at least 768 px wide and 600 px tall** (`HELD`, and the `held` variant in globals.css). A phone on its side (844 × 390) gets the stacked steps, where it had a 136 px held phone.
+- **A start bar on a phone** (`StartBar`): Create account along the bottom, with the wordmark, of the app's bottom bar's material. It comes up once the hero's buttons have gone above the screen, and goes at the closing band, so it never stands beside another Create account. Hidden, it is inert. It is measured once a frame as the page scrolls, so a jump past the hero still brings it. It is not drawn where the phone is held.
+- `PhoneFrame` takes children, drawn over its screen.
+- Affected: `src/components/landing/` (`DayOnOnePhone`, `DeviceFrame`, `Landing`, the new `StartBar`), `src/app/globals.css`; DESIGN.md (Landing page) and plan §139.11.22.
+
+### Validation
+- Seen on the build:
+  - at 390 × 844: the numbers and rings on every step, the stock and analytics one under the other, and the bar coming up after the hero and going at the closing band, down and back up;
+  - at 844 × 390: the stacked steps and the bar;
+  - at 820 × 1180 and 1440 × 900: the held phone as before, with no bar and no step numbers beside the titles.
+- Unit tests: the landing components 100 % covered, with `StartBar`'s own tests.
+- The landing journey checks the bar on a phone.
+- Lint, the type check and the format check pass.
+
+### Blockers
+- None.
+
+## 2026-10-01 — The landing page: the pinned phone's seams, fewer words, and a finish
+
+### Changed
+- **The pinned phone** (the critique's third issue; the user: "turn the screen as the heading arrives … make the steps you've passed less faint; one status bar and header, with only the content moving; the bill rises as a real sheet over a dimmed Home; a shorter empty stretch after step 6; each tick draws once"):
+  - a step turns the phone as its title crosses 60 % of the screen (`TURN_LINE`), where its marker sat some 200 px above the title before;
+  - steps read stay at 90 % (muted text 4.6 : 1, from about 1.8 : 1 at 40 %), and steps to come at 55 %;
+  - one status bar and header (`.day-chrome`, the first screen's own, so nothing more is fetched) stay still above the screens, which now move only below the header;
+  - the bill is the app's sheet: only the sheet, its corners rounded, rising from the bottom edge over Home and the header, under the app's own scrim (`--color-scrim`, a 2 px blur), and going down again when the day moves on;
+  - the empty 50 dvh after the last step is gone, so the phone leaves with step 6;
+  - each point's check is drawn once as it comes into view, those that come in together 90 ms apart (`Ticks`), where before it was tied to the scroll and could rest half drawn.
+- **The phone's Dynamic Island shows again on the held phone.** It had been drawn beneath the screens since they were given a stacking order.
+- **Fewer words** (the critique's fourth issue; the user: "keep the laptop and phone in the hero … Cut the 48-word lead to one sentence and drop the repeats"):
+  - the lead is one sentence: "The order book for businesses run from home — every order from WhatsApp or a call, what is due, and who has paid.";
+  - the hero's line listing who it is for is gone, since the next section says it with pictures;
+  - the hero's phone shows the bill, so Home is on the laptop and in the day, not three times.
+- **What making an account asks** (the critique's fifth issue): "Two short steps · your mobile number and email" under the hero's button, for a visitor signed out. No price is named. The first privacy point now reads "No other business can see your orders, customers or money."
+- **Finish** (the critique's minor notes):
+  - the who-it-is-for pictures turn as they land, but their words only settle and never tilt;
+  - the demo month's average order is a whole ₹1,375, where it was ₹1,348.33: one past order in `scripts/landing-shots.mts` has three boxes of cupcakes, and the screenshots were taken again;
+  - "Two looks to choose from" shows Golden and Peach as swatches in their own colours;
+  - on a phone the closing band's plate stands above its words;
+  - the header's Create account is a secondary pill, so the first view has one espresso button.
+- Affected:
+  - `src/components/landing/`: `Landing`, `DayOnOnePhone`, `Words`, and the new `Ticks`;
+  - `src/app/globals.css`, `src/constants/messages.ts`;
+  - `src/assets/landing/`, retaken, and `scripts/landing-shots.mts`;
+  - DESIGN.md (Landing page) and plan §139.11.22.
+
+### Validation
+- Seen on the build at 1440 × 900:
+  - Home, then the bill rising over the scrim and settled;
+  - a push under the still header;
+  - the expenses, with the phone leaving with them;
+  - where it runs, with the looks, and the privacy band.
+- Seen on the build at 390 × 844: the hero, who it is for, and the closing band with its plate.
+- Seen with reduced motion at 1440 × 900: the bill fades in over the scrim, and the checks are simply drawn.
+- Unit tests: the landing components 100 % covered, with `Ticks`' own tests. The landing journey passes on the build.
+- Lint, the type check and the format check pass.
+
+### Blockers
+- None.

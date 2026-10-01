@@ -1243,8 +1243,9 @@ export const UI_TEXT = {
     openApp: "Open Brio",
     start: "Create your account",
     heroLead:
-      "The order book for businesses run from home. Take orders as they come in on WhatsApp or a call, see what is due today, send a proper bill and know what you really made — on your phone, tablet or computer.",
-    heroFor: "For home bakers, hamper makers, florists and gift makers.",
+      "The order book for businesses run from home — every order from WhatsApp or a call, what is due, and who has paid.",
+    /** Under the hero's button: what making an account asks. */
+    signUpNeeds: "Two short steps · your mobile number and email",
     whoTitle: "Made for work done at home",
     who: {
       bakers: { title: "Home bakers", body: "Cakes, cupcakes and brownies, made to order." },
@@ -1316,10 +1317,10 @@ export const UI_TEXT = {
       iphone: { title: "iPhone and iPad", body: "Added to the home screen from Safari, and opened like an app." },
       computer: { title: "Computer", body: "Any browser, with a sidebar, wider lists and room for the numbers." },
     },
-    looks: "Two looks to choose from, Golden and Peach.",
+    looks: "Two looks to choose from",
     trustTitle: "Your business stays yours",
     trust: [
-      "Each business sees only its own records. The database checks, not only the screen.",
+      "No other business can see your orders, customers or money.",
       "Bills are made when you ask for them, and never kept on our side.",
       "No adverts, no tracking tools, and your data is never sold.",
       "Delete your account from Settings whenever you like, and it goes at once.",
