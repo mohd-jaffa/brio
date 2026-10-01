@@ -22,6 +22,20 @@ describe("a password box", () => {
     expect(screen.getByRole("button", { name: UI_TEXT.auth.hidePassword })).toHaveAttribute("aria-pressed", "true");
   });
 
+  it("tells the keyboard to leave it as typed, hidden or revealed", async () => {
+    render(<PasswordField label="Password" />);
+    const input = screen.getByLabelText("Password");
+    const asTyped = () => {
+      expect(input).toHaveAttribute("autocapitalize", "none");
+      expect(input).toHaveAttribute("autocorrect", "off");
+      expect(input).toHaveAttribute("spellcheck", "false");
+    };
+
+    asTyped();
+    await userEvent.click(screen.getByRole("button", { name: UI_TEXT.auth.showPassword }));
+    asTyped();
+  });
+
   it("hides it again", async () => {
     render(<PasswordField label="Password" />);
 

@@ -4304,3 +4304,22 @@ Every signed-in screen was checked at 360, 390, 768 and 1440 px (`/impeccable po
 
 ### Blockers
 - None.
+
+## 2026-10-02 — Release v1.0.1: a password stays as typed
+
+### Fixed
+- **A password typed with "show password" on could be registered differently from how it was meant** (`src/features/auth/components/PasswordField.tsx`). Revealed, the box is a text box, and a phone's keyboard capitalised its first letter: an owner on the live site registered a password beginning with a small letter, and could never sign in typing it with a capital, while the email's link signed them in. Every password box (sign in, register, change password, delete account, a new number or email) now tells the keyboard not to capitalise, correct or spell-check, hidden or revealed.
+
+### Release
+- Brio 1.0.1. The version is 1.0.1 in `package.json` and `package-lock.json`.
+
+### Migration notes
+- None.
+
+### Validation
+- On the live Supabase, the owner's sign-in was refused ("Invalid login credentials") with the first letter capitalised and accepted without; Phone sign-in is on (`/auth/v1/settings`). The account was fine.
+- A unit test checks `autocapitalize="none"`, `autocorrect="off"` and `spellcheck="false"` on the box, hidden and revealed. No password input in `src/` bypasses `PasswordField`.
+- Lint, the format check and the type check pass; the auth component tests pass.
+
+### Blockers
+- None.
