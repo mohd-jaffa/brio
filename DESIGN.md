@@ -295,7 +295,7 @@ A warm, low-chroma kitchen palette. One caramel (or terracotta) voice does the p
 
 - **Operate mode throughout:** predictable structure, steady density, and one clear reading order. What is due and what is owed comes first.
 - **Phone (under 768 px):**
-  - a top bar with the business's mark, name and catch phrase, the bell and the owner's profile picture; a long name takes a second line rather than lose its end;
+  - a top bar with the business's mark, name and catch phrase, the bell and the owner's profile picture; a long name takes a second line rather than lose its end, and so does the catch phrase;
   - a five-item bottom bar (Home, Orders, Products, Customers, More) with a tinted pill on the current place;
   - 16 px gutters.
 - **Tablet (768 – 1023 px):** a 72 px icon rail whose labels appear as tooltips, a top bar with the bell and the account, and 24 px gutters. On a screen shorter than the rail (a phone on its side) the rail scrolls, and its tooltips give way.
@@ -467,7 +467,9 @@ Layered and softly lifted. Depth is mostly tonal: the cream ground, paper cards 
 
 ### Stat Tile
 - A medallion, the figure (the serif for money), and its label.
-- On a phone the label sits beside the medallion. From 1024 px the label drops under the figure and a sparkline takes the medallion's row, so every tile is the same height.
+- On a phone the label sits beside the medallion, in a row two lines tall, so the figures of two tiles side by side line up even when one label wraps. From 1024 px the label drops under the figure and a sparkline takes the medallion's row, so every tile is the same height.
+- **A tile too narrow for its label beside the medallion stacks the same way**: two to a row on a phone under 390 px. It is the tile's own width that decides (a container query), not the screen's. Home keeps two to a row until 1024 px, as Analytics does, so a tablet never has four tiles with their labels broken word by word.
+- **An average is in whole rupees** (`averagePaise`): ₹1,154, never ₹1,153.75.
 - **A tile that goes somewhere** is a target as a row is: the whole tile, named by its label, with a chevron beside it. Home's Due today, To collect and Low stock open their screens.
 - **Under the figure**, one of: how it moved, or what needs seeing in brick ("6 late" under Due today, so a zero today never hides late orders).
 

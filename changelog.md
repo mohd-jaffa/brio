@@ -4185,3 +4185,42 @@ A second `/impeccable optimize` pass, on the built app at 390 px, with a throttl
 
 ### Blockers
 - None.
+
+## 2026-10-01 — Polish across the signed-in app
+
+### Fixed
+Every signed-in screen was checked at 360, 390, 768 and 1440 px (`/impeccable polish`, the user chose "the whole signed-in app"). A scan looked for sideways overflow, cut text, small targets, fields under 16 px, broken pictures, console errors and layout shift. It found none of the last four.
+- **The business's catch phrase was cut off in the header on every screen**, at every size ("CAKES FOR EVERY CELEB…"). It now takes a second line, evenly, as the name does. A phrase too long even for two lines shows in full on hover. (`BusinessMark`)
+- **Home's tiles on a tablet broke their labels word by word** ("Due / today") with four to a row at 768 px. Home now keeps two to a row until 1024 px, as Analytics does. (`Home`)
+- **Stat tiles on a phone under 390 px did the same.** A tile too narrow for its label beside the medallion now stacks as a desktop's does: medallion, figure, then label. A container query decides, so it is the tile's own width that counts.
+  - Where a label still wraps beside its medallion ("Total expenses" at 390 px), the label row is always two lines tall, so the figures side by side line up. (`StatTile`)
+- **Averages read in whole rupees.** Analytics showed "Average order value ₹1,153.75". The average order value and the expenses' daily average now round to the rupee, through one helper, `averagePaise` (`src/lib/money.ts`).
+- **The Orders search hint was cut mid-word on a phone** ("Search orders, customers or p"). It now reads "Search by name or order", which fits at 360 px. Any hint still too long for its field ends in "…" rather than mid-letter.
+- **A row's reason no longer loses its end:**
+  - Settings → Order reminders: "Turned off in this browser’s settings for Brio";
+  - a customer's "1 order · last order a week ago".
+  - Both take a second line.
+- **Consistent words:**
+  - every page's line under its title ends with a full stop, as most already did (Analytics, Notifications, Business details, and the new and edit order steps);
+  - the two search hints that ended in "…" no longer do.
+- Checked and left as they are:
+  - the desktop sales chart, which was only mid-way through drawing in the first capture;
+  - the `#1004` order numbers, which are left over from an older demo data load (fresh demo data numbers every order ORD-1001 onwards);
+  - the bands' "Track · Control · Grow" break, a documented choice;
+  - the developer console's own look, also documented.
+- Affected:
+  - `src/components/ui/stat-tile.tsx`, `search-field.tsx` and `text-field.tsx`;
+  - `src/components/nav/BusinessMark.tsx`;
+  - Home, Customers and the reminder settings;
+  - `src/lib/money.ts` and the analytics and expenses summaries;
+  - `UI_TEXT` and DESIGN.md (Stat Tile, the app's frame).
+
+### Validation
+- Fixes re-captured on the build at 360, 375, 390, 768 and 1440 px.
+- Lint, the format check and the type check pass.
+- Unit tests pass (2,575), with a new one for `averagePaise`.
+- The browser journeys pass (3).
+- The design detector finds nothing in the changed files.
+
+### Blockers
+- None.

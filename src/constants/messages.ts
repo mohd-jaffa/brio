@@ -487,7 +487,7 @@ export const UI_TEXT = {
   /** Analytics (plan §139.10, §139.11.11). */
   analytics: {
     title: "Analytics",
-    subtitle: "How your business is doing",
+    subtitle: "How your business is doing.",
     bandLines: ["Good work brings", "great numbers."],
     bandTagline: "Make · Share · Grow",
     tabs: "Analytics views",
@@ -813,7 +813,7 @@ export const UI_TEXT = {
     title: "Orders",
     subtitle: "Track every order, from placed to handed over.",
     newOrder: "New order",
-    search: "Search orders, customers or phone",
+    search: "Search by name or order",
     filter: "Filter orders",
     tabs: "Orders by status",
     all: "All",
@@ -944,13 +944,13 @@ export const UI_TEXT = {
   /** Creating an order: items, then details, then payment (plan §139.10). */
   newOrder: {
     title: "Create order",
-    itemsSubtitle: "Add items to create a new order",
+    itemsSubtitle: "Add items to create a new order.",
     detailsTitle: "Order details",
-    detailsSubtitle: "Review items and add customer details",
+    detailsSubtitle: "Review items and add customer details.",
     paymentTitle: "Payment",
-    paymentSubtitle: "Record what has been paid so far",
+    paymentSubtitle: "Record what has been paid so far.",
     stepOf: (step: number, of: number) => `Step ${step} of ${of}`,
-    searchProducts: "Search products…",
+    searchProducts: "Search products",
     noProducts: "No products yet",
     noProductsHint: "Add products on the Products screen, or a custom item for a one-off.",
     noMatches: (search: string) => `Nothing matches “${search}”`,
@@ -1031,8 +1031,8 @@ export const UI_TEXT = {
   /** Changing an open order (plan §139.11.13): its items, then its details. */
   editOrder: {
     title: (orderNumber: string) => `Edit ${orderNumber}`,
-    itemsSubtitle: "Add items, or change what is in the order",
-    detailsSubtitle: "Check the details, then save the changes",
+    itemsSubtitle: "Add items, or change what is in the order.",
+    detailsSubtitle: "Check the details, then save the changes.",
     save: "Save changes",
     savedBody: (orderNumber: string) => `${orderNumber} is saved with its changes.`,
     paidSoFar: "Paid so far",
@@ -1043,7 +1043,7 @@ export const UI_TEXT = {
   /** The customer picker (plan §139.5, §139.11.4). */
   customerPicker: {
     title: "Select customer",
-    search: "Search by name or phone…",
+    search: "Search by name or phone",
     guest: "Guest",
     guestHint: "The bill reads “Guest”",
     addNew: "Add new customer",
@@ -1072,7 +1072,7 @@ export const UI_TEXT = {
 
     /** The inbox (plan §139.10). */
     title: "Notifications",
-    subtitle: "What happened in the business, newest first",
+    subtitle: "What happened in the business, newest first.",
     tabs: "Which notifications",
     tabNames: {
       ALL: "All",
@@ -1105,7 +1105,7 @@ export const UI_TEXT = {
   /** Business details (plan §139.10, §139.11.2). */
   business: {
     title: "Business details",
-    subtitle: "How your business appears in the app and on every bill",
+    subtitle: "How your business appears in the app and on every bill.",
     name: "Business name",
     tagline: "Catch phrase",
     taglinePlaceholder: "e.g. Your friendly home baker",

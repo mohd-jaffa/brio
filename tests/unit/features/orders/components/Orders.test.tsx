@@ -71,7 +71,7 @@ describe("Orders: the list", () => {
     open();
     await rows();
     answers["/api/orders?search=98765"] = page([anOrderListItem({ id: "o-5", orderNumber: "ORD-1005" })]);
-    await userEvent.type(screen.getByRole("searchbox", { name: "Search orders, customers or phone" }), "98765");
+    await userEvent.type(screen.getByRole("searchbox", { name: "Search by name or order" }), "98765");
     expect(await within(await rows()).findByRole("link", { name: /ORD-1005/ })).toBeInTheDocument();
     expect(fetcher).toHaveBeenCalledWith("/api/orders/counts?search=98765");
   });

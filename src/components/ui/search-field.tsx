@@ -47,7 +47,7 @@ export function SearchField({
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
           // 16 px, as every field is, or an iPhone zooms in on it (field-styles.ts).
-          className="w-full rounded-2xl border border-field-edge bg-surface py-2.5 pl-11 pr-4 text-base text-text shadow-card transition-colors placeholder:text-text-muted focus:border-primary"
+          className="w-full rounded-2xl border border-field-edge bg-surface py-2.5 pl-11 pr-4 text-base text-ellipsis text-text shadow-card transition-colors placeholder:text-text-muted focus:border-primary"
         />
       </div>
       {filter && <FilterButton {...filter} />}

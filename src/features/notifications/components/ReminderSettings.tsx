@@ -41,6 +41,8 @@ export function ReminderSettings() {
           title={text.reminders}
           subtitle={permission === "BLOCKED" ? text.remindersBlocked[where] : text.remindersHint[permission]}
           trailing={text.remindersState[permission]}
+          // Why reminders are off is the point of the row: it wraps rather than lose its end.
+          wrap
           onClick={permission === "OFF" ? () => void turnOn() : undefined}
         />
       </RowList>

@@ -1,7 +1,7 @@
 import { RECENT_EXPENSES } from "@/constants/limits";
 import { daysFrom } from "@/lib/dates/calendar";
 import { bucketIndex, bucketStarts, type Interval, type Period } from "@/lib/dates/range";
-import { sumPaise } from "@/lib/money";
+import { averagePaise, sumPaise } from "@/lib/money";
 
 import type { Expense, ExpenseSummary } from "./types";
 
@@ -12,9 +12,9 @@ export function within(expenses: readonly Expense[], period: Period): Expense[] 
 
 const total = (expenses: readonly Expense[]) => sumPaise(expenses.map((expense) => expense.amount));
 
-/** What a day cost on average over a period, in whole paise. */
+/** What a day cost on average over a period, to the whole rupee. */
 function perDay(expenses: readonly Expense[], period: Period): number {
-  return Math.round(total(expenses) / daysFrom(period.from, period.to).length);
+  return averagePaise(total(expenses), daysFrom(period.from, period.to).length);
 }
 
 /**

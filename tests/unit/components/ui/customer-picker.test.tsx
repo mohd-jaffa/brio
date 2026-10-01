@@ -52,7 +52,7 @@ function Screen({
 }
 
 const choices = () => within(screen.getByRole("radiogroup", { name: "Select customer" })).getAllByRole("radio");
-const search = () => screen.getByLabelText("Search by name or phone…");
+const search = () => screen.getByLabelText("Search by name or phone");
 
 describe("CustomerPicker", () => {
   it("lists Guest first, then the customers it is handed, each with their number", () => {

@@ -21,7 +21,7 @@ import { SelectMenu, type SelectOption } from "./select-menu";
  * once, and react-hook-form's `register()` spreads straight onto them.
  */
 const CONTROL_CLASSES =
-  `${FIELD_WELL} placeholder:text-text-muted ` +
+  `${FIELD_WELL} text-ellipsis placeholder:text-text-muted ` +
   // A field shown but not edited — a name locked for now — reads as quieter,
   // with a hairline: there is nothing to type there.
   "read-only:cursor-default read-only:border-border read-only:text-text-muted read-only:focus:border-border read-only:focus:ring-0";

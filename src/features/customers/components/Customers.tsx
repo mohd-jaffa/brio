@@ -106,6 +106,8 @@ function CustomerRow({ customer, now }: { customer: CustomerListItem; now: Date 
           ? `${text.orders(customer.orders)} · ${text.lastOrder(formatDaysAgo(customer.lastOrderAt, now))}`
           : text.noOrders
       }
+      // "last order a week ago" loses its sense cut short; it takes a second line instead.
+      wrap
       trailing={
         // The amount over a small "due", as an order's amount sits over its pill, so the name keeps its room.
         customer.balanceDue > 0 ? (
