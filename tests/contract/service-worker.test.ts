@@ -231,7 +231,7 @@ describe("order reminders pushed by the server (R8.6)", () => {
       await sw.dispatch("push", pushed({ title: "Due soon", url }));
     }
     const leads = sw.self.registration.showNotification.mock.calls.map(([, options]) => options.data.url);
-    expect(leads).toEqual([`${ORIGIN}/`, `${ORIGIN}/`, `${ORIGIN}/`]);
+    expect(leads).toEqual([`${ORIGIN}/home`, `${ORIGIN}/home`, `${ORIGIN}/home`]);
     const [, bare] = sw.self.registration.showNotification.mock.calls[2];
     expect(bare.body).toBe("");
     expect(bare.tag).toBeUndefined();
@@ -287,6 +287,6 @@ describe("order reminders pushed by the server (R8.6)", () => {
     await sw.dispatch("notificationclick", tapped());
     await sw.dispatch("notificationclick", tapped("https://elsewhere.example/x"));
     await sw.dispatch("notificationclick", tapped(42));
-    expect(sw.self.clients.openWindow.mock.calls).toEqual([[`${ORIGIN}/`], [`${ORIGIN}/`], [`${ORIGIN}/`]]);
+    expect(sw.self.clients.openWindow.mock.calls).toEqual([[`${ORIGIN}/home`], [`${ORIGIN}/home`], [`${ORIGIN}/home`]]);
   });
 });

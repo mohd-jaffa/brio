@@ -77,7 +77,7 @@ describe("the developer console's frame", () => {
   it("sends an owner home, and shows them nothing of the console", async () => {
     auth.current = authStub();
     open();
-    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/"));
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/home"));
     expect(screen.queryByText("Console page")).not.toBeInTheDocument();
     expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
   });

@@ -8826,9 +8826,19 @@ stay as they are, behind one switch: `WORKER_ENABLED` in the app and
   explaining the use cases of the app and if possible with screenshots or
   demonstrations", and "add with a phone like framed screenshot like with
   iphone 18 pro".
-- **Where:** `/about`, open to anyone, signed in or not; the proxy does not run
-  for it, as for `/privacy`. The app keeps `/` for Home. The sign-in screen
-  leads to it under its promise ("See what Brio does").
+- **Where:** the site's root, `/` (the user, 2026-10-01: "make / route for
+  landing page, give /home for homepage"; it was first at `/about`, which now
+  leads there), open to anyone, signed in or not; the proxy does not run for
+  it, as for `/privacy`. Home is `/home` (`HOME_ROUTE`): where signing in
+  leads, the installed app's start (the manifest's `start_url`, its `id`
+  still `/`), and the Android app's (`server.appStartPath`). The sign-in
+  screen leads to the landing page under its promise ("See what Brio does").
+- **A shared link** (the user, 2026-10-01: "add open graph meta data for a
+  better previews in social medias"): named Brio, with what it is, as a large
+  card, and one picture for every page — the brand's line beside a phone open
+  on a bill, drawn by the app itself (`scripts/og-image.mts`,
+  `opengraph-image.jpg`, `twitter-image.jpg`), small enough for WhatsApp.
+  Addresses are made from `NEXT_PUBLIC_APP_URL`.
 - **What it says** (`UI_TEXT.landing`), only what the app does — no prices, no
   counts of users, no quotes:
   - the brand's line as the headline, what Brio is, and who it is for (home

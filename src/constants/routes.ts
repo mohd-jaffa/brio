@@ -12,8 +12,12 @@ export const AUTH_ROUTES = {
   confirmEmail: "/confirm-email",
 } as const;
 
-/** Where a signed-in baker lands when they have nowhere particular to go. */
-export const HOME_ROUTE = "/";
+/**
+ * Where a signed-in owner lands when they have nowhere particular to go: Home,
+ * the dashboard. The site's root is the landing page (LANDING_ROUTE; the user,
+ * 2026-10-01).
+ */
+export const HOME_ROUTE = "/home";
 
 /**
  * The privacy policy (plan §139.17.5, R8.10): open to anyone, signed in or
@@ -23,9 +27,10 @@ export const PRIVACY_ROUTE = "/privacy";
 
 /**
  * The landing page (plan §139.11.22): what Brio is, for anyone, signed in or
- * not, so the proxy does not run for it either.
+ * not, at the site's root, so the proxy does not run for it either. `/about`,
+ * its first address, leads here.
  */
-export const ABOUT_ROUTE = "/about";
+export const LANDING_ROUTE = "/";
 
 /** Where an owner deletes their account; the privacy policy links here for the web. */
 export const DELETE_ACCOUNT_ROUTE = "/settings/delete-account";

@@ -75,7 +75,8 @@ describe("the landing page", () => {
 
   it("leads someone signed in back into the app instead", () => {
     show(true);
-    for (const link of screen.getAllByRole("link", { name: text.openApp })) expect(link).toHaveAttribute("href", "/");
+    for (const link of screen.getAllByRole("link", { name: text.openApp }))
+      expect(link).toHaveAttribute("href", "/home");
     expect(screen.queryByRole("link", { name: text.signIn })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: text.start })).not.toBeInTheDocument();
     expect(screen.queryByText(text.haveAccount)).not.toBeInTheDocument();

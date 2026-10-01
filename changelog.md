@@ -4104,3 +4104,45 @@ A second `/impeccable optimize` pass, on the built app at 390 px, with a throttl
 
 ### Blockers
 - None.
+
+## 2026-10-01 — The landing page at `/`, Home at `/home`, shared links and emails in Brio's look
+
+### Changed
+- **The landing page is the site's root, `/`, and Home is `/home`** (the user: "If possible make / route for landing page, give /home for homepage if there is no issues"):
+  - `HOME_ROUTE` is `/home`, so signing in, a confirmed email, a changed password and the app's Home link all lead there. `LANDING_ROUTE` is `/`, which the proxy leaves alone.
+  - `/about` leads to `/` with a permanent redirect (next.config.ts), for links already shared.
+  - The installed app starts at `/home`. Its manifest `id` stays `/`, so an app already installed is still the same app.
+  - The Android app opens on `/home` (`server.appStartPath`). Capacitor checks only the host for what stays in the app, so every screen still opens inside it. Its offline page's Try again goes to `/home` too.
+  - A pushed reminder with nowhere to lead opens `/home` (public/sw.js).
+  - Nothing else moved. There was no issue: nothing is released yet, and Android's App Links claim only `/confirm-email`.
+- **Shared links** (the user: "add open graph meta data for a better previews in social medias"):
+  - Every page carries Open Graph and Twitter card tags: Brio as the name, what it is, `en_IN`, and a large card. Addresses come from `NEXT_PUBLIC_APP_URL` (`metadataBase`, `src/lib/share/metadata.ts`).
+  - The landing page adds its own description, its address and a canonical link.
+  - One picture for all of them: `src/app/opengraph-image.jpg` and `twitter-image.jpg`, 1200 × 630, 61 KB, with alt text. It shows the brand's line beside the landing page's phone open on a bill, drawn from the app's own fonts and frame by `scripts/og-image.mts`.
+  - The proxy leaves the pictures alone, since a link preview fetches them with no session.
+- **Emails in Brio's look** (the user: "Visually update the email template as there is name change, logos and everything new with us now"):
+  - One layout for all of them (`src/lib/mail/templates/layout.ts`): the wordmark, a card, one dark button with its link in words beneath, a temporary password set apart to copy, and the leaf and the brand's line at the foot.
+  - Light only, inline styles and tables, and a plain-text twin. Nothing is fetched from a font service.
+  - Everything a person typed is escaped. Before, a name went into the HTML as typed.
+  - The marks are PNGs in `public/email/`, built by `scripts/brand.mjs`. The proxy leaves them alone, since a mail app fetches them with no session.
+  - The words are `MAIL_TEXT` (src/constants/messages.ts).
+- **Changing your email has its own email** (`emailChangeTemplate`, `MailService.sendEmailChange`). It asks to confirm the new address and says the link works for 48 hours. Before, it was sent the new account's "Your Brio account has been created successfully".
+- **The password-reset email** says the password has been reset, sets the temporary one apart, and links to sign in.
+- Affected:
+  - routes and the proxy;
+  - `src/app/page.tsx` (the landing page), `src/app/home/page.tsx` (Home), the manifest and the layout;
+  - `capacitor.config.ts`, `scripts/android-shell.mjs` and `public/sw.js`;
+  - `src/lib/share/`, `src/lib/mail/`, `src/features/auth/account.ts` and `src/constants/messages.ts`;
+  - the new `scripts/og-image.mts` and `scripts/brand.mjs`;
+  - DESIGN.md, plan §139.11.22, README and docs/RELEASE.md.
+
+### Validation
+- On the build:
+  - `/` is the landing page, `/home` asks a visitor to sign in, and `/about` redirects to `/` (308);
+  - the landing page and sign-in carry the Open Graph and Twitter tags, and the picture is served with no session;
+  - the browser journeys and the integration tests pass.
+- The three emails sent to Mailpit and seen at a laptop's and a phone's width, the marks loaded.
+- Unit tests pass, with new tests for the email layout, the email-change email and the share metadata. Lint, the type check and the format check pass.
+
+### Blockers
+- None.

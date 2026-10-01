@@ -142,6 +142,15 @@ export const UI_TEXT = {
    * name alone, with no line (the user, 2026-10-01).
    */
   appTitle: "Brio",
+  /**
+   * The picture a shared link shows (scripts/og-image.mts; the user,
+   * 2026-10-01): its words, and what it says to a screen reader.
+   */
+  share: {
+    line: "The order book for businesses run from home.",
+    audience: "For home bakers, hamper makers, florists and gift makers.",
+    imageAlt: "Brio, Made by you. Managed simply. A phone shows a bill made in Brio for Asha’s Home Bakes.",
+  },
   /** The name under the icon once the app is installed (plan §139.19 R7.1). */
   appShortName: "Brio",
   /** The line under a business's name in the header when it has no catch phrase of its own. */
@@ -1233,7 +1242,7 @@ export const UI_TEXT = {
   },
 
   /**
-   * The landing page (`/about`, plan §139.11.22; the user, 2026-09-30): what
+   * The landing page (`/`, plan §139.11.22; the user, 2026-09-30): what
    * Brio is and who it is for, shown on its own screens. It says only what
    * the app does — no prices, no numbers of users, no quotes.
    */
@@ -1498,5 +1507,43 @@ export const UI_TEXT = {
       ],
     },
     done: "Once it is on your home screen, open Brio from there. This option goes away inside the app.",
+  },
+} as const;
+
+/**
+ * The emails Brio sends (src/lib/mail/templates; the user, 2026-10-01: "update
+ * the email template as there is name change, logos and everything new"), in
+ * the app's own voice. A name is the person's, as they gave it.
+ */
+export const MAIL_TEXT = {
+  greeting: (name: string) => `Hi ${name},`,
+  /** Under a button, for a mail app that will not show one. */
+  linkFallback: "If the button doesn’t work, copy this link into your browser:",
+  confirmation: {
+    subject: "Confirm your Brio account",
+    preheader: "One tap, and your account is ready for your first order.",
+    heading: "Confirm your email",
+    body: "Your Brio account is made. Confirm this is your email address, and you’re ready to take your first order.",
+    action: "Confirm my email",
+    footnote:
+      "You’re getting this because this address was used to make a Brio account. If that wasn’t you, you can ignore this email.",
+  },
+  emailChange: {
+    subject: "Confirm your new email for Brio",
+    preheader: "Confirm it, and it becomes the address on your account.",
+    heading: "Confirm your new email",
+    body: "You asked to use this address for your Brio account. Confirm it, and it becomes the address on your account.",
+    action: "Confirm this email",
+    expires: (hours: number) => `The link works for ${hours} hours.`,
+    footnote: "If you didn’t ask for this, ignore this email. Your account keeps the address it has.",
+  },
+  passwordReset: {
+    subject: "Your Brio temporary password",
+    preheader: "Sign in with it, and choose a new password.",
+    heading: "Your temporary password",
+    body: "Your password has been reset. Sign in with this temporary password, and Brio will ask you to choose a new one straight away.",
+    label: "Temporary password",
+    action: "Sign in to Brio",
+    footnote: "If you didn’t ask for this, sign in with it and choose a new password, so only you know it.",
   },
 } as const;

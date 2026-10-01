@@ -90,7 +90,7 @@ describe("signing in", () => {
     await userEvent.type(screen.getByLabelText(/^password/i), "hunter22");
     await userEvent.click(signIn());
 
-    await waitFor(() => expect(loadPage).toHaveBeenCalledWith("/"));
+    await waitFor(() => expect(loadPage).toHaveBeenCalledWith("/home"));
   });
 
   it("returns to the screen the visitor was trying to reach", async () => {

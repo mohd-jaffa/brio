@@ -64,7 +64,7 @@ describe("confirming an email address", () => {
 
     await waitFor(() => expect(client.confirmEmail).toHaveBeenCalledWith({ accessToken: "a", refreshToken: "r" }));
     await waitFor(() => expect(auth.current.adopt).toHaveBeenCalled());
-    await waitFor(() => expect(loadPage).toHaveBeenCalledWith("/"));
+    await waitFor(() => expect(loadPage).toHaveBeenCalledWith("/home"));
   });
 
   it("wipes the tokens out of the address bar before anything else", async () => {
@@ -132,7 +132,7 @@ describe("confirming a new email address", () => {
     expect(auth.current.reload).toHaveBeenCalledOnce();
     expect(client.confirmEmail).not.toHaveBeenCalled();
     expect(window.location.hash).toBe("");
-    expect(screen.getByRole("link", { name: "Go to the app" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "Go to the app" })).toHaveAttribute("href", "/home");
   });
 
   it("says a link that lapsed or was used, in the server's words", async () => {

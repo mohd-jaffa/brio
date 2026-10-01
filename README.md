@@ -61,8 +61,8 @@ order and a product low on stock.
 
 | | |
 |---|---|
-| The app | <http://localhost:3000> |
-| The landing page, open to anyone | <http://localhost:3000/about> |
+| The landing page, open to anyone | <http://localhost:3000> |
+| The app (Home) | <http://localhost:3000/home> |
 | The privacy policy | <http://localhost:3000/privacy> |
 | The developer console (developer account only) | <http://localhost:3000/admin> |
 | Supabase Studio | <http://127.0.0.1:54323> |
@@ -178,13 +178,28 @@ secret. [`docs/ANDROID.md`](./docs/ANDROID.md) is the guide to Play.
 
 ---
 
-## The landing page's screenshots
+## Pictures the app makes of itself
 
-The screens on `/about` are the app itself. `scripts/landing-shots.mts` builds
-a demo business with a month of orders, photographs it, and deletes it again.
-It works only against the local Supabase.
+- **The landing page's screenshots** (`src/assets/landing/`):
+  `scripts/landing-shots.mts` builds a demo business with a month of orders,
+  photographs it, and deletes it again. It works only against the local
+  Supabase.
+- **The picture a shared link shows** (`src/app/opengraph-image.jpg` and
+  `twitter-image.jpg`): `scripts/og-image.mts` draws it from the landing page's
+  own fonts, colours and phone frame.
+- **The brand's marks** (`src/assets/brand/`, the app's icons, and the PNGs
+  the emails show in `public/email/`): `node scripts/brand.mjs`, from the
+  design references, which are not committed.
+
+Both pictures scripts need the built app running on port 3100:
 
 ```bash
 npm run build && npx next start -p 3100              # in another terminal
 npx tsx --env-file=.env.local scripts/landing-shots.mts
+npx tsx scripts/og-image.mts
 ```
+
+**Emails** (`src/lib/mail/templates/`) are drawn in the same world: the
+wordmark, a card, one dark button, and the brand's line. Their links and
+pictures come from `NEXT_PUBLIC_APP_URL`, so the pictures only show once that
+address serves the app. Locally, read them in Mailpit.

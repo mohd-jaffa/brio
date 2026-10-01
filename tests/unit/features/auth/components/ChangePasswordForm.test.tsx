@@ -88,7 +88,7 @@ describe("replacing a password", () => {
         confirmPassword: "hunter22",
       }),
     );
-    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/"));
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/home"));
   });
 
   it("takes up the session the change returned, so the gate is not still closed", async () => {

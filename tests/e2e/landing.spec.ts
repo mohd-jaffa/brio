@@ -12,7 +12,7 @@ const text = UI_TEXT.landing;
 test("a visitor meets Brio on the landing page, and goes on to make an account", async ({ page }) => {
   await page.goto("/login");
   await page.getByRole("link", { name: UI_TEXT.auth.seeWhatBrioDoes }).click();
-  await expect(page).toHaveURL(/\/about$/);
+  await expect(page).toHaveURL((url) => url.pathname === "/");
 
   await expect(page.getByRole("heading", { level: 1, name: UI_TEXT.appTagline })).toBeVisible();
   // On a phone, Create account waits in a bar along the bottom once the hero's own has gone.

@@ -36,7 +36,7 @@ vi.mock("@/constants/jobs", async (original) => ({
   },
 }));
 vi.mock("@/lib/mail/nodemailer.provider", () => ({
-  createConfiguredMailService: () => ({ sendAccountConfirmation: sendMail }),
+  createConfiguredMailService: () => ({ sendEmailChange: sendMail }),
 }));
 vi.mock("@/lib/env/server", () => ({ getServerEnv: () => ({ NEXT_PUBLIC_APP_URL: "https://app.test" }) }));
 vi.mock("@/lib/jobs/queue", () => ({ createJob }));

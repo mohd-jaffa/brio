@@ -113,11 +113,21 @@ describe("what the proxy runs on", () => {
     expect(pattern.test("/settings/delete-account")).toBe(true);
   });
 
-  it("leaves the landing page alone, for anyone to read (§139.11.22)", () => {
+  it("leaves the landing page alone, at the site's root, for anyone to read (§139.11.22), but not Home", () => {
     const [matcher] = config.matcher;
     const pattern = new RegExp(`^${matcher}$`);
 
-    expect(pattern.test("/about")).toBe(false);
+    expect(pattern.test("/")).toBe(false);
+    expect(pattern.test("/home")).toBe(true);
+  });
+
+  it("leaves alone the pictures a shared link and an email show, which come with no session", () => {
+    const [matcher] = config.matcher;
+    const pattern = new RegExp(`^${matcher}$`);
+
+    for (const path of ["/opengraph-image.jpg", "/twitter-image.jpg", "/email/wordmark.png"]) {
+      expect(pattern.test(path)).toBe(false);
+    }
   });
 
   it("leaves /.well-known/ alone, so Android reads the App Links statement without a redirect", () => {

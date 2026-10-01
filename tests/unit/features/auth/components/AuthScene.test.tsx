@@ -74,6 +74,6 @@ describe("AuthPromise", () => {
 describe("AuthAbout", () => {
   it("leads someone meeting Brio for the first time to what it does", () => {
     render(<AuthAbout />);
-    expect(screen.getByRole("link", { name: UI_TEXT.auth.seeWhatBrioDoes })).toHaveAttribute("href", "/about");
+    expect(screen.getByRole("link", { name: UI_TEXT.auth.seeWhatBrioDoes })).toHaveAttribute("href", "/");
   });
 });

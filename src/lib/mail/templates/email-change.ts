@@ -1,16 +1,20 @@
 import { MAIL_TEXT } from "@/constants/messages";
+import { EMAIL_CHANGE_LINK_HOURS } from "@/constants/limits";
 
 import { emailHtml, emailText, type EmailParts } from "./layout";
 
-interface AccountConfirmationTemplateInput {
+interface EmailChangeTemplateInput {
   appUrl: string;
   name: string;
   confirmationUrl: string;
 }
 
-/** A new account's email, to confirm the address it was made with. */
-export function accountConfirmationTemplate(input: AccountConfirmationTemplateInput) {
-  const text = MAIL_TEXT.confirmation;
+/**
+ * Sent to a new address an owner asked to use, to confirm it is theirs; until
+ * then the account keeps the one it has (plan §139.11.2).
+ */
+export function emailChangeTemplate(input: EmailChangeTemplateInput) {
+  const text = MAIL_TEXT.emailChange;
   const parts: EmailParts = {
     appUrl: input.appUrl,
     subject: text.subject,
@@ -18,6 +22,7 @@ export function accountConfirmationTemplate(input: AccountConfirmationTemplateIn
     heading: text.heading,
     paragraphs: [MAIL_TEXT.greeting(input.name), text.body],
     action: { label: text.action, url: input.confirmationUrl, fallback: MAIL_TEXT.linkFallback },
+    note: text.expires(EMAIL_CHANGE_LINK_HOURS),
     footnote: text.footnote,
   };
   return { subject: text.subject, text: emailText(parts), html: emailHtml(parts) };

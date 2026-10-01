@@ -8,7 +8,7 @@ describe("the web app manifest", () => {
       id: "/",
       name: "Brio",
       short_name: "Brio",
-      start_url: "/",
+      start_url: "/home",
       scope: "/",
       display: "standalone",
       background_color: "#f6efe5",

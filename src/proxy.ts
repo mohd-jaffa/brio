@@ -42,11 +42,13 @@ export const config = {
    * than browsers), Next's own assets, the fonts the bill is drawn in, the
    * metadata files, and what the installed app needs signed in or not: its
    * icons, its service worker and its offline page (plan §139.19 R7); the
-   * privacy policy and the landing page, which anyone may read (R8.10,
-   * §139.11.22); and `/.well-known/`, which Android reads for App Links and
+   * privacy policy and the landing page at the site's root, which anyone may
+   * read (R8.10, §139.11.22); the pictures a shared link and an email show,
+   * which are fetched with no session (`opengraph-image`, `twitter-image`,
+   * `email/`); and `/.well-known/`, which Android reads for App Links and
    * which must answer without a redirect (R8.5).
    */
   matcher: [
-    "/((?!api|_next/static|_next/image|fonts/|icons/|favicon.ico|apple-icon.png|manifest.webmanifest|sw.js|offline|privacy|about|\\.well-known/|robots.txt|sitemap.xml).*)",
+    "/((?!$|api|_next/static|_next/image|fonts/|icons/|email/|favicon.ico|apple-icon.png|opengraph-image|twitter-image|manifest.webmanifest|sw.js|offline|privacy|\\.well-known/|robots.txt|sitemap.xml).*)",
   ],
 };

@@ -42,6 +42,7 @@ export function createConfiguredMailService(env: ServerEnv = getServerEnv()) {
 
   return new MailService({
     from: env.SMTP_FROM,
+    appUrl: env.NEXT_PUBLIC_APP_URL,
     provider: new NodemailerProvider({
       host: env.SMTP_HOST,
       port: env.SMTP_PORT ?? 587,

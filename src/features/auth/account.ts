@@ -299,7 +299,7 @@ export async function sendEmailChangeConfirmation(adminClient: SupabaseClient, u
   if (error) throw internalError("INTERNAL_ERROR", undefined, error);
 
   const env = getServerEnv();
-  await createConfiguredMailService(env).sendAccountConfirmation({
+  await createConfiguredMailService(env).sendEmailChange({
     to: profile.pending_email,
     name: profile.name,
     confirmationUrl: `${env.NEXT_PUBLIC_APP_URL}${EMAIL_CONFIRMATION_PATH}#${EMAIL_CHANGE_FRAGMENT}=${token}`,

@@ -69,7 +69,7 @@ const CLOSING_START = "landing-closing-start";
 const nth = (at: number) => ({ "--i": at }) as CSSProperties;
 
 /**
- * The landing page (`/about`; plan §139.11.22, the user, 2026-09-30): what
+ * The landing page (`/`; plan §139.11.22, the user, 2026-09-30): what
  * Brio is, who it is for, and a day's work in it on one pinned phone
  * (`DayOnOnePhone`), shown on the app's own screens — a demo business
  * photographed on a phone and a laptop (scripts/landing-shots.mts). It is

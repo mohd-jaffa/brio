@@ -11,6 +11,7 @@ import { readInitialSession } from "@/features/auth/session.server";
 import { assetUrl, launchBootScript } from "@/lib/launch/splash";
 import { NativeSetup } from "@/lib/native/NativeSetup";
 import { ThemeProvider } from "@/lib/theme/ThemeProvider";
+import { shareMetadata, siteUrl } from "@/lib/share/metadata";
 import { PwaSetup } from "@/lib/pwa/PwaSetup";
 import { KeyboardInset } from "@/lib/viewport/KeyboardInset";
 import { DEFAULT_THEME, THEME_BOOT_SCRIPT, THEME_COLORS } from "@/lib/theme/themes";
@@ -39,8 +40,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: siteUrl(),
   title: UI_TEXT.appTitle,
   description: UI_TEXT.appDescription,
+  ...shareMetadata(UI_TEXT.appDescription),
   applicationName: UI_TEXT.appShortName,
   // Added to an iPhone's home screen, it opens full screen under a
   // see-through status bar, which the safe-area insets pay for (plan §139.8).

@@ -102,7 +102,7 @@ Do these in order. Each gives you values that a later step needs.
    | `NEXT_PUBLIC_SUPABASE_URL` | `https://<project-ref>.supabase.co` (B2) |
    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | the project's anon key (B2) |
    | `SUPABASE_SERVICE_ROLE_KEY` | the project's service-role key (B2); mark it **Sensitive** |
-   | `NEXT_PUBLIC_APP_URL` | the address people will use, e.g. `https://app.yourdomain.com`, with no `/` at the end |
+   | `NEXT_PUBLIC_APP_URL` | the address people will use, e.g. `https://app.yourdomain.com`, with no `/` at the end. Links in emails, the pictures they show, and a shared link's preview are all made from it |
    | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | your mail provider's settings |
    | `SUPPORT_EMAIL` | the address the privacy policy gives for questions about data |
    | `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | from `npx web-push generate-vapid-keys`; make them once, and keep them |
@@ -351,7 +351,8 @@ In the **Actions** tab, open the **Release** run:
 
 On the production address, in a private window:
 
-- [ ] `/about` shows the landing page, and Settings → About shows the new
+- [ ] The site's address shows the landing page, a shared link to it shows
+      Brio's picture (paste it into WhatsApp), and Settings → About shows the new
       version.
 - [ ] Register a new account. The confirmation email arrives, and the welcome
       shows once after signing in.
@@ -496,6 +497,8 @@ one place, on a phone, a tablet or a computer.
 - Business details, with your logo, printed on every bill.
 - Two looks, Golden and Peach.
 - A short welcome, once, for a new account.
+- Emails in Brio's own look, with its name and logo: confirming your email, a
+  new email address, and a temporary password.
 - Delete your account and everything in it from Settings, at any time. The
   privacy policy is at `/privacy`.
 
@@ -503,10 +506,12 @@ one place, on a phone, a tablet or a computer.
 - A phone, a tablet and a computer, each laid out for its screen.
 - Install it on a phone's home screen from the browser, or use the Android
   app.
-- A landing page at `/about` shows what Brio does: a day's work, taking an
-  order to the month's costs, on Brio's own screens, on one phone held beside
-  the steps on a tablet or a computer, and step by step on a phone. The sign-in
-  screen links to it.
+- A landing page at the site's own address shows what Brio does: a day's
+  work, taking an order to the month's costs, on Brio's own screens, on one
+  phone held beside the steps on a tablet or a computer, and step by step on
+  a phone. The sign-in screen links to it. The app itself starts at `/home`.
+- A link to Brio shared on WhatsApp, or anywhere else, shows its name, what it
+  is, and a picture of it.
 
 ### For developers
 - A developer console at `/admin`: every account, an error log of what failed

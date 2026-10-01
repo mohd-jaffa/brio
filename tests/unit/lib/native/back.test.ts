@@ -48,7 +48,7 @@ describe("goBack", () => {
   });
 
   it("leaves the app on Home, on signing in, or with nowhere to go back to", () => {
-    place("/");
+    place("/home");
     expect(goBack(true)).toBe("LEAVE");
     place("/login");
     expect(goBack(true)).toBe("LEAVE");

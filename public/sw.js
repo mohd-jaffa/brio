@@ -109,13 +109,16 @@ self.addEventListener("message", (event) => {
 // and a tag, so a repeat of the same reminder replaces it rather than stacks.
 // Shown even when the app is closed: that is what they are for.
 
+/** Home (HOME_ROUTE): the site's root is the landing page. */
+const HOME = "/home";
+
 /** Only a screen of this app: a pushed address that leads anywhere else opens Home. */
 function appAddress(url) {
   const target = new URL(
-    typeof url === "string" && url.startsWith("/") && !url.startsWith("//") ? url : "/",
+    typeof url === "string" && url.startsWith("/") && !url.startsWith("//") ? url : HOME,
     self.location.origin,
   );
-  return target.origin === self.location.origin ? target.href : self.location.origin + "/";
+  return target.origin === self.location.origin ? target.href : self.location.origin + HOME;
 }
 
 self.addEventListener("push", (event) => {
@@ -142,7 +145,7 @@ self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const kept = event.notification.data?.url;
   const target = typeof kept === "string" ? new URL(kept, self.location.origin) : null;
-  const url = target && target.origin === self.location.origin ? target.href : appAddress("/");
+  const url = target && target.origin === self.location.origin ? target.href : appAddress(HOME);
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(async (windows) => {
       const open = windows.find((client) => new URL(client.url).origin === self.location.origin);

@@ -1,6 +1,7 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 import { ANDROID_APP_ID } from "./src/constants/android";
+import { HOME_ROUTE } from "./src/constants/routes";
 import { shellServer } from "./src/lib/native/shell";
 
 /**
@@ -28,6 +29,8 @@ const config: CapacitorConfig = {
   backgroundColor: "#fdfaf2",
   server: {
     url: server.url,
+    // The app opens on Home: the site's root is the landing page, for visitors.
+    appStartPath: HOME_ROUTE,
     cleartext: server.cleartext,
     // Shown when the app cannot be reached: no network, or the server is down.
     errorPath: "offline.html",
