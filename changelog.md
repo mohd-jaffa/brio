@@ -4289,3 +4289,18 @@ Every signed-in screen was checked at 360, 390, 768 and 1440 px (`/impeccable po
 
 ### Blockers
 - None.
+
+## 2026-10-01 — Release v1.0.0
+
+### Release
+- Brio 1.0.0, the first release. Notes: docs/RELEASE.md, part E.
+- Served at `https://brio-omega.vercel.app`, the Vercel project's own address, until the domain is bought. `NEXT_PUBLIC_APP_URL`, Supabase's Site URL and redirect URL, and the scheduler's Vault URL use it until then.
+
+### Migration notes
+- A new hosted database gets every migration, 0001 to 0036.
+
+### Validation
+- On the release commit, locally: lint, the format check and the type check pass; unit tests (2575), integration tests (36), the build and the browser journeys (3) pass.
+
+### Blockers
+- None.
